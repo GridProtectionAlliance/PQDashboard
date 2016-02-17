@@ -365,8 +365,11 @@
                 layout: 'vertical',
                 align: 'right',
                 verticalAlign: 'top',
-                symbolwidth: 1,
-                symbolPadding: 1,
+
+                symbolHeight: 0,
+                symbolWidth: 0,
+                symbolRadius: 0,
+                symbolPadding: 0,
                 padding: 0,
 
                 backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
@@ -383,10 +386,7 @@
                     }
 
                     var channelname = this.name.replace(/\s+/g, '');
-                    return "<input title='Show " + this.name + " in tooltip' " + checkedstring + " type='checkbox' id='" + channelname + "' onclick='return(legenditemclick(this));'><span style='color:" + this.color + "'>" + this.name + "</span>";
-
-
-                    //}
+                    return "<input title='Show " + this.name + " in tooltip' " + checkedstring + " type='checkbox' id='" + channelname + "' onclick='javascript:return(legenditemclick(this));'><span style='color:" + this.color + "'>" + this.name + "</span>";
                 }
             },
             tooltip: {
