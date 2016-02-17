@@ -188,7 +188,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
     function legenditemclick(theitem) {
-
         clickincheckbox = true;
     }
 
@@ -361,7 +360,7 @@
                     fontSize: '8px'
                 },
 
-                width: 120,
+                width: 140,
                 layout: 'vertical',
                 align: 'right',
                 verticalAlign: 'top',
