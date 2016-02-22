@@ -87,10 +87,11 @@ public partial class OpenSEEStack : System.Web.UI.Page
 
                         FaultLocationData.FaultSummaryDataTable thesummarydatatable = summaryInfo.GetDataBy(Convert.ToInt32(postedEventId));
 
-                        FaultLocationData.FaultSummaryRow thesummary = Enumerable.OrderBy(thesummarydatatable
-                                //.Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1 /*&& row.IsValid == 1 && row.IsSuppressed == 0)
-                                .Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1 && row.IsSuppressed == 0)
-                                .Select(x => x), y => y.Inception)
+                        FaultLocationData.FaultSummaryRow thesummary = thesummarydatatable
+                            //.Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1 /*&& row.IsValid == 1 && row.IsSuppressed == 0)
+                            .Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1)
+                            .OrderBy(row => row.IsSuppressed)
+                            .ThenBy(row => row.Inception)
                             .First();
 
                         postedInceptionTime = thesummary.Inception.TimeOfDay.ToString();
