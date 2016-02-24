@@ -297,20 +297,21 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
                         measurementType = "E";
                     }
 
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Digital"))
+                    {
+                        if (theseries.SeriesInfo.Channel.MeasurementCharacteristic.Name == "None")
+                            continue;
+
+                        measurementType = "D";
+                        phasename = theseries.SeriesInfo.Channel.Description;
+                    }
+
                     if (DataType != null)
                     {
                         if (measurementType != DataType)
                         {
                             continue;
                         }
-                    }
-
-                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Digital"))
-                    {
-                        measurementType = "D";
-                        int thechannelid  = theseries.SeriesInfo.Channel.ID;
-                        Channel thechannel = theseries.SeriesInfo.Channel.MeasurementType.Channels.First(m => m.ID == thechannelid);
-                        phasename = thechannel.Description;
                     }
 
                     if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Min") continue;
@@ -321,6 +322,11 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
                     if (measurementType == "V")
                     {
                         theset.Yaxis0name = "Voltage";
+                    }
+
+                    if (measurementType == "D")
+                    {
+                        theset.Yaxis0name = "Breakers";
                     }
 
                     //theitem.name = theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) + " " + measurementType + theseries.SeriesInfo.Channel.Phase.Name;
@@ -352,9 +358,9 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
 
         //theset = FetchFaultSegmentDetails(EventInstanceID, theset);
 
-    eventSet thereturnset = FetchMeterEventCycleData(EventInstanceID, theset.Yaxis0name, theset);
+        eventSet thereturnset = FetchMeterEventCycleData(EventInstanceID, theset.Yaxis0name, theset);
 
-    return (thereturnset);
+        return (thereturnset);
     }
 
     private eventSet FetchMeterEventFaultCurveByID(string EventInstanceID)
@@ -506,6 +512,9 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
         DataGroup eventDataGroup = new DataGroup();
         List<DataGroup> cycleCurves;
         List<MeterData.EventDataRow> cycleDataRows;
+
+        if (MeasurementName != "Voltage" && MeasurementName != "Current")
+            return theset;
 
         using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
         using (EventTableAdapter eventAdapter = new EventTableAdapter())

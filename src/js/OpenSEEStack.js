@@ -28,6 +28,7 @@
     var postedEventId = "";
     var postedEventName = "";
     var postedShowFaultCurves = "";
+    var postedShowBreakerDigitals = "";
     var postedMeterId = "";
     var postedDate = "";
     var postedEventDate = "";
@@ -364,10 +365,7 @@
                 layout: 'vertical',
                 align: 'right',
                 verticalAlign: 'top',
-
-                symbolHeight: 0,
-                symbolWidth: 0,
-                symbolRadius: 0,
+                symbolWidth: 5,
                 symbolPadding: 0,
                 padding: 0,
 
@@ -385,7 +383,7 @@
                     }
 
                     var channelname = this.name.replace(/\s+/g, '');
-                    return "<input title='Show " + this.name + " in tooltip' " + checkedstring + " type='checkbox' id='" + channelname + "' onclick='javascript:return(legenditemclick(this));'><span style='color:" + this.color + "'>" + this.name + "</span>";
+                    return "<input title='Show " + this.name + " in tooltip' " + checkedstring + " type='checkbox' id='" + channelname + "' onclick='javascript:return(legenditemclick(this));'><span title='" + this.name + "' style='color:" + this.color + "'>" + this.name + "</span>";
                 }
             },
             tooltip: {
@@ -838,7 +836,11 @@ function showData() {
         options1 = populateDivWithLineChartByInstanceID("getSignalDataByIDAndType", 'WaveformEventsVoltage', postedEventId, "", "V");
         options2 = populateDivWithLineChartByInstanceID("getSignalDataByIDAndType", 'WaveformEventsCurrent', postedEventId, "", "I");
 
-        if (postedShowFaultCurves == "0")
+        if (postedShowBreakerDigitals != "")
+        {
+        options3 = populateDivWithLineChartByInstanceID("getSignalDataByIDAndType", 'WaveformEventsFaultCurve', postedEventId, "", "D");
+        }
+        else if (postedShowFaultCurves == "0")
         {
         options3 = populateDivWithLineChartByInstanceID("getFaultCurveDataByID", 'WaveformEventsFaultCurve', 0, "", null);
         }
@@ -1107,6 +1109,7 @@ function showdetails(thecontrol) {
         postedEventId = $("#postedEventId")[0].innerHTML;
         postedEventName = $("#postedEventName")[0].innerHTML;
         postedShowFaultCurves = $("#postedShowFaultCurves")[0].innerHTML;
+        postedShowBreakerDigitals = $("#postedShowBreakerDigitals")[0].innerHTML;
         postedMeterId = $("#postedMeterId")[0].innerHTML;
         postedDate = $("#postedDate")[0].innerHTML;
         postedEventDate = $("#postedEventDate")[0].innerHTML;

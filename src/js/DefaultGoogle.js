@@ -751,7 +751,12 @@ function OpenWindowToOpenSTE(id) {
 
 function OpenWindowToOpenSeeStack(id) {
     var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var popup = window.open("openSeeStack.aspx?eventid=" + datarow.theeventid, id + "openSeeStack", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var url = "openSeeStack.aspx?eventid=" + datarow.theeventid;
+
+    if (currentTab == "Breakers")
+        url += "&breakerdigitals=1";
+
+    var popup = window.open(url, id + "openSeeStack", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 

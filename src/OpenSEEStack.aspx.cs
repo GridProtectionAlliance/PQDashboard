@@ -26,6 +26,7 @@ public partial class OpenSEEStack : System.Web.UI.Page
     public String postedFaultCurrent = "";
     public String postedDurationPeriod = "";
     public String postedShowFaultCurves = "";
+    public String postedShowBreakerDigitals = "";
 
     String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
@@ -42,6 +43,11 @@ public partial class OpenSEEStack : System.Web.UI.Page
                 else
                 {
                     postedShowFaultCurves = Request["faultcurves"];
+                }
+
+                if (Request["breakerdigitals"] != null)
+                {
+                    postedShowBreakerDigitals = Request["breakerdigitals"];
                 }
 
                 postedShowFaultCurves = Request["faultcurves"];
