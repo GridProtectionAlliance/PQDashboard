@@ -194,6 +194,23 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+    function popAccumulatedPoints() {
+        var rows = $('#accumulatedpointscontent').jqxGrid('getrows');
+
+        if (rows.length > 0) {
+            var lastrow = rows[rows.length - 1];
+            $('#accumulatedpointscontent').jqxGrid('deleterow', lastrow.uid);
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+    function clearAccumulatedPoints() {
+        $('#accumulatedpointscontent').jqxGrid('clear');
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
     function populateDivWithLineChartByInstanceID(thedatasource, thediv, theeventinstance, label, datatype) {
 
         var options = {
@@ -234,13 +251,23 @@
 
                             click: function () {
                                 var tempdataarray = new Array();
-                                var tempdelta = 0.0;
+                                var deltatime = 0.0;
+                                var deltavalue = 0.0;
                                 var rows = $('#accumulatedpointscontent').jqxGrid('getrows');
                                 if (rows.length > 0) {
                                     var datarow = $('#accumulatedpointscontent').jqxGrid('getrowdata', rows.length - 1);
-                                    tempdelta = this.y - datarow.thevalue;
+                                    deltatime = Number(this.category) - datarow.hiddentime;
+                                    deltavalue = this.y - datarow.hiddenvalue;
                                     }
-                                tempdataarray.push({ theseries: this.series.name, thetime: this.category, thevalue: this.y.toFixed(3), thedelta: tempdelta.toFixed(3) });
+                                tempdataarray.push({
+                                    theseries: this.series.name + "<br/>",
+                                    thetime: Number(this.category).toFixed(7) + " sec<br/>" + (this.category * 60.0).toFixed(2) + " cycles",
+                                    thevalue: this.y.toFixed(3) + "<br/>",
+                                    deltatime: deltatime.toFixed(7) + " sec<br/>" + (deltatime * 60.0).toFixed(2) + " cycles",
+                                    deltavalue: deltavalue.toFixed(3) + "<br/>",
+                                    hiddentime: Number(this.category).toFixed(7),
+                                    hiddenvalue: this.y.toFixed(3)
+                                });
                                 $('#accumulatedpointscontent').jqxGrid("addrow", null, tempdataarray);
                                 $('#accumulatedpointscontent').jqxGrid('selectrow', rows.length - 1);
                                 $('#accumulatedpointscontent').jqxGrid('ensurerowvisible', rows.length - 1);
@@ -861,7 +888,6 @@ function showhidePoints(thecontrol) {
 
     } else {
         thecontrol.value = "Show Points";
-        $('#accumulatedpointscontent').jqxGrid('clear');
         $('#accumulatedpoints').hide();
 
     }
@@ -1060,19 +1086,25 @@ function showdetails(thecontrol) {
 
     });
 
+    var rend = function(row, columnfield, value, defaulthtml, columnproperties) {
+        return '<div style="text-overflow: ellipsis; overflow: hidden; padding-bottom: 2px; text-align: center; margin-top: 4px;">' + value + '</div>';
+    }
+
     $("#accumulatedpointscontent").jqxGrid(
     {
         width: "100%",
-        height: "100%",
+        height: "140px",
         source: pointadapter,
         columnsresize: true,
+        rowsheight: 30,
         sortable: true,
         theme: 'ui-redmond',
         columns: [
-            { text: 'Series', width: '25%' , datafield: "theseries" },
-            { text: 'Time', width: '25%', datafield: "thetime" },
-            { text: 'Value', width: '25%', datafield: "thevalue", cellsalign: 'right' },
-            { text: 'Delta', width: '25%', datafield: "thedelta", cellsalign: 'right' }
+            { text: 'Series', width: '20%' , datafield: "theseries" },
+            { text: 'Time', width: '20%', datafield: "thetime", cellsalign: 'center', cellsrenderer: rend },
+            { text: 'Value', width: '20%', datafield: "thevalue", cellsalign: 'center' },
+            { text: 'Delta Time', width: '20%', datafield: "deltatime", cellsalign: 'center', cellsrenderer: rend },
+            { text: 'Delta Value', width: '20%', datafield: "deltavalue", cellsalign: 'center' }
         ]
     });
     

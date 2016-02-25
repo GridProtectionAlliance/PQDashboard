@@ -114,9 +114,13 @@
             <div id="unifiedtooltipcontent"></div>
         </div>
         
-        <div id="accumulatedpoints" class="ui-widget-content">
+        <div id="accumulatedpoints" class="ui-widget-content" style="width: 480px; height: 200px">
             <div id="accumulatedpointshandle"></div>
             <div id="accumulatedpointscontent"></div>
+            <div style="margin: 5px; text-align: right">
+                <input class="smallbutton" type="button" value="Pop" onclick="popAccumulatedPoints()" />
+                <input class="smallbutton" type="button" value="Clear" onclick="clearAccumulatedPoints()" />
+            </div>
         </div>
 
         <div id="phasor" class="ui-widget-content" style="width:300px; height:320px;">
