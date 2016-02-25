@@ -101,9 +101,9 @@
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedEventDate"><%=postedEventDate %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedMeterName"><%=postedMeterName %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedLineName"><%=postedLineName %></div>
-        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedInceptionTime"><%=postedInceptionTime %></div>
+        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedStartTime"><%=postedStartTime %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedDurationPeriod"><%=postedDurationPeriod %></div>
-        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedFaultCurrent"><%=postedFaultCurrent %></div>
+        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedMagnitude"><%=postedMagnitude %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedShowFaultCurves"><%=postedShowFaultCurves %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedShowBreakerDigitals"><%=postedShowBreakerDigitals %></div>
 
@@ -175,6 +175,16 @@
             </div>
             <div id="WaveformEventsFaultCurve">
             </div>
+        </div>
+
+        <div style="width: 100%; height: 64px;">
+            <table width="100%">
+                <tr>
+                    <td align="center">
+                        <div id="FooterData"></div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </body>
 </html>

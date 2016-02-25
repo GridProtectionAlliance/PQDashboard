@@ -34,9 +34,9 @@
     var postedEventDate = "";
     var postedMeterName = "";
     var postedLineName = "";
-    var postedInceptionTime = "";
+    var postedStartTime = "";
     var postedDurationPeriod = "";
-    var postedFaultCurrent = "";
+    var postedMagnitude = "";
 
     var options1 = null;
     var options2 = null;
@@ -852,13 +852,33 @@ function showData() {
     if (postedEventName && postedEventId) {
         // Lets build a label for this chart
         var label = "";
-        //label += postedMeterName + " - (Line) ";
+        var details = "";
+
         label += postedLineName + " - ";
-        label += postedEventName + " - ";
-        //label += "(Start) " + postedDate + " " + postedEventDate;
-        label += " Inception: " + postedInceptionTime + "&nbsp;&nbsp;&nbsp;Duration: " + postedDurationPeriod + "&nbsp;&nbsp;&nbsp;Max Current: " + postedFaultCurrent;
+        label += postedEventName;
+
+        if (postedStartTime != "")
+            details += "Start: " + postedStartTime;
+
+        if (postedDurationPeriod != "") {
+            if (details != "")
+                details += "&nbsp;&nbsp;&nbsp;";
+
+            details += "Duration: " + postedDurationPeriod;
+        }
+
+        if (postedMagnitude != "") {
+            if (details != "")
+                details += "&nbsp;&nbsp;&nbsp;";
+
+            details += "Magnitude: " + postedMagnitude;
+        }
+
+        if (details != "")
+            label += " - " + details;
 
         $("#TitleData")[0].innerHTML = label;
+        $("#FooterData")[0].innerHTML = "x-axis in seconds since " + postedEventDate;
 
         options1 = populateDivWithLineChartByInstanceID("getSignalDataByIDAndType", 'WaveformEventsVoltage', postedEventId, "", "V");
         options2 = populateDivWithLineChartByInstanceID("getSignalDataByIDAndType", 'WaveformEventsCurrent', postedEventId, "", "I");
@@ -1148,9 +1168,9 @@ function showdetails(thecontrol) {
         postedMeterName = $("#postedMeterName")[0].innerHTML;
         postedLineName = $("#postedLineName")[0].innerHTML;
 
-        postedInceptionTime = $("#postedInceptionTime")[0].innerHTML;
+        postedStartTime = $("#postedStartTime")[0].innerHTML;
         postedDurationPeriod = $("#postedDurationPeriod")[0].innerHTML;
-        postedFaultCurrent = $("#postedFaultCurrent")[0].innerHTML;
+        postedMagnitude = $("#postedMagnitude")[0].innerHTML;
 
         $("#showdetails").hide();
 

@@ -210,7 +210,7 @@
                 font-size: 10px !important;
             }
 
-            #TitleData
+            #TitleData, #FooterData
             {
                 font-size: 12px !important;
             }
