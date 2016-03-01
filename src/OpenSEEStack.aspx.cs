@@ -23,6 +23,8 @@ public partial class OpenSEEStack : System.Web.UI.Page
     public string postedShowFaultCurves = "";
     public string postedShowBreakerDigitals = "";
 
+    public string postedErrorMessage = "";
+
     string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     protected void Page_Load(object sender, EventArgs e)
@@ -67,7 +69,8 @@ public partial class OpenSEEStack : System.Web.UI.Page
 
                         postedLineName = meterInfo.MeterLines.Where(row => row.LineID == theevent.LineID)
                             .Where(row => row.MeterID == theevent.MeterID)
-                            .Select(row => row.LineName).First();
+                            .Select(row => row.LineName)
+                            .FirstOrDefault() ?? "";
 
                         postedEventName = eventTypes
                             .Where(row => row.ID == theevent.EventTypeID)
@@ -84,12 +87,15 @@ public partial class OpenSEEStack : System.Web.UI.Page
                                 .Where(row => row.IsSelectedAlgorithm == 1)
                                 .OrderBy(row => row.IsSuppressed)
                                 .ThenBy(row => row.Inception)
-                                .First();
+                                .FirstOrDefault();
 
-                            postedStartTime = thesummary.Inception.TimeOfDay.ToString();
-                            //postedDurationPeriod = (thesummary.DurationSeconds * 1000).ToString("##.###", CultureInfo.InvariantCulture) + "msec (" + thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles)";
-                            postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
-                            postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
+                            if ((object)thesummary != null)
+                            {
+                                postedStartTime = thesummary.Inception.TimeOfDay.ToString();
+                                //postedDurationPeriod = (thesummary.DurationSeconds * 1000).ToString("##.###", CultureInfo.InvariantCulture) + "msec (" + thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles)";
+                                postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
+                                postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
+                            }
                         }
                         else if (new[] { "Sag", "Swell" }.Contains(postedEventName))
                         {
@@ -98,29 +104,22 @@ public partial class OpenSEEStack : System.Web.UI.Page
                             MeterData.DisturbanceRow disturbance = disturbanceTable
                                 .Where(row => row.EventTypeID == theevent.EventTypeID)
                                 .OrderBy(row => row.StartTime)
-                                .First();
+                                .FirstOrDefault();
 
-                            postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
-                            postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
-                            postedMagnitude = disturbance.Magnitude.ToString("N2", CultureInfo.InvariantCulture) + " Volts (RMS)";
+                            if ((object)disturbance != null)
+                            {
+                                postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
+                                postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
+                                postedMagnitude = disturbance.Magnitude.ToString("N2", CultureInfo.InvariantCulture) + " Volts (RMS)";
+                            }
                         }
-                        else
-                        {
+
+                        if (postedStartTime == "")
                             postedStartTime = theevent.StartTime.TimeOfDay.ToString();
-                        }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        postedLineName = "";
-                        postedEventId = "";
-                        postedEventName = "";
-                        postedMeterId = "";
-                        postedDate = "";
-                        postedEventDate = "";
-                        postedMeterName = "";
-                        postedStartTime = "";
-                        postedDurationPeriod = "";
-                        postedMagnitude = "";
+                        postedErrorMessage = ex.Message;
                     }
                 }
             }

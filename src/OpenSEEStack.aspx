@@ -106,6 +106,7 @@
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedMagnitude"><%=postedMagnitude %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedShowFaultCurves"><%=postedShowFaultCurves %></div>
         <div style="visibility:hidden; width: 0px; height: 0px;" id="postedShowBreakerDigitals"><%=postedShowBreakerDigitals %></div>
+        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedErrorMessage"><%=postedErrorMessage %></div>
 
         
 
