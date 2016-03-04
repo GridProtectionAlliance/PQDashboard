@@ -1,39 +1,34 @@
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.EnterpriseServices;
 using System.Globalization;
 using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using FaultData.Database;
 using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
 
 public partial class FaultSpecifics : System.Web.UI.Page
 {
-    public String postedFaultType = "";
-    public String postedDeltaTime = "";
-    public String postedStartTime = "";
-    public String postedInceptionTime = "";
-    public String postedDurationPeriod = "";
-    public String postedFaultCurrent = "";
-    public String postedDistanceMethod = "";
-    public String postedSingleEndedDistance = "";
-    public String postedEventId = "";
-    public String postedMeterId = "";
-    public String postedMeterName = "";
-    public String postedDoubleEndedDistance = "";
-    public String postedDoubleEndedConfidence = "";
+    public string postedFaultType = "";
+    public string postedDeltaTime = "";
+    public string postedStartTime = "";
+    public string postedInceptionTime = "";
+    public string postedDurationPeriod = "";
+    public string postedFaultCurrent = "";
+    public string postedDistanceMethod = "";
+    public string postedSingleEndedDistance = "";
+    public string postedEventId = "";
+    public string postedMeterId = "";
+    public string postedMeterName = "";
+    public string postedDoubleEndedDistance = "";
+    public string postedDoubleEndedConfidence = "";
+    public string postedExceptionMessage = "";
 
-    String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
+    string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     protected void Page_Load(object sender, EventArgs e)
     {
-
         SqlConnection conn = null;
         SqlDataReader rdr = null;
 
@@ -42,11 +37,11 @@ public partial class FaultSpecifics : System.Web.UI.Page
             if (Request["eventId"] != null)
             {
                 postedEventId = Request["eventId"];
+
                 using (EventTypeTableAdapter eventTypeAdapter = new EventTypeTableAdapter())
                 using (EventTableAdapter eventAdapter = new EventTableAdapter())
                 using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
                 using (FaultSummaryTableAdapter summaryInfo = new FaultSummaryTableAdapter())
-
                 {
                     try
                     {
@@ -56,13 +51,13 @@ public partial class FaultSpecifics : System.Web.UI.Page
                         MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(postedEventId)).First();
                         FaultLocationData.FaultSummaryDataTable thesummarydatatable = summaryInfo.GetDataBy(Convert.ToInt32(postedEventId));
 
-                        FaultLocationData.FaultSummaryRow thesummary = Enumerable.OrderBy(thesummarydatatable
-                                //.Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1 /*&& row.IsValid == 1 && row.IsSuppressed == 0)
-                                .Where(row => row.EventID == int.Parse(postedEventId) && row.IsSelectedAlgorithm == 1 && row.IsSuppressed == 0)
-                                .Select(x => x), y => y.Inception)
-                            .First();
+                        FaultLocationData.FaultSummaryRow thesummary = thesummarydatatable
+                            .OrderBy(row => row.IsSuppressed)
+                            .ThenByDescending(row => row.IsSelectedAlgorithm)
+                            .ThenBy(row => row.Inception)
+                            .FirstOrDefault();
 
-                        if (thesummary == null)
+                        if ((object)thesummary == null)
                         {
                             postedFaultType = "Invalid";
                             postedInceptionTime = "Invalid";
@@ -73,71 +68,53 @@ public partial class FaultSpecifics : System.Web.UI.Page
                             postedDeltaTime = "Invalid";
                             postedDoubleEndedDistance = "Invalid";
                             postedDoubleEndedConfidence = "Invalid";
-                        }
-                        else
-                        {
-                            postedFaultType = thesummary.FaultType;
-                            postedInceptionTime = thesummary.Inception.TimeOfDay.ToString();
-                            postedDurationPeriod = (thesummary.DurationSeconds * 1000).ToString("##.###", CultureInfo.InvariantCulture) + "msec (" + thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles)";
-                            postedFaultCurrent = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
-                            postedDistanceMethod = thesummary.Algorithm;
-                            postedSingleEndedDistance = thesummary.Distance.ToString("####.###", CultureInfo.InvariantCulture) + " miles";
-                            double deltatime = (thesummary.Inception - theevent.StartTime).Ticks / 10000000.0;
-                            postedDeltaTime = deltatime.ToString();
+                            return;
                         }
 
-                    postedStartTime = theevent.StartTime.TimeOfDay.ToString();
+                        postedFaultType = thesummary.FaultType;
+                        postedInceptionTime = thesummary.Inception.TimeOfDay.ToString();
+                        postedDurationPeriod = (thesummary.DurationSeconds * 1000).ToString("##.###", CultureInfo.InvariantCulture) + "msec (" + thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles)";
+                        postedFaultCurrent = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
+                        postedDistanceMethod = thesummary.Algorithm;
+                        postedSingleEndedDistance = thesummary.Distance.ToString("####.###", CultureInfo.InvariantCulture) + " miles";
+                        double deltatime = (thesummary.Inception - theevent.StartTime).Ticks / 10000000.0;
+                        postedDeltaTime = deltatime.ToString();
 
-                    Meter themeter = meterInfo.Meters.Single(m => m.ID == theevent.MeterID);
+                        postedStartTime = theevent.StartTime.TimeOfDay.ToString();
 
-                    postedMeterName = themeter.Name + " - " + themeter.AssetKey;
-                    postedMeterId = theevent.MeterID.ToString();
+                        Meter themeter = meterInfo.Meters.Single(m => m.ID == theevent.MeterID);
 
-                    conn = new SqlConnection(connectionstring);
-                    conn.Open();
-                    SqlCommand cmd = new SqlCommand("dbo.selectDoubleEndedFaultDistanceForEventID", conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@EventID", postedEventId));
+                        postedMeterName = themeter.Name + " - " + themeter.AssetKey;
+                        postedMeterId = theevent.MeterID.ToString();
 
-                    cmd.CommandTimeout = 300;
+                        conn = new SqlConnection(connectionstring);
+                        conn.Open();
+                        SqlCommand cmd = new SqlCommand("dbo.selectDoubleEndedFaultDistanceForEventID", conn);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter("@EventID", postedEventId));
+                        cmd.CommandTimeout = 300;
+                        rdr = cmd.ExecuteReader();
 
-                    rdr = cmd.ExecuteReader();
                         if (rdr.HasRows)
                         {
-                        while (rdr.Read())
+                            while (rdr.Read())
                             {
                                 postedDoubleEndedDistance = ((double)rdr["Distance"]).ToString("####.###", CultureInfo.InvariantCulture) + " miles";
                                 postedDoubleEndedConfidence = ((double)rdr["Angle"]).ToString("####.####", CultureInfo.InvariantCulture) + " degrees";
                             }
                         }
                     }
-
                     catch (Exception ex)
                     {
-                        postedFaultType = "";
-                        postedInceptionTime = "";
-                        postedDurationPeriod = "";
-                        postedFaultCurrent = "";
-                        postedDistanceMethod = "";
-                        postedSingleEndedDistance = "";
-                        postedEventId = "";
-                        postedMeterId = "";
-                        postedMeterName = "";
-                        postedDeltaTime = "";
-                        postedStartTime = "";
-                        postedDoubleEndedDistance = "";
-                        postedDoubleEndedConfidence = "";
+                        postedExceptionMessage = ex.Message;
                     }
                     finally
                     {
-                        if (conn != null)
-                        {
-                            conn.Close();
-                        }
                         if (rdr != null)
-                        {
-                            rdr.Close();
-                        }
+                            rdr.Dispose();
+
+                        if (conn != null)
+                            conn.Dispose();
                     }
                 }
             }
