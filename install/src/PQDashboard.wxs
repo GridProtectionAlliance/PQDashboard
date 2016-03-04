@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
+    <Product Id="{72A40DB2-AD3B-4BED-9E9E-F05150A03B32}" Name="PQ Dashboard" Language="1033" Version="1.0.2.0" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate EmbedCab="yes" />
+        
+        <PropertyRef Id="NETFRAMEWORK45"/>
+        <Condition Message='This setup requires Microsoft .NET Framework 4.5 or greater - this will need to be installed before installation can continue.'>
+            <![CDATA[Installed OR NETFRAMEWORK45]]>
+        </Condition>
+
+        <Feature Id="AllSites" Title="All Websites" Level="1" Display="expand" Description="All websites in the PQ Dashboard installation.">
+            <!-- PQ Dashboard -->
+            <Feature Id="PQDashboardFeature" Title="PQ Dashboard" AllowAdvertise="no" Description="Installs the PQ Dashboard website for visualization of power quality data." ConfigurableDirectory="PQDASHFOLDER">
+                <ComponentGroupRef Id="PQDashboardGroup" />
+            </Feature>
+            
+            <!-- Dashboard Admin Site -->
+            <Feature Id="DashAdminFeature" Title="PQ Dashboard Admin Interface" AllowAdvertise="no" Description="Installs the administration interface for the PQ Dashboard." ConfigurableDirectory="DASHADMINFOLDER">
+                <ComponentGroupRef Id="DashAdminGroup" />
+            </Feature>
+        </Feature>
+
+        <UI>
+            <!-- User Interface -->
+            <UIRef Id="WixUI_FeatureTree" />
+            <UIRef Id="WixUI_ErrorProgressText" />
+            <DialogRef Id="DatabaseConnectionDialog" />
+            
+            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DependenciesDialog">NOT Installed AND <![CDATA[&PQDashboardFeature=3]]></Publish>
+            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed AND <![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed</Publish>
+            
+            <!--
+            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed</Publish>
+            -->
+        </UI>
+        
+        <Icon Id="PQDashboard.ico" SourceFile="src/PQD.ico" />
+        <Icon Id="DashAdmin.ico" SourceFile="src/PQD-admin.ico" />
+        
+        <Property Id="WWWROOTDIR">
+            <RegistrySearch Id="FindInetPubFolder" Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Name="PathWWWRoot" Type="directory" />
+        </Property>
+        
+        <Property Id="HIGHCHARTSFOLDER" Secure="yes">
+            <RegistrySearch Id="FindHighChartsFolder" Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="HighChartsFolder" Type="directory" />
+        </Property>
+        
+        <Property Id="JQWIDGETSFOLDER" Secure="yes">
+            <RegistrySearch Id="FindJQWidgetsFolder" Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="JQWidgetsFolder" Type="directory" />
+        </Property>
+        
+        <Property Id="SERVERNAME" Value="localhost" />
+        <Property Id="WINDOWSAUTH" Value="1" />
+        <Property Id="DATAPROVIDERSTRING" Value="AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089};; ConnectionType=System.Data.SqlClient.SqlConnection;; AdapterType=System.Data.SqlClient.SqlDataAdapter" />
+        <SetProperty Id="DATABASENAME" Value="openXDA" After="LaunchConditions" Sequence="first" />
+        <SetProperty Id="SCRIPTPATH" Value="[INSTALLFOLDER]\openXDA.sql" After="LaunchConditions" Sequence="execute" />
+        <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard" Before="CreateShortcuts" Sequence="execute" />
+        <SetProperty Id="DASHADMINURL" Value="http://localhost/DashAdmin" Before="CreateShortcuts" Sequence="execute" />
+        <WixVariable Id="WixUIBannerBmp" Value="src\PQ Dashboard SetupLogo.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="src\InstallWelcome.bmp" />
+        <WixVariable Id="WixUILicenseRtf" Value="src\INSTALL_LICENSE.rtf" />
+        
+        <!-- Web Site -->
+        <iis:WebSite Id="DefaultWebSite" Description="Default Web Site" Directory="WWWROOTDIR">
+            <iis:WebAddress Id="AllUnassigned" Port="80" />
+        </iis:WebSite>
+    
+        <!-- Add/Remove Programs Properties -->
+        <Property Id="ARPPRODUCTICON" Value="PQDashboard.ico" />
+        <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+        <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />
+        
+        <!-- Custom Actions -->
+        <Binary Id="InstallerActions" SourceFile="src\GSF.InstallerActions.CA.dll" />
+        <CustomAction Id="BrowseFileAction" BinaryKey="InstallerActions" DllEntry="BrowseFileAction" Execute="immediate" />
+        <CustomAction Id="CheckFileExistenceAction" BinaryKey="InstallerActions" DllEntry="CheckFileExistenceAction" Execute="immediate" />
+        
+        <CustomAction Id="PasswordGenerationAction" BinaryKey="InstallerActions" DllEntry="PasswordGenerationAction" Execute="immediate" />
+        <CustomAction Id="TestDatabaseConnectionAction" BinaryKey="InstallerActions" DllEntry="TestDatabaseConnectionAction" Execute="immediate" />
+        <CustomAction Id="CreateDBLogin.SetProperty" Property="CreateDBLogin" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[SERVERCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[CREATEDBLOGINQUERY]" />
+        <CustomAction Id="CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+        <CustomAction Id="AlterDBLogin.SetProperty" Property="AlterDBLogin" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[SERVERCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[ALTERDBLOGINQUERY]" />
+        <CustomAction Id="AlterDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+        <CustomAction Id="CreateDBUser.SetProperty" Property="CreateDBUser" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[DBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[CREATEDBUSERQUERY]" />
+        <CustomAction Id="CreateDBUser" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+        <CustomAction Id="GrantDBPermissions.SetProperty" Property="GrantDBPermissions" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[DBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[DBPERMISSIONSQUERY]" />
+        <CustomAction Id="GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+        
+        <CustomAction Id="UnzipHighChartsAction.SetProperty" Property="UnzipHighChartsAction" Value="ZIPFILE=[HIGHCHARTSPATH];SOURCEDIR=js;DESTINATIONDIR=[HIGHCHARTSFOLDER]" />
+        <CustomAction Id="UnzipHighChartsAction" BinaryKey="InstallerActions" DllEntry="UnzipAction" Execute="deferred" Impersonate="no" />
+        <CustomAction Id="UnzipJQWidgetsAction.SetProperty" Property="UnzipJQWidgetsAction" Value="ZIPFILE=[JQWIDGETSPATH];SOURCEDIR=jqwidgets;DESTINATIONDIR=[JQWIDGETSFOLDER]" />
+        <CustomAction Id="UnzipJQWidgetsAction" BinaryKey="InstallerActions" DllEntry="UnzipAction" Execute="deferred" Impersonate="no" />
+        
+        <InstallExecuteSequence>
+            <Custom Action="CreateDBLogin.SetProperty" After="InstallFiles">NOT REMOVE</Custom>
+            <Custom Action="CreateDBLogin" After="CreateDBLogin.SetProperty">NOT REMOVE</Custom>
+            <Custom Action="AlterDBLogin.SetProperty" After="CreateDBLogin">NOT REMOVE</Custom>
+            <Custom Action="AlterDBLogin" After="AlterDBLogin.SetProperty">NOT REMOVE</Custom>
+            <Custom Action="CreateDBUser.SetProperty" After="AlterDBLogin">NOT REMOVE</Custom>
+            <Custom Action="CreateDBUser" After="CreateDBUser.SetProperty">NOT REMOVE</Custom>
+            <Custom Action="GrantDBPermissions.SetProperty" After="CreateDBUser">NOT REMOVE</Custom>
+            <Custom Action="GrantDBPermissions" After="GrantDBPermissions.SetProperty">NOT REMOVE</Custom>
+            
+            <Custom Action="UnzipHighChartsAction.SetProperty" After="GrantDBPermissions">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
+            <Custom Action="UnzipHighChartsAction" After="UnzipHighChartsAction.SetProperty">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
+            <Custom Action="UnzipJQWidgetsAction.SetProperty" After="UnzipHighChartsAction">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
+            <Custom Action="UnzipJQWidgetsAction" After="UnzipJQWidgetsAction.SetProperty">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
+        </InstallExecuteSequence>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="INETPUBDIR" Name="inetpub">
+                <Directory Id="WWWROOTDIR" Name="wwwroot">
+                    <Directory Id="PQDASHFOLDER" Name="PQ Dashboard">
+                        <Directory Id="HIGHCHARTSFOLDER" Name="js">
+                            <Directory Id="JQWIDGETSFOLDER" Name="jqwidgets" />
+                        </Directory>
+                    </Directory>
+                    <Directory Id="DASHADMINFOLDER" Name="DashAdmin" />
+                </Directory>
+            </Directory>
+
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="PQ Dashboard" />
+            </Directory>
+        </Directory>
+    </Fragment>
+    
+    <Fragment>
+        <DirectoryRef Id="PQDASHFOLDER">
+            <Component Id="PQDashboardConnectionString" Guid="{0369FEA2-33FF-4D99-8835-494B080FDAFB}" KeyPath="yes">
+                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/connectionStrings/add[\[]@name='EPRIConnectionString'[\]]/@connectionString" Value="[DASHBOARDCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
+            </Component>
+            
+            <Component Id="InstallPQDashboardSite" Guid="{C73A8977-9C77-41A4-9656-38E0934CC5B4}" KeyPath="yes">
+                <iis:WebVirtualDir Id="PQDashboardVirtualDir" Alias="PQDashboard" Directory="PQDASHFOLDER" WebSite="DefaultWebSite">
+                    <iis:WebApplication Id="PQDashboardApplication" Name="PQ Dashboard" />
+                    <iis:WebDirProperties Id="PQDashboardProperties" AnonymousAccess="no" WindowsAuthentication="yes" />
+                </iis:WebVirtualDir>
+            </Component>
+            
+            <Component Id="PQDashboardShortcutComponent" Guid="{A3F0BFE7-A72E-4D78-8A28-CA49056E14BB}">
+                <Shortcut Id="PQDashboardStartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PQ Dashboard" Icon="PQDashboard.ico" Description="URL to the PQ Dashboard website." Target="[PQDASHURL]" />
+                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="PQDashShortcut" Type="string" Value="" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="DASHADMINFOLDER">
+            <Component Id="DashAdminConnectionString" Guid="{504DCEDC-5794-4113-BAFF-F77740E49E13}" KeyPath="yes">
+                <util:XmlFile Id="SetDashAdminConnectionString" Action="setValue" ElementPath="/configuration/connectionStrings/add[\[]@name='GTCConnectionString'[\]]/@connectionString" Value="[DASHBOARDCONNECTIONSTRING]" File="[#fil4112A65570B8F6D7954AA74282965F04]" SelectionLanguage="XPath" Sequence="1" />
+            </Component>
+            
+            <Component Id="InstallDashAdminSite" Guid="{D305B773-74B2-4CDE-9425-7AB8DC0DADF3}" KeyPath="yes">
+                <iis:WebVirtualDir Id="DashAdminVirtualDir" Alias="DashAdmin" Directory="DASHADMINFOLDER" WebSite="DefaultWebSite">
+                    <iis:WebApplication Id="DashAdmin" Name="PQ Dashboard Administration Interface" />
+                </iis:WebVirtualDir>
+            </Component>
+            
+            <Component Id="DashAdminShortcutComponent" Guid="{4B27C967-37C0-4915-978A-184399A50D4B}">
+                <Shortcut Id="DashAdminStartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PQ Dashboard Administration Interface" Icon="DashAdmin.ico" Description="URL to the PQ Dashboard Administration website." Target="[DASHADMINURL]" />
+                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\DashAdmin" Name="DashAdminShortcut" Type="string" Value="" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="HIGHCHARTSFOLDER">
+            <Component Id="CleanUpHighCharts" Guid="{00822AED-375D-41E9-9AA3-CDFA1860C776}">
+                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="HighChartsFolder" Type="string" Value="[HIGHCHARTSFOLDER]" KeyPath="yes" />
+                <util:RemoveFolderEx Id="RemoveHighChartsFolder" On="uninstall" Property="HIGHCHARTSFOLDER" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="JQWIDGETSFOLDER">
+            <Component Id="CleanUpJQWidgets" Guid="{F3CFA035-A60A-4812-A933-2BD5FAF2C3B2}">
+                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="JQWidgetsFolder" Type="string" Value="[JQWIDGETSFOLDER]" KeyPath="yes" />
+                <util:RemoveFolderEx Id="RemoveJQWidgetsFolder" On="uninstall" Property="JQWIDGETSFOLDER" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    
+    <Fragment>
+        <ComponentGroup Id="PQDashboardGroup">
+            <ComponentGroupRef Id="PQDashboardFiles" />
+            <ComponentRef Id="PQDashboardConnectionString" />
+            <ComponentRef Id="InstallPQDashboardSite" />
+            <ComponentRef Id="PQDashboardShortcutComponent" />
+            <ComponentRef Id="CleanUpHighCharts" />
+            <ComponentRef Id="CleanUpJQWidgets" />
+            <ComponentGroupRef Id="Cleanup" />
+        </ComponentGroup>
+        <ComponentGroup Id="DashAdminGroup">
+            <ComponentGroupRef Id="DashAdminFiles" />
+            <ComponentRef Id="DashAdminConnectionString" />
+            <ComponentRef Id="InstallDashAdminSite" />
+            <ComponentRef Id="DashAdminShortcutComponent" />
+            <ComponentGroupRef Id="Cleanup" />
+        </ComponentGroup>
+        
+        <ComponentGroup Id="Cleanup" Directory="PQDASHFOLDER">
+            <Component Id="Cleanup" Guid="{0A8DEA19-E4E4-4C1E-99CE-219066040DC0}">
+                <CreateFolder />
+                <RemoveFolder Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+
+    <!-- Custom Dialogs -->
+    <Fragment>
+        <UI>
+            <!-- Dependencies Dialog -->
+            <Dialog Id="DependenciesDialog" Width="370" Height="270" Title="[ProductName] Setup">
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+                    <Text>{\WixUI_Font_Title}Get JavaScript Libraries</Text>
+                </Control>
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+                    <Text>Enter the path to the required libraries.</Text>
+                </Control>
+                <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+                <Control Id="HighChartsInstruction" Type="Text" X="75" Y="53" Width="200" Height="20" TabSkip="yes" Text="Download the latest version of HighCharts and browse to the downloaded zip file." />
+                <Control Id="HighChartsHyperlink" Type="Hyperlink" X="100" Y="78" Width="100" Height="10" TabSkip="no">
+                    <Text><![CDATA[<a href="http://www.highcharts.com/download">Get HighCharts</a>]]></Text>
+                </Control>
+                <Control Id="HighChartsLabel" Type="Text" X="75" Y="98" Width="100" Height="10" TabSkip="no" Text="&amp;HighCharts:" />
+                <Control Id="HighChartsEdit" Type="Edit" X="75" Y="108" Width="170" Height="18" Property="HIGHCHARTSPATH" Text="{80}" />
+                <Control Id="HighChartsBrowse" Type="PushButton" X="255" Y="108" Width="56" Height="17" Text="Browse...">
+                    <Publish Property="BROWSEFILEEXTENSION" Value="zip">1</Publish>
+                    <Publish Event="DoAction" Value="BrowseFileAction">1</Publish>
+                    <Publish Property="HIGHCHARTSPATH" Value="[SELECTEDFILE]">1</Publish>
+                </Control>
+                <Control Id="JQWidgetsInstruction" Type="Text" X="75" Y="138" Width="200" Height="20" TabSkip="yes" Text="Download the latest version of JQWidgets and browse to the downloaded zip file." />
+                <Control Id="JQWidgetsHyperlink" Type="Hyperlink" X="100" Y="163" Width="100" Height="10" TabSkip="no">
+                    <Text><![CDATA[<a href="http://www.jqwidgets.com/download/">Get JQWidgets</a>]]></Text>
+                </Control>
+                <Control Id="JQWidgetsLabel" Type="Text" X="75" Y="183" Width="100" Height="10" TabSkip="no" Text="&amp;JQWidgets:" />
+                <Control Id="JQWidgetsEdit" Type="Edit" X="75" Y="193" Width="170" Height="18" Property="JQWIDGETSPATH" Text="{80}" />
+                <Control Id="JQWidgetsBrowse" Type="PushButton" X="255" Y="193" Width="56" Height="17" Text="Browse...">
+                    <Publish Property="BROWSEFILEEXTENSION" Value="zip">1</Publish>
+                    <Publish Event="DoAction" Value="BrowseFileAction">1</Publish>
+                    <Publish Property="JQWIDGETSPATH" Value="[SELECTEDFILE]">1</Publish>
+                </Control>
+                <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+                    <Publish Event="NewDialog" Value="CustomizeDlg">1</Publish>
+                </Control>
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+                    <Publish Property="FILEPATH" Value="[HIGHCHARTSPATH]">1</Publish>
+                    <Publish Event="DoAction" Value="CheckFileExistenceAction">1</Publish>
+                    <Publish Property="HIGHCHARTSEXISTS" Value="[FILEEXISTS]">1</Publish>
+                    
+                    <Publish Property="FILEPATH" Value="[JQWIDGETSPATH]">HIGHCHARTSEXISTS</Publish>
+                    <Publish Event="DoAction" Value="CheckFileExistenceAction">HIGHCHARTSEXISTS</Publish>
+                    <Publish Property="JQWIDGETSEXISTS" Value="[FILEEXISTS]">HIGHCHARTSEXISTS</Publish>
+                    
+                    <Publish Property="ERRORMESSAGE" Value="Unable to locate HighCharts archive. Please browse to the location of HighCharts.">NOT HIGHCHARTSEXISTS</Publish>
+                    <Publish Property="ERRORMESSAGE" Value="Unable to locate JQWidgets archive. Please browse to the location of JQWidgets.">HIGHCHARTSEXISTS AND NOT JQWIDGETSEXISTS</Publish>
+                    <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT HIGHCHARTSEXISTS OR NOT JQWIDGETSEXISTS</Publish>
+                    <Publish Event="NewDialog" Value="DatabaseConnectionDialog">HIGHCHARTSEXISTS AND JQWIDGETSEXISTS</Publish>
+                </Control>
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+                    <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+                </Control>
+            </Dialog>
+            
+            <!-- Database Connection Dialog -->
+            <Dialog Id="DatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+                    <Text>{\WixUI_Font_Title}Database Connection</Text>
+                </Control>
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+                    <Text>Configure your database connection.</Text>
+                </Control>
+                <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+                <Control Id="ServerNameLabel" Type="Text" X="95" Y="53" Width="100" Height="13" TabSkip="no" Text="&amp;Server name:" />
+                <Control Id="ServerNameEdit" Type="Edit" X="95" Y="65" Width="170" Height="18" Property="SERVERNAME" Text="{80}" />
+                <Control Id="DatabaseNameLabel" Type="Text" X="95" Y="88" Width="100" Height="13" TabSkip="no" Text="&amp;Database name:" />
+                <Control Id="DatabaseNameEdit" Type="Edit" X="95" Y="100" Width="170" Height="18" Property="DATABASENAME" Text="{80}" />
+                <Control Id="WindowsAuthenticationCheckBox" Type="CheckBox" X="85" Y="125" Width="200" Height="17" Property="WINDOWSAUTH" CheckBoxValue="1" Text="Use Windows Authentication" />
+                <Control Id="UsernameLabel" Type="Text" X="95" Y="143" Width="100" Height="13" TabSkip="no" Text="&amp;Username:">
+                    <Condition Action="enable">NOT WINDOWSAUTH</Condition>
+                    <Condition Action="disable">WINDOWSAUTH</Condition>
+                </Control>
+                <Control Id="UsernameEdit" Type="Edit" X="95" Y="155" Width="170" Height="18" Property="DBUSERNAME" Text="{80}">
+                    <Condition Action="enable">NOT WINDOWSAUTH</Condition>
+                    <Condition Action="disable">WINDOWSAUTH</Condition>
+                </Control>
+                <Control Id="PasswordLabel" Type="Text" X="95" Y="178" Width="100" Height="13" TabSkip="no" Text="&amp;Password:">
+                    <Condition Action="enable">NOT WINDOWSAUTH</Condition>
+                    <Condition Action="disable">WINDOWSAUTH</Condition>
+                </Control>
+                <Control Id="PasswordEdit" Type="Edit" X="95" Y="190" Width="170" Height="18" Property="DBPASSWORD" Text="{80}" Password="yes">
+                    <Condition Action="enable">NOT WINDOWSAUTH</Condition>
+                    <Condition Action="disable">WINDOWSAUTH</Condition>
+                </Control>
+                <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+                    <Publish Event="NewDialog" Value="DependenciesDialog"><![CDATA[&PQDashboardFeature=3]]></Publish>
+                    <Publish Event="NewDialog" Value="CustomizeDlg"><![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
+                </Control>
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+                    <!-- Set up the authentication part of the connection string based on user input. -->
+                    <Publish Property="AUTHSTRING" Value="Integrated Security=SSPI">WINDOWSAUTH</Publish>
+                    <Publish Property="AUTHSTRING" Value="User Id=[DBUSERNAME];;Password=[DBPASSWORD]">NOT WINDOWSAUTH</Publish>
+                    
+                    <!-- Set up the queries to create the database user. -->
+                    <Publish Property="GENPASSWORDLENGTH" Value="20">1</Publish>
+                    <Publish Event="DoAction" Value="PasswordGenerationAction">NOT DASHBOARDDBPASSWORD</Publish>
+                    <Publish Property="DASHBOARDDBLOGIN" Value="PQDashboard">1</Publish>
+                    <Publish Property="DASHBOARDDBPASSWORD" Value="[GENERATEDPASSWORD]">NOT DASHBOARDDBPASSWORD</Publish>
+                    <Publish Property="CREATEDBLOGINQUERY" Value="IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = '[DASHBOARDDBLOGIN]') CREATE LOGIN [\[][DASHBOARDDBLOGIN][\]] WITH PASSWORD = '[XDASERVICEPASSWORD]', CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF">1</Publish>
+                    <Publish Property="ALTERDBLOGINQUERY" Value="ALTER LOGIN [\[][DASHBOARDDBLOGIN][\]] WITH PASSWORD = '[DASHBOARDDBPASSWORD]'">1</Publish>
+                    <Publish Property="CREATEDBUSERQUERY" Value="IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '[DASHBOARDDBLOGIN]') CREATE USER [\[][DASHBOARDDBLOGIN][\]] FOR LOGIN [\[][DASHBOARDDBLOGIN][\]]">1</Publish>
+                    <Publish Property="DBPERMISSIONSQUERY" Value="EXEC sp_addrolemember N'db_owner', N'[DASHBOARDDBLOGIN]'">1</Publish>
+                    
+                    <!-- Set up connection strings for connecting to server and database. -->
+                    <Publish Property="SERVERCONNECTIONSTRING" Value="Data Source=[SERVERNAME];;[AUTHSTRING]">1</Publish>
+                    <Publish Property="DBCONNECTIONSTRING" Value="Data Source=[SERVERNAME];;Initial Catalog=[DATABASENAME];;[AUTHSTRING]">1</Publish>
+                    <Publish Property="DASHBOARDCONNECTIONSTRING" Value="Data Source=[SERVERNAME];Initial Catalog=[DATABASENAME];User Id=[DASHBOARDDBLOGIN];Password=[DASHBOARDDBPASSWORD]">1</Publish>
+                    
+                    <!-- Determine whether we can connect to the database server. -->
+                    <Publish Property="CONNECTIONSTRING" Value="[SERVERCONNECTIONSTRING]">1</Publish>
+                    <Publish Event="DoAction" Value="TestDatabaseConnectionAction">1</Publish>
+                    <Publish Property="DBSERVERCONNECTS">NOT DATABASECONNECTED</Publish>
+                    <Publish Property="DBSERVERCONNECTS" Value="1">DATABASECONNECTED</Publish>
+                    <Publish Property="ERRORMESSAGE" Value="Unable to connect to the database server. Please verify the connection configuration and try again.">NOT DBSERVERCONNECTS</Publish>
+                    <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT DBSERVERCONNECTS</Publish>
+                    
+                    <!-- Determine whether the database already exists on the server. -->
+                    <Publish Property="CONNECTIONSTRING" Value="[DBCONNECTIONSTRING]">DBSERVERCONNECTS</Publish>
+                    <Publish Event="DoAction" Value="TestDatabaseConnectionAction">DBSERVERCONNECTS</Publish>
+                    <Publish Property="DBEXISTS">NOT DATABASECONNECTED</Publish>
+                    <Publish Property="DBEXISTS" Value="1">DATABASECONNECTED</Publish>
+                    <Publish Property="ERRORMESSAGE" Value="Database [DATABASENAME] does not exist on the server. Enter the name of an existing database, then try again.">DBSERVERCONNECTS AND NOT DBEXISTS</Publish>
+                    <Publish Event="SpawnDialog" Value="ModalErrorDialog">DBSERVERCONNECTS AND NOT DBEXISTS</Publish>
+
+                    <!-- Move to the next dialog if the validation checks out. -->
+                    <Publish Event="NewDialog" Value="VerifyReadyDlg">DBSERVERCONNECTS AND DBEXISTS</Publish>
+                </Control>
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+                    <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+                </Control>
+            </Dialog>
+
+            <!-- Modal dialog to display error messages. -->
+            <Dialog Id="ModalErrorDialog" Width="220" Height="100" Title="Database Connection Error">
+                <Control Id="ErrorMessageLabel" Type="Text" X="30" Y="15" Width="160" Height="40" TabSkip="no" Text="[ERRORMESSAGE]" />
+                <Control Id="OKButton" Type="PushButton" X="82" Y="70" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;OK">
+                    <Publish Event="EndDialog" Value="Return">1</Publish>
+                </Control>
+            </Dialog>
+        </UI>
+    </Fragment>
+</Wix>
