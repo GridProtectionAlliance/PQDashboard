@@ -2708,6 +2708,7 @@ function initializeDatePickers(datafromdate , datatodate) {
 
         onClose: function (selectedDate) {
             $("#datePickerTo").datepicker("option", "minDate", selectedDate);
+            $("#datePickerTo").datepicker("option", "minDate", null);
         }
     });
 
@@ -2737,6 +2738,7 @@ function initializeDatePickers(datafromdate , datatodate) {
         showButtonPanel: false,
         onClose: function (selectedDate) {
             $("#datePickerFrom").datepicker("option", "maxDate", selectedDate);
+            $("#datePickerFrom").datepicker("option", "maxDate", null);
         }
     });
 
