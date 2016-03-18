@@ -384,6 +384,11 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
             Meter themeter = meterInfo.Meters.Single(m => theevent.MeterID == m.ID);
             Line theline = meterInfo.Lines.Single(l => theevent.LineID == l.ID);
 
+            FaultLocationData.FaultSummaryRow thesummary = (FaultLocationData.FaultSummaryRow)summaryInfo.GetDataBy(Convert.ToInt32(EventInstanceID)).Select("IsSelectedAlgorithm = 1").FirstOrDefault();
+
+            if ((object)thesummary == null)
+                return theset;
+
             FaultCurves = faultCurveAdapter.GetDataBy(Convert.ToInt32(EventInstanceID)).ToList();
 
             if (FaultCurves.Count == 0) return (theset);
@@ -394,8 +399,6 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
             {
                 FixFaultCurve(faultCurve, theline);
             }
-
-            FaultLocationData.FaultSummaryRow thesummary = (FaultLocationData.FaultSummaryRow)summaryInfo.GetDataBy(Convert.ToInt32(EventInstanceID)).Select("IsSelectedAlgorithm = 1").First();
 
             double CyclesPerSecond = thesummary.DurationCycles / thesummary.DurationSeconds;
             List<faultSegmentDetail> thedetails = new List<faultSegmentDetail>();
