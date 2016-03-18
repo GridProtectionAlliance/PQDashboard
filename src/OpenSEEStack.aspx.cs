@@ -110,7 +110,9 @@ public partial class OpenSEEStack : System.Web.UI.Page
                             {
                                 postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
                                 postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
-                                postedMagnitude = disturbance.PerUnitMagnitude.ToString("N3", CultureInfo.InvariantCulture) + " pu (RMS)";
+
+                                if (disturbance.PerUnitMagnitude != -1.0e308)
+                                    postedMagnitude = disturbance.PerUnitMagnitude.ToString("N3", CultureInfo.InvariantCulture) + " pu (RMS)";
                             }
                         }
 
