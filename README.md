@@ -1,4 +1,6 @@
+# ![PQ Dashboard](http://www.gridprotectionalliance.org/images/products/PQDashboard.png)
 
+**Open PQ Dashboard**
 
 A web based dashboard for system-wide visualization of power quality data contained in the [openXDA](https://github.com/GridProtectionAlliance/openXDA) data layer.
 
@@ -6,5 +8,5 @@ Open PQ Dashboard provides visual displays to quickly convey the status and loca
 
 Version 1.0 of the Open PQ Dashboard is available on SourceForge as [*EPRI Open PQ Dashboard*](https://sourceforge.net/projects/epriopenpqdashboard/)
 
-# ![PQ Dashboard](http://www.gridprotectionalliance.org/images/products/PQDashboard.png)
+
 # ![PQ Dashboard Screen](http://www.gridprotectionalliance.org/images/products/PQDashboard collage2.jpg)
