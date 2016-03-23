@@ -1,4 +1,27 @@
-﻿using System;
+﻿//******************************************************************************************************
+//  signalService.cs - Gbtc
+//
+//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+//  not use this file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  03/24/2016 - Jeff Walker
+//       Generated original version of source code.
+//
+//******************************************************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -9,6 +32,9 @@ using FaultData.Database;
 using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
 using EventDataTableAdapter = FaultData.Database.MeterDataTableAdapters.EventDataTableAdapter;
+using System.Data.Linq;
+using GSF.Data;
+using System.Data.SqlClient;
 
 public class eventSet
 {
@@ -37,6 +63,17 @@ public class faultSegmentDetail
     public int EndSample;
 }
 
+public class FlotSeries
+{
+    public string ChannelName;
+    public string ChannelDescription;
+    public string MeasurementType;
+    public string MeasurementCharacteristic;
+    public string Phase;
+    public string SeriesType;
+    public List<double[]> DataPoints = new List<double[]>();
+}
+
 /// <summary>
 /// Summary description for WebService
 /// </summary>
@@ -51,13 +88,224 @@ public class signalService : System.Web.Services.WebService {
     private const double MaxFaultDistanceMultiplier = 1.25D;
     private const double MinFaultDistanceMultiplier = -0.1D;
 
-    String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
+    private static string ConnectionString = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     public signalService()
     {
         int i = 1;
         //Uncomment the following line if using designed components 
         //InitializeComponent(); 
+    }
+
+    private static readonly List<FlotSeries> CycleDataInfo = new List<FlotSeries>();
+
+    static signalService()
+    {
+        char measurementTypeDesignation;
+
+        foreach (string measurementType in new string[] { "Voltage", "Current" })
+        {
+            foreach (string phase in new string[] { "AN", "BN", "CN" })
+            {
+                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
+                {
+                    if (measurementType == "Current")
+                        measurementTypeDesignation = 'I';
+                    else
+                        measurementTypeDesignation = measurementType[0];
+
+                    CycleDataInfo.Add(new FlotSeries()
+                    {
+                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
+                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
+                        MeasurementType = measurementType,
+                        MeasurementCharacteristic = measurementCharacteristic,
+                        Phase = phase,
+                        SeriesType = "Values"
+                    });
+                }
+            }
+        }
+    }
+
+    private static List<Series> GetWaveformInfo(Table<Series> seriesTable, int meterID, int lineID)
+    {
+        return seriesTable
+            .Where(series => series.Channel.MeterID == meterID)
+            .Where(series => series.Channel.LineID == lineID)
+            .OrderBy(series => series.ID)
+            .ToList();
+    }
+
+    private static List<string> GetFaultCurveInfo(AdoDataConnection connection, int eventID)
+    {
+        const string query =
+            "SELECT Algorithm " +
+            "FROM FaultCurve LEFT OUTER JOIN FaultLocationAlgorithm ON Algorithm = MethodName " +
+            "WHERE EventID = {0} " +
+            "ORDER BY CASE WHEN ExecutionOrder IS NULL THEN 1 ELSE 0 END, ExecutionOrder";
+
+        DataTable table = connection.RetrieveData(query, eventID);
+
+        return table.Rows
+            .Cast<DataRow>()
+            .Select(row => row.Field<string>("Algorithm"))
+            .ToList();
+    }
+
+    public static List<FlotSeries> GetFlotInfo(int eventID)
+    {
+        using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
+        using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
+        {
+            EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
+            MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
+            FaultLocationInfoDataContext faultInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
+
+            MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
+
+            if ((object)eventRow == null)
+                return new List<FlotSeries>();
+
+            return GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID)
+                .Select(ToFlotSeries)
+                .Concat(CycleDataInfo)
+                .Concat(GetFaultCurveInfo(connection, eventID).Select(ToFlotSeries))
+                .ToList();
+        }
+    }
+
+    private static FlotSeries ToFlotSeries(Series series)
+    {
+        return new FlotSeries()
+        {
+            ChannelName = series.Channel.Name,
+            ChannelDescription = series.Channel.Description,
+            MeasurementType = series.Channel.MeasurementType.Name,
+            MeasurementCharacteristic = series.Channel.MeasurementCharacteristic.Name,
+            Phase = series.Channel.Phase.Name,
+            SeriesType = series.SeriesType.Name
+        };
+    }
+
+    private static FlotSeries ToFlotSeries(string faultLocationAlgorithm)
+    {
+        return new FlotSeries()
+        {
+            ChannelName = faultLocationAlgorithm,
+            ChannelDescription = faultLocationAlgorithm,
+            MeasurementType = "Distance",
+            MeasurementCharacteristic = "FaultDistance",
+            Phase = "None",
+            SeriesType = "Values"
+        };
+    }
+
+    [WebMethod]
+    public List<FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
+    {
+        List<FlotSeries> flotSeriesList = new List<FlotSeries>();
+
+        using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
+        using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
+        {
+            EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
+            EventDataTableAdapter eventDataAdapter = dbAdapterContainer.GetAdapter<EventDataTableAdapter>();
+            FaultCurveTableAdapter faultCurveAdapter = dbAdapterContainer.GetAdapter<FaultCurveTableAdapter>();
+            MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
+            FaultLocationInfoDataContext faultLocationInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
+
+            MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
+            Meter meter = meterInfo.Meters.First(m => m.ID == eventRow.MeterID);
+
+            List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
+            List<string> faultCurveInfo = GetFaultCurveInfo(connection, eventID);
+            DateTime epoch = new DateTime(1970, 1, 1);
+
+            Lazy<Dictionary<int, DataSeries>> waveformData = new Lazy<Dictionary<int, DataSeries>>(() =>
+            {
+                return ToDataGroup(meter, eventDataAdapter.GetTimeDomainData(eventRow.EventDataID)).DataSeries
+                    .ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
+            });
+
+            Lazy<DataGroup> cycleData = new Lazy<DataGroup>(() => ToDataGroup(meter, eventDataAdapter.GetFrequencyDomainData(eventRow.EventDataID)));
+
+            Lazy<Dictionary<string, DataSeries>> faultCurveData = new Lazy<Dictionary<string, DataSeries>>(() =>
+            {
+                return faultCurveAdapter
+                    .GetDataBy(eventRow.ID)
+                    .Select(faultCurve => new
+                    {
+                        Algorithm = faultCurve.Algorithm,
+                        DataGroup = ToDataGroup(meter, faultCurve.Data)
+                    })
+                    .Where(obj => obj.DataGroup.DataSeries.Count > 0)
+                    .ToDictionary(obj => obj.Algorithm, obj => obj.DataGroup[0]);
+            });
+
+            foreach (int index in seriesIndexes)
+            {
+                DataSeries dataSeries = null;
+                FlotSeries flotSeries = null;
+
+                int waveformIndex = index;
+                int cycleIndex = waveformIndex - waveformInfo.Count;
+                int faultCurveIndex = cycleIndex - CycleDataInfo.Count;
+
+                if (waveformIndex < waveformInfo.Count)
+                {
+                    if (!waveformData.Value.TryGetValue(waveformInfo[index].ID, out dataSeries))
+                        continue;
+
+                    flotSeries = ToFlotSeries(waveformInfo[index]);
+                }
+                else if (cycleIndex < CycleDataInfo.Count)
+                {
+                    if (cycleIndex >= cycleData.Value.DataSeries.Count)
+                        continue;
+
+                    dataSeries = cycleData.Value[cycleIndex];
+
+                    flotSeries = new FlotSeries()
+                    {
+                        MeasurementType = CycleDataInfo[cycleIndex].MeasurementType,
+                        MeasurementCharacteristic = CycleDataInfo[cycleIndex].MeasurementCharacteristic,
+                        Phase = CycleDataInfo[cycleIndex].Phase,
+                        SeriesType = CycleDataInfo[cycleIndex].SeriesType
+                    };
+                }
+                else if (faultCurveIndex < faultCurveInfo.Count)
+                {
+                    string algorithm = faultCurveInfo[faultCurveIndex];
+
+                    if (!faultCurveData.Value.TryGetValue(algorithm, out dataSeries))
+                        continue;
+
+                    flotSeries = ToFlotSeries(faultCurveInfo[faultCurveIndex]);
+                }
+                else
+                {
+                    continue;
+                }
+
+                foreach (DataPoint dataPoint in dataSeries.DataPoints)
+                {
+                    if (!double.IsNaN(dataPoint.Value))
+                        flotSeries.DataPoints.Add(new double[] { dataPoint.Time.Subtract(epoch).TotalMilliseconds, dataPoint.Value });
+                }
+
+                flotSeriesList.Add(flotSeries);
+            }
+        }
+
+        return flotSeriesList;
+    }
+
+    public DataGroup ToDataGroup(Meter meter, byte[] data)
+    {
+        DataGroup dataGroup = new DataGroup();
+        dataGroup.FromData(meter, data);
+        return dataGroup;
     }
 
     /// <summary>
@@ -75,7 +323,7 @@ public class signalService : System.Web.Services.WebService {
 
         using (FaultSegmentTableAdapter faultSegmentTableAdapter = new FaultSegmentTableAdapter())
         {
-            faultSegmentTableAdapter.Connection.ConnectionString = connectionstring;
+            faultSegmentTableAdapter.Connection.ConnectionString = ConnectionString;
 
             segments = faultSegmentTableAdapter.GetDataBy(Convert.ToInt32(EventInstanceID));
 
@@ -119,12 +367,12 @@ public class signalService : System.Web.Services.WebService {
         theset.data = new List<signalDetail>();
         MeterData.EventDataTable events;
         DataGroup eventDataGroup = new DataGroup();
-        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
+        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
         using (EventTableAdapter eventAdapter = new EventTableAdapter())
         using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
         {
-            eventAdapter.Connection.ConnectionString = connectionstring;
-            eventDataAdapter.Connection.ConnectionString = connectionstring;
+            eventAdapter.Connection.ConnectionString = ConnectionString;
+            eventDataAdapter.Connection.ConnectionString = ConnectionString;
 
             events = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID));
             theset.Yaxis0name = "Voltage";
@@ -239,13 +487,13 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
         theset.data = new List<signalDetail>();
         MeterData.EventDataTable events;
         DataGroup eventDataGroup = new DataGroup();
-        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
+        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
         using (EventTableAdapter eventAdapter = new EventTableAdapter())
         using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
 
         {
-            eventAdapter.Connection.ConnectionString = connectionstring;
-            eventDataAdapter.Connection.ConnectionString = connectionstring;
+            eventAdapter.Connection.ConnectionString = ConnectionString;
+            eventDataAdapter.Connection.ConnectionString = ConnectionString;
 
             events = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID));
 
@@ -368,14 +616,14 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
         List<DataSeries> faultCurves;
         List<FaultLocationData.FaultCurveRow> FaultCurves;
 
-        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
+        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
         using (FaultSummaryTableAdapter summaryInfo = new FaultSummaryTableAdapter())
         using (EventTableAdapter eventAdapter = new EventTableAdapter())
         using (FaultCurveTableAdapter faultCurveAdapter = new FaultCurveTableAdapter())
         {
-            faultCurveAdapter.Connection.ConnectionString = connectionstring;
-            eventAdapter.Connection.ConnectionString = connectionstring;
-            summaryInfo.Connection.ConnectionString = connectionstring;
+            faultCurveAdapter.Connection.ConnectionString = ConnectionString;
+            eventAdapter.Connection.ConnectionString = ConnectionString;
+            summaryInfo.Connection.ConnectionString = ConnectionString;
 
             theset.Yaxis0name = "Miles";
             theset.Yaxis1name = "";
@@ -511,12 +759,12 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
         if (MeasurementName != "Voltage" && MeasurementName != "Current")
             return theset;
 
-        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
+        using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
         using (EventTableAdapter eventAdapter = new EventTableAdapter())
         using (EventDataTableAdapter cycleDataAdapter = new EventDataTableAdapter())
         {
-            cycleDataAdapter.Connection.ConnectionString = connectionstring;
-            eventAdapter.Connection.ConnectionString = connectionstring;
+            cycleDataAdapter.Connection.ConnectionString = ConnectionString;
+            eventAdapter.Connection.ConnectionString = ConnectionString;
 
             theset.Yaxis0name = MeasurementName;
             theset.Yaxis1name = "";
