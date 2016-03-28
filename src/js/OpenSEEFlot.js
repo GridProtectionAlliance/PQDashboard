@@ -897,8 +897,8 @@ function attachEvents(key) {
             var datamin = null;
             var datamax = null;
 
-            var deltaMagnitude = Math.abs(e.originalEvent.deltaY);
-            var deltaY;
+            var deltaMagnitude;
+            var delta;
             var factor;
 
             $.each(plots, function (_, plot) {
@@ -923,14 +923,21 @@ function attachEvents(key) {
             xcenter = Math.max(xcenter, xmin);
             xcenter = Math.min(xcenter, xmax);
 
+            if (e.originalEvent.wheelDelta != undefined)
+                delta = e.originalEvent.wheelDelta;
+            else
+                delta = -e.originalEvent.detail;
+
+            deltaMagnitude = Math.abs(delta);
+
             if (minDelta == null || deltaMagnitude < minDelta)
                 minDelta = deltaMagnitude;
+            
+            deltaMagnitude /= minDelta;
+            deltaMagnitude = Math.min(deltaMagnitude, maxDelta);
+            factor = deltaMagnitude / 10;
 
-            deltaY = Math.abs(e.originalEvent.deltaY / minDelta);
-            deltaY = Math.min(deltaY, maxDelta);
-            factor = deltaY / 10;
-
-            if (e.originalEvent.deltaY < 0) {
+            if (delta > 0) {
                 xmin = xmin * (1 - factor) + xcenter * factor;
                 xmax = xmax * (1 - factor) + xcenter * factor;
             } else {
