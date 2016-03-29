@@ -56,7 +56,7 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                         { name: 'thecurrentdistance' },
                         { name: 'pqiexists' },
                         { name: 'easexists' },
-                        { name: 'csaexists'}
+                        { name: 'csaexists' }
                     ]
 
                 },
@@ -90,6 +90,7 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
             $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
             $('#' + thediv).jqxGrid('hidecolumn', 'pqiexists');
             $('#' + thediv).jqxGrid('hidecolumn', 'easexists');
+            $('#' + thediv).jqxGrid('hidecolumn', 'csaexists');
 
             //var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', 0);
             //$("#MeterDetailsByDate")[0].innerHTML = theDate;
@@ -119,7 +120,7 @@ function makeCSADetailsButton_html(id) {
 
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
 
-    if (datarow.easexists == "1") {
+    if (datarow.csaexists !== "0") {
 
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
         return_html += '<button onClick="OpenWindowToCSA(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch ICF Details Page">';
@@ -141,7 +142,7 @@ function OpenWindowToCSA(id) {
 
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
 
-    var popup = window.open("CSADetails.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "CSADetails", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    var popup = window.open("CSADetails.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "CSADetails", "left=0,top=0,width=300,height=450,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 
     return false;
 }
