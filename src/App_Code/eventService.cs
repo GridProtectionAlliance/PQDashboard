@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
 using System.Web.Services;
 using System.Web.Script.Serialization;
 
@@ -256,20 +258,61 @@ public class eventService : System.Web.Services.WebService {
         String thedata = "";
         SqlConnection conn = null;
         SqlDataReader rdr = null;
+        SqlConnection conn2 = null;
+        SqlDataReader rdr2 = null;
+
 
         try
         {
             conn = new SqlConnection(connectionstring);
             conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn);
+
+            SqlCommand cmd = new SqlCommand("SELECT * FROM EASExtension", conn);
+            rdr = cmd.ExecuteReader();
+
+            StringBuilder QueryBuilder = new StringBuilder();
+            while (rdr.Read())
+            {
+                if (QueryBuilder.Length > 0)
+                {
+                    QueryBuilder.Append(",");
+                }
+                QueryBuilder.Append("dbo.");
+                QueryBuilder.Append(rdr["HasResultFunction"]);
+                QueryBuilder.Append("(theeventid) AS ");
+                QueryBuilder.Append(rdr["ServiceName"]);
+            }
+            rdr.Dispose();
+
+            cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
             cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
             cmd.CommandTimeout = 300;
 
             rdr = cmd.ExecuteReader();
-            DataTable dt = new DataTable();
-            dt.Load(rdr);
+            DataTable dt;
+            if (QueryBuilder.Length > 0)
+            {
+                conn2 = new SqlConnection(connectionstring);
+                conn2.Open();
+
+                cmd = new SqlCommand("SELECT * , " + QueryBuilder + " FROM @EventIDTable", conn2);
+                cmd.Parameters.Add(new SqlParameter("@EventIDTable", rdr));
+                cmd.Parameters[0].SqlDbType = SqlDbType.Structured;
+                cmd.Parameters[0].TypeName = "SiteLineDetailsByDate";
+                rdr2 = cmd.ExecuteReader();
+
+                dt = new DataTable();
+                dt.Load(rdr2);
+
+            }
+            else
+            {
+                dt = new DataTable();
+                dt.Load(rdr);
+            }
+
             thedata = DataTable2JSON(dt);
             dt.Dispose();
         }
@@ -282,6 +325,14 @@ public class eventService : System.Web.Services.WebService {
             if (rdr != null)
             {
                 rdr.Close();
+            }
+            if (conn2 != null)
+            {
+                conn2.Close();
+            }
+            if (rdr2 != null)
+            {
+                rdr2.Close();
             }
         }
 
