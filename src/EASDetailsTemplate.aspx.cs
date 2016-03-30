@@ -14,10 +14,11 @@ using FaultData.Database;
 using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
 
-public partial class CSADetails: System.Web.UI.Page
+public partial class EASDetails: System.Web.UI.Page
 {
+ 
 
-    public Dictionary<string, string> thedata = new Dictionary<string,string>();
+    public List<Tuple<string, string>> thedata = new List<Tuple<string, string>>();
 
     String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
@@ -33,43 +34,41 @@ public partial class CSADetails: System.Web.UI.Page
             {
                 String postedEventId = Request["eventId"];
 
-                    try
-                    {
+                try
+                {
 
                     conn = new SqlConnection(connectionstring);
                     conn.Open();
-                    SqlCommand cmd = new SqlCommand("dbo.GetCSAResult", conn);
-                    cmd.CommandType = CommandType.StoredProcedure;
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM "+ TableName.InnerHtml + " WHERE EventID = @EventID", conn);
                     cmd.Parameters.Add(new SqlParameter("@EventID", postedEventId));
 
                     cmd.CommandTimeout = 300;
 
                     rdr = cmd.ExecuteReader();
-                        if (rdr.HasRows)
-                        {
+                    if (rdr.HasRows)
+                    {
                         while (rdr.Read())
+                        {
+                            for (int i = 0; i < rdr.FieldCount; ++i)
                             {
-                                thedata.Add(rdr["Name"].ToString(), rdr["Value"].ToString());
+                                thedata.Add(Tuple.Create(rdr.GetName(i), rdr[i].ToString()));
                             }
-                        }
-                    }
-
-                    catch (Exception ex)
-                    {
-
-                    }
-                    finally
-                    {
-                        if (conn != null)
-                        {
-                            conn.Close();
-                        }
-                        if (rdr != null)
-                        {
-                            rdr.Close();
+                            //thedata.Add(rdr["Name"].ToString(), rdr["Value"].ToString());
                         }
                     }
                 }
+                finally
+                {
+                    if (conn != null)
+                    {
+                        conn.Close();
+                    }
+                    if (rdr != null)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
             
         }
     }

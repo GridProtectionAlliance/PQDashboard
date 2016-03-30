@@ -26,8 +26,8 @@
     </table>
         
         <form runat="server">
-            <div runat="server" id="ServiceName" >CSA Details</div>
-            <div runat="server" id="TableName">CSAResult</div>
+            <div runat="server" id="ServiceName" >EAS Details</div>
+            <div runat="server" id="TableName">SandBoxResult</div>
         </form>
 	</body>
 </html>
