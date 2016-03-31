@@ -76,7 +76,7 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                 { text: 'Phase', datafield: 'thefaulttype', width: 40, cellsalign: 'center',  renderer: columnsrenderer },
                 { text: 'Distance', datafield: 'thecurrentdistance', width: 100, cellsalign: 'center', renderer: columnsrenderer },
 
-                { text: ' ', cellsrenderer: makeOpenSeeStackButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' },
+                { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
                 { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' },
                 { text: ' ', cellsrenderer: makePQIButton_html, dataField: 'PQI', width: 40, padding: 0, cellsalign: 'left' },
                 { text: ' ', cellsrenderer: function (row, _,value){ return makeEASDetailsButton_html(row, value, 'EASDetails.aspx', 'images/eas.ico', 'Launch EAS Details Page', 300, 200) }, dataField: 'EASService', width: 40, padding: 0, cellsalign: 'left' },
@@ -127,10 +127,10 @@ function OpenWindowToEAS(url, width, height) {
 }
 
 
-function makeOpenSeeStackButton_html(id) {
+function makeOpenSEEButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSeeStack(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
     return_html += '<img src="images/seeButton.png" /></button></div>';
     return (return_html);
 }
@@ -159,9 +159,9 @@ function makePQIButton_html(id) {
     return (return_html);
 }
 
-function OpenWindowToOpenSeeStack(id) {
+function OpenWindowToOpenSEE(id) {
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
-    var popup = window.open("openSeeStack.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "openSeeStack", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open("openSEE.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 

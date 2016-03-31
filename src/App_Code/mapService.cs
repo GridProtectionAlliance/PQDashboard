@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 using System.Web.Services;
@@ -48,7 +49,7 @@ public class mapService : System.Web.Services.WebService
         public double longitude;
     }
 
-    public class meterIds
+    public class MeterID
     {
         public string name;
         public int id;
@@ -63,23 +64,12 @@ public class mapService : System.Web.Services.WebService
         public string datetime;
     }
 
-    public mapService()
-    {
-        //Uncomment the following line if using designed components 
-        //InitializeComponent(); 
-    }
-
-    /// <summary>
-    /// getLocationsEvents 
-    /// </summary>
-    /// <param name="targetDate"></param>
-    /// <returns></returns>
     [WebMethod]
-    public List<meterIds> getMeters(String userName)
+    public List<MeterID> getMeters(string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<meterIds> theMeterIds = new List<meterIds> { };
+        List<MeterID> meterIDs = new List<MeterID>();
 
         try
         {
@@ -92,24 +82,21 @@ public class mapService : System.Web.Services.WebService
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
-                meterIds metersId = new meterIds();
-                metersId.name = (String)rdr["name"];
+                MeterID metersId = new MeterID();
+                metersId.name = (string)rdr["name"];
                 metersId.id = (int)rdr["id"];
-                theMeterIds.Add(metersId);
+                meterIDs.Add(metersId);
             }
         }
         finally
         {
             if (conn != null)
-            {
                 conn.Close();
-            }
+
             if (rdr != null)
-            {
                 rdr.Close();
-            }
         }
-        return (theMeterIds);
+        return (meterIDs);
     }
 
     /// <summary>
@@ -288,6 +275,12 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
+            // DEBUG --
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // DEBUG --
+
+
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsEvents", conn);
@@ -299,6 +292,13 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
+
+
+            // DEBUG --
+            Debug.WriteLine(stopwatch.Elapsed);
+            // DEBUG --
+
+
             while (rdr.Read())
             {
                 locationStatus ourStatus = new locationStatus();
@@ -310,6 +310,10 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["id"];
                 locationStates.Add(ourStatus);
             }
+
+            // DEBUG --
+            Debug.WriteLine(stopwatch.Elapsed);
+            // DEBUG --
         }
         finally
         {
