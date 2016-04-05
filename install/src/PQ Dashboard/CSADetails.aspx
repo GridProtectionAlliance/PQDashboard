@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_3bbpbhox" %>
+<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_ys03zavf" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 

@@ -109,7 +109,7 @@ function makeEASDetailsButton_html(row, value, url, imagepath, title, width, hei
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', row);
     url += "?eventid=" + datarow.theeventid;
 
-    if (value != "0") {
+    if (value != "" && value != "0") {
 
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
         return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'"+"," + width + "," + height  + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="' + title + '">';

@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="FaultSpecifics, App_Web_3bbpbhox" %>
+<%@ page language="C#" autoeventwireup="true" inherits="FaultSpecifics, App_Web_ys03zavf" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>
