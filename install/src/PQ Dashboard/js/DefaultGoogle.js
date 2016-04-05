@@ -364,7 +364,7 @@ function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
                             { text: 'Type', datafield: 'thefaulttype', width: 40, renderer: columnsrenderer },
                             { text: 'Miles', datafield: 'thecurrentdistance', width: 50, cellsalign: 'right', renderer: columnsrenderer },
                             { text: 'Location', datafield: 'locationname', width: 150, renderer: columnsrenderer },
-                            { text: ' ', cellsrenderer: makeOpenSeeStackButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' },
+                            { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
                             { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' }
                             ]
             });
@@ -434,7 +434,7 @@ function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID,
                             { text: 'Latched', datafield: 'Latched', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
                             { text: 'Unreasonable', datafield: 'Unreasonable', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
                             { text: 'NonCongruent', datafield: 'Noncongruent', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-                            { text: '  ', cellsrenderer: makeChannelDataQualityButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' }
+                            { text: '  ', cellsrenderer: makeChannelDataQualityButton_html, dataField: 'ChannelDataQuality', width: 40, padding: 0, cellsalign: 'left' }
 
                 ]
             });
@@ -505,7 +505,7 @@ function populateCompletenessDivWithGrid(thedatasource, thediv, siteName, siteID
                             { text: 'Received', datafield: 'Received', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
                             { text: 'Duplicate', datafield: 'Duplicate', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
                             { text: 'Complete', datafield: 'Completeness', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-                            { text: '  ', cellsrenderer: makeChannelCompletenessButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' }
+                            { text: '  ', cellsrenderer: makeChannelCompletenessButton_html, dataField: 'ChannelCompleteness', width: 40, padding: 0, cellsalign: 'left' }
                 ]
             });
 
@@ -575,7 +575,7 @@ function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
                             { text: 'Sags', datafield: 'sags', type: 'float', width: 80, cellsalign: 'right' },
                             { text: 'Swells', datafield: 'swells', type: 'float', width: 80, cellsalign: 'right' },
                             { text: 'Others', datafield: 'others', type: 'float', width: 80, cellsalign: 'right' },
-                            { text: ' ', cellsrenderer: makeMeterEventsByLineButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' }
+                            { text: ' ', cellsrenderer: makeMeterEventsByLineButton_html, dataField: 'MeterEventsByLine', width: 40, padding: 0, cellsalign: 'left' }
                             ]
             });
 
@@ -650,8 +650,8 @@ function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, th
                             { text: 'Timing', datafield: 'timing', cellsalign: 'right', width: 80 },
                             { text: 'Speed', datafield: 'speed', cellsalign: 'right', width: 50 },
                             { text: 'Operation', datafield: 'operationtype', width: 100 },
-                            { text: '  ', cellsrenderer: makeOpenSeeStackButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' },
-                            { text: '  ', cellsrenderer: filterMakeFaultSpecificsButton_html, dataField: 'OpenSeeByDate', width: 40 }
+                            { text: '  ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
+                            { text: '  ', cellsrenderer: filterMakeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40 }
                 ]
             });
 
@@ -714,10 +714,10 @@ function OpenWindowToFaultSpecifics(id) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function makeOpenSeeStackButton_html(id) {
+function makeOpenSEEButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSeeStack(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
     return_html += '<img src="images/seeButton.png" /></button></div>';
     return (return_html);
 }
@@ -749,14 +749,16 @@ function OpenWindowToOpenSTE(id) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function OpenWindowToOpenSeeStack(id) {
+function OpenWindowToOpenSEE(id) {
     var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var url = "openSeeStack.aspx?eventid=" + datarow.theeventid;
+    var url = "openSEE.aspx?eventid=" + datarow.theeventid;
 
     if (currentTab == "Breakers")
         url += "&breakerdigitals=1";
+    else
+        url += "&faultcurves=1";
 
-    var popup = window.open(url, id + "openSeeStack", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(url, id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -2708,6 +2710,7 @@ function initializeDatePickers(datafromdate , datatodate) {
 
         onClose: function (selectedDate) {
             $("#datePickerTo").datepicker("option", "minDate", selectedDate);
+            $("#datePickerTo").datepicker("option", "minDate", null);
         }
     });
 
@@ -2737,6 +2740,7 @@ function initializeDatePickers(datafromdate , datatodate) {
         showButtonPanel: false,
         onClose: function (selectedDate) {
             $("#datePickerFrom").datepicker("option", "maxDate", selectedDate);
+            $("#datePickerFrom").datepicker("option", "maxDate", null);
         }
     });
 
@@ -3854,7 +3858,6 @@ function buildPage() {
         testy.push(datarow.thesite + "|" + datarow.themeterid);
 
         selectsitesonmap(testy);
-        //var popup = window.open("OpenSEEStack.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "-browser", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no");
         return false;
         //}
     });
@@ -3881,7 +3884,6 @@ function buildPage() {
         testy.push(datarow.thesite + "|" + datarow.themeterid);
 
         selectsitesonmap(testy);
-        //var popup = window.open("OpenSEEStack.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "-browser", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no");
         return false;
         //}
     });
@@ -3938,7 +3940,6 @@ function buildPage() {
 
         selectsitesonmap(testy);
 
-        //var popup = window.open("OpenSEEStack.aspx?eventid=" + datarow.eventid, datarow.eventid + "-browser", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no");
         return false;
         //}
     });

@@ -55,7 +55,9 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                         { name: 'thefaulttype' },
                         { name: 'thecurrentdistance' },
                         { name: 'pqiexists' },
-                        { name: 'easexists' }
+                        { name: 'EASService' },
+                        { name: 'ICFService' },
+                        { name: 'CSAService' }
                     ]
 
                 },
@@ -71,13 +73,15 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                 { text: 'EventType', datafield: 'theeventtype', width: 100, renderer: columnsrenderer },
                 { text: 'Line Name', datafield: 'thelinename', renderer: columnsrenderer },
                 { text: 'Line kV', datafield: 'voltage', width: 50, renderer: columnsrenderer },
-                { text: 'Phase', datafield: 'thefaulttype', width: 40, renderer: columnsrenderer },
-                { text: 'Distance', datafield: 'thecurrentdistance', width: 100, cellsalign: 'right', renderer: columnsrenderer, cellsrenderer: floatrenderer },
+                { text: 'Phase', datafield: 'thefaulttype', width: 40, cellsalign: 'center',  renderer: columnsrenderer },
+                { text: 'Distance', datafield: 'thecurrentdistance', width: 100, cellsalign: 'center', renderer: columnsrenderer },
 
-                { text: ' ', cellsrenderer: makeOpenSeeStackButton_html, dataField: 'OpenSeeStack', width: 40, padding: 0, cellsalign: 'left' },
+                { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
                 { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' },
                 { text: ' ', cellsrenderer: makePQIButton_html, dataField: 'PQI', width: 40, padding: 0, cellsalign: 'left' },
-                { text: ' ', cellsrenderer: makeEASDetailsButton_html, dataField: 'EAS', width: 40, padding: 0, cellsalign: 'left' }
+                { text: ' ', cellsrenderer: function (row, _,value){ return makeEASDetailsButton_html(row, value, 'EASDetails.aspx', 'images/eas.ico', 'Launch EAS Details Page', 300, 200) }, dataField: 'EASService', width: 40, padding: 0, cellsalign: 'left' },
+                { text: ' ', cellsrenderer: function (row, _,value){ return makeEASDetailsButton_html(row, value, 'ICFDetails.aspx', 'images/icf.png', 'Launch ICF Details Page', 300 , 200)}, dataField: 'ICFService', width: 40, padding: 0, cellsalign: 'left'},
+                { text: ' ', cellsrenderer: function (row, _,value){ return makeEASDetailsButton_html(row, value, 'CSADetails.aspx', 'images/csa.png', 'Launch CSA Details Page', 300 , 450) }, dataField: 'CSAService', width: 40, padding: 0, cellsalign: 'left' }
                 ]
             });
 
@@ -87,7 +91,8 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
             $('#' + thediv).jqxGrid('hidecolumn', 'thelineid');
             $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
             $('#' + thediv).jqxGrid('hidecolumn', 'pqiexists');
-            $('#' + thediv).jqxGrid('hidecolumn', 'easexists');
+            $('#' + thediv).jqxGrid('hidecolumn', 'EASService');
+        
 
             //var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', 0);
             //$("#MeterDetailsByDate")[0].innerHTML = theDate;
@@ -98,33 +103,34 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
     });
 }
 
-function makeEASDetailsButton_html(id) {
+function makeEASDetailsButton_html(row, value, url, imagepath, title, width, height) {
     var return_html = "";
 
-    var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
+    var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', row);
+    url += "?eventid=" + datarow.theeventid;
 
-    if (datarow.easexists == "1") {
+    if (value != "0") {
 
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToEAS(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch ICF Details Page">';
-        return_html += '<img src="images/eas.ico" /></button></div>';
+        return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'"+"," + width + "," + height  + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="' + title + '">';
+        return_html += '<img src="'+ imagepath + '" /></button></div>';
     }
     return (return_html);
 }
 
-function OpenWindowToEAS(id) {
 
-    var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
+function OpenWindowToEAS(url, width, height) {
 
-    var popup = window.open("ICFDetails.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "ICFDetails", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    var popup = window.open(url, url, "left=0,top=0,width="+width+",height="+height+",status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 
     return false;
 }
 
-function makeOpenSeeStackButton_html(id) {
+
+function makeOpenSEEButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSeeStack(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
     return_html += '<img src="images/seeButton.png" /></button></div>';
     return (return_html);
 }
@@ -153,9 +159,9 @@ function makePQIButton_html(id) {
     return (return_html);
 }
 
-function OpenWindowToOpenSeeStack(id) {
+function OpenWindowToOpenSEE(id) {
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
-    var popup = window.open("openSeeStack.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "openSeeStack", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open("openSEE.aspx?eventid=" + datarow.theeventid + "&faultcurves=1", datarow.theeventid + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
