@@ -161,7 +161,7 @@ function makePQIButton_html(id) {
 
 function OpenWindowToOpenSEE(id) {
     var datarow = $('#MeterDetailsByDate').jqxGrid('getrowdata', id);
-    var popup = window.open("openSEE.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open("openSEE.aspx?eventid=" + datarow.theeventid + "&faultcurves=1", datarow.theeventid + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
