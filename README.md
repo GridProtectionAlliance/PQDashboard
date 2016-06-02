@@ -36,6 +36,7 @@ The PQ Dashboard's manual can be found [here](https://github.com/GridProtectionA
 * 50 GB of available disk space for installation and testing. Operational disk space requirements will be proportional to the volume of input data.
 
 ### Software
+* [openXDA](https://github.com/GridProtectionAlliance/openXDA).
 * .NET 3.5 SP1 (required by SQL Server 2012).
 * .NET 4.6.
 * SQL Server 2012 with management tools.
@@ -46,7 +47,7 @@ The PQ Dashboard's manual can be found [here](https://github.com/GridProtectionA
   * Windows Authentication.
 * Highcharts v4.0.4.
 * jQWidgets 3.6.0 or newer.
-* openHistorian 2.0.
+* [openHistorian 2.0](https://github.com/GridProtectionAlliance/openHistorian).
 * Compatible browsers:
   * Internet Explorer 11.
   * Google Chrome.
