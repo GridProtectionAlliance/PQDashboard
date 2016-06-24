@@ -28,111 +28,111 @@ var globalcolors = ['#ff0000', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15
 var globalcolorsEvents = ['#C00000', '#FF2800', '#FF9600', '#FFFF00', '#00FFF4', '#0000FF'];
 var globalcolorsDQ = ['#00FFF4', '#00C80E', '#FFFF00', '#FF9600', '#FF2800', '#FF0EF0', '#0000FF'];
 
-    var javascriptversion = "13";
+var javascriptversion = "13";
 
-    var usersettings = {
-        lastSetting: {},
-        uisettings: []
-    };
+var usersettings = {
+    lastSetting: {},
+    uisettings: []
+};
 
-    var applicationsettings = {};
+var applicationsettings = {};
 
-    var cache_Meters = null;
+var cache_Meters = null;
 
-    var cache_Map_Matrix_Data = null;
-    var cache_Map_Matrix_Data_Date_From = null;
-    var cache_Map_Matrix_Data_Date_To = null;
+var cache_Map_Matrix_Data = null;
+var cache_Map_Matrix_Data_Date_From = null;
+var cache_Map_Matrix_Data_Date_To = null;
 
-    var currentTab = null;
+var currentTab = null;
 
-    var calendardatesEvents = [];
-    var calendartipsEvents = [];
+var calendardatesEvents = [];
+var calendartipsEvents = [];
 
-    var calendardatesTrending = [];
-    var calendartipsTrending = [];
+var calendardatesTrending = [];
+var calendartipsTrending = [];
 
-    var calendardatesBreakers = [];
-    var calendartipsBreakers = [];
+var calendardatesBreakers = [];
+var calendartipsBreakers = [];
 
-    var loadingPanel = null;
+var loadingPanel = null;
 
-    var datafromdate = new Date();
-    var datatodate = new Date();
+var datafromdate = new Date();
+var datatodate = new Date();
 
-    var contextfromdate = new Date();
-    var contexttodate = new Date();
+var contextfromdate = new Date();
+var contexttodate = new Date();
 
-    var zoomdatefrom = null;
-    var zoomdateto = null;
+var zoomdatefrom = null;
+var zoomdateto = null;
 
-    var selectiontimeout = null;
-    var timeout = null;
-    var lastselectedindex = 0;
+var selectiontimeout = null;
+var timeout = null;
+var lastselectedindex = 0;
 
-    var heatmap_Cache_Date_From;
-    var heatmap_Cache_Date_To;
-    var heatmapCache = new Array();
+var heatmap_Cache_Date_From;
+var heatmap_Cache_Date_To;
+var heatmapCache = new Array();
 
-    var postedUserName = "";
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-    Array.prototype.remove = function (from, to) {
-        var rest = this.slice((to || from) + 1 || this.length);
-        this.length = from < 0 ? this.length + from : from;
-        return this.push.apply(this, rest);
-    };
+var postedUserName = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-    function loadDataForDateClick() {
-        $("#staticPeriod")[0].value = "Custom";
-        loadDataForDate();
+Array.prototype.remove = function (from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadDataForDateClick() {
+    $("#staticPeriod")[0].value = "Custom";
+    loadDataForDate();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function setMapHeaderDate(datefrom, dateto) {
+
+    if (datefrom == dateto) {
+        $("#mapHeader" + currentTab + "From").hide();
+        $("#mapHeader" + currentTab + "Divider").hide();
+    } else {
+        $("#mapHeader" + currentTab + "From").show();
+        $("#mapHeader" + currentTab + "Divider").show();
     }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-    function setMapHeaderDate(datefrom, dateto) {
-
-        if (datefrom == dateto) {
-            $("#mapHeader" + currentTab + "From").hide();
-            $("#mapHeader" + currentTab + "Divider").hide();
-        } else {
-            $("#mapHeader" + currentTab + "From").show();
-            $("#mapHeader" + currentTab + "Divider").show();
-        }
         
-        $("#mapHeader" + currentTab + "From")[0].innerHTML = datefrom;
-        $("#mapHeader" + currentTab + "To")[0].innerHTML = dateto;
-    }
+    $("#mapHeader" + currentTab + "From")[0].innerHTML = datefrom;
+    $("#mapHeader" + currentTab + "To")[0].innerHTML = dateto;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-    function getMapHeaderDate(whichdate) {
-        return ($("#mapHeader" + currentTab + whichdate)[0].innerHTML);
-    }
+function getMapHeaderDate(whichdate) {
+    return ($("#mapHeader" + currentTab + whichdate)[0].innerHTML);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-    function loadDataForDate() {
+function loadDataForDate() {
 
 
-        if (currentTab != null) {
-            if (typeof ($('#Overview' + currentTab).highcharts()) != 'undefined') {
-                $('#Overview' + currentTab).highcharts().options.chartdatefrom = "";
-                $('#Overview' + currentTab).highcharts().options.chartdateto = "";
-                $('#Overview' + currentTab).highcharts().options.contextfromdate = "";
-                $('#Overview' + currentTab).highcharts().options.contexttodate = "";
-                contextfromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
-                contexttodate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
-            }
-
-            setMapHeaderDate("", "");
-
-            resetAnimatedHeatmap();
-            selectsitesincharts();
+    if (currentTab != null) {
+        if (typeof ($('#Overview' + currentTab).highcharts()) != 'undefined') {
+            $('#Overview' + currentTab).highcharts().options.chartdatefrom = "";
+            $('#Overview' + currentTab).highcharts().options.chartdateto = "";
+            $('#Overview' + currentTab).highcharts().options.contextfromdate = "";
+            $('#Overview' + currentTab).highcharts().options.contexttodate = "";
+            contextfromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
+            contexttodate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
         }
+
+        setMapHeaderDate("", "");
+
+        resetAnimatedHeatmap();
+        selectsitesincharts();
     }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -317,6 +317,7 @@ function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
 
     var thedatasent = "{'siteID':'" + siteID + "','targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
 
+
     $.ajax({
         type: "POST",
         url: './eventService.asmx/' + thedatasource,
@@ -325,69 +326,90 @@ function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-                    datafields: [
-                        { name: 'thesite' },
-                        { name: 'themeterid' },
-                        { name: 'thelineid' },
-                        { name: 'theeventid' },
-                        { name: 'theinceptiontime' },
-                        { name: 'thelinename' },
-                        { name: 'voltage' },
-                        { name: 'thefaulttype' },
-                        { name: 'thecurrentdistance' },
-                        { name: 'locationname' }
-                        ]
-
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                            { text: 'thesite', datafield: 'thesite', renderer: columnsrenderer },
-                            { text: 'MID', datafield: 'themeterid', renderer: columnsrenderer },
-                            { text: 'LID', datafield: 'thelineid', renderer: columnsrenderer },
-                            { text: 'EID', datafield: 'theeventid', renderer: columnsrenderer },
-                            { text: 'Start Time', datafield: 'theinceptiontime', width: 130, renderer: columnsrenderer },
-                            { text: 'Line', datafield: 'thelinename', renderer: columnsrenderer },
-                            { text: 'kV', datafield: 'voltage', width: 50, renderer: columnsrenderer },
-                            { text: 'Type', datafield: 'thefaulttype', width: 40, renderer: columnsrenderer },
-                            { text: 'Miles', datafield: 'thecurrentdistance', width: 50, cellsalign: 'right', renderer: columnsrenderer },
-                            { text: 'Location', datafield: 'locationname', width: 150, renderer: columnsrenderer },
-                            { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
-                            { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' }
-                            ]
+                    //{ field: 'thesite', headerText: 'thesite', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'thelineid', headerText: 'LID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'theeventid', headerText: 'EID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
+                    { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
+                    { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                    { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                    { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                    { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
 
+        //    $('#' + thediv).jqxGrid(
+        //    {
+        //        width: '100%',
+        //        height: '100%',
+        //        source: {
+        //            localdata: data.d,
+        //            dataType: 'json',
 
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+        //            datafields: [
+        //                { name: 'thesite' },
+        //                { name: 'themeterid' },
+        //                { name: 'thelineid' },
+        //                { name: 'theeventid' },
+        //                { name: 'theinceptiontime' },
+        //                { name: 'thelinename' },
+        //                { name: 'voltage' },
+        //                { name: 'thefaulttype' },
+        //                { name: 'thecurrentdistance' },
+        //                { name: 'locationname' }
+        //                ]
 
-            $('#DetailFaults').jqxGrid('hidecolumn', 'thesite');
-            $('#DetailFaults').jqxGrid('hidecolumn', 'themeterid');
-            $('#DetailFaults').jqxGrid('hidecolumn', 'thelineid');
-            $('#DetailFaults').jqxGrid('hidecolumn', 'theeventid');
+        //        },
+        //        sortable: true,
+        //        altrows: true,
+        //        pageable: false,
+        //        theme: 'ui-redmond',
 
-            var datarow = $('#DetailFaults').jqxGrid('getrowdata', 0);
+        //        columns: [
+        //                    { text: 'thesite', datafield: 'thesite', renderer: columnsrenderer },
+        //                    { text: 'MID', datafield: 'themeterid', renderer: columnsrenderer },
+        //                    { text: 'LID', datafield: 'thelineid', renderer: columnsrenderer },
+        //                    { text: 'EID', datafield: 'theeventid', renderer: columnsrenderer },
+        //                    { text: 'Start Time', datafield: 'theinceptiontime', width: 130, renderer: columnsrenderer },
+        //                    { text: 'Line', datafield: 'thelinename', renderer: columnsrenderer },
+        //                    { text: 'kV', datafield: 'voltage', width: 50, renderer: columnsrenderer },
+        //                    { text: 'Type', datafield: 'thefaulttype', width: 40, renderer: columnsrenderer },
+        //                    { text: 'Miles', datafield: 'thecurrentdistance', width: 50, cellsalign: 'right', renderer: columnsrenderer },
+        //                    { text: 'Location', datafield: 'locationname', width: 150, renderer: columnsrenderer },
+        //                    { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
+        //                    { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' }
+        //                    ]
+        //    });
 
-            $("#faultsDetailHeader")[0].innerHTML = theDate;
 
-            if (typeof (datarow) != "undefined") {
-                $('#DetailFaults').jqxGrid('selectrow', 0);
-            }
+        //    var localizationobj = {};
+        //    localizationobj.emptydatastring = "Please Select Single Day";
+        //    $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+
+        //    $('#DetailFaults').jqxGrid('hidecolumn', 'thesite');
+        //    $('#DetailFaults').jqxGrid('hidecolumn', 'themeterid');
+        //    $('#DetailFaults').jqxGrid('hidecolumn', 'thelineid');
+        //    $('#DetailFaults').jqxGrid('hidecolumn', 'theeventid');
+
+        //    var datarow = $('#DetailFaults').jqxGrid('getrowdata', 0);
+
+        //    $("#faultsDetailHeader")[0].innerHTML = theDate;
+
+        //    if (typeof (datarow) != "undefined") {
+        //        $('#DetailFaults').jqxGrid('selectrow', 0);
+        //    }
         }
     });
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,59 +426,86 @@ function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID,
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-                    datafields: [
-                                   { name: 'theeventid' },
-                                   { name: 'themeterid' },
-                                   { name: 'thesite' },
-                                   { name: 'Latched', type: 'float' },
-                                   { name: 'Unreasonable', type: 'float' },
-                                   { name: 'Noncongruent', type: 'float' }]
-
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            console.log(data);
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                            { text: 'EventID', datafield: 'theeventid' },
-                            { text: 'MeterID', datafield: 'themeterid' },
-                            { text: 'Name', datafield: 'thesite' },
-                            { text: 'Latched', datafield: 'Latched', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-                            { text: 'Unreasonable', datafield: 'Unreasonable', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-                            { text: 'NonCongruent', datafield: 'Noncongruent', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-                            { text: '  ', cellsrenderer: makeChannelDataQualityButton_html, dataField: 'ChannelDataQuality', width: 40, padding: 0, cellsalign: 'left' }
-
-                ]
+                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                    { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                    { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
-
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-            $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-            var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-            $("#CorrectnessDetailHeader")[0].innerHTML = theDate;
-
-            if (typeof (datarow) != "undefined") {
-                $('#DetailEvents').jqxGrid('selectrow', 0);
-            }
-
-
         }
     });
+
+    //$.ajax({
+    //    type: "POST",
+    //    url: './eventService.asmx/' + thedatasource,
+    //    data: thedatasent,
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+
+    //        $('#' + thediv).jqxGrid(
+    //        {
+    //            width: '100%',
+    //            height: '100%',
+    //            source: {
+    //                localdata: data.d,
+    //                dataType: 'json',
+
+    //                datafields: [
+    //                               { name: 'theeventid' },
+    //                               { name: 'themeterid' },
+    //                               { name: 'thesite' },
+    //                               { name: 'Latched', type: 'float' },
+    //                               { name: 'Unreasonable', type: 'float' },
+    //                               { name: 'Noncongruent', type: 'float' }]
+
+    //            },
+    //            sortable: true,
+    //            altrows: true,
+    //            pageable: false,
+    //            theme: 'ui-redmond',
+
+    //            columns: [
+    //                        { text: 'EventID', datafield: 'theeventid' },
+    //                        { text: 'MeterID', datafield: 'themeterid' },
+    //                        { text: 'Name', datafield: 'thesite' },
+    //                        { text: 'Latched', datafield: 'Latched', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
+    //                        { text: 'Unreasonable', datafield: 'Unreasonable', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
+    //                        { text: 'NonCongruent', datafield: 'Noncongruent', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
+    //                        { text: '  ', cellsrenderer: makeChannelDataQualityButton_html, dataField: 'ChannelDataQuality', width: 40, padding: 0, cellsalign: 'left' }
+
+    //            ]
+    //        });
+
+    //        var localizationobj = {};
+    //        localizationobj.emptydatastring = "Please Select Single Day";
+    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
+
+    //        //var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
+
+    //        $("#CorrectnessDetailHeader")[0].innerHTML = theDate;
+
+    //        if (typeof (datarow) != "undefined") {
+    //            $('#DetailEvents').jqxGrid('selectrow', 0);
+    //        }
+
+
+    //    }
+    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -473,58 +522,86 @@ function populateCompletenessDivWithGrid(thedatasource, thediv, siteName, siteID
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-                    datafields: [
-                        { name: 'theeventid' },
-                        { name: 'themeterid' },
-                        { name: 'thesite' },
-                        { name: 'Expected', type: 'float' },
-                        { name: 'Received', type: 'float' },
-                        { name: 'Duplicate', type: 'float' },
-                        { name: 'Completeness', type: 'float' }]
-
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            console.log(data);
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                            { text: 'EventID', datafield: 'theeventid' },
-                            { text: 'MeterID', datafield: 'themeterid' },
-                            { text: 'Name', datafield: 'thesite' },
-                            { text: 'Expected', datafield: 'Expected', type: 'float', width: 100, cellsalign: 'right' },
-                            { text: 'Received', datafield: 'Received', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-                            { text: 'Duplicate', datafield: 'Duplicate', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-                            { text: 'Complete', datafield: 'Completeness', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-                            { text: '  ', cellsrenderer: makeChannelCompletenessButton_html, dataField: 'ChannelCompleteness', width: 40, padding: 0, cellsalign: 'left' }
-                ]
+                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                    { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                    { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'Complete', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
-
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-            $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-            var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-            $("#CompletenessDetailHeader")[0].innerHTML = theDate;
-
-            if (typeof (datarow) != "undefined") {
-                $('#DetailEvents').jqxGrid('selectrow', 0);
-            }
         }
     });
+
+    //$.ajax({
+    //    type: "POST",
+    //    url: './eventService.asmx/' + thedatasource,
+    //    data: thedatasent,
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+
+    //        $('#' + thediv).jqxGrid(
+    //        {
+    //            width: '100%',
+    //            height: '100%',
+    //            source: {
+    //                localdata: data.d,
+    //                dataType: 'json',
+
+    //                datafields: [
+    //                    { name: 'theeventid' },
+    //                    { name: 'themeterid' },
+    //                    { name: 'thesite' },
+    //                    { name: 'Expected', type: 'float' },
+    //                    { name: 'Received', type: 'float' },
+    //                    { name: 'Duplicate', type: 'float' },
+    //                    { name: 'Completeness', type: 'float' }]
+
+    //            },
+    //            sortable: true,
+    //            altrows: true,
+    //            pageable: false,
+    //            theme: 'ui-redmond',
+
+    //            columns: [
+    //                        { text: 'EventID', datafield: 'theeventid' },
+    //                        { text: 'MeterID', datafield: 'themeterid' },
+    //                        { text: 'Name', datafield: 'thesite' },
+    //                        { text: 'Expected', datafield: 'Expected', type: 'float', width: 100, cellsalign: 'right' },
+    //                        { text: 'Received', datafield: 'Received', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
+    //                        { text: 'Duplicate', datafield: 'Duplicate', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
+    //                        { text: 'Complete', datafield: 'Completeness', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
+    //                        { text: '  ', cellsrenderer: makeChannelCompletenessButton_html, dataField: 'ChannelCompleteness', width: 40, padding: 0, cellsalign: 'left' }
+    //            ]
+    //        });
+
+    //        var localizationobj = {};
+    //        localizationobj.emptydatastring = "Please Select Single Day";
+    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
+
+    //        //var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
+
+    //        $("#CompletenessDetailHeader")[0].innerHTML = theDate;
+
+    //        if (typeof (datarow) != "undefined") {
+    //            $('#DetailEvents').jqxGrid('selectrow', 0);
+    //        }
+    //    }
+    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -541,60 +618,89 @@ function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-                    datafields: [
-                                   { name: 'theeventid' },
-                                   { name: 'themeterid' },
-                                   { name: 'thesite' },
-                                   { name: 'interruptions', type: 'float' },
-                                   { name: 'faults', type: 'float' },
-                                   { name: 'sags', type: 'float' },
-                                   { name: 'swells', type: 'float' },
-                                   { name: 'others', type: 'float' }]
-
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            console.log(data);
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                            { text: 'EventID', datafield: 'theeventid' },
-                            { text: 'MeterID', datafield: 'themeterid' },
-                            { text: 'Name', datafield: 'thesite' },
-                            { text: 'Interruptions', datafield: 'interruptions', type: 'float', width: 90, cellsalign: 'right' },
-                            { text: 'Faults', datafield: 'faults', type: 'float', width: 80, cellsalign: 'right' },
-                            { text: 'Sags', datafield: 'sags', type: 'float', width: 80, cellsalign: 'right' },
-                            { text: 'Swells', datafield: 'swells', type: 'float', width: 80, cellsalign: 'right' },
-                            { text: 'Others', datafield: 'others', type: 'float', width: 80, cellsalign: 'right' },
-                            { text: ' ', cellsrenderer: makeMeterEventsByLineButton_html, dataField: 'MeterEventsByLine', width: 40, padding: 0, cellsalign: 'left' }
-                            ]
+                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                    { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                    { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'others', headerText: 'Others', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeMeterEventsByLineButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
-
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-            $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-            var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-            $("#eventsDetailHeader")[0].innerHTML = theDate;
-
-            if (typeof (datarow) != "undefined") {
-                $('#DetailEvents').jqxGrid('selectrow', 0);
-            }
         }
     });
+
+    //$.ajax({
+    //    type: "POST",
+    //    url: './eventService.asmx/' + thedatasource,
+    //    data: thedatasent,
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+
+    //        $('#' + thediv).jqxGrid(
+    //        {
+    //            width: '100%',
+    //            height: '100%',
+    //            source: {
+    //                localdata: data.d,
+    //                dataType: 'json',
+
+    //                datafields: [
+    //                               { name: 'theeventid' },
+    //                               { name: 'themeterid' },
+    //                               { name: 'thesite' },
+    //                               { name: 'interruptions', type: 'float' },
+    //                               { name: 'faults', type: 'float' },
+    //                               { name: 'sags', type: 'float' },
+    //                               { name: 'swells', type: 'float' },
+    //                               { name: 'others', type: 'float' }]
+
+    //            },
+    //            sortable: true,
+    //            altrows: true,
+    //            pageable: false,
+    //            theme: 'ui-redmond',
+
+    //            columns: [
+    //                        { text: 'EventID', datafield: 'theeventid' },
+    //                        { text: 'MeterID', datafield: 'themeterid' },
+    //                        { text: 'Name', datafield: 'thesite' },
+    //                        { text: 'Interruptions', datafield: 'interruptions', type: 'float', width: 90, cellsalign: 'right' },
+    //                        { text: 'Faults', datafield: 'faults', type: 'float', width: 80, cellsalign: 'right' },
+    //                        { text: 'Sags', datafield: 'sags', type: 'float', width: 80, cellsalign: 'right' },
+    //                        { text: 'Swells', datafield: 'swells', type: 'float', width: 80, cellsalign: 'right' },
+    //                        { text: 'Others', datafield: 'others', type: 'float', width: 80, cellsalign: 'right' },
+    //                        { text: ' ', cellsrenderer: makeMeterEventsByLineButton_html, dataField: 'MeterEventsByLine', width: 40, padding: 0, cellsalign: 'left' }
+    //                        ]
+    //        });
+
+    //        var localizationobj = {};
+    //        localizationobj.emptydatastring = "Please Select Single Day";
+    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
+
+    //        var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
+
+    //        $("#eventsDetailHeader")[0].innerHTML = theDate;
+
+    //        if (typeof (datarow) != "undefined") {
+    //            $('#DetailEvents').jqxGrid('selectrow', 0);
+    //        }
+    //    }
+    //});
 }
 
 
@@ -612,65 +718,97 @@ function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, th
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-                    datafields: [
-                                    { name: 'meterid' },
-                                    { name: 'theeventid' },
-                                    { name: 'eventtype' },
-                                    { name: 'energized' },
-                                    { name: 'breakernumber' },
-                                    { name: 'linename' },
-                                    { name: 'phasename' },
-                                    { name: 'timing' },
-                                    { name: 'speed' },
-                                    { name: 'operationtype' }
-                                ]
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                            { text: 'EventID', datafield: 'theeventid' },
-                            { text: 'MeterID', datafield: 'meterid' },
-                            { text: 'EventType', datafield: 'eventtype' },
-                            { text: 'TCE Time', datafield: 'energized', width: 140 },
-                            { text: 'Breaker', datafield: 'breakernumber', width: 70 },
-                            { text: 'Line', datafield: 'linename' },
-                            { text: 'Phase', datafield: 'phasename', width: 60 },
-                            { text: 'Timing', datafield: 'timing', cellsalign: 'right', width: 80 },
-                            { text: 'Speed', datafield: 'speed', cellsalign: 'right', width: 50 },
-                            { text: 'Operation', datafield: 'operationtype', width: 100 },
-                            { text: '  ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
-                            { text: '  ', cellsrenderer: filterMakeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40 }
-                ]
+                    //{ field: 'thesite', headerText: 'thesite', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'thelineid', headerText: 'LID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'theeventid', headerText: 'EID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
+                    { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'linename', headerText: 'Line', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'timing', headerText: 'Timing', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'speed', headerText: 'Speed', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
-
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-            $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'eventtype');
-            $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
-
-            var datarow = $('#' + thediv).jqxGrid('getrowdata', 0);
-
-            $("#breakersDetailHeader")[0].innerHTML = theDate;
-
-            if (typeof (datarow) != "undefined") {
-                $('#' + thediv).jqxGrid('selectrow', 0);
-            }
         }
     });
+
+    //$.ajax({
+    //    type: "POST",
+    //    url: './eventService.asmx/' + thedatasource,
+    //    data: thedatasent,
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+
+    //        $('#' + thediv).jqxGrid(
+    //        {
+    //            width: '100%',
+    //            height: '100%',
+    //            source: {
+    //                localdata: data.d,
+    //                dataType: 'json',
+
+    //                datafields: [
+    //                                { name: 'meterid' },
+    //                                { name: 'theeventid' },
+    //                                { name: 'eventtype' },
+    //                                { name: 'energized' },
+    //                                { name: 'breakernumber' },
+    //                                { name: 'linename' },
+    //                                { name: 'phasename' },
+    //                                { name: 'timing' },
+    //                                { name: 'speed' },
+    //                                { name: 'operationtype' }
+    //                            ]
+    //            },
+    //            sortable: true,
+    //            altrows: true,
+    //            pageable: false,
+    //            theme: 'ui-redmond',
+
+    //            columns: [
+    //                        { text: 'EventID', datafield: 'theeventid' },
+    //                        { text: 'MeterID', datafield: 'meterid' },
+    //                        { text: 'EventType', datafield: 'eventtype' },
+    //                        { text: 'TCE Time', datafield: 'energized', width: 140 },
+    //                        { text: 'Breaker', datafield: 'breakernumber', width: 70 },
+    //                        { text: 'Line', datafield: 'linename' },
+    //                        { text: 'Phase', datafield: 'phasename', width: 60 },
+    //                        { text: 'Timing', datafield: 'timing', cellsalign: 'right', width: 80 },
+    //                        { text: 'Speed', datafield: 'speed', cellsalign: 'right', width: 50 },
+    //                        { text: 'Operation', datafield: 'operationtype', width: 100 },
+    //                        { text: '  ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
+    //                        { text: '  ', cellsrenderer: filterMakeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40 }
+    //            ]
+    //        });
+
+    //        var localizationobj = {};
+    //        localizationobj.emptydatastring = "Please Select Single Day";
+    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'eventtype');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
+
+    //        var datarow = $('#' + thediv).jqxGrid('getrowdata', 0);
+
+    //        $("#breakersDetailHeader")[0].innerHTML = theDate;
+
+    //        if (typeof (datarow) != "undefined") {
+    //            $('#' + thediv).jqxGrid('selectrow', 0);
+    //        }
+    //    }
+    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -678,9 +816,9 @@ function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, th
 function filterMakeFaultSpecificsButton_html(id) {
     var return_html = "";
 
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
+    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
 
-    if (datarow.eventtype == "Fault") {
+    if (id.eventtype == "Fault") {
         return_html = makeFaultSpecificsButton_html(id);
     }
 
@@ -690,11 +828,12 @@ function filterMakeFaultSpecificsButton_html(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function makeFaultSpecificsButton_html(id) {
+
     var return_html = "";
 
     return_html += '<div style="width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
 
-    return_html += '<button onClick="OpenWindowToFaultSpecifics(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open Fault Detail Window">';
+    return_html += '<button onClick="OpenWindowToFaultSpecifics(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open Fault Detail Window">';
 
     return_html += '<img src="images/faultDetailButton.png" /></button></div>';
 
@@ -704,10 +843,9 @@ return (return_html);
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToFaultSpecifics(id) {
-
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-
-    var popup = window.open("FaultSpecifics.aspx?eventid=" + datarow.theeventid, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    var datarow = id;
+    console.log(id);
+    var popup = window.open("FaultSpecifics.aspx?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 
     return false;
 }
@@ -717,7 +855,7 @@ function OpenWindowToFaultSpecifics(id) {
 function makeOpenSEEButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSEE(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
     return_html += '<img src="images/seeButton.png" /></button></div>';
     return (return_html);
 }
@@ -727,22 +865,22 @@ function makeOpenSEEButton_html(id) {
 function makeOpenSTEButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSTE(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSTE(' + id.channelid + ',' + id.date + ',' + id.meterid + ',' + id.measurementtype + ',' + id.characteristic + ',' + id.phasename + ',' + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
     return_html += '<img src="images/steButton.png" /></button></div>';
     return (return_html);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function OpenWindowToOpenSTE(id) {
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
+function OpenWindowToOpenSTE(channelid, date, meterid, measurementtype, characteristic, phasename) {
+    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
     var popup = window.open("openSTE.aspx?channelid=" 
-        + encodeURIComponent(datarow.channelid) 
-        + "&date=" + encodeURIComponent(datarow.date)
-        + "&meterid=" + encodeURIComponent(datarow.meterid)
-        + "&measurementtype=" + encodeURIComponent(datarow.measurementtype)
-        + "&characteristic=" + encodeURIComponent(datarow.characteristic)
-        + "&phasename=" + encodeURIComponent(datarow.phasename)
+        + encodeURIComponent(channelid) 
+        + "&date=" + encodeURIComponent(date)
+        + "&meterid=" + encodeURIComponent(meterid)
+        + "&measurementtype=" + encodeURIComponent(measurementtype)
+        + "&characteristic=" + encodeURIComponent(characteristic)
+        + "&phasename=" + encodeURIComponent(phasename)
         , id + "openSTE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
@@ -750,8 +888,7 @@ function OpenWindowToOpenSTE(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToOpenSEE(id) {
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var url = "openSEE.aspx?eventid=" + datarow.theeventid;
+    var url = "openSEE.aspx?eventid=" + id;
 
     if (currentTab == "Breakers")
         url += "&breakerdigitals=1";
@@ -767,7 +904,7 @@ function OpenWindowToOpenSEE(id) {
 function makeChannelDataQualityButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToChannelDataQuality(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Channel Data Quality Details Page">';
+    return_html += '<button onClick="OpenWindowToChannelDataQuality(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Channel Data Quality Details Page">';
     return_html += '<img src="images/dqDetailButton.png" /></button></div>';
     return (return_html);
 }
@@ -777,7 +914,7 @@ function makeChannelDataQualityButton_html(id) {
 function makeChannelCompletenessButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToChannelDataCompleteness(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Channel Data Quality Details Page">';
+    return_html += '<button onClick="OpenWindowToChannelDataCompleteness(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Channel Data Quality Details Page">';
     return_html += '<img src="images/dcDetailButton.png" /></button></div>';
     return (return_html);
 }
@@ -787,7 +924,7 @@ function makeChannelCompletenessButton_html(id) {
 function makeMeterEventsByLineButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToMeterEventsByLine(' + id + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">';
+    return_html += '<button onClick="OpenWindowToMeterEventsByLine(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">';
     return_html += '<img src="images/eventDetailButton.png" /></button></div>';
     return (return_html);
 }
@@ -795,24 +932,24 @@ function makeMeterEventsByLineButton_html(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToMeterEventsByLine(id) {
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var popup = window.open("MeterEventsByLine.aspx?eventid=" + datarow.theeventid, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
+    var popup = window.open("MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToChannelDataQuality(id) {
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var popup = window.open("ChannelDataQuality.aspx?eventid=" + datarow.theeventid, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
+    var popup = window.open("ChannelDataQuality.aspx?eventid=" + id, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToChannelDataCompleteness(id) {
-    var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
-    var popup = window.open("ChannelDataCompleteness.aspx?eventid=" + datarow.theeventid, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
+    var popup = window.open("ChannelDataCompleteness.aspx?eventid=" + id, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -824,75 +961,104 @@ function populateTrendingDivWithGrid(thedatasource, thediv, siteName, siteID, th
 
     $.ajax({
         type: "POST",
-        date: theDate,
         url: './eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
         success: function (data) {
-
-            $('#' + thediv).jqxGrid(
-            {
-                //date: theDate,
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
-
-
-                    datafields: [
-                        { name: 'meterid', type: 'float' },
-                        { name: 'channelid', type: 'float' },
-                        { name: 'sitename' },
-                        { name: 'eventtype' },
-                        { name: 'characteristic' },
-                        { name: 'measurementtype' },
-                        { name: 'phasename' },
-                        { name: 'eventcount', type: 'float' },
-                        { name: 'date'}
-                    ]
-
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
-
+            console.log(data);
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
                 columns: [
-                    { text: 'MeterID', datafield: 'meterid', type: 'float' },
-                    { text: 'ChannelID', datafield: 'channelid', type: 'float'},
-                    { text: 'Name', datafield: 'sitename' },
-                    { text: 'Event', datafield: 'eventtype', width: '10%' },
-                    { text: 'Type', datafield: 'measurementtype', width: '10%' },
-                    { text: 'Characteristic', datafield: 'characteristic', width: '18%' },
-                    { text: 'Phase', datafield: 'phasename', width: '14%' },
-                    { text: 'Count', datafield: 'eventcount', type: 'float', width: '10%', cellsalign: 'right' },
-                    { text: '  ', cellsrenderer: makeOpenSTEButton_html, dataField: 'OpenSTE', width: 40, padding: 0, cellsalign: 'left' },
-                    { text: '  ', datafield: 'date' }
-                    ]
-
+                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
+                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                    { field: 'eventtype', headerText: 'Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                    { field: 'measurementtype', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'characteristic', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSTEButton_html }
+                ],
+                datasource: $.parseJSON(data.d)
             });
-
-            $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'channelid');
-            $('#' + thediv).jqxGrid('hidecolumn', 'date');
-
-            var datarow = $('#DetailTrending').jqxGrid('getrowdata', 0);
-
-            if (typeof (datarow) != "undefined") {
-                $('#DetailTrending').jqxGrid('selectrow', 0);
-                //PopulateTrendingWaveformDropdowns(datarow, theDate);
-            } else {
-                // Nothing to show.
-                $('#Waveform' + currentTab).empty();
-            }
-
-            $("#trendingDetailHeader")[0].innerHTML = theDate;
-            //$("#trendingWaveformHeader")[0].innerHTML = theDate;
         }
     });
+
+    //$.ajax({
+    //    type: "POST",
+    //    date: theDate,
+    //    url: './eventService.asmx/' + thedatasource,
+    //    data: thedatasent,
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+
+    //        $('#' + thediv).jqxGrid(
+    //        {
+    //            //date: theDate,
+    //            width: '100%',
+    //            height: '100%',
+    //            source: {
+    //                localdata: data.d,
+    //                dataType: 'json',
+
+
+    //                datafields: [
+    //                    { name: 'meterid', type: 'float' },
+    //                    { name: 'channelid', type: 'float' },
+    //                    { name: 'sitename' },
+    //                    { name: 'eventtype' },
+    //                    { name: 'characteristic' },
+    //                    { name: 'measurementtype' },
+    //                    { name: 'phasename' },
+    //                    { name: 'eventcount', type: 'float' },
+    //                    { name: 'date'}
+    //                ]
+
+    //            },
+    //            sortable: true,
+    //            altrows: true,
+    //            pageable: false,
+    //            theme: 'ui-redmond',
+
+    //            columns: [
+    //                { text: 'MeterID', datafield: 'meterid', type: 'float' },
+    //                { text: 'ChannelID', datafield: 'channelid', type: 'float'},
+    //                { text: 'Name', datafield: 'sitename' },
+    //                { text: 'Event', datafield: 'eventtype', width: '10%' },
+    //                { text: 'Type', datafield: 'measurementtype', width: '10%' },
+    //                { text: 'Characteristic', datafield: 'characteristic', width: '18%' },
+    //                { text: 'Phase', datafield: 'phasename', width: '14%' },
+    //                { text: 'Count', datafield: 'eventcount', type: 'float', width: '10%', cellsalign: 'right' },
+    //                { text: '  ', cellsrenderer: makeOpenSTEButton_html, dataField: 'OpenSTE', width: 40, padding: 0, cellsalign: 'left' },
+    //                { text: '  ', datafield: 'date' }
+    //                ]
+
+    //        });
+
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'channelid');
+    //        $('#' + thediv).jqxGrid('hidecolumn', 'date');
+
+    //        //var datarow = $('#DetailTrending').jqxGrid('getrowdata', 0);
+
+    //        if (typeof (datarow) != "undefined") {
+    //            $('#DetailTrending').jqxGrid('selectrow', 0);
+    //            //PopulateTrendingWaveformDropdowns(datarow, theDate);
+    //        } else {
+    //            // Nothing to show.
+    //            $('#Waveform' + currentTab).empty();
+    //        }
+
+    //        $("#trendingDetailHeader")[0].innerHTML = theDate;
+    //        //$("#trendingWaveformHeader")[0].innerHTML = theDate;
+    //    }
+    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2641,7 +2807,8 @@ function resizeDocklet( theparent , chartheight ) {
     }
 
     // Force Grids to render and fill 100% height
-    $("#" + firstChild[0].id).jqxGrid('render');
+    //$("#" + firstChild[0].id).jqxGrid('render');
+    //$('#' + firstChild[0].id).puidatatable('reload');
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3116,16 +3283,6 @@ function createupdateconfig(configname) {
 
 function showContent() {
 
-    //var login = $("#userid").val();
-    //var password = $("#password").val();
-
-    //if ((login != 'EPRI') && (password != 1234)) {
-    //    if ((login.length > 0) || (password.length > 0)) {
-    //        $("#incorrect").css("visibility", "visible"); 
-    //    }
-    //    return;
-    //}
-
     $("#loginContent").css("visibility", "hidden");
     $("#ApplicationContent").css("visibility", "visible");
     $("#logout_button").css("visibility", "visible");
@@ -3219,416 +3376,16 @@ function loadsitedropdown() {
     }
 
     $('#siteList').multiselect('refresh');
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+function loadSeverityDropdown() {
+    $('#severityList').multiselect();
 
-//    function populateCalendarEvents() {
-
-//        calendardatesEvents = [];
-//        calendardatesEvents = [];
-
-//        var thedatasent = "{'userName':'" + postedUserName + "'}";
-
-//        $.ajax({
-//            type: "POST",
-//            url: './eventService.asmx/getCalendarForEvents',
-//            data: thedatasent,
-//            contentType: "application/json; charset=utf-8",
-//            dataType: 'json',
-//            cache: true,
-//            success: function (data) {
-
-//                var obj = JSON.parse(data.d);
-
-//                $.each(obj, (function (key, value) {
-
-//                    if ((value.faults > 0) || (value.interruptions > 0) || (value.others > 0) || (value.sags > 0) || (value.swells > 0)) {
-                        
-//                        calendardatesEvents.push(new Date(value.thedate).toString().substr(0, 16));
-//                        var tempstatus = "";
-
-//                        if (value.faults > 0) {
-
-//                            tempstatus += "Fault: " + value.faults + "\n";
-//                        }
-
-//                        if (value.sags > 0) {
-
-//                            tempstatus += "Sag:  " + value.sags + "\n";
-//                        }
-
-//                        if (value.interruptions > 0) {
-
-//                            tempstatus += "Interruption: " + value.interruptions + "\n";
-//                        }
-
-//                        if (value.swells > 0) {
-
-//                            tempstatus += "Swell:  " + value.swells + "\n";
-//                        }
-
-//                        if (value.others > 0) {
-
-//                            tempstatus += "Other:  " + value.others;
-//                        }
-
-//                        calendartipsEvents.push(tempstatus);
-//                    }
-//                }));
-
-//                $("#datePickerFrom").datepicker("refresh");
-//                $("#datePickerTo").datepicker("refresh");
-//            },
-//            failure: function (msg) {
-//                alert(msg);
-//            },
-//            async: true
-//        });
-//    }
-
-//    //////////////////////////////////////////////////////////////////////////////////////////////
-
-//    function populateCalendarTrending() {
-
-//        calendardatesTrending = [];
-//        calendartipsTrending = [];
-
-//        var thedatasent = "{'userName':'" + postedUserName + "'}";
-
-//        $.ajax({
-//            type: "POST",
-//            url: './eventService.asmx/getCalendarForTrending',
-//            data: thedatasent,
-//            contentType: "application/json; charset=utf-8",
-//            dataType: 'json',
-//            cache: true,
-//            success: function (data) {
-
-//                var obj = JSON.parse(data.d);
-
-//                $.each(obj, (function (key, value) {
-
-//                    if ((value.alarm > 0) || (value.offnormal > 0)) {
-
-//                        calendardatesTrending.push(new Date(value.thedate).toString().substr(0, 16));
-//                        var tempstatus = "";
-
-//                        if (value.alarm > 0) {
-
-//                            tempstatus += "Alarm: " + value.alarm + "\n";
-//                        }
-
-//                        if (value.offnormal > 0) {
-
-//                            tempstatus += "Offnormal:  " + value.offnormal + "\n";
-//                        }
-
-//                        calendartipsTrending.push(tempstatus);
-//                    }
-//                }));
-
-//                $("#datePickerFrom").datepicker("refresh");
-//                $("#datePickerTo").datepicker("refresh");
-//            },
-//            failure: function (msg) {
-//                alert(msg);
-//            },
-//            async: true
-//        });
-//    }
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-//    function populateCalendarBreakers() {
-
-//        calendardatesBreakers = [];
-//        calendartipsBreakers = [];
-
-//        var thedatasent = "{'userName':'" + postedUserName + "'}";
-
-//        $.ajax({
-//            type: "POST",
-//            url: './eventService.asmx/getCalendarForBreakers',
-//            data: thedatasent,
-//            contentType: "application/json; charset=utf-8",
-//            dataType: 'json',
-//            cache: true,
-//            success: function (data) {
-
-//                var obj = JSON.parse(data.d);
-
-//                $.each(obj, (function (key, value) {
-
-//                    if ((value.normal > 0) || (value.late > 0) || (value.indeterminate > 0)) {
-
-//                        calendardatesBreakers.push(new Date(value.thedate).toString().substr(0, 16));
-//                        var tempstatus = "";
-
-//                        if (value.normal > 0) {
-
-//                            tempstatus += "Normal: " + value.normal + "\n";
-//                        }
-
-//                        if (value.late > 0) {
-
-//                            tempstatus += "Late:  " + value.late + "\n";
-//                        }
-
-//                        if (value.indeterminate > 0) {
-
-//                            tempstatus += "Indeterminate:  " + value.indeterminate + "\n";
-//                        }
-
-//                        calendartipsBreakers.push(tempstatus);
-//                    }
-//                }));
-
-//                $("#datePickerFrom").datepicker("refresh");
-//                $("#datePickerTo").datepicker("refresh");
-//            },
-//            failure: function (msg) {
-//                alert(msg);
-//            },
-//            async: true
-//        });
-//    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-
-    //function populateDivWithLineChartByChannelID(thedatasource, thediv, thechannelid, thedate, eventtype, label) {
-
-    //    var options = {
-    //        colors: globalcolors,
-    //        plotOptions: {
-    //            series: {
-    //                animation: false,
-    //                marker: {
-    //                    radius: 2
-    //                }
-    //            }
-    //        },
-    //        chart: {
-    //            panning: true,
-    //            panKey: 'shift',
-    //            type: 'line',
-    //            zoomType: 'x',
-    //            renderTo: thediv
-    //        },
-    //        credits: {
-    //            enabled: false
-    //        },
-    //        title: {
-    //            text: label,
-    //            style: { "color": "#333333", "fontSize": "12px" }
-    //        },
-    //        xAxis: {
-    //            type: 'datetime',
-    //            categories: [],
-
-    //            labels: {
-    //                style: {
-    //                    fontSize: '8px'
-    //                },
-    //                rotation: -45,
-    //                enabled: true
-    //            }
-    //        },
-    //        yAxis: {
-
-    //            title: {
-    //                text: 'Trend Magnitude'
-    //            },
-    //            stackLabels: {
-    //                enabled: true,
-    //                style: {
-    //                    fontsize: '.3em',
-    //                    fontWeight: 'bold',
-    //                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-    //                }
-    //            }
-    //        },
-    //        legend: {
-    //            layout: 'vertical',
-    //            align: 'right',
-    //            verticalAlign: 'middle',
-    //            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
-    //            borderWidth: 0
-    //        },
-    //        tooltip: {
-    //            positioner: function () {
-    //                return { x: 2, y: 12 };
-    //            },
-    //            formatter: function () {
-
-    //                var tooltipstring = "";
-
-    //                if (typeof (this.point.low) != 'undefined' && typeof (this.point.high) != 'undefined') {
-    //                    tooltipstring = '<b>' + this.series.name + ' : ' + this.point.low.toFixed(3) + ' - ' + this.point.high.toFixed(3) + '</b>';
-    //                } else {
-    //                    tooltipstring = '<b>' + this.series.name + ' @ ' + this.x + ' : ' + this.y.toFixed(3) + '</b>';
-    //                }
-
-    //                return tooltipstring;
-    //            },
-    //            shadow: false,
-    //            borderWidth: 0,
-    //            backgroundColor: 'rgba(255,255,255,0)'
-    //        }
-    //    };
-
-    //    var thedatasent = "{'ChannelID':'" + thechannelid + "', 'targetDate':'" + thedate + "'}";
-
-    //    var chart = new Highcharts.Chart(options);
-    //    chart.showLoading('Loading, please wait...');
-
-    //    $.ajax({
-    //        type: "POST",
-    //        url: './eventService.asmx/' + thedatasource,
-    //        data: thedatasent,
-    //        contentType: "application/json; charset=utf-8",
-    //        dataType: 'json',
-    //        cache: true,
-    //        success: function (data) {
-    //            if (data.d == null) {
-    //                chart.hideLoading();
-    //                return;
-    //            }
-
-    //            options.xAxis.categories = data.d.xAxis;
-
-    //            $.each(data.d.data[2].data, (function (key, value) {
-
-    //                data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
-
-    //            }));
-
-    //            data.d.data[2].linkedTo = 2;
-    //            data.d.data[2].name = 'Range';
-    //            options.series = data.d.data;
-    //            options.series[3].lineWidth = 0;
-    //            options.series[4].showInLegend = false;
-
-    //            chart = new Highcharts.Chart(options);
-    //            chart.series[4].hide();
-    //            //chart.series[3].hide();
-
-    //            if (data.d.data[6].data.length == 0) {
-    //                chart.series[6].hide();
-    //                options.series[6].showInLegend = false;
-    //            }
-
-    //            if (eventtype == 'Alarm') {
-    //                chart.series[5].hide();
-    //                chart.series[1].hide();
-    //            }
-
-    //            if (eventtype == 'OffNormal') {
-    //                chart.series[0].hide();
-    //                chart.series[6].hide();
-    //            }
-
-    //            chart.hideLoading();
-    //        },
-    //        failure: function (msg) {
-    //            alert(msg);
-    //        },
-    //        async: true
-    //    });
-    //}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-//function populateTrendingMetric(metric, siteID, theDate, desiredvalue) {
-
-//    var thedatasent = "";
-//    var theMeasurementType = "";
-//    var theMeasurementCharacteristic = "";
-
-//    switch (metric) {
-//        case "MeasurementType":
-//            thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
-//            break;
-
-//        case "MeasurementCharacteristic":
-//            theMeasurementType = $("#MeasurementType").val();
-//            if (theMeasurementType == null) {
-//                $("#MeasurementCharacteristic").empty();
-//                $("#MeasurementCharacteristic").multiselect("refresh");
-//                $("#Phase").empty();
-//                $("#Phase").multiselect("refresh");
-//                return;
-//            }
-
-//            thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "'}";
-//            break;
-
-//        case "Phase":
-
-//            theMeasurementType = $("#MeasurementType").val();
-//            if (theMeasurementType == null) {
-//                $("#MeasurementCharacteristic").empty();
-//                $("#MeasurementCharacteristic").multiselect("refresh");
-//                return;
-//            }
-
-//            theMeasurementCharacteristic = $("#MeasurementCharacteristic").val();
-//            if (theMeasurementCharacteristic == null) {
-//                $("#Phase").empty();
-//                $("#Phase").multiselect("refresh");
-//                return;
-//            }
-
-//            thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "', 'theCharacteristic':'" + theMeasurementCharacteristic + "'}";
-//            break;
-
-//    }
-
-//    $.ajax({
-//        type: "POST",
-//        url: './eventService.asmx/' + metric,
-//        data: thedatasent,
-//        desiredvalue: desiredvalue,
-//        contentType: "application/json; charset=utf-8",
-//        dataType: 'json',
-//        cache: true,
-//        success: function (data) {
-
-//            // Disable change event on dropdown to be populated.
-//            var temp = $('#' + metric)[0].change;
-//            $('#' + metric)[0].change = null;
-//            //
-
-//            $('#' + metric).empty();
-
-//            if (data.d.length > 0) {
-//                $.each(data.d, (function (key, value) {
-//                    var selected = "";
-//                    if (value.Item2 == desiredvalue) {
-//                        selected = "selected";
-//                    }
-//                    SelectAdd(metric, value.Item1, value.Item2, selected);
-//                }));
-
-//            }
-
-//            $('#' + metric).multiselect("refresh");
-
-//            // Restore change event on completion
-//            $('#' + metric)[0].change = temp;
-//            //
-
-//        },
-//        failure: function (msg) {
-//            alert(msg);
-//        },
-//        async: false
-//    });
-
-//}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function loadSettingsAndApply() {
 
     var thedatasent = "{'userName':'" + postedUserName + "'}";
@@ -3681,11 +3438,6 @@ function buildPage() {
     $.blockUI({ css: { border: '0px' } });
 
     $(document).ajaxStart(function () {
-        //if (timeout != null) {
-        //    clearTimeout(timeout);
-        //    timeout = null;
-        //}
-
         timeout = setTimeout(function () {
             $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
         }, 1000);
@@ -3707,25 +3459,6 @@ function buildPage() {
     $('#delete-dialog').hide();
 
     $('#modal-dialog').hide();
-
-    //$(".column").sortable({
-    //    connectWith: ".column",
-    //    handle: ".portlet-header",
-    //    cancel: ".portlet-toggle",
-    //    placeholder: "portlet-placeholder",
-    //    dropOnEmpty: true,
-    //    forcePlaceholderSize: true,
-    //    tolerance: "pointer",
-    //    receive: function (event, ui) {
-    //        if (typeof (map) != "undefined") {
-    //            google.maps.event.trigger(map, 'resize');
-    //            //map.updateSize();
-    //        }
-    //    },
-    //    start: function (event, ui) {
-    //        $('#sortable').sortable('refreshPositions');
-    //    }
-    //});
 
     var mousemove = null;
 
@@ -3783,10 +3516,6 @@ function buildPage() {
 
     currentTab = "Events";
 
-    //if (getcurrentconfigsetting("CurrentTab") == 1) {
-    //    currentTab = "Faults";
-    //}
-
     $("#application-tabs").tabs({
         active: getcurrentconfigsetting("CurrentTab"),
         heightStyle: "100%",
@@ -3816,173 +3545,101 @@ function buildPage() {
     initializeDatePickers(datafromdate, datatodate);
     getMeters();
     loadsitedropdown();
+    loadSeverityDropdown();
 
-    //$("#MeasurementType").multiselect({ minWidth: 120, noneSelectedText: "Type", selectedList: 1, multiple: false });
-    //$("#MeasurementCharacteristic").multiselect({ minWidth: 120, noneSelectedText: "Characteristic", selectedList: 1, multiple: false });
-    //$("#Phase").multiselect({ minWidth: 120, noneSelectedText: "Phase", selectedList: 1, multiple: false });
-    //$("#Period").multiselect({ minWidth: 70, noneSelectedText: "Period", selectedList: 1, multiple: false });
+    //$('#DetailEvents').jqxGrid({ width: 0 });
 
-    //$("#MeasurementType")[0].change = function (event, ui) {
-    //    selectMeasure(this);
-    //};
-    //$("#MeasurementCharacteristic")[0].change = function (event, ui) {
-    //    selectMeasure(this);
-    //};
-    //$("#Phase")[0].change = function (event, ui) {
-    //    selectMeasure(this);
-    //};
-    //$("#Period")[0].change = function (event, ui) {
-    //    selectMeasure(this);
-    //};
-
-
-    $('#DetailEvents').jqxGrid({ width: 0 });
-
-    $('#DetailEvents').mousedown(function (event) {
-
-        var datainformation = $('#DetailEvents').jqxGrid('getdatainformation');
-        if (datainformation.rowscount == 0) return (false);
-
-        // get the clicked cell.
-        var cell = $('#DetailEvents').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-        //select row.
-        if (cell != null && cell.row) {
-            $('#DetailEvents').jqxGrid('selectrow', cell.row);
-        }
-        //var rightClick = isRightClick(event);
-        //if (rightClick) {
-        var datarow = $('#DetailEvents').jqxGrid('getrowdata', cell.row);
-
-        //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-        var testy = [];
-        testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-        selectsitesonmap(testy);
-        return false;
-        //}
-    });
-
-    $('#DetailBreakers').jqxGrid({ width: 0 });
-
-    $('#DetailBreakers').mousedown(function (event) {
-
-        var datainformation = $('#DetailBreakers').jqxGrid('getdatainformation');
-        if (datainformation.rowscount == 0) return (false);
-
-        // get the clicked cell.
-        var cell = $('#DetailBreakers').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-        //select row.
-        if (cell != null && cell.row) {
-            $('#DetailBreakers').jqxGrid('selectrow', cell.row);
-        }
-        //var rightClick = isRightClick(event);
-        //if (rightClick) {
-        var datarow = $('#DetailBreakers').jqxGrid('getrowdata', cell.row);
-
-        //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-        var testy = [];
-        testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-        selectsitesonmap(testy);
-        return false;
-        //}
-    });
-
-
-    //$('#DetailEvents').on('rowdoubleclick', function (event) {
+    //$('#DetailEvents').mousedown(function (event) {
 
     //    var datainformation = $('#DetailEvents').jqxGrid('getdatainformation');
     //    if (datainformation.rowscount == 0) return (false);
 
     //    // get the clicked cell.
-    //    var cell = $('#DetailEvents').jqxGrid('getCellAtPosition', event.args.originalEvent.pageX, event.args.originalEvent.pageY);
+    //    var cell = $('#DetailEvents').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
     //    //select row.
     //    if (cell != null && cell.row) {
     //        $('#DetailEvents').jqxGrid('selectrow', cell.row);
     //    }
-
+    //    //var rightClick = isRightClick(event);
+    //    //if (rightClick) {
     //    var datarow = $('#DetailEvents').jqxGrid('getrowdata', cell.row);
 
-    //    var popup = window.open("MeterEventsByLine.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "-browser", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no");
+    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
+    //    var testy = [];
+    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
 
-    //    //var args = event.args;
-    //    //// row's bound index.
-    //    //var boundIndex = args.rowindex;
-    //    //// row's visible index.
-    //    //var visibleIndex = args.visibleindex;
-    //    //// right click.
-    //    //var rightclick = args.rightclick;
-    //    //// original event.
-    //    //var ev = args.originalEvent;
+    //    selectsitesonmap(testy);
+    //    return false;
+    //    //}
+    //});
+
+    //$('#DetailBreakers').jqxGrid({ width: 0 });
+
+    //$('#DetailBreakers').mousedown(function (event) {
+
+    //    var datainformation = $('#DetailBreakers').jqxGrid('getdatainformation');
+    //    if (datainformation.rowscount == 0) return (false);
+
+    //    // get the clicked cell.
+    //    var cell = $('#DetailBreakers').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
+    //    //select row.
+    //    if (cell != null && cell.row) {
+    //        $('#DetailBreakers').jqxGrid('selectrow', cell.row);
+    //    }
+    //    //var rightClick = isRightClick(event);
+    //    //if (rightClick) {
+    //    var datarow = $('#DetailBreakers').jqxGrid('getrowdata', cell.row);
+
+    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
+    //    var testy = [];
+    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
+
+    //    selectsitesonmap(testy);
+    //    return false;
+    //    //}
     //});
 
 
-    $('#DetailFaults').jqxGrid({ width: 0 });
 
-    $('#DetailFaults').mousedown(function (event) {
+    //$('#DetailFaults').jqxGrid({ width: 0 });
 
-        var datainformation = $('#DetailFaults').jqxGrid('getdatainformation');
-        if (datainformation.rowscount == 0) return (false);
-
-        // get the clicked cell.
-        var cell = $('#DetailFaults').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-        //select row.
-        if (cell != null && cell.row) {
-            $('#DetailFaults').jqxGrid('selectrow', cell.row);
-        }
-        //var rightClick = isRightClick(event);
-        //if (rightClick) {
-        var datarow = $('#DetailFaults').jqxGrid('getrowdata', cell.row);
-
-        //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-        var testy = [];
-        testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-        selectsitesonmap(testy);
-
-        return false;
-        //}
-    });
-
-    //$('#DetailFaults').on('rowdoubleclick', function (event) {
+    //$('#DetailFaults').mousedown(function (event) {
 
     //    var datainformation = $('#DetailFaults').jqxGrid('getdatainformation');
     //    if (datainformation.rowscount == 0) return (false);
 
     //    // get the clicked cell.
-    //    var cell = $('#DetailFaults').jqxGrid('getCellAtPosition', event.args.originalEvent.pageX, event.args.originalEvent.pageY);
+    //    var cell = $('#DetailFaults').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
     //    //select row.
     //    if (cell != null && cell.row) {
     //        $('#DetailFaults').jqxGrid('selectrow', cell.row);
     //    }
-
+    //    //var rightClick = isRightClick(event);
+    //    //if (rightClick) {
     //    var datarow = $('#DetailFaults').jqxGrid('getrowdata', cell.row);
 
-    //    var popup = window.open("MeterEventsByLine.aspx?eventid=" + datarow.theeventid, datarow.theeventid + "-browser", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no");
+    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
+    //    var testy = [];
+    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
 
-    //    //var args = event.args;
-    //    //// row's bound index.
-    //    //var boundIndex = args.rowindex;
-    //    //// row's visible index.
-    //    //var visibleIndex = args.visibleindex;
-    //    //// right click.
-    //    //var rightclick = args.rightclick;
-    //    //// original event.
-    //    //var ev = args.originalEvent;
+    //    selectsitesonmap(testy);
+
+    //    return false;
+    //    //}
     //});
 
-    $('#DetailTrending').jqxGrid({ width: 0 });
+    //$('#DetailTrending').jqxGrid({ width: 0 });
 
-    $('#DetailTrending').bind('rowdoubleclick', function (event) {
-        var row = event.args.rowindex;
+    //$('#DetailTrending').bind('rowdoubleclick', function (event) {
+    //    var row = event.args.rowindex;
 
-        $('#DetailTrending').jqxGrid('selectrow', row);
-        var datarow = $('#DetailTrending').jqxGrid('getrowdata', row);
-        var thedate = $("#trendingDetailHeader")[0].innerHTML;
-        $("#trendingWaveformHeader")[0].innerHTML = $("#trendingDetailHeader")[0].innerHTML;
-        PopulateTrendingWaveformDropdowns(datarow, thedate);
-        populateDivWithLineChartByChannelID('getTrendsforChannelIDDate', 'Waveform' + currentTab, datarow.channelid, thedate, datarow.eventtype, datarow.sitename + " - " + datarow.eventtype + " - " + datarow.measurementtype + " - " + datarow.characteristic + " - " + datarow.phasename + " for " + thedate);
-    });
+    //    $('#DetailTrending').jqxGrid('selectrow', row);
+    //    var datarow = $('#DetailTrending').jqxGrid('getrowdata', row);
+    //    var thedate = $("#trendingDetailHeader")[0].innerHTML;
+    //    $("#trendingWaveformHeader")[0].innerHTML = $("#trendingDetailHeader")[0].innerHTML;
+    //    PopulateTrendingWaveformDropdowns(datarow, thedate);
+    //    populateDivWithLineChartByChannelID('getTrendsforChannelIDDate', 'Waveform' + currentTab, datarow.channelid, thedate, datarow.eventtype, datarow.sitename + " - " + datarow.eventtype + " - " + datarow.measurementtype + " - " + datarow.characteristic + " - " + datarow.phasename + " for " + thedate);
+    //});
 
     resizeMapAndMatrix(currentTab);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
@@ -4300,7 +3957,3 @@ function stopAnimatedHeatmap() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /// EOF
-
-
-
-
