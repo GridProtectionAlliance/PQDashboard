@@ -13,9 +13,11 @@ Open PQ Dashboard provides visual displays to quickly convey the status and loca
 **Where Open PQ Dashboard Fits in:**
 ![Where it fits in](https://raw.githubusercontent.com/GridProtectionAlliance/PQDashboard/master/readme%20files/where%20it%20fits%20in.png)
 
-# Documentation
+# Documentation and Support
 
-The PQ Dashboard's manual can be found [here](https://github.com/GridProtectionAlliance/PQDashboard/blob/master/Open%20PQ%20Dashboard%20v1.0%20Manual.pdf)
+* The PQ Dashboard's manual can be found [here](https://github.com/GridProtectionAlliance/PQDashboard/blob/master/Open%20PQ%20Dashboard%20v1.0%20Manual.pdf)
+* Get in contact with our development team on our [discussion board](http://discussions.gridprotectionalliance.org/c/gpa-products/pqdashboard).
+* Check out the [wiki](https://gridprotectionalliance.org/wiki/doku.php?id=pqdashboard:overview).
 
 # Deployment
 
