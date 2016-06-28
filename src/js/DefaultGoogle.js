@@ -23,10 +23,15 @@
 // Global
 
 
-var globalcolors = ['#ff0000', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
+var globalcolorsBreakers = ['#90ed7d', '#434348', '#ff0000'];
+var globalcolorsTrending = ['#434348', '#ff0000'];
 
-var globalcolorsEvents = ['#C00000', '#FF2800', '#FF9600', '#FFFF00', '#00FFF4', '#0000FF'];
-var globalcolorsDQ = ['#00FFF4', '#00C80E', '#FFFF00', '#FF9600', '#FF2800', '#FF0EF0', '#0000FF'];
+var globalcolors = ['#90ed7d', '#434348', '#ff0000', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
+var globalcolorsFaults = [ '#2b908f', '#e4d354', '#f15c80', '#8085e9', '#f7a35c', '#90ed7d', '#434348', '#ff0000'];
+//var globalcolorsEvents = ['#C00000', '#FF2800', '#FF9600', '#FFFF00', '#00FFF4', '#0000FF'];
+var globalcolorsEvents = ['#0000FF', '#00FFF4', '#FFFF00', '#FF9600', '#FF2800', '#C00000'];
+//var globalcolorsDQ = ['#00FFF4', '#00C80E', '#FFFF00', '#FF9600', '#FF2800', '#FF0EF0', '#0000FF'];
+var globalcolorsDQ = ['#0000FF', '#FF0EF0', '#FF2800', '#FF9600', '#FFFF00', '#00C80E', '#00FFF4'];
 
 var javascriptversion = "13";
 
@@ -118,15 +123,6 @@ function loadDataForDate() {
 
 
     if (currentTab != null) {
-        if (typeof ($('#Overview' + currentTab).highcharts()) != 'undefined') {
-            $('#Overview' + currentTab).highcharts().options.chartdatefrom = "";
-            $('#Overview' + currentTab).highcharts().options.chartdateto = "";
-            $('#Overview' + currentTab).highcharts().options.contextfromdate = "";
-            $('#Overview' + currentTab).highcharts().options.contexttodate = "";
-            contextfromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
-            contexttodate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
-        }
-
         setMapHeaderDate("", "");
 
         resetAnimatedHeatmap();
@@ -309,10 +305,6 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
 
     var thedatasent = "{'siteID':'" + siteID + "','targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
@@ -331,10 +323,6 @@ function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'thesite', headerText: 'thesite', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'thelineid', headerText: 'LID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'theeventid', headerText: 'EID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
                     { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
                     { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
@@ -346,67 +334,6 @@ function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
                 ],
                 datasource: $.parseJSON(data.d)
             });
-
-        //    $('#' + thediv).jqxGrid(
-        //    {
-        //        width: '100%',
-        //        height: '100%',
-        //        source: {
-        //            localdata: data.d,
-        //            dataType: 'json',
-
-        //            datafields: [
-        //                { name: 'thesite' },
-        //                { name: 'themeterid' },
-        //                { name: 'thelineid' },
-        //                { name: 'theeventid' },
-        //                { name: 'theinceptiontime' },
-        //                { name: 'thelinename' },
-        //                { name: 'voltage' },
-        //                { name: 'thefaulttype' },
-        //                { name: 'thecurrentdistance' },
-        //                { name: 'locationname' }
-        //                ]
-
-        //        },
-        //        sortable: true,
-        //        altrows: true,
-        //        pageable: false,
-        //        theme: 'ui-redmond',
-
-        //        columns: [
-        //                    { text: 'thesite', datafield: 'thesite', renderer: columnsrenderer },
-        //                    { text: 'MID', datafield: 'themeterid', renderer: columnsrenderer },
-        //                    { text: 'LID', datafield: 'thelineid', renderer: columnsrenderer },
-        //                    { text: 'EID', datafield: 'theeventid', renderer: columnsrenderer },
-        //                    { text: 'Start Time', datafield: 'theinceptiontime', width: 130, renderer: columnsrenderer },
-        //                    { text: 'Line', datafield: 'thelinename', renderer: columnsrenderer },
-        //                    { text: 'kV', datafield: 'voltage', width: 50, renderer: columnsrenderer },
-        //                    { text: 'Type', datafield: 'thefaulttype', width: 40, renderer: columnsrenderer },
-        //                    { text: 'Miles', datafield: 'thecurrentdistance', width: 50, cellsalign: 'right', renderer: columnsrenderer },
-        //                    { text: 'Location', datafield: 'locationname', width: 150, renderer: columnsrenderer },
-        //                    { text: ' ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
-        //                    { text: ' ', cellsrenderer: makeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40, padding: 0, cellsalign: 'left' }
-        //                    ]
-        //    });
-
-
-        //    var localizationobj = {};
-        //    localizationobj.emptydatastring = "Please Select Single Day";
-        //    $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-        //    $('#DetailFaults').jqxGrid('hidecolumn', 'thesite');
-        //    $('#DetailFaults').jqxGrid('hidecolumn', 'themeterid');
-        //    $('#DetailFaults').jqxGrid('hidecolumn', 'thelineid');
-        //    $('#DetailFaults').jqxGrid('hidecolumn', 'theeventid');
-
-        //    var datarow = $('#DetailFaults').jqxGrid('getrowdata', 0);
-
-        //    $("#faultsDetailHeader")[0].innerHTML = theDate;
-
-        //    if (typeof (datarow) != "undefined") {
-        //        $('#DetailFaults').jqxGrid('selectrow', 0);
-        //    }
         }
     });
 
@@ -426,18 +353,15 @@ function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID,
         dataType: 'json',
         cache: true,
         success: function (data) {
-            console.log(data);
             json = $.parseJSON(data.d)
             $('#' + thediv + "Table").puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
+                    { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
+                    { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
                     { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
                 ],
                 datasource: $.parseJSON(data.d)
@@ -445,67 +369,6 @@ function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID,
         }
     });
 
-    //$.ajax({
-    //    type: "POST",
-    //    url: './eventService.asmx/' + thedatasource,
-    //    data: thedatasent,
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-
-    //        $('#' + thediv).jqxGrid(
-    //        {
-    //            width: '100%',
-    //            height: '100%',
-    //            source: {
-    //                localdata: data.d,
-    //                dataType: 'json',
-
-    //                datafields: [
-    //                               { name: 'theeventid' },
-    //                               { name: 'themeterid' },
-    //                               { name: 'thesite' },
-    //                               { name: 'Latched', type: 'float' },
-    //                               { name: 'Unreasonable', type: 'float' },
-    //                               { name: 'Noncongruent', type: 'float' }]
-
-    //            },
-    //            sortable: true,
-    //            altrows: true,
-    //            pageable: false,
-    //            theme: 'ui-redmond',
-
-    //            columns: [
-    //                        { text: 'EventID', datafield: 'theeventid' },
-    //                        { text: 'MeterID', datafield: 'themeterid' },
-    //                        { text: 'Name', datafield: 'thesite' },
-    //                        { text: 'Latched', datafield: 'Latched', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-    //                        { text: 'Unreasonable', datafield: 'Unreasonable', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-    //                        { text: 'NonCongruent', datafield: 'Noncongruent', cellsformat: 'p0', type: 'float', width: 110, cellsalign: 'right' },
-    //                        { text: '  ', cellsrenderer: makeChannelDataQualityButton_html, dataField: 'ChannelDataQuality', width: 40, padding: 0, cellsalign: 'left' }
-
-    //            ]
-    //        });
-
-    //        var localizationobj = {};
-    //        localizationobj.emptydatastring = "Please Select Single Day";
-    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-    //        //var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-    //        $("#CorrectnessDetailHeader")[0].innerHTML = theDate;
-
-    //        if (typeof (datarow) != "undefined") {
-    //            $('#DetailEvents').jqxGrid('selectrow', 0);
-    //        }
-
-
-    //    }
-    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,19 +385,16 @@ function populateCompletenessDivWithGrid(thedatasource, thediv, siteName, siteID
         dataType: 'json',
         cache: true,
         success: function (data) {
-            console.log(data);
             json = $.parseJSON(data.d)
             $('#' + thediv + "Table").puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
                     { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'Complete', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Received).toFixed(0) + '%'; } },
+                    { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Duplicate).toFixed(0) + '%'; } },
+                    { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Completeness).toFixed(0) + '%'; } },
                     { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
                 ],
                 datasource: $.parseJSON(data.d)
@@ -542,66 +402,6 @@ function populateCompletenessDivWithGrid(thedatasource, thediv, siteName, siteID
         }
     });
 
-    //$.ajax({
-    //    type: "POST",
-    //    url: './eventService.asmx/' + thedatasource,
-    //    data: thedatasent,
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-
-    //        $('#' + thediv).jqxGrid(
-    //        {
-    //            width: '100%',
-    //            height: '100%',
-    //            source: {
-    //                localdata: data.d,
-    //                dataType: 'json',
-
-    //                datafields: [
-    //                    { name: 'theeventid' },
-    //                    { name: 'themeterid' },
-    //                    { name: 'thesite' },
-    //                    { name: 'Expected', type: 'float' },
-    //                    { name: 'Received', type: 'float' },
-    //                    { name: 'Duplicate', type: 'float' },
-    //                    { name: 'Completeness', type: 'float' }]
-
-    //            },
-    //            sortable: true,
-    //            altrows: true,
-    //            pageable: false,
-    //            theme: 'ui-redmond',
-
-    //            columns: [
-    //                        { text: 'EventID', datafield: 'theeventid' },
-    //                        { text: 'MeterID', datafield: 'themeterid' },
-    //                        { text: 'Name', datafield: 'thesite' },
-    //                        { text: 'Expected', datafield: 'Expected', type: 'float', width: 100, cellsalign: 'right' },
-    //                        { text: 'Received', datafield: 'Received', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-    //                        { text: 'Duplicate', datafield: 'Duplicate', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-    //                        { text: 'Complete', datafield: 'Completeness', type: 'float', cellsformat: 'p0', width: 100, cellsalign: 'right' },
-    //                        { text: '  ', cellsrenderer: makeChannelCompletenessButton_html, dataField: 'ChannelCompleteness', width: 40, padding: 0, cellsalign: 'left' }
-    //            ]
-    //        });
-
-    //        var localizationobj = {};
-    //        localizationobj.emptydatastring = "Please Select Single Day";
-    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-    //        //var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-    //        $("#CompletenessDetailHeader")[0].innerHTML = theDate;
-
-    //        if (typeof (datarow) != "undefined") {
-    //            $('#DetailEvents').jqxGrid('selectrow', 0);
-    //        }
-    //    }
-    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -618,14 +418,11 @@ function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
         dataType: 'json',
         cache: true,
         success: function (data) {
-            console.log(data);
             json = $.parseJSON(data.d)
             $('#' + thediv + "Table").puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
                     { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
                     { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
@@ -638,69 +435,6 @@ function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
             });
         }
     });
-
-    //$.ajax({
-    //    type: "POST",
-    //    url: './eventService.asmx/' + thedatasource,
-    //    data: thedatasent,
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-
-    //        $('#' + thediv).jqxGrid(
-    //        {
-    //            width: '100%',
-    //            height: '100%',
-    //            source: {
-    //                localdata: data.d,
-    //                dataType: 'json',
-
-    //                datafields: [
-    //                               { name: 'theeventid' },
-    //                               { name: 'themeterid' },
-    //                               { name: 'thesite' },
-    //                               { name: 'interruptions', type: 'float' },
-    //                               { name: 'faults', type: 'float' },
-    //                               { name: 'sags', type: 'float' },
-    //                               { name: 'swells', type: 'float' },
-    //                               { name: 'others', type: 'float' }]
-
-    //            },
-    //            sortable: true,
-    //            altrows: true,
-    //            pageable: false,
-    //            theme: 'ui-redmond',
-
-    //            columns: [
-    //                        { text: 'EventID', datafield: 'theeventid' },
-    //                        { text: 'MeterID', datafield: 'themeterid' },
-    //                        { text: 'Name', datafield: 'thesite' },
-    //                        { text: 'Interruptions', datafield: 'interruptions', type: 'float', width: 90, cellsalign: 'right' },
-    //                        { text: 'Faults', datafield: 'faults', type: 'float', width: 80, cellsalign: 'right' },
-    //                        { text: 'Sags', datafield: 'sags', type: 'float', width: 80, cellsalign: 'right' },
-    //                        { text: 'Swells', datafield: 'swells', type: 'float', width: 80, cellsalign: 'right' },
-    //                        { text: 'Others', datafield: 'others', type: 'float', width: 80, cellsalign: 'right' },
-    //                        { text: ' ', cellsrenderer: makeMeterEventsByLineButton_html, dataField: 'MeterEventsByLine', width: 40, padding: 0, cellsalign: 'left' }
-    //                        ]
-    //        });
-
-    //        var localizationobj = {};
-    //        localizationobj.emptydatastring = "Please Select Single Day";
-    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'themeterid');
-
-    //        var datarow = $('#DetailEvents').jqxGrid('getrowdata', 0);
-
-    //        $("#eventsDetailHeader")[0].innerHTML = theDate;
-
-    //        if (typeof (datarow) != "undefined") {
-    //            $('#DetailEvents').jqxGrid('selectrow', 0);
-    //        }
-    //    }
-    //});
 }
 
 
@@ -723,10 +457,6 @@ function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, th
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'thesite', headerText: 'thesite', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'thelineid', headerText: 'LID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'theeventid', headerText: 'EID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
                     { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                     { field: 'linename', headerText: 'Line', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
@@ -742,81 +472,12 @@ function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, th
         }
     });
 
-    //$.ajax({
-    //    type: "POST",
-    //    url: './eventService.asmx/' + thedatasource,
-    //    data: thedatasent,
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-
-    //        $('#' + thediv).jqxGrid(
-    //        {
-    //            width: '100%',
-    //            height: '100%',
-    //            source: {
-    //                localdata: data.d,
-    //                dataType: 'json',
-
-    //                datafields: [
-    //                                { name: 'meterid' },
-    //                                { name: 'theeventid' },
-    //                                { name: 'eventtype' },
-    //                                { name: 'energized' },
-    //                                { name: 'breakernumber' },
-    //                                { name: 'linename' },
-    //                                { name: 'phasename' },
-    //                                { name: 'timing' },
-    //                                { name: 'speed' },
-    //                                { name: 'operationtype' }
-    //                            ]
-    //            },
-    //            sortable: true,
-    //            altrows: true,
-    //            pageable: false,
-    //            theme: 'ui-redmond',
-
-    //            columns: [
-    //                        { text: 'EventID', datafield: 'theeventid' },
-    //                        { text: 'MeterID', datafield: 'meterid' },
-    //                        { text: 'EventType', datafield: 'eventtype' },
-    //                        { text: 'TCE Time', datafield: 'energized', width: 140 },
-    //                        { text: 'Breaker', datafield: 'breakernumber', width: 70 },
-    //                        { text: 'Line', datafield: 'linename' },
-    //                        { text: 'Phase', datafield: 'phasename', width: 60 },
-    //                        { text: 'Timing', datafield: 'timing', cellsalign: 'right', width: 80 },
-    //                        { text: 'Speed', datafield: 'speed', cellsalign: 'right', width: 50 },
-    //                        { text: 'Operation', datafield: 'operationtype', width: 100 },
-    //                        { text: '  ', cellsrenderer: makeOpenSEEButton_html, dataField: 'OpenSEE', width: 40, padding: 0, cellsalign: 'left' },
-    //                        { text: '  ', cellsrenderer: filterMakeFaultSpecificsButton_html, dataField: 'FaultSpecifics', width: 40 }
-    //            ]
-    //        });
-
-    //        var localizationobj = {};
-    //        localizationobj.emptydatastring = "Please Select Single Day";
-    //        $('#' + thediv).jqxGrid('localizestrings', localizationobj);
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'theeventid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'eventtype');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
-
-    //        var datarow = $('#' + thediv).jqxGrid('getrowdata', 0);
-
-    //        $("#breakersDetailHeader")[0].innerHTML = theDate;
-
-    //        if (typeof (datarow) != "undefined") {
-    //            $('#' + thediv).jqxGrid('selectrow', 0);
-    //        }
-    //    }
-    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function filterMakeFaultSpecificsButton_html(id) {
     var return_html = "";
-
-    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
 
     if (id.eventtype == "Fault") {
         return_html = makeFaultSpecificsButton_html(id);
@@ -873,7 +534,6 @@ function makeOpenSTEButton_html(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToOpenSTE(channelid, date, meterid, measurementtype, characteristic, phasename) {
-    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
     var popup = window.open("openSTE.aspx?channelid=" 
         + encodeURIComponent(channelid) 
         + "&date=" + encodeURIComponent(date)
@@ -932,7 +592,6 @@ function makeMeterEventsByLineButton_html(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToMeterEventsByLine(id) {
-    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
     var popup = window.open("MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
@@ -940,7 +599,6 @@ function OpenWindowToMeterEventsByLine(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToChannelDataQuality(id) {
-    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
     var popup = window.open("ChannelDataQuality.aspx?eventid=" + id, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
@@ -948,7 +606,6 @@ function OpenWindowToChannelDataQuality(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToChannelDataCompleteness(id) {
-    //var datarow = $('#Detail' + currentTab).jqxGrid('getrowdata', id);
     var popup = window.open("ChannelDataCompleteness.aspx?eventid=" + id, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
@@ -967,14 +624,11 @@ function populateTrendingDivWithGrid(thedatasource, thediv, siteName, siteID, th
         dataType: 'json',
         cache: true,
         success: function (data) {
-            console.log(data);
             json = $.parseJSON(data.d)
             $('#' + thediv + "Table").puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 columns: [
-                    //{ field: 'theeventid', headerText: 'EventID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MeterID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
                     { field: 'eventtype', headerText: 'Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
                     { field: 'measurementtype', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
@@ -988,77 +642,6 @@ function populateTrendingDivWithGrid(thedatasource, thediv, siteName, siteID, th
         }
     });
 
-    //$.ajax({
-    //    type: "POST",
-    //    date: theDate,
-    //    url: './eventService.asmx/' + thedatasource,
-    //    data: thedatasent,
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-
-    //        $('#' + thediv).jqxGrid(
-    //        {
-    //            //date: theDate,
-    //            width: '100%',
-    //            height: '100%',
-    //            source: {
-    //                localdata: data.d,
-    //                dataType: 'json',
-
-
-    //                datafields: [
-    //                    { name: 'meterid', type: 'float' },
-    //                    { name: 'channelid', type: 'float' },
-    //                    { name: 'sitename' },
-    //                    { name: 'eventtype' },
-    //                    { name: 'characteristic' },
-    //                    { name: 'measurementtype' },
-    //                    { name: 'phasename' },
-    //                    { name: 'eventcount', type: 'float' },
-    //                    { name: 'date'}
-    //                ]
-
-    //            },
-    //            sortable: true,
-    //            altrows: true,
-    //            pageable: false,
-    //            theme: 'ui-redmond',
-
-    //            columns: [
-    //                { text: 'MeterID', datafield: 'meterid', type: 'float' },
-    //                { text: 'ChannelID', datafield: 'channelid', type: 'float'},
-    //                { text: 'Name', datafield: 'sitename' },
-    //                { text: 'Event', datafield: 'eventtype', width: '10%' },
-    //                { text: 'Type', datafield: 'measurementtype', width: '10%' },
-    //                { text: 'Characteristic', datafield: 'characteristic', width: '18%' },
-    //                { text: 'Phase', datafield: 'phasename', width: '14%' },
-    //                { text: 'Count', datafield: 'eventcount', type: 'float', width: '10%', cellsalign: 'right' },
-    //                { text: '  ', cellsrenderer: makeOpenSTEButton_html, dataField: 'OpenSTE', width: 40, padding: 0, cellsalign: 'left' },
-    //                { text: '  ', datafield: 'date' }
-    //                ]
-
-    //        });
-
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'meterid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'channelid');
-    //        $('#' + thediv).jqxGrid('hidecolumn', 'date');
-
-    //        //var datarow = $('#DetailTrending').jqxGrid('getrowdata', 0);
-
-    //        if (typeof (datarow) != "undefined") {
-    //            $('#DetailTrending').jqxGrid('selectrow', 0);
-    //            //PopulateTrendingWaveformDropdowns(datarow, theDate);
-    //        } else {
-    //            // Nothing to show.
-    //            $('#Waveform' + currentTab).empty();
-    //        }
-
-    //        $("#trendingDetailHeader")[0].innerHTML = theDate;
-    //        //$("#trendingWaveformHeader")[0].innerHTML = theDate;
-    //    }
-    //});
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1071,15 +654,15 @@ function getColorsForTab(thetab) {
             break;
 
         case "Trending":
-            return(globalcolors);
+            return(globalcolorsTrending);
             break;
 
         case "Faults":
-            return(globalcolors);
+            return(globalcolorsFaults);
             break;
 
         case "Breakers":
-            return(globalcolors);
+            return(globalcolorsBreakers);
             break;
 
         case "Completeness":
@@ -1099,10 +682,11 @@ function getColorsForTab(thetab) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getFormattedDate(date) {
-    var year = date.getFullYear();
-    var month = (1 + date.getMonth()).toString();
+    var newdate = new Date(date);
+    var year = newdate.getFullYear();
+    var month = (1 + newdate.getMonth()).toString();
     month = month.length > 1 ? month : '0' + month;
-    var day = date.getDate().toString();
+    var day = newdate.getDate().toString();
     day = day.length > 1 ? day : '0' + day;
     return month + '/' + day + '/' + year;
 }
@@ -1124,7 +708,8 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     var contextfromdateUTC = new Date(Date.UTC(contextfromdateX.getUTCFullYear(), contextfromdateX.getUTCMonth(), contextfromdateX.getUTCDate(), 0, 0, 0)).getTime();
     var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
     var YaxisLabel = "";
-
+    
+    $('#' + thediv).children().remove();
 
     switch (currentTab) {
         case "Faults":
@@ -1151,196 +736,45 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
             YaxisLabel = "Sites";
             break;
     }
+    // D3
 
-    var options = {
-        toolbar: {},
-        chartdatefrom: thedatefrom,
-        chartdateto: thedateto,
-        contextfromdate: contextfromdateUTC,
-        contexttodate: contexttodateUTC,
-        colors: getColorsForTab(currentTab),
-        chart: {
-            panning: true,
-            panKey: 'shift',
-            zoomType: 'x',
-            type: 'column',
-            renderTo: thediv,
-            reflow: true
-        },
-        credits: {
-            enabled: false
-        },
-        title: {
-            text: currentTab + ' for: ' + siteName
-        },
-        xAxis: {
-            type: 'datetime',
-            minTickInterval: 24 * 3600 * 1000,
-            minRange: 24 * 3600000,
-            dateTimeLabelFormats: {
-                day: '%b %e',
-                week: '%b %e'
-            },
-            //startOnTick: true,
-            //endOnTick: true,
-            maxPadding: 0,
-            events: {
-                afterSetExtremes: function (event) {
+    //container sizing variables
+    var margin = { top: 20, right: 125, bottom:100, left: 60},
+        width = $('#' + thediv).width() - margin.left - margin.right,
+        height = $('#' + thediv).height() - margin.top - margin.bottom,
+        marginOverview = { top: height + 50, right: margin.right, bottom: 20, left: margin.left }
+        heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
 
-                    var from = getFormattedDate(new Date(event.min + ( 24 * 60 * 60 * 1000)));
-                    var to = getFormattedDate(new Date(event.max + (13 * 60 * 60 * 1000)));
+    // axis definition and construction
+    var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
+    var y = d3.scale.linear().range([height, 0]);
+    var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
+    var yOverview = d3.scale.linear().range([heightOverview, 0]);
+    var color = d3.scale.ordinal().range(getColorsForTab(currentTab));
 
-                    contextfromdate = from;
-                    contexttodate = to;
+    var xAxis = d3.svg.axis().scale(x).orient("bottom");
+    var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2d"));
+    var xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom");
 
-                    $('#Detail' + currentTab).jqxGrid( 'clear');
+    // graph initialization
+    var tooltip = d3.select('#' + thediv).append('div')
+                .attr('class', 'hidden tooltip');
 
-                    if (getMapHeaderDate("From") != contextfromdate && getMapHeaderDate("To") != contexttodate) {
-                        manageTabsByDate(currentTab, from, to);
-                    }
+    var svg = d3.select("#" + thediv).append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
 
-                    if (this.chart.options.chartdateto == to) {
-                        switch (currentTab) {
-                            case "Faults":
-                                populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
+    var main = svg.append("g")
+        .attr("class", "main")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                            case "Events":
-                                populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
+    var overview = svg.append("g")
+        .attr("class", "overview")
+        .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
 
-                            case "Trending":
-                                populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
-
-                            case "Breakers":
-                                populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
-
-                            case "Completeness":
-                                populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
-
-                            case "Correctness":
-                                populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, to);
-                                break;
-                        }
-                    }
-                },
-            },
-
-            labels: {
-                style: {
-                    fontSize: '8px'
-                },
-                rotation: -45,
-                enabled: true
-            }
-        },
-        yAxis: {
-            title: {
-                text: YaxisLabel
-            },
-            stackLabels: {
-                enabled: false,
-                style: {
-                    fontsize: '.3em',
-                    fontWeight: 'bold',
-                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                }
-            }
-        },
-        legend: {
-            enabled: true,
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'top',
-            y: 50,
-            symbolwidth: 8,
-            symbolPadding: 1,
-            padding: 3,
-            itemMarginTop: 5,
-            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
-            borderColor: '#CCC',
-            borderWidth: 1,
-            shadow: false
-        },
-
-        tooltip: {
-            headerFormat: '<span style="font-size:12px"><center>{point.key}</center></span><table>',
-            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td><td style="padding:0"><b>{point.y}</b></td></tr>',
-            footerFormat: '</table>',
-            shared: true,
-            useHTML: true
-        },
-
-        plotOptions: {
-            column: {
-
-                stacking: 'normal',
-                dataLabels: {
-                    enabled: false,
-                    color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
-                    style: {
-                        textShadow: '0 0 3px black, 0 0 3px black'
-                    }
-                }
-            },
-
-            series: {
-                pointInterval: 24 * 3600 * 1000,
-                pointStart: thestartdate,
-                animation: false,
-                //pointRange: 1,
-                cursor: 'pointer',
-                point: {
-                    events: {
-                        click: function () {
-                            var thedate = getFormattedDate(new Date(this.category + (new Date(this.category).getTimezoneOffset() * 60 * 1000)));
-
-                            contextfromdate = thedate;
-                            contexttodate = thedate;
- 
-                            manageTabsByDate(currentTab, thedate, thedate);
-
-                            switch (currentTab) {
-                                case "Faults":
-                                    populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-
-                                case "Events":
-                                    populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-
-                                case "Trending":
-                                    populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-
-                                case "Breakers":
-                                    populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-
-                                case "Completeness":
-                                    populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-
-                                case "Correctness":
-                                    populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
 
     var thedatasent = "";
-
     thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
-
-        var chart = new Highcharts.Chart(options);
-        chart.showLoading('Loading, please wait...');
 
     $.ajax({
         type: "POST",
@@ -1351,29 +785,286 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         cache: true,
         success: function (data) {
 
-            options.series = data.d.data;
+            var brush = d3.svg.brush()
+                .x(xOverview)
+                .on("brush", brushed);
 
-            chart.hideLoading();
+            //console.log(data);
+            var graphData = [];
+            //console.log(data.d.data);
+            data.d.data.reverse();
 
-            chart = new Highcharts.Chart(options);
+            for (var i = 0; i < data.d.data[0].data.length; ++i) {
+                var obj = {};
+                var total = 0;
+                obj["Date"] =  new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
+                data.d.data.forEach(function (d, j) {
+                    obj[d.name] = d.data[i];
+                    total += d.data[i];
+                });
+                obj["Total"] = total;
+                graphData.push(obj);
 
-            chart.xAxis[0].setExtremes(options.contextfromdate, options.contexttodate);
+            }
+            color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" }));
 
-            if ((options.contextfromdate != chart.xAxis[0].dataMin) && (options.contexttodate != chart.xAxis[0].dataMax)) {
+            graphData.forEach(function (d) {
+                var y0 = 0;
+                d.Values;
+                d.Values = color.domain().map(function (name) {
+                    return { 'Name': name, 'y0': y0, 'y1': y0 += +d[name], 'Value': d[name], 'Date': d.Date};
+                });
 
-                chart.showResetZoom();
+            });
 
-                if (options.contextfromdate == options.contexttodate) {
-                    $.each(chart.series[0].data, function(key, value) {
-                        if ( options.contextfromdate - value.x  < 24 * 3600 * 1000) {
-                            chart.series[0].data[key].firePointEvent('click');
-                            return (false);
-                        }
+            y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
+
+            yOverview.domain(y.domain());
+
+            //Attach X-axis to graph
+            main.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            //Attach y-axis and text label to graph
+            main.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left )
+                .attr("x", -height/2)
+                .attr("dy", ".71em")
+                .text(YaxisLabel);
+
+            overview.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + heightOverview + ")")
+                .call(xAxisOverview);
+
+            var keys = d3.keys(graphData[0]).filter(function (a) { return a !== "Values"; }).reverse();
+            // attach dates to graph
+
+            var bars = main.append("g")
+                .attr("class", "bars")
+                .selectAll(".bar.stack")
+                .data(graphData)
+                .enter().append("g")
+                .attr("class", "bar stack")
+                .attr("transform", function (d) { return "translate(" + x(d.Date) + ",0)" })
+                .selectAll("rect")
+                .data(function (d) { return d.Values; })
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("width", function (d,e,f) { return 6; })
+                .attr("y", function (d) {   return y(d.y1); })
+                .attr("height", function (d) { return y(d.y0) - y(d.y1); })
+                .style("fill", function (d) { return color(d.Name); })
+                .style("cursor", "pointer");
+
+
+            // set event listeners
+            bars.on('mousemove', function (d, f, g) {
+                var mouse = d3.mouse(svg.node()).map(function (e) {
+                    return parseInt(e);
+                });
+                var index = graphData.findIndex(function (data) {
+                    return data.Date === d.Date;
+                });
+                var html = "<table>";
+                keys.forEach(function (data, i) {
+                    html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(graphData[index][data]) : graphData[index][data]) + "</td></tr>";
+                });
+                html += "</table>";
+
+                tooltip.classed('hidden', false)
+                .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
+                .html(html);
+            });
+                
+            bars.on('mouseout', function () {
+                tooltip.classed('hidden', true);
+            });
+
+            bars.on('click', function (d) {
+                    var thedate = getFormattedDate(d.Date + (new Date(d.Date).getTimezoneOffset() * 60 * 1000));
+                    contextfromdate = thedate;
+                    contexttodate = thedate;
+
+                    manageTabsByDate(currentTab, thedate, thedate);
+
+                    switch (currentTab) {
+                        case "Faults":
+                            populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Events":
+                            populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Trending":
+                            populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Breakers":
+                            populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Completeness":
+                            populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Correctness":
+                            populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+                    }
+                });
+            
+
+            overview.append("g")
+                .attr("class", "bars")
+                .selectAll(".bar")
+                .data(graphData)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function (d) { return xOverview(d.Date); })
+                .attr("width", 2)
+                .attr("y", function (d) {
+                    //console.log(d.hasOwnProperty('0%'));
+                    return yOverview((d.hasOwnProperty('0%')? d['0%'] : d.Total));
+                })
+                .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
+
+            // add the brush target area on the overview chart
+            overview.append("g").attr("class", "x brush")
+                .call(brush).selectAll("rect").attr("y", -6).attr("height", heightOverview + 7);  // +7 is magic number for styling
+
+            ////Legend attributes
+            var legend = svg.selectAll(".legend")
+                .data(color.domain().slice().reverse())
+                .enter().append("g")
+                .attr("class", "legend")
+                .attr("transform", function (d, i) { return "translate(140," + i * 20 +")"; });
+
+
+            legend.append("rect")
+                .attr("x", width + -65)
+                .attr("width", 18)
+                .attr("height", 18)
+                .style("fill", color);
+
+            legend.append("text")
+                .attr("x", width - 40)
+                .attr("y", 9)
+                .attr("width", 40)
+                .attr("dy", ".35em")
+                .style("text-anchor", "start")
+                .text(function (d) {
+                    return d;
+                });
+
+            function brushed() {
+
+                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
+                y.domain([0, d3.max(graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }), function (d) { return d.Total; })]);
+                main.selectAll("g").remove();
+
+                main.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+                //Attach y-axis and text label to graph
+                main.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", -margin.left)
+                    .attr("x", -height / 2)
+                    .attr("dy", ".71em")
+                    .text(YaxisLabel);
+
+                // redraw the bars on the main chart
+                var bar = main.append("g")
+                    .attr("class", "bars")
+                    .selectAll(".bar.stack")
+                    .data(graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }))
+                    .enter().append("g")
+                    .attr("class", "bar stack")
+                    .attr("transform", function (d) { return "translate(" + x(d.Date) + ",0)" })
+                    .selectAll("rect")
+                    .data(function (d) { return d.Values; })
+                    .enter().append("rect")
+                    .attr("class", "bar")
+                    .attr("width", function (d, e, f) { return 6; })
+                    .attr("y", function (d) { return y(d.y1); })
+                    .attr("height", function (d) { return y(d.y0) - y(d.y1); })
+                    .style("fill", function (d) { return color(d.Name); })
+                    .style("cursor", "pointer");
+
+
+                // set event listeners
+                bar.on('mousemove', function (d, f, g) {
+                    var mouse = d3.mouse(svg.node()).map(function (e) {
+                        return parseInt(e);
                     });
-                }
+                    var index = graphData.findIndex(function (data) {
+                        return data.Date === d.Date;
+                    });
+                    var html = "<table>";
+                    keys.forEach(function (data, i) {
+                        html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(graphData[index][data]) : graphData[index][data]) + "</td></tr>";
+                    });
+                    html += "</table>";
+
+                    tooltip.classed('hidden', false)
+                    .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
+                    .html(html);
+                });
+
+                bar.on('mouseout', function () {
+                    tooltip.classed('hidden', true);
+                });
+
+                bar.on('click', function (d) {
+                    var thedate = getFormattedDate(d.Date + (new Date(d.Date).getTimezoneOffset() * 60 * 1000));
+                    contextfromdate = thedate;
+                    contexttodate = thedate;
+
+                    manageTabsByDate(currentTab, thedate, thedate);
+
+                    switch (currentTab) {
+                        case "Faults":
+                            populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Events":
+                            populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Trending":
+                            populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Breakers":
+                            populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Completeness":
+                            populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Correctness":
+                            populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+                    }
+                });
+
+
             }
 
-            chart.exportSVGElements[0].toFront();
         },
         failure: function (msg) {
             alert(msg);
@@ -2800,14 +2491,12 @@ function resizeDocklet( theparent , chartheight ) {
 
     firstChild.css("height", chartheight);
 
-    var chart = firstChild.highcharts();
     
     if (typeof chart != 'undefined') {
         chart.reflow();
     }
 
     // Force Grids to render and fill 100% height
-    //$("#" + firstChild[0].id).jqxGrid('render');
     //$('#' + firstChild[0].id).puidatatable('reload');
 }
 
@@ -3546,100 +3235,6 @@ function buildPage() {
     getMeters();
     loadsitedropdown();
     loadSeverityDropdown();
-
-    //$('#DetailEvents').jqxGrid({ width: 0 });
-
-    //$('#DetailEvents').mousedown(function (event) {
-
-    //    var datainformation = $('#DetailEvents').jqxGrid('getdatainformation');
-    //    if (datainformation.rowscount == 0) return (false);
-
-    //    // get the clicked cell.
-    //    var cell = $('#DetailEvents').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-    //    //select row.
-    //    if (cell != null && cell.row) {
-    //        $('#DetailEvents').jqxGrid('selectrow', cell.row);
-    //    }
-    //    //var rightClick = isRightClick(event);
-    //    //if (rightClick) {
-    //    var datarow = $('#DetailEvents').jqxGrid('getrowdata', cell.row);
-
-    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-    //    var testy = [];
-    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-    //    selectsitesonmap(testy);
-    //    return false;
-    //    //}
-    //});
-
-    //$('#DetailBreakers').jqxGrid({ width: 0 });
-
-    //$('#DetailBreakers').mousedown(function (event) {
-
-    //    var datainformation = $('#DetailBreakers').jqxGrid('getdatainformation');
-    //    if (datainformation.rowscount == 0) return (false);
-
-    //    // get the clicked cell.
-    //    var cell = $('#DetailBreakers').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-    //    //select row.
-    //    if (cell != null && cell.row) {
-    //        $('#DetailBreakers').jqxGrid('selectrow', cell.row);
-    //    }
-    //    //var rightClick = isRightClick(event);
-    //    //if (rightClick) {
-    //    var datarow = $('#DetailBreakers').jqxGrid('getrowdata', cell.row);
-
-    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-    //    var testy = [];
-    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-    //    selectsitesonmap(testy);
-    //    return false;
-    //    //}
-    //});
-
-
-
-    //$('#DetailFaults').jqxGrid({ width: 0 });
-
-    //$('#DetailFaults').mousedown(function (event) {
-
-    //    var datainformation = $('#DetailFaults').jqxGrid('getdatainformation');
-    //    if (datainformation.rowscount == 0) return (false);
-
-    //    // get the clicked cell.
-    //    var cell = $('#DetailFaults').jqxGrid('getCellAtPosition', event.pageX, event.pageY);
-    //    //select row.
-    //    if (cell != null && cell.row) {
-    //        $('#DetailFaults').jqxGrid('selectrow', cell.row);
-    //    }
-    //    //var rightClick = isRightClick(event);
-    //    //if (rightClick) {
-    //    var datarow = $('#DetailFaults').jqxGrid('getrowdata', cell.row);
-
-    //    //var testy1 = datarow.thesite + "|" + datarow.themeterid;
-    //    var testy = [];
-    //    testy.push(datarow.thesite + "|" + datarow.themeterid);
-
-    //    selectsitesonmap(testy);
-
-    //    return false;
-    //    //}
-    //});
-
-    //$('#DetailTrending').jqxGrid({ width: 0 });
-
-    //$('#DetailTrending').bind('rowdoubleclick', function (event) {
-    //    var row = event.args.rowindex;
-
-    //    $('#DetailTrending').jqxGrid('selectrow', row);
-    //    var datarow = $('#DetailTrending').jqxGrid('getrowdata', row);
-    //    var thedate = $("#trendingDetailHeader")[0].innerHTML;
-    //    $("#trendingWaveformHeader")[0].innerHTML = $("#trendingDetailHeader")[0].innerHTML;
-    //    PopulateTrendingWaveformDropdowns(datarow, thedate);
-    //    populateDivWithLineChartByChannelID('getTrendsforChannelIDDate', 'Waveform' + currentTab, datarow.channelid, thedate, datarow.eventtype, datarow.sitename + " - " + datarow.eventtype + " - " + datarow.measurementtype + " - " + datarow.characteristic + " - " + datarow.phasename + " for " + thedate);
-    //});
 
     resizeMapAndMatrix(currentTab);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);

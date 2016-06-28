@@ -232,10 +232,6 @@
                  font-size: 12px;
             }
 
-            .jqx-widget-header-ui-redmond {
-                font-size: 12px;
-            }
-
             .DockWaveformHeader {
                 width: 100%;
                 font-size: 12px;
@@ -405,10 +401,6 @@
                top: 4px;
             }
 
-            .jqx-grid-content
-            {
-                cursor: pointer;
-            }
 
             .eventslegend {
                 width: 100px;
@@ -570,4 +562,27 @@
 
     .overlaydate {
       z-index: 10;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    div.tooltip {
+        color: #222;
+        background-color: #fff;
+        padding: .5em;
+        text-shadow: #f5f5f5 0 1px 0;
+        border-radius: 2px;
+        opacity: 0.9;
+        position: absolute;
+    }
+
+    .brush .extent {
+      stroke: #fff;
+      fill-opacity: .125;
+      shape-rendering: crispEdges;
     }

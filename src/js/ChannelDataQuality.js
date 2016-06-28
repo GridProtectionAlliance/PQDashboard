@@ -63,7 +63,6 @@ function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteN
         cache: true,
         success: function (data) {
             json = $.parseJSON(data.d)
-            console.log(json);
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
