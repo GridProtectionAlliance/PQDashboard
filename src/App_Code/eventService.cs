@@ -1585,7 +1585,7 @@ public class eventService : System.Web.Services.WebService {
             {
 
                 DateTime thetime = Round((DateTime)rdr["thedate"],new TimeSpan(0,0,1));
-                thedates.Add(thetime.ToShortTimeString());
+                thedates.Add(thetime.ToString());
 
                 minimum.Add((double)rdr["theminimum"]);
                 maximum.Add((double)rdr["themaximum"]);

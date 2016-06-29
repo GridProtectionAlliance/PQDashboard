@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  OpenSEEStack.js - Gbtc
+//  OpenSTE.js - Gbtc
 //
 //==================================================================
 //  Copyright © 2014 Electric Power Research Institute, Inc. 
@@ -53,23 +53,23 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
             resizecontents();
         });
 
-        $("#MeasurementType").multiselect({ minWidth: 200, noneSelectedText: "Type", selectedList: 1, multiple: false });
-        $("#MeasurementCharacteristic").multiselect({ minWidth: 200, noneSelectedText: "Characteristic", selectedList: 1, multiple: false });
-        $("#Phase").multiselect({ minWidth: 200, noneSelectedText: "Phase", selectedList: 1, multiple: false });
-        $("#Period").multiselect({ minWidth: 70, noneSelectedText: "Period", selectedList: 1, multiple: false });
+        //$("#MeasurementType").multiselect({ minWidth: 200, noneSelectedText: "Type", selectedList: 1, multiple: false });
+        //$("#MeasurementCharacteristic").multiselect({ minWidth: 200, noneSelectedText: "Characteristic", selectedList: 1, multiple: false });
+        //$("#Phase").multiselect({ minWidth: 200, noneSelectedText: "Phase", selectedList: 1, multiple: false });
+        //$("#Period").multiselect({ minWidth: 70, noneSelectedText: "Period", selectedList: 1, multiple: false });
 
-        $("#MeasurementType")[0].change = function (event, ui) {
-            selectMeasure(this);
-        };
-        $("#MeasurementCharacteristic")[0].change = function (event, ui) {
-            selectMeasure(this);
-        };
-        $("#Phase")[0].change = function (event, ui) {
-            selectMeasure(this);
-        };
-        $("#Period")[0].change = function (event, ui) {
-            selectMeasure(this);
-        };
+        //$("#MeasurementType")[0].change = function (event, ui) {
+        //    selectMeasure(this);
+        //};
+        //$("#MeasurementCharacteristic")[0].change = function (event, ui) {
+        //    selectMeasure(this);
+        //};
+        //$("#Phase")[0].change = function (event, ui) {
+        //    selectMeasure(this);
+        //};
+        //$("#Period")[0].change = function (event, ui) {
+        //    selectMeasure(this);
+        //};
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
         Child.css("height", chartheight);
 
-        var chart = Child.highcharts();
+       
 
         if (typeof chart != 'undefined') {
             chart.reflow();
@@ -123,6 +123,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
         label += posteddate;
         label += " for a Day";
 
+        $("#chartTitle").text(label);
         populateDivWithLineChartByChannelID("getTrendsforChannelIDDate", "WaveformTrending", postedchannelid, posteddate, label);
         resizecontents();
     });
@@ -131,71 +132,71 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
     function populateDivWithLineChartByChannelID(thedatasource, thediv, thechannelid, thedate, label) {
 
-        var options = {
-            colors: globalcolors,
-            plotOptions: {
-                series: {
-                    animation: false,
-                    marker: {
-                        radius: 2
-                    },
-                turboThreshold: 0
-                }
-            },
-            chart: {
-                type: 'line',
-                zoomType: 'x',
-                panning: true,
-                panKey: 'shift',
-                renderTo: thediv
-            },
-            credits: {
-                enabled: false
-            },
-            title: {
-                text: label,
-                style: { "color": "#333333", "fontSize": "12px" }
-            },
-            xAxis: {
-                type: 'datetime',
-                categories: [],
+        //var options = {
+        //    colors: globalcolors,
+        //    plotOptions: {
+        //        series: {
+        //            animation: false,
+        //            marker: {
+        //                radius: 2
+        //            },
+        //        turboThreshold: 0
+        //        }
+        //    },
+        //    chart: {
+        //        type: 'line',
+        //        zoomType: 'x',
+        //        panning: true,
+        //        panKey: 'shift',
+        //        renderTo: thediv
+        //    },
+        //    credits: {
+        //        enabled: false
+        //    },
+        //    title: {
+        //        text: label,
+        //        style: { "color": "#333333", "fontSize": "12px" }
+        //    },
+        //    xAxis: {
+        //        type: 'datetime',
+        //        categories: [],
 
-                labels: {
-                    style: {
-                        fontSize: '8px'
-                    },
-                    rotation: -45,
-                    enabled: true
-                }
-            },
-            yAxis: {
+        //        labels: {
+        //            style: {
+        //                fontSize: '8px'
+        //            },
+        //            rotation: -45,
+        //            enabled: true
+        //        }
+        //    },
+        //    yAxis: {
 
-                title: {
-                    text: 'Trend Magnitude'
-                },
-                stackLabels: {
-                    enabled: true,
-                    style: {
-                        fontsize: '.3em',
-                        fontWeight: 'bold',
-                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                    }
-                }
-            },
-            legend: {
+        //        title: {
+        //            text: 'Trend Magnitude'
+        //        },
+        //        stackLabels: {
+        //            enabled: true,
+        //            style: {
+        //                fontsize: '.3em',
+        //                fontWeight: 'bold',
+        //                color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+        //            }
+        //        }
+        //    },
+        //    legend: {
 
-                itemStyle: {
-                    color: '#000000',
-                    fontWeight: 'bold',
-                    fontSize: '10px'
-                },
+        //        itemStyle: {
+        //            color: '#000000',
+        //            fontWeight: 'bold',
+        //            fontSize: '10px'
+        //        },
 
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'middle',
-                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
-                borderWidth: 0
-            }
+        //        layout: 'vertical',
+        //        align: 'right',
+        //        verticalAlign: 'middle',
+        //        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
+        //        borderWidth: 0
+        //    }
             //tooltip: {
             //    //positioner: function () {
             //    //    return { x: 2, y: 12 };
@@ -216,12 +217,12 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
             //    borderWidth: 0,
             //    backgroundColor: 'rgba(255,255,255,0)'
             //}
-        };
+        //};
 
         var thedatasent = "{'ChannelID':'" + thechannelid + "', 'targetDate':'" + thedate + "'}";
 
-        var chart = new Highcharts.Chart(options);
-        chart.showLoading('Loading, please wait...');
+        //var chart = new Highcharts.Chart(options);
+        //chart.showLoading('Loading, please wait...');
 
         $.ajax({
             type: "POST",
@@ -231,36 +232,142 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
             dataType: 'json',
             cache: true,
             success: function (data) {
+                console.log(data);
+                function drawCap(ctx, x, y, radius) {
+                    ctx.beginPath();
+                    ctx.lineTo(x + radius,y);
+                    ctx.lineTo(x - radius,y);
+                    ctx.stroke();
+                }
+
                 if (data.d == null) {
                     chart.hideLoading();
                     return;
                 }
 
-                options.xAxis.categories = data.d.xAxis;
-
-                $.each(data.d.data[2].data, (function (key, value) {
-
-                    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
-
-                }));
-
-                data.d.data[2].linkedTo = 2;
-                data.d.data[2].name = 'Range';
-                options.series = data.d.data;
-                options.series[3].lineWidth = 0;
-                options.series[4].showInLegend = false;
-
-                chart = new Highcharts.Chart(options);
-                chart.series[4].hide();
-                chart.series[5].hide();
-                chart.series[1].hide();
-
-                if (data.d.data[6].data.length == 0) {
-                    chart.series[6].hide();
-                    options.series[6].showInLegend = false;
+                var dataPoints = {
+                    show: true,
+                    radius:2
                 }
 
-                chart.hideLoading();
+                var errorBars = {
+                    show: false,
+                    errorbars: "y",
+                    lineWidth: 0.5,
+                    radius: 0.5,
+                    yerr: { show: true, asymmetric: true, upperCap: drawCap, lowerCap: drawCap, shadowSize: 0, radius: 3 }
+                }
+
+                var graphData = [
+                    { color: "red", lines: dataPoints, data: [], label: data.d.data[0].name, visible: true, type: 'lines', yaxis: 2},
+                    { color: "orange", lines: dataPoints, data: [], label: data.d.data[1].name, visible: true, type: 'lines', yaxis: 2 },
+                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, yaxis: 2, label: 'Max' },
+                    { color: "#90ed7d", points: dataPoints, data: [], label: data.d.data[3].name, visible: true, type: 'points', yaxis: 2 },
+                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, yaxis: 2, label: 'Min' },
+                    { color: "orange", lines: dataPoints, data: [], label: data.d.data[5].name, visible: true, type: 'lines', yaxis: 2 },
+                    { color: "red", lines: dataPoints, data: [], label: data.d.data[6].name, visible: true, type: 'lines', yaxis: 2 },
+                    { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar', yaxis: 2 }
+                ];
+
+                data.d.data.forEach(function (d, i) {
+                    d.data.forEach(function (e, j) {
+                        graphData[i].data.push([new Date(data.d.xAxis[j]), e]);
+                    });
+                });
+
+                graphData[3].data.forEach(function (d, i) {
+                    graphData[7].data.push([d[0], d[1], d[1] - graphData[4].data[i][1], graphData[2].data[i][1] - d[1]]);
+                });
+
+
+
+                console.log(graphData);
+
+                var plot = $.plot($("#WaveformTrending"), graphData, {
+                    legend: {
+                        show: false
+                    },
+                    series: {
+                        lines: {
+                            show: false
+                        }
+                    },
+                    xaxis: {
+                        mode: "time",
+                        tickFormatter: function (val, axis) {
+                            var d = new Date(val);
+                            return (d.getHours() < 10 ? '0' + d.getHours() : d.getHours()) + ':' + (d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes());
+                        }
+
+                    },
+                    yaxis: {
+       
+
+                    },
+                    yaxes: [
+                    {show: false},
+                    { position: 'left', show: true }
+                    ],
+                    zoom: {
+                        interactive: true
+                    },
+                    pan: {
+                        interactive: true
+                    },
+                    grid: {
+                        hoverable: true
+                    }
+                });
+
+                $("<div id='tooltip'></div>").css({
+                    position: "absolute",
+                    display: "none",
+                    border: "1px solid #fdd",
+                    padding: "2px",
+                    "background-color": "#fee",
+                    opacity: 0.80
+                }).appendTo("body");
+
+                $("#WaveformTrending").bind("plothover", function (event, pos, item) {
+                    //console.log(item);
+                    if (item) {
+                        var html = '<div>'+new Date(item.datapoint[0]).toLocaleTimeString()+'</div>';
+                        html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
+                        $("#tooltip").html(html)
+                            .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid '+item.series.color })
+                            .fadeIn(200);
+                    } else {
+                        $("#tooltip").hide();
+                    }
+
+                });
+                initLegend(plot);
+
+                //options.xAxis.categories = data.d.xAxis;
+
+                //$.each(data.d.data[2].data, (function (key, value) {
+
+                //    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
+
+                //}));
+
+                //data.d.data[2].linkedTo = 2;
+                //data.d.data[2].name = 'Range';
+                //options.series = data.d.data;
+                //options.series[3].lineWidth = 0;
+                //options.series[4].showInLegend = false;
+
+                //chart = new Highcharts.Chart(options);
+                //chart.series[4].hide();
+                //chart.series[5].hide();
+                //chart.series[1].hide();
+
+                //if (data.d.data[6].data.length == 0) {
+                //    chart.series[6].hide();
+                //    options.series[6].showInLegend = false;
+                //}
+
+                //chart.hideLoading();
             },
             failure: function (msg) {
                 alert(msg);
@@ -285,153 +392,142 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
     function setTrendingMetric(metric, value) {
 
-        // Disable change event on dropdown to be populated.
-        var temp = $('#' + metric)[0].change;
-        $('#' + metric)[0].change = null;
+        //// Disable change event on dropdown to be populated.
+        //var temp = $('#' + metric)[0].change;
+        //$('#' + metric)[0].change = null;
 
-        $('#' + metric).val(value);
+        //$('#' + metric).val(value);
 
-        $('#' + metric).multiselect("refresh");
+        //$('#' + metric).multiselect("refresh");
 
-        // Restore change event on completion
-        $('#' + metric)[0].change = temp;
+        //// Restore change event on completion
+        //$('#' + metric)[0].change = temp;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     function selectMeasure(obj, thedate) {
+        //// Get Day, Week, Month
+        //var theperiod = $("#Period").val();
+        //// obj is the control instance, sent only when the control itself fires selectMeasure.
+        //if (obj != null) {
+        //    switch (obj.id) {
+        //        case ("MeasurementType"):
+        //            populateTrendingMetric('MeasurementCharacteristic', postedmeterid, posteddate);
+        //            populateTrendingMetric('Phase', postedmeterid, posteddate);
+        //            break;
 
-        ////Get selected row index so we can get details
-        //var selectedrowindexes = $('#DetailTrending').jqxGrid('getselectedrowindexes');
-        //// If nothing selected, return
-        //if (selectedrowindexes.length == 0) return;
-        //// get array of data from grid for currently selected row
-        //var thedetails = $('#DetailTrending').jqxGrid('getrowdata', selectedrowindexes[0]);
-        //// If thedate passed in is null, use heirarchical contextual date
-        //if (thedate == null) thedate = $("#trendingDetailHeader")[0].innerHTML;
+        //        case ("MeasurementCharacteristic"):
+        //            populateTrendingMetric('Phase', postedmeterid, posteddate);
+        //            break;
+        //    }
+        //}
 
+        //var MeasurementType = $("#MeasurementType").val();
+        //var MeasurementCharacteristic = $("#MeasurementCharacteristic").val();
+        //var Phase = $("#Phase").val();
 
-        // Get Day, Week, Month
-        var theperiod = $("#Period").val();
-        // obj is the control instance, sent only when the control itself fires selectMeasure.
-        if (obj != null) {
-            switch (obj.id) {
-                case ("MeasurementType"):
-                    populateTrendingMetric('MeasurementCharacteristic', postedmeterid, posteddate);
-                    populateTrendingMetric('Phase', postedmeterid, posteddate);
-                    break;
+        //// If all exist, then let's act
+        //if (MeasurementType && MeasurementCharacteristic && Phase) {
 
-                case ("MeasurementCharacteristic"):
-                    populateTrendingMetric('Phase', postedmeterid, posteddate);
-                    break;
-            }
-        }
+        //    // Lets build a label for this chart
+        //    var label = "";
+        //    label += postedmetername + " - ";
+        //    label += postedlinename + " - ";
+        //    label += $("#MeasurementType")[0][$("#MeasurementType")[0].selectedIndex].innerHTML + " - ";
+        //    label += $("#MeasurementCharacteristic")[0][$("#MeasurementCharacteristic")[0].selectedIndex].innerHTML + " - ";
+        //    label += $("#Phase")[0][$("#Phase")[0].selectedIndex].innerHTML + " - ";
+        //    label += posteddate;
+        //    label += " for " + $("#Period")[0][$("#Period")[0].selectedIndex].innerHTML;
 
-        var MeasurementType = $("#MeasurementType").val();
-        var MeasurementCharacteristic = $("#MeasurementCharacteristic").val();
-        var Phase = $("#Phase").val();
-
-        // If all exist, then let's act
-        if (MeasurementType && MeasurementCharacteristic && Phase) {
-
-            // Lets build a label for this chart
-            var label = "";
-            label += postedmetername + " - ";
-            label += postedlinename + " - ";
-            label += $("#MeasurementType")[0][$("#MeasurementType")[0].selectedIndex].innerHTML + " - ";
-            label += $("#MeasurementCharacteristic")[0][$("#MeasurementCharacteristic")[0].selectedIndex].innerHTML + " - ";
-            label += $("#Phase")[0][$("#Phase")[0].selectedIndex].innerHTML + " - ";
-            label += posteddate;
-            label += " for " + $("#Period")[0][$("#Period")[0].selectedIndex].innerHTML;
-
-            populateDivWithLineChartByCharacteristics('getTrends', 'WaveformTrending', "THESITENAME", postedmeterid, posteddate, MeasurementType, MeasurementCharacteristic, Phase, theperiod, label);
-        }
+        //    populateDivWithLineChartByCharacteristics('getTrends', 'WaveformTrending', "THESITENAME", postedmeterid, posteddate, MeasurementType, MeasurementCharacteristic, Phase, theperiod, label);
+        //}
     }
 //////////////////////////////////////////////////////////////////////////////////////////////
     function populateDivWithLineChartByCharacteristics(thedatasource, thediv, siteName, siteID, thedate, MeasurementType, MeasurementCharacteristic, Phase, Period, label) {
 
-        var options = {
-            colors: globalcolors,
-            plotOptions: {
-                series: {
-                    animation: false,
-                    marker: {
-                        radius: 2
-                    },
-                    turboThreshold: 0
-                }
-            },
-            //tooltip: {
-            //    positioner: function () {
-            //        return { x: 2, y: 12 };
-            //    },
-            //    formatter: function () {
+        //var options = {
+        //    colors: globalcolors,
+        //    plotOptions: {
+        //        series: {
+        //            animation: false,
+        //            marker: {
+        //                radius: 2
+        //            },
+        //            turboThreshold: 0
+        //        }
+        //    },
+        //    //tooltip: {
+        //    //    positioner: function () {
+        //    //        return { x: 2, y: 12 };
+        //    //    },
+        //    //    formatter: function () {
 
-            //        var tooltipstring = "";
+        //    //        var tooltipstring = "";
 
-            //        if (typeof (this.point.low) != 'undefined' && typeof (this.point.high) != 'undefined') {
-            //            tooltipstring = '<b>' + this.series.name + ' : ' + this.point.low.toFixed(3) + ' - ' + this.point.high.toFixed(3) + '</b>';
-            //        } else {
-            //            tooltipstring = '<b>' + this.series.name + ' @ ' + this.x + ' : ' + this.y.toFixed(3) + '</b>';
-            //        }
+        //    //        if (typeof (this.point.low) != 'undefined' && typeof (this.point.high) != 'undefined') {
+        //    //            tooltipstring = '<b>' + this.series.name + ' : ' + this.point.low.toFixed(3) + ' - ' + this.point.high.toFixed(3) + '</b>';
+        //    //        } else {
+        //    //            tooltipstring = '<b>' + this.series.name + ' @ ' + this.x + ' : ' + this.y.toFixed(3) + '</b>';
+        //    //        }
 
-            //        return tooltipstring;
-            //    },
-            //    shadow: false,
-            //    borderWidth: 0,
-            //    backgroundColor: 'rgba(255,255,255,0)'
-            //},
-            chart: {
-                panning: true,
-                panKey: 'shift',
-                type: 'line',
-                zoomType: 'x',
-                renderTo: thediv
-            },
-            credits: {
-                enabled: false
-            },
-            title: {
-                text: label,
-                style: { "color": "#333333", "fontSize": "12px" }
-            },
-            xAxis: {
-                categories: [],
-                labels: {
-                    style: {
-                        fontSize: '8px'
-                    },
-                    rotation: -45,
-                    enabled: true
-                }
-            },
-            yAxis: {
+        //    //        return tooltipstring;
+        //    //    },
+        //    //    shadow: false,
+        //    //    borderWidth: 0,
+        //    //    backgroundColor: 'rgba(255,255,255,0)'
+        //    //},
+        //    chart: {
+        //        panning: true,
+        //        panKey: 'shift',
+        //        type: 'line',
+        //        zoomType: 'x',
+        //        renderTo: thediv
+        //    },
+        //    credits: {
+        //        enabled: false
+        //    },
+        //    title: {
+        //        text: label,
+        //        style: { "color": "#333333", "fontSize": "12px" }
+        //    },
+        //    xAxis: {
+        //        categories: [],
+        //        labels: {
+        //            style: {
+        //                fontSize: '8px'
+        //            },
+        //            rotation: -45,
+        //            enabled: true
+        //        }
+        //    },
+        //    yAxis: {
 
-                title: {
-                    text: 'Trend Magnitude'
-                },
-                stackLabels: {
-                    enabled: true,
-                    style: {
-                        fontsize: '.3em',
-                        fontWeight: 'bold',
-                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                    }
-                }
-            },
-            legend: {
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'middle',
-                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
-                borderWidth: 0
-            }
-        };
+        //        title: {
+        //            text: 'Trend Magnitude'
+        //        },
+        //        stackLabels: {
+        //            enabled: true,
+        //            style: {
+        //                fontsize: '.3em',
+        //                fontWeight: 'bold',
+        //                color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+        //            }
+        //        }
+        //    },
+        //    legend: {
+        //        layout: 'vertical',
+        //        align: 'right',
+        //        verticalAlign: 'middle',
+        //        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
+        //        borderWidth: 0
+        //    }
+        //};
 
         var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + thedate + "' , 'MeasurementType':'" + MeasurementType + "' , 'MeasurementCharacteristic':'" + MeasurementCharacteristic + "' , 'Phase':'" + Phase + "' , 'Period':'" + Period + "'}";
 
-        var chart = new Highcharts.Chart(options);
-        chart.showLoading('Loading, please wait...');
+        //var chart = new Highcharts.Chart(options);
+        //chart.showLoading('Loading, please wait...');
 
         $.ajax({
             type: "POST",
@@ -442,31 +538,31 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
             cache: true,
             success: function (data) {
 
-                options.xAxis.categories = data.d.xAxis;
+                //options.xAxis.categories = data.d.xAxis;
 
-                $.each(data.d.data[2].data, (function (key, value) {
+                //$.each(data.d.data[2].data, (function (key, value) {
 
-                    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
+                //    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
 
-                }));
+                //}));
 
-                data.d.data[2].linkedTo = 2;
-                data.d.data[2].name = 'Range';
-                options.series = data.d.data;
-                options.series[3].lineWidth = 0;
-                options.series[4].showInLegend = false;
+                //data.d.data[2].linkedTo = 2;
+                //data.d.data[2].name = 'Range';
+                //options.series = data.d.data;
+                //options.series[3].lineWidth = 0;
+                //options.series[4].showInLegend = false;
 
-                chart = new Highcharts.Chart(options);
-                chart.series[4].hide();
-                chart.series[5].hide();
-                chart.series[1].hide();
+                //chart = new Highcharts.Chart(options);
+                //chart.series[4].hide();
+                //chart.series[5].hide();
+                //chart.series[1].hide();
 
-                if (data.d.data[6].data.length == 0) {
-                    chart.series[6].hide();
-                    options.series[6].showInLegend = false;
-                }
+                //if (data.d.data[6].data.length == 0) {
+                //    chart.series[6].hide();
+                //    options.series[6].showInLegend = false;
+                //}
 
-                chart.hideLoading();
+                //chart.hideLoading();
 
             },
             failure: function (msg) {
@@ -478,89 +574,89 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 //////////////////////////////////////////////////////////////////////////////////////////////
     function populateTrendingMetric(metric, siteID, theDate, desiredvalue) {
 
-        var thedatasent = "";
-        var theMeasurementType = "";
-        var theMeasurementCharacteristic = "";
+        //var thedatasent = "";
+        //var theMeasurementType = "";
+        //var theMeasurementCharacteristic = "";
 
-        switch (metric) {
-            case "MeasurementType":
-                thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
-                break;
+        //switch (metric) {
+        //    case "MeasurementType":
+        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
+        //        break;
 
-            case "MeasurementCharacteristic":
-                theMeasurementType = $("#MeasurementType").val();
-                if (theMeasurementType == null) {
-                    $("#MeasurementCharacteristic").empty();
-                    $("#MeasurementCharacteristic").multiselect("refresh");
-                    $("#Phase").empty();
-                    $("#Phase").multiselect("refresh");
-                    return;
-                }
+        //    case "MeasurementCharacteristic":
+        //        theMeasurementType = $("#MeasurementType").val();
+        //        if (theMeasurementType == null) {
+        //            $("#MeasurementCharacteristic").empty();
+        //            $("#MeasurementCharacteristic").multiselect("refresh");
+        //            $("#Phase").empty();
+        //            $("#Phase").multiselect("refresh");
+        //            return;
+        //        }
 
-                thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "'}";
-                break;
+        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "'}";
+        //        break;
 
-            case "Phase":
+        //    case "Phase":
 
-                theMeasurementType = $("#MeasurementType").val();
-                if (theMeasurementType == null) {
-                    $("#MeasurementCharacteristic").empty();
-                    $("#MeasurementCharacteristic").multiselect("refresh");
-                    return;
-                }
+        //        theMeasurementType = $("#MeasurementType").val();
+        //        if (theMeasurementType == null) {
+        //            $("#MeasurementCharacteristic").empty();
+        //            $("#MeasurementCharacteristic").multiselect("refresh");
+        //            return;
+        //        }
 
-                theMeasurementCharacteristic = $("#MeasurementCharacteristic").val();
-                if (theMeasurementCharacteristic == null) {
-                    $("#Phase").empty();
-                    $("#Phase").multiselect("refresh");
-                    return;
-                }
+        //        theMeasurementCharacteristic = $("#MeasurementCharacteristic").val();
+        //        if (theMeasurementCharacteristic == null) {
+        //            $("#Phase").empty();
+        //            $("#Phase").multiselect("refresh");
+        //            return;
+        //        }
 
-                thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "', 'theCharacteristic':'" + theMeasurementCharacteristic + "'}";
-                break;
+        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "', 'theCharacteristic':'" + theMeasurementCharacteristic + "'}";
+        //        break;
 
-        }
+        //}
 
-        $.ajax({
-            type: "POST",
-            url: './eventService.asmx/' + metric,
-            data: thedatasent,
-            desiredvalue: desiredvalue,
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json',
-            cache: true,
-            success: function (data) {
+        //$.ajax({
+        //    type: "POST",
+        //    url: './eventService.asmx/' + metric,
+        //    data: thedatasent,
+        //    desiredvalue: desiredvalue,
+        //    contentType: "application/json; charset=utf-8",
+        //    dataType: 'json',
+        //    cache: true,
+        //    success: function (data) {
 
-                // Disable change event on dropdown to be populated.
-                var temp = $('#' + metric)[0].change;
-                $('#' + metric)[0].change = null;
-                //
+        //        // Disable change event on dropdown to be populated.
+        //        var temp = $('#' + metric)[0].change;
+        //        $('#' + metric)[0].change = null;
+        //        //
 
-                $('#' + metric).empty();
+        //        $('#' + metric).empty();
 
-                if (data.d.length > 0) {
-                    $.each(data.d, (function (key, value) {
-                        var selected = "";
-                        if (value.Item2 == desiredvalue) {
-                            selected = "selected";
-                        }
-                        SelectAdd(metric, value.Item1, value.Item2, selected);
-                    }));
+        //        if (data.d.length > 0) {
+        //            $.each(data.d, (function (key, value) {
+        //                var selected = "";
+        //                if (value.Item2 == desiredvalue) {
+        //                    selected = "selected";
+        //                }
+        //                SelectAdd(metric, value.Item1, value.Item2, selected);
+        //            }));
 
-                }
+        //        }
 
-                $('#' + metric).multiselect("refresh");
+        //        $('#' + metric).multiselect("refresh");
 
-                // Restore change event on completion
-                $('#' + metric)[0].change = temp;
-                //
+        //        // Restore change event on completion
+        //        $('#' + metric)[0].change = temp;
+        //        //
 
-            },
-            failure: function (msg) {
-                alert(msg);
-            },
-            async: false
-        });
+        //    },
+        //    failure: function (msg) {
+        //        alert(msg);
+        //    },
+        //    async: false
+        //});
 
     }
 
@@ -583,4 +679,102 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+    function initLegend(plot) {
+        var graphData = plot.getData();
+        var table = $('<table>');
+
+        $("#legend").append(table);
+
+        table.css({
+            "width": "100%",
+            "font-size": "smaller",
+            "font-weight": "bold"
+        });
+
+        $.each(graphData, function (_, series) {
+            if (series.visible !== false) {
+                var row = $('<tr>');
+                var checkbox = $('<input type="checkbox">');
+                var borderDiv = $('<div>');
+                var colorDiv = $('<div>');
+                var labelSpan = $('<span>');
+                var color;
+
+                if (series.visible)
+                    color = series.color;
+                else
+                    color = "#CCC";
+
+                table.append(
+                    row.append(
+                        $('<td class="legendCheckbox" title="Show/hide in tooltip">').append(
+                            checkbox),
+                        $('<td class="legendColorBox" title="Show/hide in chart">').append(
+                            borderDiv.append(colorDiv)),
+                        $('<td class="legendLabel">').append(
+                            labelSpan.append(series.label))));
+
+                checkbox.prop("checked", series.checked);
+
+                borderDiv.css({
+                    "border": "1px solid #CCC",
+                    "padding": "1px"
+                });
+
+                colorDiv.css({
+                    "width": "4px",
+                    "height": "0",
+                    "border": "5px solid " + color,
+                    "overflow": "hidden"
+                });
+
+                labelSpan.prop("title", series.label);
+                labelSpan.css("color", series.color);
+
+                checkbox.click(function () {
+                    series.checked = !series.checked;
+
+                });
+
+                row.children().slice(1).click(function () {
+                    series.visible = !series.visible;
+
+                    //updatePlotData(graphData);
+                    //alignAxes();
+
+                    if (series.visible)
+                        colorDiv.css("border", "5px solid " + series.color);
+                    else
+                        colorDiv.css("border", "5px solid #CCC");
+
+                    if (series.type === 'lines')
+                        series.lines.show = series.visible;
+                    else if (series.type === 'points')
+                        series.points.show = series.visible;
+                    else if (series.type === 'errorbar') {
+                        series.points.yerr.show = series.visible;
+                        graphData[2].points.show = series.visible;
+                        graphData[4].points.show = series.visible;
+
+                    }
+
+                    series.yaxis = series.visible + 1;
+
+                    console.log(graphData);
+
+                    plot.setData(graphData);
+                    plot.setupGrid();
+                    plot.draw();
+
+                });
+            }
+        });
+
+        $(".legendCheckbox").hide();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+
 /// EOF

@@ -37,33 +37,50 @@
              }
 
             #DockWaveformTrending{
-                margin:0;
+                /*margin:0;
                 padding:0;
                 height: 100%;
                 width: 100%;
-                overflow: hidden;
+                overflow: hidden;*/
                 
-
-                -webkit-user-select: none;
-                -moz-user-select: -moz-none;
-                -ms-user-select: none;
-                user-select: none;
-
              }
 
             #WaveformTrending{
-                margin:0;
+                /*margin:0;
                 padding:0;
                 height: 100%;
                 width: 100%;
-                overflow: hidden;
-
-                -webkit-user-select: none;
-                -moz-user-select: -moz-none;
-                -ms-user-select: none;
-                user-select: none;
+                overflow: hidden;*/
 
              }
+
+            #legend {
+                /*top: 25%;
+                left: 25%;
+                right:25%;
+                position: absolute;*/
+            }
+
+            .col-md-10 {
+                padding-left: 0;
+                padding-right: 0;
+                padding-bottom: 20px;
+            }
+
+            #ChartYAxis{
+                -webkit-transform: rotate(-90deg);
+                -moz-transform: rotate(-90deg);
+                -ms-transform: rotate(-90deg);
+                -o-transform: rotate(-90deg);
+                filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                text-align: center;
+
+                float: left;
+                width: 200px;
+                top: 45%;
+                left: -30%;
+                position: relative;
+            }
 
             .selectable {
                 
@@ -96,6 +113,22 @@
                 font-weight: bold;
             }
 
+            #legend {
+                width: 140px;
+                height: 100%;
+                border: 2px solid #444;
+                overflow-x: hidden;
+                overflow-y: auto;
+                white-space: nowrap;
+            }
+
+            .legendColorBox, .legendLabel {
+                cursor: pointer;
+            }
+
+            .legendColorBox {
+                width: 1%;
+            }
 
 
 
