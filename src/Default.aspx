@@ -55,7 +55,8 @@
     <script type="text/javascript" src="js/bootstrap-3.3.2.min.js"></script>
     <script type="text/javascript" src="js/bootstrap-multiselect.js"></script>
     <script type="text/javascript" src="js/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=visualization&amp;v=3.3"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=<%= GoogleAPIKey %>&libraries=geometry,visualization&amp;"></script>
+<%--    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAH-YHxWXoGpnJY7hyElBovROW5Pf8qegw&callback=initMap" async defer></script>--%>
     <script type="text/javascript" src="./js/arcgislink.js"></script>
     <script type="text/javascript" src="./js/CustomGoogleMapMarker.js"></script>
     <script type="text/javascript" src="./js/keydragzoom.js"></script>
@@ -108,7 +109,7 @@
                             <select id="siteList" multiple="multiple">
                             </select>
                         </td>
-                        <td width="20%" align="center" nowrap>
+<%--                        <td width="20%" align="center" nowrap>
                             Severity:
                             <select id="severityList" multiple="multiple">
                                 <option val="5">5</option>
@@ -117,7 +118,7 @@
                                 <option val="2">2</option>
                                 <option val="1">1</option>
                             </select>
-                        </td>
+                        </td>--%>
 
                         <td width="20%" align="center" nowrap>
                             From:&nbsp;<input type="text" id="datePickerFrom" class="datepicker">&nbsp;&nbsp;To:&nbsp;<input type="text" id="datePickerTo" class="datepicker">
@@ -144,6 +145,7 @@
             <div id="application-tabs" class="noselect" >
                 <ul>
                     <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
+                    <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
                     <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
                     <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
                     <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
@@ -205,7 +207,60 @@
                     </div>
                 </div>
 
+                <div  id="tabs-Disturbances">
+                    <div  id="column_13" class="column resizeable">
+                        <div  class="portlet" id="Portlet1Disturbances">
+                            <div  class="portlet-header"><div class="portlet-header-text" style="display: inline">Disturbances Overview (For Date Range)</div></div>
+                            <div  id="DockOverviewDisturbances" class="portlet-content">
+                                <div  id="OverviewDisturbances" class="docklet chart-container">
+                                </div>
+                            </div>
+                        </div>
+                        <div  class="portlet" id="Portlet2Disturbances">
+                            <div  class="portlet-header">
+                                <div  class="portlet-header-text" style="display: inline">
+                                    Disturbances Detail for&nbsp;<div style="display: inline;" id="DisturbancesDetailHeader">Date</div>&nbsp;(24 Hours)
+                                </div>
+                            </div>
+                            <div  id="DockDetailDisturbances" class="portlet-content noselect">
+                                <div id="DetailDisturbances" class="docklet">
+                                    <div id="DetailDisturbancesTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div  id="column_14" class="column">
+                        <div  class="portlet">
+                            <div  class="portlet-header portlet-header-text">
+                                <div class="header-container">
+                                    <div class="siteselectdropdown" style="position: absolute;">
+                                        <select class="smallbutton" id="selectSiteSetDisturbances" onchange="showSiteSet(this);">
+                                            <option value="All">All Sites</option>
+                                            <option value="Disturbances">Disturbances</option>
+                                            <option value="NoDisturbances">No Disturbances</option>
+                                            <option value="SelectedSites">Selected Sites</option>
+                                        </select>
+                                    </div>
 
+                                    <div class="overlaydate">
+                                        <center>
+                                            <div id="mapHeaderDisturbancesFrom" class="mapheader" ></div>
+                                            <div id="mapHeaderDisturbancesDivider" class="mapheader">&nbsp;-&nbsp;</div>
+                                            <div id="mapHeaderDisturbancesTo" class="mapheader"></div>
+                                        </center>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div  id="MapMatrixDisturbances" class="portlet-content portlet-header-text">
+                                <div  class="theMapStyle" id="theMapDisturbances"></div>
+                                <div  class="theMatrixStyle noselect" id="theMatrixDisturbances"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div  id="tabs-Trending">
                     <div  id="column_3" class="column resizeable">
                         <div  class="portlet" id="Portlet1Trending">

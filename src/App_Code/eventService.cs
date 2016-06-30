@@ -514,6 +514,101 @@ public class eventService : System.Web.Services.WebService {
     }
 
     /// <summary>
+    /// getDisturbancesForPeriod
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public eventSet getDisturbancesForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        eventSet theset = new eventSet();
+        DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectDisturbancesForMeterIDByDateRange", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+            if (rdr.HasRows)
+            {
+
+                theset.data = new eventDetail[6];
+                //theset.xAxis = new string[duration];
+
+                theset.data[0] = new eventDetail();
+                theset.data[0].name = "5";
+                theset.data[0].data = new double[duration];
+
+                theset.data[1] = new eventDetail();
+                theset.data[1].name = "4";
+                theset.data[1].data = new double[duration];
+
+                theset.data[2] = new eventDetail();
+                theset.data[2].name = "3";
+                theset.data[2].data = new double[duration];
+
+                theset.data[3] = new eventDetail();
+                theset.data[3].name = "2";
+                theset.data[3].data = new double[duration];
+
+                theset.data[4] = new eventDetail();
+                theset.data[4].name = "1";
+                theset.data[4].data = new double[duration];
+
+                theset.data[5] = new eventDetail();
+                theset.data[5].name = "0";
+                theset.data[5].data = new double[duration];
+
+                int i = 0;
+
+                while (rdr.Read())
+                {
+                    //thedate, thecount, thename
+                    //DateTime thedate = (DateTime)rdr["thedate"];
+                    //theset.xAxis[i] = thedate.ToString("d");
+                    theset.data[0].data[i] = Convert.ToDouble(rdr["5"]);
+                    theset.data[1].data[i] = Convert.ToDouble(rdr["4"]);
+                    theset.data[2].data[i] = Convert.ToDouble(rdr["3"]);
+                    theset.data[3].data[i] = Convert.ToDouble(rdr["2"]);
+                    theset.data[4].data[i] = Convert.ToDouble(rdr["1"]);
+                    theset.data[5].data[i] = Convert.ToDouble(rdr["0"]);
+                    i++;
+                }
+            }
+
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        return (theset);
+    }
+
+    /// <summary>
     /// getCompletenessForPeriod
     /// </summary>
     /// <param name="siteID"></param>
@@ -1347,6 +1442,53 @@ public class eventService : System.Web.Services.WebService {
     }
 
     /// <summary>
+    /// getDetailsForSitesEvents
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="targetDate"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public String getDetailsForSitesDisturbances(string siteID, string targetDate, string userName)
+    {
+
+        String thedata = "";
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectSitesDisturbancesDetailsByDate", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+            DataTable dt = new DataTable();
+            dt.Load(rdr);
+            thedata = DataTable2JSON(dt);
+            dt.Dispose();
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        return thedata;
+    }
+
+    /// <summary>
     /// getDetailsForSitesCompleteness
     /// </summary>
     /// <param name="siteID"></param>
@@ -1870,6 +2012,67 @@ public class eventService : System.Web.Services.WebService {
         }
         return (theEventSummary);
     }
+
+
+    /// <summary>
+    /// getSitesStatusDisturbances
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public List<eventSummarySite> getSitesStatusDisturbances(string siteID, string targetDateFrom, string targetDateTo, String userName)
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<eventSummarySite> theEventSummary = new List<eventSummarySite>();
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectDisturbancesForMeterIDByDate", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+
+            int classcount = 0;
+            while (rdr.Read())
+            {
+                eventSummarySite currentEventSummary = new eventSummarySite();
+                currentEventSummary.siteID = ((int)rdr["siteID"]).ToString();
+                currentEventSummary.siteName = (string)rdr["siteName"];
+                currentEventSummary.data = new List<int>();
+                currentEventSummary.data.Add((int)rdr["5"]);
+                currentEventSummary.data.Add((int)rdr["4"]);
+                currentEventSummary.data.Add((int)rdr["3"]);
+                currentEventSummary.data.Add((int)rdr["2"]);
+                currentEventSummary.data.Add((int)rdr["1"]);
+                currentEventSummary.data.Add((int)rdr["0"]);
+                theEventSummary.Add(currentEventSummary);
+            }
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+        return (theEventSummary);
+    }
+
 
     /// <summary>
     /// getSitesStatusCompleteness

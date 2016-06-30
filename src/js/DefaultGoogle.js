@@ -437,6 +437,40 @@ function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theD
     });
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function populateDisturbancesDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
+
+    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
+
+    $.ajax({
+        type: "POST",
+        url: './eventService.asmx/' + thedatasource,
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            //console.log(data);
+            json = $.parseJSON(data.d)
+            $('#' + thediv + "Table").puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
+                columns: [
+                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                    { field: '5', headerText: '5', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                    { field: '4', headerText: '4', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: '3', headerText: '3', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                    { field: '2', headerText: '2', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: '1', headerText: '1', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                    { field: '0', headerText: '0', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                ],
+                datasource: $.parseJSON(data.d)
+            });
+        }
+    });
+
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -505,7 +539,7 @@ return (return_html);
 
 function OpenWindowToFaultSpecifics(id) {
     var datarow = id;
-    console.log(id);
+    //console.log(id);
     var popup = window.open("FaultSpecifics.aspx?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 
     return false;
@@ -653,6 +687,11 @@ function getColorsForTab(thetab) {
             return(globalcolorsEvents);
             break;
 
+        case "Disturbances":
+            return (globalcolorsEvents);
+            break;
+
+
         case "Trending":
             return(globalcolorsTrending);
             break;
@@ -694,7 +733,7 @@ function getFormattedDate(date) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
-
+    //console.log("disturbances");
     var thestartdateX = new Date(thedatefrom);
     thestartdateX.setHours(0, 0, 0, 0);
 
@@ -714,6 +753,10 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     switch (currentTab) {
         case "Faults":
             YaxisLabel = "Faults";
+            break;
+
+        case "Disturbances":
+            YaxisLabel = "Disturbances";
             break;
 
         case "Events":
@@ -775,7 +818,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
 
     var thedatasent = "";
     thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
-
+    //console.log(thedatasource);
     $.ajax({
         type: "POST",
         url: './eventService.asmx/' + thedatasource,
@@ -897,6 +940,10 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                     switch (currentTab) {
                         case "Faults":
                             populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+                            break;
+
+                        case "Disturbances":
+                            populateDisturbancesDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
                             break;
 
                         case "Events":
@@ -1164,7 +1211,7 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-
+            //console.log(data);
             var map = getMapInstance(currentTab);
             LoadHeatmapData(data.d, map);
 
@@ -1201,7 +1248,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-
+            //console.log(data);
             cache_Map_Matrix_Data_Date_From = this.datefrom;
             cache_Map_Matrix_Data_Date_To = this.dateto;
             cache_Map_Matrix_Data = data;
@@ -1338,6 +1385,17 @@ function populateMapSparklinePie(data, siteID, siteName) {
             }
             break;
 
+        case "Disturbances":
+            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
+                sparkvalues = [100];
+                slicecolors = ['#0E892C'];
+            } else {
+                sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
+                slicecolors = globalcolorsEvents;
+                thetooltip = siteName + "\n" + "5: " + data[0] + "\n" + "4: " + data[1] + "\n" + "3: " + data[2] + "\n" + "2: " + data[3] + "\n" + "1: " + data[4] + "\n" + "0: " + data[5];
+            }
+            break;
+
         case "Completeness":
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
                 sparkvalues = [100];
@@ -1444,7 +1502,43 @@ function getStatusColorForGridElement( data ) {
             }
  
             break;
+        case "Disturbances":
 
+            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
+                return ("#0E892C");
+            }
+
+            if (data[0] > 0) { // Interruptions
+                return (globalcolorsEvents[0]);
+                //return ("#FF0000");
+            }
+
+            if (data[1] > 0) { // Faults
+                return (globalcolorsEvents[1]);
+                return ("#CC6600");
+            }
+
+            if (data[2] > 0) { // Sags
+                return (globalcolorsEvents[2]);
+                return ("#FFCC00");
+            }
+
+            if (data[3] > 0) { // Transients
+                return (globalcolorsEvents[3]);
+                return ("#CC3300");
+            }
+
+            if (data[4] > 0) { // Swells
+                return (globalcolorsEvents[4]);
+                return ("#FF8800");
+            }
+
+            if (data[5] > 0) { // Others
+                return (globalcolorsEvents[5]);
+                return ("#FF8800");
+            }
+
+            break;
         case "Completeness":
 
             //[0]ExpectedPoints
@@ -1617,6 +1711,10 @@ function populateGridMatrix(data, siteID, siteName) {
         switch (currentTab) {
             case "Events":
                 populateGridSparklineEvents(data, siteID, siteName);
+                break;
+
+            case "Disturbances":
+                populateGridSparklineDisturbances(data, siteID, siteName);
                 break;
 
             case "Trending":
@@ -1927,6 +2025,92 @@ function populateGridSparklineEvents(data, siteID, siteName) {
     });
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function populateGridSparklineDisturbances(data, siteID, siteName) {
+
+    var sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
+
+    var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
+
+    $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
+
+    $(matrixItemID).tooltip({
+        position: {
+            my: "center bottom-20",
+            at: "center top",
+            using: function (position, feedback) {
+                $(this).css(position);
+                $("<div>")
+                    .addClass("arrow")
+                    .addClass(feedback.vertical)
+                    .addClass(feedback.horizontal)
+                    .appendTo(this);
+            }
+        },
+
+        content: function () {
+            var thetitle = "";
+            thetitle += "<table>";
+            thetitle += "<tr><td colspan=2 align='center'>" + siteName + "</td></tr>";
+            thetitle += "<tr><td>5</td><td align='right'>" + data[0] + "</td></tr>";
+            thetitle += "<tr><td>4</td><td align='right'>" + data[1] + "</td></tr>";
+            thetitle += "<tr><td>3</td><td align='right'>" + data[2] + "</td></tr>";
+            thetitle += "<tr><td>2</td><td align='right'>" + data[3] + "</td></tr>";
+            thetitle += "<tr><td>1</td><td align='right'>" + data[4] + "</td></tr>";
+            thetitle += "<tr><td>0</td><td align='right'>" + data[5] + "</td></tr>";
+            thetitle += "</table>";
+            return (thetitle);
+        }
+    });
+
+    //$(matrixItemID)[0].title = thetitle;
+
+    //$(matrixItemID)[0].title = siteName + "\nInterruptions: " + data[0] + "\nFaults: " + data[1] + "\nSags: " + data[2] + "\nTransients: " + data[3] + "\nSwells: " + data[4] + "\nOthers: " + data[5];
+
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: '10px',
+        siteid: siteName,
+        //datadate: thedate,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: globalcolorsEvents,
+
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
+
+            switch (fields[0].offset) {
+
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 5: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 4: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 3: ' + fields[0].value + '</div>';
+                    break;
+                case 3:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 2: ' + fields[0].value + '</div>';
+                    break;
+                case 4:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 1: ' + fields[0].value + '</div>';
+                    break;
+                case 5:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 0: ' + fields[0].value + '</div>';
+                    break;
+
+            }
+
+            return (returnvalue);
+        }
+    });
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateGridSparklineBreakers(data, siteID, siteName) {
@@ -2140,6 +2324,31 @@ function showSiteSet(thecontrol) {
 
                 break;
 
+            case "Disturbances":
+                $.each(gridchildren.children, function (key, value) {
+                    if ($(value).data("gridstatus") != "0") {
+                        $(value).show();
+                    }
+                    else {
+                        $(value).hide();
+                    }
+                });
+
+                break;
+
+            case "NoDisturbances":
+                $.each(gridchildren.children, function (key, value) {
+                    if ($(value).data("gridstatus") != "0") {
+                        $(value).hide();
+                    }
+                    else {
+                        $(value).show();
+                    }
+                });
+
+                break;
+
+
             case "SelectedSites":
 
                 var selectedIDs = GetCurrentlySelectedSites();
@@ -2181,6 +2390,26 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "NoEvents":
+                $.each(map.markers, function (key, value) {
+                    if (value.args.marker_status == 0) {
+                        value.show();
+                    } else {
+                        value.hide();
+                    }
+                });
+                break;
+
+            case "Disturbances":
+                $.each(map.markers, function (key, value) {
+                    if (value.args.marker_status > 0) {
+                        value.show();
+                    } else {
+                        value.hide();
+                    }
+                });
+                break;
+
+            case "NoDisturbances":
                 $.each(map.markers, function (key, value) {
                     if (value.args.marker_status == 0) {
                         value.show();
@@ -2423,6 +2652,11 @@ function ManageLocationClick(siteName, siteID) {
         case "Events":
             populateDivWithBarChart('getEventsForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
            
+            break;
+
+        case "Disturbances":
+            populateDivWithBarChart('getDisturbancesForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+
             break;
 
         case "Faults":
@@ -3070,7 +3304,7 @@ function loadsitedropdown() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function loadSeverityDropdown() {
-    $('#severityList').multiselect();
+    //$('#severityList').multiselect();
 
 }
 
@@ -3334,11 +3568,11 @@ function NextHeatmap() {
 function LoadHeatmapData(data, themap) {
 
     var heat_data = new google.maps.MVCArray();
-
+    //console.log(heat_data);
     var accumulatedmax = 0;
 
     $.each(data, function (key, value) {
-
+        //console.log(value);
         if (accumulatedmax < value.status) { accumulatedmax = value.status }
         if (value.status != 0) {
             heat_data.push({
