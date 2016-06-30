@@ -1225,6 +1225,37 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, data) {
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
+    var url = "./mapService.asmx/getLocations" + currentTab;
+    
+    heatmap_Cache_Date_From = null;
+    heatmap_Cache_Date_To = null;
+    heatmapCache = null;
+    //console.log(url);
+    $.ajax({
+        datefrom: datefrom,
+        dateto: dateto,
+        type: "POST",
+        url: url,
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            console.log(data);
+            var map = getMapInstance(currentTab);
+            LoadHeatmapData(data.d, map);
+
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
     var url = "./mapService.asmx/getLocations" + currentTab;
@@ -1444,7 +1475,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
 
     $(thecontainer).sparkline(sparkvalues, {
         type: 'pie',
-        height: '20px',
+        height: '10px',
         siteid: siteName,
         //datadate: thedate,
         borderWidth: 1,
@@ -2459,34 +2490,39 @@ function showHeatmap(thecontrol) {
     var datefrom = getMapHeaderDate("From");
     var dateto = getMapHeaderDate("To");
 
-    switch (thecontrol.value) {
+    if(Array.isArray($(thecontrol).val())){
+        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
+    }else{
+        switch (thecontrol.value) {
 
-        case "EventCounts":
-            getEventsHeatmapCounts(currentTab, datefrom, dateto);
-            break;
+            case "EventCounts":
+                getEventsHeatmapCounts(currentTab, datefrom, dateto);
+                break;
 
-        case "MinimumSags":
-            getEventsHeatmapSags(currentTab, datefrom, dateto);
-            break;
+            case "MinimumSags":
+                getEventsHeatmapSags(currentTab, datefrom, dateto);
+                break;
 
-        case "MaximumSwells":
-            getEventsHeatmapSwell(currentTab, datefrom, dateto);
-            break;
+            case "MaximumSwells":
+                getEventsHeatmapSwell(currentTab, datefrom, dateto);
+                break;
 
-        case "TrendingCounts":
-            stopAnimatedHeatmap();
-            getEventsHeatmapCounts(currentTab, datefrom, dateto);
-            $('#HeatmapControlsTrending').hide();
-            break;
+            case "TrendingCounts":
+                stopAnimatedHeatmap();
+                getEventsHeatmapCounts(currentTab, datefrom, dateto);
+                $('#HeatmapControlsTrending').hide();
+                break;
 
-        case "THD":
-            $('#HeatmapControlsTrending').show();
-            break;
+            case "THD":
+                $('#HeatmapControlsTrending').show();
+                break;
 
-        default:
-            break;
+            default:
+                break;
 
+        }
     }
+ 
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -3300,6 +3336,8 @@ function loadsitedropdown() {
 
     $('#siteList').multiselect('refresh');
 
+    $('#selectHeatmapDisturbances').multiselect();
+    $('#selectHeatmapDisturbances').multiselect("checkAll");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3566,7 +3604,7 @@ function NextHeatmap() {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 function LoadHeatmapData(data, themap) {
-
+    if (themap === null) return;
     var heat_data = new google.maps.MVCArray();
     //console.log(heat_data);
     var accumulatedmax = 0;

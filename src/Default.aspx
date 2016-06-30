@@ -557,6 +557,17 @@
             </select>
         </div>
         
+        <div id="heatmapDisturbances" style="visibility: hidden;">Heatmap:
+            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);" multiple="multiple">
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+                <option value="0">0</option>
+            </select>
+        </div>
+        
         <div id="heatmapTrending" style="visibility: hidden;">Heatmap:
             <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
                 <option value="TrendingCounts">Event Counts</option>
@@ -571,6 +582,17 @@
             <div id="transientlegend" class="transientlegend">Transient</div>
             <div id="swelllegend" class="swelllegend">Swell</div>
             <div id="otherlegend" class="otherlegend">Other</div>
+            <div id="nonelegend" class="nonelegend">None</div>
+            <div id="ooslegend" class="ooslegend">Out of Service</div>
+        </div>
+        
+        <div id="disturbanceslegend" class="eventslegend" >
+            <div id="5legend" class="interruptionlegend">5</div>
+            <div id="4legend" class="faultslegend">4</div>
+            <div id="3legend" class="saglegend">3</div>
+            <div id="2legend" class="transientlegend">2</div>
+            <div id="1legend" class="swelllegend">1</div>
+            <div id="0legend" class="otherlegend">0</div>
             <div id="nonelegend" class="nonelegend">None</div>
             <div id="ooslegend" class="ooslegend">Out of Service</div>
         </div>
