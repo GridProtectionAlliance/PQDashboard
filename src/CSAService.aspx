@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="EASDetailsTemplate.aspx.cs" Inherits="EASDetails" %>
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="EASServiceTemplate.aspx.cs" Inherits="EASDetails" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
@@ -26,8 +26,8 @@
     </table>
         
         <form runat="server">
-            <div runat="server" id="ServiceName" >EAS Details</div>
-            <div runat="server" id="TableName">SandBoxResult</div>
+            <div runat="server" id="ServiceName" >CSA Details</div>
+            <div runat="server" id="TableName">CSAResult</div>
         </form>
 	</body>
 </html>

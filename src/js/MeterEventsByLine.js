@@ -37,7 +37,6 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
         cache: true,
         success: function (data) {
             json = $.parseJSON(data.d)
-            console.log(json);
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
@@ -53,14 +52,42 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
                     {
-                        field: 'EASService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.EASService, 'EASDetails.aspx', 'images/eas.ico', 'Launch EAS Details Page', 300, 200)
+                        headerText: '', headerStyle: 'width: 20%', content: function (row) {
+                            console.log(row);
+                            var key = Object.keys(row).filter(function(a){
+                                return  a !== 'thecurrentdistance' &&
+                                        a !== 'theeventid' &&
+                                        a !== 'theeventtype' &&
+                                        a !== 'thefaulttype' &&
+                                        a !== 'theinceptiontime' &&
+                                        a !== 'thelineid' &&
+                                        a !== 'thelinename' &&
+                                        a !== 'pqiexists' &&
+                                        a !== 'voltage';
+                                });
+                            var html = "";
+
+                            html += makeOpenSEEButton_html(row);
+
+                            if (row.theeventtype == "Fault")
+                                html += makeFaultSpecificsButton_html(row);
+                            if (row.pqiexists !== '0')
+                                html += makePQIButton_html(row);
+
+                            $.each(key, function (i, k) {
+                                if (row[k] !== '0')
+                                    html += makeEASDetailsButton_html(row, row[k], k + '.aspx', 'images/' + k + '.png', 'Launch '+ k + ' Page' ,300, 450);
+                            });
+
+                            return html;
                         }
-                    },
-                    { field: 'ICFService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.ICFService, 'ICFDetails.aspx', 'images/icf.png', 'Launch ICF Details Page', 300, 200) } },
-                    { field: 'CSAService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.CSAService, 'CSADetails.aspx', 'images/csa.png', 'Launch CSA Details Page', 300, 450) } },
+                    }
+                    //{ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                    //{ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
+                    //{ field: 'EASService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.EASService, 'EASDetails.aspx', 'images/eas.ico', 'Launch EAS Details Page', 300, 200) } },
+                    //{ field: 'ICFService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.ICFService, 'ICFDetails.aspx', 'images/ICFService.png', 'Launch ICF Details Page', 300, 200) } },
+                    //{ field: 'CSAService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.CSAService, 'CSADetails.aspx', 'images/CSAService.png', 'Launch CSA Details Page', 300, 450) } },
                 ],
                 datasource: $.parseJSON(data.d)
             });
@@ -75,9 +102,10 @@ function makeEASDetailsButton_html(row, value, url, imagepath, title, width, hei
 
     if (value != "" && value != "0" && value != null) {
 
-        return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'"+"," + width + "," + height  + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="' + title + '">';
-        return_html += '<img src="'+ imagepath + '" /></button></div>';
+        //return_html += '<div style="cursor: pointer;">';
+        return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'"+"," + width + "," + height  + ');"  title="' + title + '">';
+        return_html += '<img src="'+ imagepath + '" /></button>';
+        //return_html += '</div>';
     }
     return (return_html);
 }
@@ -91,9 +119,10 @@ function OpenWindowToEAS(url, width, height) {
 
 function makeOpenSEEButton_html(id) {
     var return_html = "";
-    return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-    return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
-    return_html += '<img src="images/seeButton.png" /></button></div>';
+    //return_html += '<div style="cursor: pointer;">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ');" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<img src="images/seeButton.png" /></button>';
+    //return_html += '</div>';
     return (return_html);
 }
 
@@ -101,9 +130,10 @@ function makeFaultSpecificsButton_html(id) {
     var return_html = "";
 
     if (id.theeventtype == "Fault") {
-        return_html += '<div style="width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToFaultSpecifics(' + id.theeventid +');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open Fault Detail Window">';
-        return_html += '<img src="images/faultDetailButton.png" /></button></div>';
+        //return_html += '<div style="cursor: pointer;">';
+        return_html += '<button onClick="OpenWindowToFaultSpecifics(' + id.theeventid +');" title="Open Fault Detail Window">';
+        return_html += '<img src="images/faultDetailButton.png" /></button>';
+        //return_html += '</div>';
     }
     return (return_html);
 }
@@ -112,9 +142,10 @@ function makePQIButton_html(id) {
     var return_html = "";
 
     if (id.pqiexists == "1") {
-        return_html += '<div style="width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToPQI(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open PQI Window">';
-        return_html += '<img src="images/pqiButton.png" /></button></div>';
+        //return_html += '<div style="cursor: pointer;">';
+        return_html += '<button onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
+        return_html += '<img src="images/pqiButton.png" /></button>';
+        //return_html += '</div>';
     }
     return (return_html);
 }
