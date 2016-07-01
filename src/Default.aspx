@@ -558,13 +558,15 @@
         </div>
         
         <div id="heatmapDisturbances" style="visibility: hidden;">Heatmap:
-            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);" multiple="multiple">
-                <option value="5">5</option>
-                <option value="4">4</option>
-                <option value="3">3</option>
-                <option value="2">2</option>
-                <option value="1">1</option>
-                <option value="0">0</option>
+            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
+<%--            <option value="5" selected="selected">5</option>
+                <option value="4" selected="selected">4</option>
+                <option value="3" selected="selected">3</option>
+                <option value="2" selected="selected">2</option>
+                <option value="1" selected="selected">1</option>
+                <option value="0" selected="selected">0</option>--%>
+                <option value="DisturbanceCounts">Disturbance Counts</option>
+                <option value="AnimateDisturbanceCounts">Animate Disturbance Counts</option>
             </select>
         </div>
         

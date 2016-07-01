@@ -900,7 +900,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 .data(function (d) { return d.Values; })
                 .enter().append("rect")
                 .attr("class", "bar")
-                .attr("width", function (d,e,f) { return 6; })
+                .attr("width", function (d,e,f) { return width/graphData.length + 1; })
                 .attr("y", function (d) {   return y(d.y1); })
                 .attr("height", function (d) { return y(d.y0) - y(d.y1); })
                 .style("fill", function (d) { return color(d.Name); })
@@ -1032,7 +1032,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                     .attr("x", -height / 2)
                     .attr("dy", ".71em")
                     .text(YaxisLabel);
-
+                var barWidth = graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }).length;
                 // redraw the bars on the main chart
                 var bar = main.append("g")
                     .attr("class", "bars")
@@ -1045,7 +1045,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                     .data(function (d) { return d.Values; })
                     .enter().append("rect")
                     .attr("class", "bar")
-                    .attr("width", function (d, e, f) { return 6; })
+                    .attr("width", function (d, e, f) { return width/barWidth; })
                     .attr("y", function (d) { return y(d.y1); })
                     .attr("height", function (d) { return y(d.y0) - y(d.y1); })
                     .style("fill", function (d) { return color(d.Name); })
@@ -1243,7 +1243,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, data) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            console.log(data);
+            //console.log(data);
             var map = getMapInstance(currentTab);
             LoadHeatmapData(data.d, map);
 
@@ -1284,6 +1284,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto) {
             cache_Map_Matrix_Data_Date_To = this.dateto;
             cache_Map_Matrix_Data = data;
 
+            //console.log(data);
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
@@ -1721,7 +1722,7 @@ function getStatusColorForGridElement( data ) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateGridMatrix(data, siteID, siteName) {
-
+    //console.log(data);
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
     $(matrixItemID).empty();
@@ -2016,7 +2017,7 @@ function populateGridSparklineEvents(data, siteID, siteName) {
 
     $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
         type: 'bar',
-        height: '10px',
+        height: 'auto',
         siteid: siteName,
         //datadate: thedate,
         borderWidth: 0,
@@ -2162,7 +2163,7 @@ function populateGridSparklineBreakers(data, siteID, siteName) {
 
     $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
         type: 'bar',
-        height: '10px',
+        height: 'auto',
         siteid: siteName,
         //datadate: thedate,
         borderWidth: 0,
@@ -2324,7 +2325,7 @@ function showSiteSet(thecontrol) {
 
             case "All":
                 $.each(gridchildren.children, function (key, value) {
-                        $(value).show();
+                    $(value).show();
                 });
 
                 break;
@@ -2396,6 +2397,9 @@ function showSiteSet(thecontrol) {
             default:
                 break;
         }
+
+        resizeMatrixCells(currentTab);
+
     }
 
     if (mapormatrix == "Map") {
@@ -2490,38 +2494,42 @@ function showHeatmap(thecontrol) {
     var datefrom = getMapHeaderDate("From");
     var dateto = getMapHeaderDate("To");
 
-    if(Array.isArray($(thecontrol).val())){
-        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
-    }else{
-        switch (thecontrol.value) {
+    switch (thecontrol.value) {
 
-            case "EventCounts":
-                getEventsHeatmapCounts(currentTab, datefrom, dateto);
-                break;
+        case "EventCounts":
+            getEventsHeatmapCounts(currentTab, datefrom, dateto);
+            break;
 
-            case "MinimumSags":
-                getEventsHeatmapSags(currentTab, datefrom, dateto);
-                break;
+        case "MinimumSags":
+            getEventsHeatmapSags(currentTab, datefrom, dateto);
+            break;
 
-            case "MaximumSwells":
-                getEventsHeatmapSwell(currentTab, datefrom, dateto);
-                break;
+        case "MaximumSwells":
+            getEventsHeatmapSwell(currentTab, datefrom, dateto);
+            break;
 
-            case "TrendingCounts":
-                stopAnimatedHeatmap();
-                getEventsHeatmapCounts(currentTab, datefrom, dateto);
-                $('#HeatmapControlsTrending').hide();
-                break;
+        case "TrendingCounts":
+            stopAnimatedHeatmap();
+            getEventsHeatmapCounts(currentTab, datefrom, dateto);
+            $('#HeatmapControlsTrending').hide();
+            break;
 
-            case "THD":
-                $('#HeatmapControlsTrending').show();
-                break;
+        case "THD":
+            $('#HeatmapControlsTrending').show();
+            break;
 
-            default:
-                break;
+        case "DisturbanceCounts":
+            getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
+            break;
 
-        }
+        case "AnimateDisturbancecounts":
+            break;
+
+        default:
+            break;
+
     }
+    
  
 }
 
@@ -2800,12 +2808,30 @@ function resizeMatrixCells(newTab) {
     var w = $("#MapMatrix" + newTab).width();
     var r = $('#siteList')[0].length;
 
+    if($('#selectSiteSet' + currentTab).val() === "SelectedSites" )
+        r = $('#siteList').val().length;
+    else if ($('#selectSiteSet' + currentTab).val() === "All") 
+        r = $('#siteList')[0].length;
+    else {
+        r = 0;
+        $.each($('.matrix'), function (i, element) {
+            if ($(element).is(':visible'))
+                ++r;
+        });
+    }
+
+
     if (h > 0 && w > 0 && r > 0) {
         var columns = Math.floor(Math.sqrt(r));
         var rows = Math.ceil(r / columns);
         $(".matrix").css("width", (w / columns) - 4);
         $(".matrix").css("height", (h / rows) - 2);
+        //$.each($(".sparkbox"), function (i, element) {
+        //    $(element).css('height', '30%');
+        //});
     }
+
+    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3336,8 +3362,7 @@ function loadsitedropdown() {
 
     $('#siteList').multiselect('refresh');
 
-    $('#selectHeatmapDisturbances').multiselect();
-    $('#selectHeatmapDisturbances').multiselect("checkAll");
+    //$('#selectHeatmapDisturbances').multiselect();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
