@@ -48,6 +48,12 @@ var cache_Map_Matrix_Data = null;
 var cache_Map_Matrix_Data_Date_From = null;
 var cache_Map_Matrix_Data_Date_To = null;
 
+// Billy's cached data
+var cache_Graph_Data = null;
+var cache_Table_Data = null;
+
+
+
 var currentTab = null;
 
 var calendardatesEvents = [];
@@ -303,48 +309,13 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
     });
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
 
-function populateFaultsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "','targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
-
-
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
-                    { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
-                    { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                    { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                    { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                    { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
-    });
-
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
+// The following functions are for getting Table data and populating the tables
+function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
     var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
-
+    //console.log(thedatasent);
     $.ajax({
         type: "POST",
         url: './eventService.asmx/' + thedatasource,
@@ -353,160 +324,119 @@ function populateCorrectnessDivWithGrid(thedatasource, thediv, siteName, siteID,
         dataType: 'json',
         cache: true,
         success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
-                    { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
-                    { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
-                    { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
-    });
+            var json = $.parseJSON(data.d)
+            cache_Table_Data = json;
 
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateCompletenessDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
-
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Received).toFixed(0) + '%'; } },
-                    { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Duplicate).toFixed(0) + '%'; } },
-                    { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Completeness).toFixed(0) + '%'; } },
-                    { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
-    });
-
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
-
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'others', headerText: 'Others', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeMeterEventsByLineButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
+            window["populate" + currentTab + "DivWithGrid"](json);
         }
     });
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+function populateFaultsDivWithGrid(data) {
+    console.log(data);
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
+            { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
+            { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+            { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+            { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+            { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+            { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
+        ],
+        datasource: data
+    });
+}
 
-function populateDisturbancesDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
+function populateCorrectnessDivWithGrid(data) {
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+            { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
+            { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
+            { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
+            { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
+        ],
+        datasource: data
+    });
+}
 
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
+function populateCompletenessDivWithGrid(data) {
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+            { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+            { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Received).toFixed(0) + '%'; } },
+            { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Duplicate).toFixed(0) + '%'; } },
+            { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Completeness).toFixed(0) + '%'; } },
+            { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
+        ],
+        datasource: data
+    });
+}
 
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            //console.log(data);
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: '5', headerText: '5', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: '4', headerText: '4', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: '3', headerText: '3', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: '2', headerText: '2', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: '1', headerText: '1', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: '0', headerText: '0', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
+function populateEventsDivWithGrid(data) {
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
+            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+            { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'others', headerText: 'Others', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true }
+        ],
+        datasource: data
     });
 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+function populateDisturbancesDivWithGrid(data) {
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+            { field: '5', headerText: '5', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+            { field: '4', headerText: '4', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: '3', headerText: '3', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: '2', headerText: '2', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: '1', headerText: '1', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: '0', headerText: '0', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+        ],
+        datasource: data
+    });
+}
 
-function populateBreakersDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'}";
-
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
-                    { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'linename', headerText: 'Line', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'timing', headerText: 'Timing', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'speed', headerText: 'Speed', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                    { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
+function populateBreakersDivWithGrid(data) {
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
+            { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'linename', headerText: 'Line', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'phasename', headerText: 'Phase', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'timing', headerText: 'Timing', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'speed', headerText: 'Speed', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+            //{ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
+        ],
+        datasource: data
     });
 
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -751,32 +681,16 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     $('#' + thediv).children().remove();
 
     switch (currentTab) {
-        case "Faults":
-            YaxisLabel = "Faults";
-            break;
-
-        case "Disturbances":
-            YaxisLabel = "Disturbances";
-            break;
-
-        case "Events":
-            YaxisLabel = "Events";
-            break;
-
-        case "Trending":
-            YaxisLabel = "Trending";
-            break;
-
-        case "Breakers":
-            YaxisLabel = "Breakers";
-            break;
-
         case "Completeness":
             YaxisLabel = "Sites";
             break;
 
         case "Correctness":
             YaxisLabel = "Sites";
+            break;
+
+        default:
+            YaxisLabel = currentTab;
             break;
     }
     // D3
@@ -791,6 +705,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     // axis definition and construction
     var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
+    var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
     var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
     var yOverview = d3.scale.linear().range([heightOverview, 0]);
     var color = d3.scale.ordinal().range(getColorsForTab(currentTab));
@@ -807,13 +722,8 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom);
 
-    var main = svg.append("g")
-        .attr("class", "main")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var main = null, overview = null;
 
-    var overview = svg.append("g")
-        .attr("class", "overview")
-        .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
 
 
     var thedatasent = "";
@@ -827,14 +737,14 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         dataType: 'json',
         cache: true,
         success: function (data) {
+            //console.log(data.d.data);
 
             var brush = d3.svg.brush()
                 .x(xOverview)
                 .on("brush", brushed);
 
-            //console.log(data);
             var graphData = [];
-            //console.log(data.d.data);
+
             data.d.data.reverse();
 
             for (var i = 0; i < data.d.data[0].data.length; ++i) {
@@ -844,162 +754,117 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 data.d.data.forEach(function (d, j) {
                     obj[d.name] = d.data[i];
                     total += d.data[i];
+                    obj[d.name + 'Disabled'] = false;
                 });
                 obj["Total"] = total;
                 graphData.push(obj);
 
             }
-            color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" }));
+            
+            // TESTING STUFF
 
-            graphData.forEach(function (d) {
-                var y0 = 0;
-                d.Values;
-                d.Values = color.domain().map(function (name) {
-                    return { 'Name': name, 'y0': y0, 'y1': y0 += +d[name], 'Value': d[name], 'Date': d.Date};
-                });
 
+            color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
+
+            var seriesName = d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key !== 'Disabled' }),
+                numSamples = graphData[0].length;
+
+            var stackedSeriesName = [];
+            $.each(graphData, function (i, d) {
+                stackedSeriesName.push(d.Name);
             });
+
+
+
+            var stack = d3.stack()
+                .keys(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
+                .order(d3.stackOrderNone)
+                .offset(d3.stackOffsetNone);
+
+            var series = stack(graphData);
+            $.each(series, function (i, d) {
+                d["Disabled"] = false;
+            });
+
+            var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
+
+            var layerClass = function (d) { return "layer " + seriesClass(d.key); };
+
+            var joinKey = function (d) { return d.key; };
+
+            var stackedBarY = function (d) { return y(d[0] + d[1]); };
+
+            var stackedBarBaseY = function (d) { return y(d[0]); };
+
+            var stackedBarWidth = width / numSamples;
+
+            var barHeight = function (d) { return y(d[1]); };
+
+            var transitionStackedBars = function (selection) {
+                selection.transition()
+                    .duration(400)
+                    .delay(10)
+                    .attr("y", function (d) { return stackedBarY(d) })
+                    .attr("height", function (d) { return barHeight(d) });
+            };
+
+            /////////////////////////////// END TEST
+
+
+            //graphData.forEach(function (d) {
+            //    var y0 = 0;
+            //    d.Values;
+            //    d.Values = color.domain().map(function (name) {
+            //        return { 'Name': name, 'y0': y0, 'y1': y0 += +d[name], 'Value': d[name], 'Date': d.Date };
+            //    });
+
+            //});
+
+            cache_Graph_Data = data.d.data.slice();
 
             y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
-
             yOverview.domain(y.domain());
 
-            //Attach X-axis to graph
-            main.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
 
-            //Attach y-axis and text label to graph
-            main.append("g")
-                .attr("class", "y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", -margin.left )
-                .attr("x", -height/2)
-                .attr("dy", ".71em")
-                .text(YaxisLabel);
+            var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
 
-            overview.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + heightOverview + ")")
-                .call(xAxisOverview);
+            buildMainGraph(series);
+            buildOverviewGraph(graphData);
 
-            var keys = d3.keys(graphData[0]).filter(function (a) { return a !== "Values"; }).reverse();
-            // attach dates to graph
-
-            var bars = main.append("g")
-                .attr("class", "bars")
-                .selectAll(".bar.stack")
-                .data(graphData)
-                .enter().append("g")
-                .attr("class", "bar stack")
-                .attr("transform", function (d) { return "translate(" + x(d.Date) + ",0)" })
-                .selectAll("rect")
-                .data(function (d) { return d.Values; })
-                .enter().append("rect")
-                .attr("class", "bar")
-                .attr("width", function (d,e,f) { return width/graphData.length + 1; })
-                .attr("y", function (d) {   return y(d.y1); })
-                .attr("height", function (d) { return y(d.y0) - y(d.y1); })
-                .style("fill", function (d) { return color(d.Name); })
-                .style("cursor", "pointer");
-
-
-            // set event listeners
-            bars.on('mousemove', function (d, f, g) {
-                var mouse = d3.mouse(svg.node()).map(function (e) {
-                    return parseInt(e);
-                });
-                var index = graphData.findIndex(function (data) {
-                    return data.Date === d.Date;
-                });
-                var html = "<table>";
-                keys.forEach(function (data, i) {
-                    html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(graphData[index][data]) : graphData[index][data]) + "</td></tr>";
-                });
-                html += "</table>";
-
-                tooltip.classed('hidden', false)
-                .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
-                .html(html);
-            });
-                
-            bars.on('mouseout', function () {
-                tooltip.classed('hidden', true);
-            });
-
-            bars.on('click', function (d) {
-                    var thedate = getFormattedDate(d.Date + (new Date(d.Date).getTimezoneOffset() * 60 * 1000));
-                    contextfromdate = thedate;
-                    contexttodate = thedate;
-
-                    manageTabsByDate(currentTab, thedate, thedate);
-
-                    switch (currentTab) {
-                        case "Faults":
-                            populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Disturbances":
-                            populateDisturbancesDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Events":
-                            populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Trending":
-                            populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Breakers":
-                            populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Completeness":
-                            populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Correctness":
-                            populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-                    }
-                });
             
 
-            overview.append("g")
-                .attr("class", "bars")
-                .selectAll(".bar")
-                .data(graphData)
-                .enter().append("rect")
-                .attr("class", "bar")
-                .attr("x", function (d) { return xOverview(d.Date); })
-                .attr("width", 2)
-                .attr("y", function (d) {
-                    //console.log(d.hasOwnProperty('0%'));
-                    return yOverview((d.hasOwnProperty('0%')? d['0%'] : d.Total));
-                })
-                .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
-
-            // add the brush target area on the overview chart
-            overview.append("g").attr("class", "x brush")
-                .call(brush).selectAll("rect").attr("y", -6).attr("height", heightOverview + 7);  // +7 is magic number for styling
 
             ////Legend attributes
             var legend = svg.selectAll(".legend")
                 .data(color.domain().slice().reverse())
                 .enter().append("g")
+                .attr("id", "chartLegend")
                 .attr("class", "legend")
                 .attr("transform", function (d, i) { return "translate(140," + i * 20 +")"; });
 
+            var disabledLegendFields = [];
 
             legend.append("rect")
                 .attr("x", width + -65)
                 .attr("width", 18)
                 .attr("height", 18)
-                .style("fill", color);
+                .style("fill", color)
+                .style("cursor", "pointer")
+                .on("click", function (d, i) {
+                    if ($(this).css('fill') !== 'rgb(128, 128, 128)'){
+                        $(this).css('fill', '#808080');
+                        disabledLegendFields.push(d);
+
+                    }
+                    else {
+                        $(this).css('fill', color(d));
+                        disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d});
+                    }
+
+                    toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
+                    window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
+
+                });
 
             legend.append("text")
                 .attr("x", width - 40)
@@ -1007,22 +872,65 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 .attr("width", 40)
                 .attr("dy", ".35em")
                 .style("text-anchor", "start")
-                .text(function (d) {
+                .text(function (d) { return d; });
+
+
+
+            //// d3 Helper Functions
+
+            function buildMainGraph(data) {
+                var numSamples = data[0].length;
+                y.domain([0, d3.max(data, function (d) { return d3.max(d, function(e){ return e[1]}); })]);
+
+                main = svg.append("g")
+                    .attr("class", "main")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                main.append("g")
+                    .attr("class", "grid-lines")
+                    .selectAll(".grid-line").data(y.ticks(5))
+                        .enter().append("line")
+                            .attr("class", "grid-line")
+                            .attr("x1", 0)
+                            .attr("x2", width)
+                            .attr("y1", y)
+                            .attr("y2", y);
+
+                var layersArea = main.append("g")
+                    .attr("class", "layers");
+
+                var layers = layersArea.selectAll(".layer").data(data)
+                    .enter().append("g")
+                        .attr("class", layerClass);
+
+                var bar = layers.selectAll("rect").data(function (d) {
+                    //console.log(d);
                     return d;
-                });
-
-            function brushed() {
-
-                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
-                y.domain([0, d3.max(graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }), function (d) { return d.Total; })]);
-                main.selectAll("g").remove();
+                })
+                    .enter().append("rect")
+                        .attr("x", function (d) {
+                            //console.log(d.data.Date);
+                            return x(d.data.Date);
+                        })
+                        .attr("width", function () {
+                            //console.log(numSamples);
+                            return width / numSamples;
+                        })
+                        .attr("y", function (d) {
+                            //console.log(d);
+                            return y(d[1]);
+                        })
+                        .attr("height", function (d) { return y(d[0]) - y(d[1]); })
+                        .style("fill", function (d,e,i) {
+                            return color(series[i].key);
+                        })
+                        .style("cursor", "pointer");
 
                 main.append("g")
                     .attr("class", "x axis")
                     .attr("transform", "translate(0," + height + ")")
                     .call(xAxis);
 
-                //Attach y-axis and text label to graph
                 main.append("g")
                     .attr("class", "y axis")
                     .call(yAxis)
@@ -1032,37 +940,16 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                     .attr("x", -height / 2)
                     .attr("dy", ".71em")
                     .text(YaxisLabel);
-                var barWidth = graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }).length;
-                // redraw the bars on the main chart
-                var bar = main.append("g")
-                    .attr("class", "bars")
-                    .selectAll(".bar.stack")
-                    .data(graphData.filter(function (data) { return data.Date >= brush.extent()[0] && data.Date <= brush.extent()[1]; }))
-                    .enter().append("g")
-                    .attr("class", "bar stack")
-                    .attr("transform", function (d) { return "translate(" + x(d.Date) + ",0)" })
-                    .selectAll("rect")
-                    .data(function (d) { return d.Values; })
-                    .enter().append("rect")
-                    .attr("class", "bar")
-                    .attr("width", function (d, e, f) { return width/barWidth; })
-                    .attr("y", function (d) { return y(d.y1); })
-                    .attr("height", function (d) { return y(d.y0) - y(d.y1); })
-                    .style("fill", function (d) { return color(d.Name); })
-                    .style("cursor", "pointer");
 
-
-                // set event listeners
                 bar.on('mousemove', function (d, f, g) {
                     var mouse = d3.mouse(svg.node()).map(function (e) {
                         return parseInt(e);
                     });
-                    var index = graphData.findIndex(function (data) {
-                        return data.Date === d.Date;
-                    });
-                    var html = "<table>";
-                    keys.forEach(function (data, i) {
-                        html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(graphData[index][data]) : graphData[index][data]) + "</td></tr>";
+                    //console.log(d);
+                    var html = "<table><tr><td>Date: </td><td style='text-align: right'>" + getFormattedDate(d.data.Date) + "</td></tr>";
+                    var dKeys = d3.keys(d.data).filter(function (key) { return key !== 'Date' && key !== 'Total' && key !== 'Disabled' && key !== 'Values' && key.indexOf('Disabled') < 0}).reverse();
+                    dKeys.forEach(function (data, i) {
+                        html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(d.data.Date) : d.data[data]) + "</td></tr>";
                     });
                     html += "</table>";
 
@@ -1076,42 +963,124 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 });
 
                 bar.on('click', function (d) {
-                    var thedate = getFormattedDate(d.Date + (new Date(d.Date).getTimezoneOffset() * 60 * 1000));
+                    var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
                     contextfromdate = thedate;
                     contexttodate = thedate;
 
                     manageTabsByDate(currentTab, thedate, thedate);
 
-                    switch (currentTab) {
-                        case "Faults":
-                            populateFaultsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Events":
-                            populateEventsDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Trending":
-                            populateTrendingDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Breakers":
-                            populateBreakersDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Completeness":
-                            populateCompletenessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-
-                        case "Correctness":
-                            populateCorrectnessDivWithGrid('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                            break;
-                    }
+                    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
                 });
 
 
             }
 
+            function buildOverviewGraph(data) {
+                overview = svg.append("g")
+                    .attr("class", "overview")
+                    .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
+
+                overview.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + heightOverview + ")")
+                    .call(xAxisOverview);
+                overview.append("g")
+                        .attr("class", "bars")
+                        .selectAll(".bar")
+                        .data(data)
+                        .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function (d) { return xOverview(d.Date); })
+                        .attr("width", 2)
+                        .attr("y", function (d) {
+                            //console.log(d);
+                            return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
+                        })
+                        .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
+
+                // add the brush target area on the overview chart
+                overview.append("g").attr("class", "x brush")
+                    .call(brush).selectAll("rect").attr("y", -6).attr("height", heightOverview + 7);  // +7 is magic number for styling
+
+
+            }
+
+            function brushed() {
+                if (brush.empty())
+                    return;
+
+
+                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
+                main.selectAll("g").remove();
+
+                var newData = deepCopy(graphData);
+                var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+
+                $.each(newData, function (i, d) {
+                    $.each(tempKeys, function (j, k) {
+                        if (newData[i][k + 'Disabled'] === true)
+                            newData[i][k] = 0;
+
+                    });
+
+                });
+
+                var stackedData = stack(newData.filter(function (d) {
+                    return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
+                }));
+
+
+                buildMainGraph(stackedData);
+
+
+            }
+
+            /**
+             * Toggles a certain series.
+             * @param {String} seriesName The name of the series to be toggled
+             */
+            function toggleSeries(seriesName, data, isDisabling) {
+
+                var newData = deepCopy(data);
+
+                var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+                $.each(newData, function (i, d) {
+
+                    graphData[i][seriesName + 'Disabled'] = isDisabling;
+                    newData[i][seriesName + 'Disabled'] = isDisabling;
+                    $.each(tempKeys, function (j, k) {
+                        if (newData[i][k + 'Disabled'] === true)
+                            newData[i][k] = 0;
+
+                    });
+
+                });
+
+                var stackedData = stack((!brush.empty()? newData.filter(function (d) { return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];}) : newData));
+
+                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
+                main.selectAll("g").remove();
+                buildMainGraph(stackedData);
+            }
+
+            function deepCopy(obj) {
+                if (Object.prototype.toString.call(obj) === '[object Array]') {
+                    var out = [], i = 0, len = obj.length;
+                    for (; i < len; i++) {
+                        out[i] = arguments.callee(obj[i]);
+                    }
+                    return out;
+                }
+                if (typeof obj === 'object') {
+                    var out = {}, i;
+                    for (i in obj) {
+                        out[i] = arguments.callee(obj[i]);
+                    }
+                    return out;
+                }
+                return obj;
+            }
+            
         },
         failure: function (msg) {
             alert(msg);
@@ -1225,10 +1194,10 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, data) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = "./mapService.asmx/getLocations" + currentTab;
-    
+function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
+    var url = "./mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    //console.log(thedatasent);
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
     heatmapCache = null;
@@ -1243,7 +1212,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, data) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            //console.log(data);
+            //console.log(data.d);
             var map = getMapInstance(currentTab);
             LoadHeatmapData(data.d, map);
 
@@ -2494,6 +2463,12 @@ function showHeatmap(thecontrol) {
     var datefrom = getMapHeaderDate("From");
     var dateto = getMapHeaderDate("To");
 
+    if ( currentTab === "Disturbances" && Array.isArray($(thecontrol).val())) 
+        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
+    
+    else if (currentTab === "Disturbances" && $(thecontrol).val() === null)
+        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, '');
+
     switch (thecontrol.value) {
 
         case "EventCounts":
@@ -2770,12 +2745,38 @@ function resizeDocklet( theparent , chartheight ) {
     firstChild.css("height", chartheight);
 
     
-    if (typeof chart != 'undefined') {
-        chart.reflow();
-    }
-
     // Force Grids to render and fill 100% height
-    //$('#' + firstChild[0].id).puidatatable('reload');
+    //console.log($('#Detail' + currentTab + 'Table').puidatatable());
+    //$('#Detail' + currentTab + 'Table').puidatatable('reload');
+    //switch (currentTab) {
+    //    case "Faults":
+    //        populateFaultsDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Disturbances":
+    //        populateDisturbancesDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Events":
+    //        populateEventsDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Trending":
+    //        populateTrendingDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Breakers":
+    //        populateBreakersDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Completeness":
+    //        populateCompletenessDivWithGrid(cache_Table_Data);
+    //        break;
+
+    //    case "Correctness":
+    //        populateCorrectnessDivWithGrid(cache_Table_Data);
+    //        break;
+    //}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3362,7 +3363,7 @@ function loadsitedropdown() {
 
     $('#siteList').multiselect('refresh');
 
-    //$('#selectHeatmapDisturbances').multiselect();
+    $('#selectHeatmapDisturbances').multiselect();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

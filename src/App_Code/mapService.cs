@@ -30,6 +30,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Services;
 using System.Web.Script.Serialization;
+using System.Web.UI.WebControls;
 
 /// <summary>
 /// Summary description for MapService
@@ -331,7 +332,7 @@ public class mapService : System.Web.Services.WebService
     }
 
     /// <summary>
-    /// getLocationsEvents 
+    /// getLocationsDisturbances 
     /// </summary>
     /// <param name="targetDateFrom"></param>
     /// <param name="targetDateTo"></param>
@@ -400,6 +401,87 @@ public class mapService : System.Web.Services.WebService
 
         return (locationStates);
     }
+
+    /// <summary>
+    /// getLocationsDisturbancesHeatmapCounts 
+    /// </summary>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <param name="severityFilter"></param>
+    /// <returns></returns>
+    [WebMethod(EnableSession = true)]
+    public List<locationStatus> getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter )
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<locationStatus> locationStates = new List<locationStatus> { };
+
+        try
+        {
+            // DEBUG --
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // DEBUG --
+
+
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsDisturbances", conn);
+            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
+
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 300;
+            rdr = cmd.ExecuteReader();
+
+
+            // DEBUG --
+            Debug.WriteLine(stopwatch.Elapsed);
+            // DEBUG --
+
+
+            while (rdr.Read())
+            {
+                locationStatus ourStatus = new locationStatus();
+                ourStatus.location = new siteGeocoordinates();
+                ourStatus.location.latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.name = (String)rdr["name"];
+
+                string[] codes = severityFilter.Split(',');
+                int sum = 0;
+                foreach (string s in codes)
+                {
+                    if(s != "")
+                        sum += (int)rdr[s] * (int.Parse(s) + 1);
+                }
+                ourStatus.status = sum;
+                ourStatus.id = (int)rdr["id"];
+                locationStates.Add(ourStatus);
+            }
+
+            // DEBUG --
+            Debug.WriteLine(stopwatch.Elapsed);
+            // DEBUG --
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        return (locationStates);
+    }
+
 
     /// <summary>
     /// getLocationsCorrectness 
