@@ -327,8 +327,15 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var json = $.parseJSON(data.d)
             cache_Table_Data = json;
 
+            var filterString = [];
+            var leg = d3.selectAll('.legend');
+            $.each(leg[0], function (i, d) {
+                console.log(d.children[0].style.fill);
+                if(d.children[0].style.fill === 'rgb(128, 128, 128)')
+                    filterString.push(d.children[0].__data__)
+            });
 
-            window["populate" + currentTab + "DivWithGrid"](json, null);
+            window["populate" + currentTab + "DivWithGrid"](json, filterString);
         }
     });
 }
