@@ -1103,9 +1103,9 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                         toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
                         window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
-                        if ($('#mapGrid')[0].value == "Map" && currentTab === 'Disturbances') {
+                        if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events')) {
                             var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
-                            showHeatmap(document.getElementById('selectHeatmapDisturbances'), legendFields);
+                            showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
                         }
 
                     });
@@ -1276,9 +1276,9 @@ function getEventsHeatmapSags(currentTab, datefrom, dateto) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getEventsHeatmapCounts(currentTab, datefrom, dateto) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = "./mapService.asmx/getLocations" + currentTab;
+function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
+    var url = "./mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1294,7 +1294,6 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            //console.log(data);
             var map = getMapInstance(currentTab);
             LoadHeatmapData(data.d, map);
 
@@ -2593,7 +2592,7 @@ function showHeatmap(thecontrol, string ) {
     switch (thecontrol.value) {
 
         case "EventCounts":
-            getEventsHeatmapCounts(currentTab, datefrom, dateto);
+            getEventsHeatmapCounts(currentTab, datefrom, dateto, string);
             break;
 
         case "MinimumSags":
