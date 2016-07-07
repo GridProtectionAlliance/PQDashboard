@@ -250,7 +250,15 @@ function selectsitesonmap(focussite) {
         }
 
         if ($("#selectHeatmap" + currentTab).length > 0) {
-            showHeatmap($("#selectHeatmap" + currentTab)[0]);
+            var filterString = [];
+            var leg = d3.selectAll('.legend');
+
+            $.each(leg[0], function (i, d) {
+                if (d.children[0].style.fill === 'rgb(128, 128, 128)')
+                    filterString.push(d.children[0].__data__)
+            });
+
+            showHeatmap($("#selectHeatmap" + currentTab)[0], filterString);
         }
     }
 }
@@ -308,8 +316,6 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
         async: true
     });
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
@@ -846,10 +852,36 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     var thestartdate = new Date(Date.UTC(thestartdateX.getUTCFullYear(), thestartdateX.getUTCMonth(), thestartdateX.getUTCDate(), 0, 0, 0)).getTime();
     var contextfromdateUTC = new Date(Date.UTC(contextfromdateX.getUTCFullYear(), contextfromdateX.getUTCMonth(), contextfromdateX.getUTCDate(), 0, 0, 0)).getTime();
     var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
-    var YaxisLabel = "";
-    
+
+
+    var thedatasent = "";
+    thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
+    //console.log(thedatasource);
+    $.ajax({
+        type: "POST",
+        url: './eventService.asmx/' + thedatasource,
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            //console.log(data.d.data);
+            cache_Graph_Data = data.d.data.slice();
+            buildBarChart(data.d.data, thediv, siteName, siteID, thedatefrom, thedateto);
+            
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
+}
+
+function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     $('#' + thediv).children().remove();
 
+    var YaxisLabel = "";
     switch (currentTab) {
         case "Completeness":
             YaxisLabel = "Sites";
@@ -863,14 +895,16 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
             YaxisLabel = currentTab;
             break;
     }
+
     // D3
+    var chartData = deepCopy(data);
 
     //container sizing variables
-    var margin = { top: 20, right: 125, bottom:100, left: 60},
+    var margin = { top: 20, right: 125, bottom: 100, left: 60 },
         width = $('#' + thediv).width() - margin.left - margin.right,
         height = $('#' + thediv).height() - margin.top - margin.bottom,
         marginOverview = { top: height + 50, right: margin.right, bottom: 20, left: margin.left }
-        heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
+    heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
     var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
@@ -893,325 +927,301 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         .attr("height", height + margin.top + margin.bottom);
 
     var main = null, overview = null, legend = null;
+    var brush = d3.svg.brush()
+    .x(xOverview)
+    .on("brush", brushed);
+
+    var graphData = [];
+
+    chartData.reverse();
+
+    for (var i = 0; i < chartData[0].data.length; ++i) {
+        var obj = {};
+        var total = 0;
+        obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
+        chartData.forEach(function (d, j) {
+            obj[d.name] = d.data[i];
+            total += d.data[i];
+            obj[d.name + 'Disabled'] = false;
+        });
+        obj["Total"] = total;
+        graphData.push(obj);
+
+    }
 
 
+    y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
+    yOverview.domain(y.domain());
+    color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
 
-    var thedatasent = "";
-    thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
-    //console.log(thedatasource);
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            //console.log(data.d.data);
-            cache_Graph_Data = data.d.data.slice();
-            var brush = d3.svg.brush()
-                .x(xOverview)
-                .on("brush", brushed);
+    var numSamples = graphData[0].length;
+    var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
+    var layerClass = function (d) { return "layer " + seriesClass(d.key); };
 
-            var graphData = [];
+    var stack = d3.stack()
+        .keys(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
+        .order(d3.stackOrderNone)
+        .offset(d3.stackOffsetNone);
 
-            data.d.data.reverse();
+    var series = stack(graphData);
+    var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
 
-            for (var i = 0; i < data.d.data[0].data.length; ++i) {
-                var obj = {};
-                var total = 0;
-                obj["Date"] =  new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
-                data.d.data.forEach(function (d, j) {
-                    obj[d.name] = d.data[i];
-                    total += d.data[i];
-                    obj[d.name + 'Disabled'] = false;
-                });
-                obj["Total"] = total;
-                graphData.push(obj);
+    buildMainGraph(series);
+    buildOverviewGraph(graphData);
+    buildLegend();
 
-            }
-            
 
-            y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
-            yOverview.domain(y.domain());
-            color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
+    //// d3 Helper Functions
+    function buildMainGraph(data) {
+        var numSamples = data[0].length;
+        y.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
 
-            var  numSamples = graphData[0].length;
-            var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
-            var layerClass = function (d) { return "layer " + seriesClass(d.key); };
+        main = svg.append("g")
+            .attr("class", "main")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            var stack = d3.stack()
-                .keys(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
-                .order(d3.stackOrderNone)
-                .offset(d3.stackOffsetNone);
+        main.append("g")
+            .attr("class", "grid-lines")
+            .selectAll(".grid-line").data(y.ticks(5))
+                .enter().append("line")
+                    .attr("class", "grid-line")
+                    .attr("x1", 0)
+                    .attr("x2", width)
+                    .attr("y1", y)
+                    .attr("y2", y);
 
-            var series = stack(graphData);
-            var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
+        var layersArea = main.append("g")
+            .attr("class", "layers");
 
-            buildMainGraph(series);
-            buildOverviewGraph(graphData);
-            buildLegend();
-            
+        var layers = layersArea.selectAll(".layer").data(data)
+            .enter().append("g")
+                .attr("class", layerClass);
 
-            //// d3 Helper Functions
-            function buildMainGraph(data) {
-                var numSamples = data[0].length;
-                y.domain([0, d3.max(data, function (d) { return d3.max(d, function(e){ return e[1]}); })]);
-
-                main = svg.append("g")
-                    .attr("class", "main")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                main.append("g")
-                    .attr("class", "grid-lines")
-                    .selectAll(".grid-line").data(y.ticks(5))
-                        .enter().append("line")
-                            .attr("class", "grid-line")
-                            .attr("x1", 0)
-                            .attr("x2", width)
-                            .attr("y1", y)
-                            .attr("y2", y);
-
-                var layersArea = main.append("g")
-                    .attr("class", "layers");
-
-                var layers = layersArea.selectAll(".layer").data(data)
-                    .enter().append("g")
-                        .attr("class", layerClass);
-
-                var bar = layers.selectAll("rect").data(function (d) {
-                    //console.log(d);
-                    return d;
+        var bar = layers.selectAll("rect").data(function (d) {
+            //console.log(d);
+            return d;
+        })
+            .enter().append("rect")
+                .attr("x", function (d) {
+                    //console.log(d.data.Date);
+                    return x(d.data.Date);
                 })
-                    .enter().append("rect")
-                        .attr("x", function (d) {
-                            //console.log(d.data.Date);
-                            return x(d.data.Date);
-                        })
-                        .attr("width", function () {
-                            //console.log(numSamples);
-                            return width / numSamples;
-                        })
-                        .attr("y", function (d) {
-                            //console.log(d);
-                            return y(d[1]);
-                        })
-                        .attr("height", function (d) { return y(d[0]) - y(d[1]); })
-                        .style("fill", function (d,e,i) {
-                            return color(series[i].key);
-                        })
-                        .style("cursor", "pointer");
-
-                main.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xAxis);
-
-                main.append("g")
-                    .attr("class", "y axis")
-                    .call(yAxis)
-                    .append("text")
-                    .attr("transform", "rotate(-90)")
-                    .attr("y", -margin.left)
-                    .attr("x", -height / 2)
-                    .attr("dy", ".71em")
-                    .text(YaxisLabel);
-
-                bar.on('mousemove', function (d, f, g) {
-                    var mouse = d3.mouse(svg.node()).map(function (e) {
-                        return parseInt(e);
-                    });
+                .attr("width", function () {
+                    //console.log(numSamples);
+                    return width / numSamples;
+                })
+                .attr("y", function (d) {
                     //console.log(d);
-                    var html = "<table><tr><td>Date: </td><td style='text-align: right'>" + getFormattedDate(d.data.Date) + "</td></tr>";
-                    var dKeys = d3.keys(d.data).filter(function (key) { return key !== 'Date' && key !== 'Total' && key !== 'Disabled' && key !== 'Values' && key.indexOf('Disabled') < 0}).reverse();
-                    dKeys.forEach(function (data, i) {
-                        html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(d.data.Date) : d.data[data]) + "</td></tr>";
-                    });
-                    html += "</table>";
+                    return y(d[1]);
+                })
+                .attr("height", function (d) { return y(d[0]) - y(d[1]); })
+                .style("fill", function (d, e, i) {
+                    return color(series[i].key);
+                })
+                .style("cursor", "pointer");
 
-                    tooltip.classed('hidden', false)
-                    .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
-                    .html(html);
-                });
+        main.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
 
-                bar.on('mouseout', function () {
-                    tooltip.classed('hidden', true);
-                });
+        main.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -margin.left)
+            .attr("x", -height / 2)
+            .attr("dy", ".71em")
+            .text(YaxisLabel);
 
-                bar.on('click', function (d) {
-                    var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
-                    contextfromdate = thedate;
-                    contexttodate = thedate;
+        bar.on('mousemove', function (d, f, g) {
+            var mouse = d3.mouse(svg.node()).map(function (e) {
+                return parseInt(e);
+            });
+            //console.log(d);
+            var html = "<table><tr><td>Date: </td><td style='text-align: right'>" + getFormattedDate(d.data.Date) + "</td></tr>";
+            var dKeys = d3.keys(d.data).filter(function (key) { return key !== 'Date' && key !== 'Total' && key !== 'Disabled' && key !== 'Values' && key.indexOf('Disabled') < 0 }).reverse();
+            dKeys.forEach(function (data, i) {
+                html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(d.data.Date) : d.data[data]) + "</td></tr>";
+            });
+            html += "</table>";
 
-                    manageTabsByDate(currentTab, thedate, thedate);
+            tooltip.classed('hidden', false)
+            .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
+            .html(html);
+        });
 
-                    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
-                });
+        bar.on('mouseout', function () {
+            tooltip.classed('hidden', true);
+        });
 
+        bar.on('click', function (d) {
+            var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
+            contextfromdate = thedate;
+            contexttodate = thedate;
 
-            }
+            manageTabsByDate(currentTab, thedate, thedate);
 
-            function buildOverviewGraph(data) {
-                overview = svg.append("g")
-                    .attr("class", "overview")
-                    .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
-
-                overview.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + heightOverview + ")")
-                    .call(xAxisOverview);
-                overview.append("g")
-                        .attr("class", "bars")
-                        .selectAll(".bar")
-                        .data(data)
-                        .enter().append("rect")
-                        .attr("class", "bar")
-                        .attr("x", function (d) { return xOverview(d.Date); })
-                        .attr("width", 2)
-                        .attr("y", function (d) {
-                            //console.log(d);
-                            return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
-                        })
-                        .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
-
-                // add the brush target area on the overview chart
-                overview.append("g").attr("class", "x brush")
-                    .call(brush).selectAll("rect").attr("y", -6).attr("height", heightOverview + 7);  // +7 is magic number for styling
+            getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+        });
 
 
-            }
+    }
 
-            function buildLegend() {
-                ////Legend attributes
-                legend = svg.selectAll(".legend")
-                    .data(color.domain().slice().reverse())
-                    .enter().append("g")
-                    .attr("id", "chartLegend")
-                    .attr("class", "legend")
-                    .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
+    function buildOverviewGraph(data) {
+        overview = svg.append("g")
+            .attr("class", "overview")
+            .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
 
-                var disabledLegendFields = [];
+        overview.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + heightOverview + ")")
+            .call(xAxisOverview);
+        overview.append("g")
+                .attr("class", "bars")
+                .selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function (d) { return xOverview(d.Date); })
+                .attr("width", 2)
+                .attr("y", function (d) {
+                    //console.log(d);
+                    return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
+                })
+                .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
 
-                legend.append("rect")
-                    .attr("x", width + -65)
-                    .attr("width", 18)
-                    .attr("height", 18)
-                    .style("fill", color)
-                    .style("cursor", "pointer")
-                    .on("click", function (d, i) {
-                        if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
-                            $(this).css('fill', '#808080');
-                            disabledLegendFields.push(d);
-
-                        }
-                        else {
-                            $(this).css('fill', color(d));
-                            disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
-                        }
-                        toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
-                        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
-
-                        if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events')) {
-                            var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
-                            showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
-                        }
-
-                    });
-
-                legend.append("text")
-                    .attr("x", width - 40)
-                    .attr("y", 9)
-                    .attr("width", 40)
-                    .attr("dy", ".35em")
-                    .style("text-anchor", "start")
-                    .text(function (d) { return d; });
-
-            }
-
-            //called when selection is chosen on overview map
-            function brushed() {
-                if (brush.empty())
-                    return;
+        // add the brush target area on the overview chart
+        overview.append("g").attr("class", "x brush")
+            .call(brush).selectAll("rect").attr("y", -6).attr("height", heightOverview + 7);  // +7 is magic number for styling
 
 
-                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
-                main.selectAll("g").remove();
+    }
 
-                var newData = deepCopy(graphData);
-                var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+    function buildLegend() {
+        ////Legend attributes
+        legend = svg.selectAll(".legend")
+            .data(color.domain().slice().reverse())
+            .enter().append("g")
+            .attr("id", "chartLegend")
+            .attr("class", "legend")
+            .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
 
-                $.each(newData, function (i, d) {
-                    $.each(tempKeys, function (j, k) {
-                        if (newData[i][k + 'Disabled'] === true)
-                            newData[i][k] = 0;
+        var disabledLegendFields = [];
 
-                    });
+        legend.append("rect")
+            .attr("x", width + -65)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", color)
+            .style("cursor", "pointer")
+            .on("click", function (d, i) {
+                if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
+                    $(this).css('fill', '#808080');
+                    disabledLegendFields.push(d);
 
-                });
-
-                var stackedData = stack(newData.filter(function (d) {
-                    return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
-                }));
-
-
-                buildMainGraph(stackedData);
-
-
-            }
-
-            //Toggles a certain series.
-            function toggleSeries(seriesName, data, isDisabling) {
-
-                var newData = deepCopy(data);
-
-                var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
-                $.each(newData, function (i, d) {
-
-                    graphData[i][seriesName + 'Disabled'] = isDisabling;
-                    newData[i][seriesName + 'Disabled'] = isDisabling;
-                    $.each(tempKeys, function (j, k) {
-                        if (newData[i][k + 'Disabled'] === true)
-                            newData[i][k] = 0;
-
-                    });
-
-                });
-
-                var stackedData = stack((!brush.empty()? newData.filter(function (d) { return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];}) : newData));
-
-                x.domain(brush.empty() ? xOverview.domain() : brush.extent());
-                main.selectAll("g").remove();
-                buildMainGraph(stackedData);
-            }
-
-            // Deep copies an obj
-            function deepCopy(obj) {
-                if (Object.prototype.toString.call(obj) === '[object Array]') {
-                    var out = [], i = 0, len = obj.length;
-                    for (; i < len; i++) {
-                        out[i] = arguments.callee(obj[i]);
-                    }
-                    return out;
                 }
-                if (typeof obj === 'object') {
-                    var out = {}, i;
-                    for (i in obj) {
-                        out[i] = arguments.callee(obj[i]);
-                    }
-                    return out;
+                else {
+                    $(this).css('fill', color(d));
+                    disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
-                return obj;
+                toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
+                window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
+
+                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events')) {
+                    var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
+                    showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
+                }
+
+            });
+
+        legend.append("text")
+            .attr("x", width - 40)
+            .attr("y", 9)
+            .attr("width", 40)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(function (d) { return d; });
+
+    }
+
+    //called when selection is chosen on overview map
+    function brushed() {
+        if (brush.empty())
+            return;
+
+
+        x.domain(brush.empty() ? xOverview.domain() : brush.extent());
+        main.selectAll("g").remove();
+
+        var newData = deepCopy(graphData);
+        var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+
+        $.each(newData, function (i, d) {
+            $.each(tempKeys, function (j, k) {
+                if (newData[i][k + 'Disabled'] === true)
+                    newData[i][k] = 0;
+
+            });
+
+        });
+
+        var stackedData = stack(newData.filter(function (d) {
+            return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
+        }));
+
+
+        buildMainGraph(stackedData);
+
+
+    }
+
+    //Toggles a certain series.
+    function toggleSeries(seriesName, data, isDisabling) {
+
+        var newData = deepCopy(data);
+
+        var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+        $.each(newData, function (i, d) {
+
+            graphData[i][seriesName + 'Disabled'] = isDisabling;
+            newData[i][seriesName + 'Disabled'] = isDisabling;
+            $.each(tempKeys, function (j, k) {
+                if (newData[i][k + 'Disabled'] === true)
+                    newData[i][k] = 0;
+
+            });
+
+        });
+
+        var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1]; }) : newData));
+
+        x.domain(brush.empty() ? xOverview.domain() : brush.extent());
+        main.selectAll("g").remove();
+        buildMainGraph(stackedData);
+    }
+
+    // Deep copies an obj
+    function deepCopy(obj) {
+        if (Object.prototype.toString.call(obj) === '[object Array]') {
+            var out = [], i = 0, len = obj.length;
+            for (; i < len; i++) {
+                out[i] = arguments.callee(obj[i]);
             }
-            
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
+            return out;
+        }
+        if (typeof obj === 'object') {
+            var out = {}, i;
+            for (i in obj) {
+                out[i] = arguments.callee(obj[i]);
+            }
+            return out;
+        }
+        return obj;
+    }
 
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
@@ -2853,7 +2863,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
 function reflowContents(newTab) {
 
-    resizeMapAndMatrix(newTab);
+    //resizeMapAndMatrix(newTab);
 
     var map = getMapInstance(newTab);
 
@@ -2866,15 +2876,49 @@ function reflowContents(newTab) {
 
 function resizeDocklet( theparent , chartheight ) {
 
+    var thedatefrom = $.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate'));
+    var thedateto = $.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate'));
+    var selectedIDs = GetCurrentlySelectedSites();
+
+    var siteName = selectedIDs.length + " of " + $('#siteList')[0].length + " selected";
+
+    var siteID = "";
+
+    if (selectedIDs.length > 0) {
+
+        var thedetails = selectedIDs[0].split('|');
+
+        if (selectedIDs.length == 1) {
+            siteName = thedetails[0];
+        }
+
+        $.each(selectedIDs, function (key, value) {
+            thedetails = value.split('|');
+            siteID += thedetails[1] + ",";
+        });
+    }
+
+    var filterString = [];
+    var leg = d3.selectAll('.legend');
+
+    $.each(leg[0], function (i, d) {
+        if (d.children[0].style.fill === 'rgb(128, 128, 128)')
+            filterString.push(d.children[0].__data__)
+    });
+
+
     theparent.css("height", chartheight);
 
     var firstChild = $("#" + theparent[0].firstElementChild.id);
 
     firstChild.css("height", chartheight);
+    if ($('#Overview' + currentTab).children().length > 0)
+        buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+
 
     //console.log($('#Detail' + currentTab + 'Table').children());
     if($('#Detail' + currentTab + 'Table').children().length > 0)
-        $('#Detail' + currentTab + 'Table').puidatatable('reload', -1);
+        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, filterString);
 
         //window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
     

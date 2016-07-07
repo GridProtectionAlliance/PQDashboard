@@ -586,3 +586,20 @@
       fill-opacity: .125;
       shape-rendering: crispEdges;
     }
+
+    .svg-container {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding-bottom: 90%; /* aspect ratio */
+        vertical-align: top;
+        overflow: hidden;
+    }
+
+    .svg-content-responsive {
+        display: inline-block;
+        position: absolute;
+        top: 10px;
+        left: 0;
+    }
