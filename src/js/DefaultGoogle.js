@@ -327,13 +327,30 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var json = $.parseJSON(data.d)
             cache_Table_Data = json;
 
-            window["populate" + currentTab + "DivWithGrid"](json);
+
+            window["populate" + currentTab + "DivWithGrid"](json, null);
         }
     });
 }
 
-function populateFaultsDivWithGrid(data) {
-    console.log(data);
+function populateFaultsDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            if(disabledFields.indexOf(d.voltage + ' kV') < 0)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
+
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -347,11 +364,67 @@ function populateFaultsDivWithGrid(data) {
             { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
             { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
         ],
-        datasource: data
+        datasource: filteredData
     });
 }
 
-function populateCorrectnessDivWithGrid(data) {
+function populateCorrectnessDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            var flag = false;
+            $.each(disabledFields, function (j, e) {
+                switch (e) {
+                    case '> 100%':
+                        if (parseFloat(d.Correctness) > 100)
+                            flag = true;
+                        break;
+
+                    case '98% - 100%':
+                        if (parseFloat(d.Correctness) >= 98 && parseFloat(d.Correctness) <= 100)
+                            flag = true;
+                        break;
+
+                    case '90% - 97%':
+                        if (parseFloat(d.Correctness) >= 90 && parseFloat(d.Correctness) < 98)
+                            flag = true;
+                        break;
+
+                    case '70% - 89%':
+                        if (parseFloat(d.Correctness) >= 70 && parseFloat(d.Correctness) < 90)
+                            flag = true;
+                        break;
+
+                    case '50% - 69%':
+                        if (parseFloat(d.Correctness) >= 50 && parseFloat(d.Correctness) < 70)
+                            flag = true;
+                        break;
+
+                    case '>0% - 49%':
+                        if (parseFloat(d.Correctness) > 0 && parseFloat(d.Correctness) < 50)
+                            flag = true;
+                        break;
+
+                    case '0%':
+                        if (parseFloat(d.Correctness) == 0)
+                            flag = true;
+                        break;
+                }
+            });
+            if (!flag)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
+
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -360,13 +433,70 @@ function populateCorrectnessDivWithGrid(data) {
             { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
             { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
             { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
+            { field: 'Correctness', headerText: 'Correctness', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Correctness).toFixed(0) + '%'; } },
             { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
         ],
-        datasource: data
+        datasource: filteredData
     });
 }
 
-function populateCompletenessDivWithGrid(data) {
+function populateCompletenessDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            var flag = false;
+            $.each(disabledFields, function (j, e) {
+                switch (e) {
+                    case '> 100%':
+                        if (d.Completeness > 100)
+                            flag = true;
+                        break;
+
+                    case '98% - 100%':
+                        if (d.Completeness >= 98 && d.Completeness <= 100)
+                            flag = true;
+                        break;
+
+                    case '90% - 97%':
+                        if (d.Completeness >= 90 && d.Completeness < 98)
+                            flag = true;
+                        break;
+
+                    case '70% - 89%':
+                        if (d.Completeness >= 70 && d.Completeness < 90)
+                            flag = true;
+                        break;
+
+                    case '50% - 69%':
+                        if (d.Completeness >= 50 && d.Completeness < 70)
+                            flag = true;
+                        break;
+
+                    case '>0% - 49%':
+                        if (d.Completeness > 0 && d.Completeness < 50)
+                            flag = true;
+                        break;
+
+                    case '0%':
+                        if (d.Completeness == 0)
+                            flag = true;
+                        break;
+                }
+            });
+            if (!flag)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
+
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -378,45 +508,75 @@ function populateCompletenessDivWithGrid(data) {
             { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Completeness).toFixed(0) + '%'; } },
             { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
         ],
-        datasource: data
+        datasource: filteredData
     });
 }
 
-function populateEventsDivWithGrid(data) {
+function populateEventsDivWithGrid(data, disabledFields) {
+    //console.log($('#Detail' + currentTab + 'Table').children());
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail'+ currentTab +'Table"></div>');
+    }
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
         columns: [
             { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
-            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: 'others', headerText: 'Others', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true }
+            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%; ' + (disabledFields !== null && disabledFields.indexOf('Interruption') >= 0 ? 'display: none' : '' ), bodyStyle: 'width: 12%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Interruption') >= 0 ? 'display: none': ''), sortable: true },
+            { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Fault') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Fault') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Sag') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Sag') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: 'others', headerText: 'Others', headerStyle: 'width:  10%; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), sortable: true }
         ],
         datasource: data
     });
 
 }
 
-function populateDisturbancesDivWithGrid(data) {
+function populateDisturbancesDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
         columns: [
             { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-            { field: '5', headerText: '5', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: '4', headerText: '4', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: '3', headerText: '3', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: '2', headerText: '2', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: '1', headerText: '1', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: '0', headerText: '0', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: '5', headerText: '5', headerStyle: 'width: 12%; ' + (disabledFields !== null && disabledFields.indexOf('5') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('5') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '4', headerText: '4', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('4') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('4') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '3', headerText: '3', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('3') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('3') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '2', headerText: '2', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('2') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('2') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('1') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('1') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('0') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('0') >= 0 ? 'display: none' : ''), sortable: true },
         ],
         datasource: data
     });
 }
 
-function populateBreakersDivWithGrid(data) {
+function populateBreakersDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            if (disabledFields.indexOf(d.operationtype) < 0)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -431,10 +591,36 @@ function populateBreakersDivWithGrid(data) {
             { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
             //{ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
         ],
+        datasource: filteredData
+    });
+
+}
+
+function populateTrendingDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+            { field: 'eventtype', headerText: 'Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+            { field: 'measurementtype', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'characteristic', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSTEButton_html }
+        ],
         datasource: data
     });
 
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -576,37 +762,6 @@ function OpenWindowToChannelDataCompleteness(id) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function populateTrendingDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "', 'userName':'" + postedUserName + "'}";
-
-    $.ajax({
-        type: "POST",
-        url: './eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            json = $.parseJSON(data.d)
-            $('#' + thediv + "Table").puidatatable({
-                scrollable: true,
-                scrollHeight: '100%',
-                columns: [
-                    { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-                    { field: 'eventtype', headerText: 'Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                    { field: 'measurementtype', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'characteristic', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSTEButton_html }
-                ],
-                datasource: $.parseJSON(data.d)
-            });
-        }
-    });
-
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getColorsForTab(thetab) {
@@ -722,7 +877,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom);
 
-    var main = null, overview = null;
+    var main = null, overview = null, legend = null;
 
 
 
@@ -738,7 +893,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         cache: true,
         success: function (data) {
             //console.log(data.d.data);
-
+            cache_Graph_Data = data.d.data.slice();
             var brush = d3.svg.brush()
                 .x(xOverview)
                 .on("brush", brushed);
@@ -761,20 +916,14 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
 
             }
             
-            // TESTING STUFF
 
-
+            y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
+            yOverview.domain(y.domain());
             color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
 
-            var seriesName = d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key !== 'Disabled' }),
-                numSamples = graphData[0].length;
-
-            var stackedSeriesName = [];
-            $.each(graphData, function (i, d) {
-                stackedSeriesName.push(d.Name);
-            });
-
-
+            var  numSamples = graphData[0].length;
+            var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
+            var layerClass = function (d) { return "layer " + seriesClass(d.key); };
 
             var stack = d3.stack()
                 .keys(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
@@ -782,102 +931,14 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 .offset(d3.stackOffsetNone);
 
             var series = stack(graphData);
-            $.each(series, function (i, d) {
-                d["Disabled"] = false;
-            });
-
-            var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
-
-            var layerClass = function (d) { return "layer " + seriesClass(d.key); };
-
-            var joinKey = function (d) { return d.key; };
-
-            var stackedBarY = function (d) { return y(d[0] + d[1]); };
-
-            var stackedBarBaseY = function (d) { return y(d[0]); };
-
-            var stackedBarWidth = width / numSamples;
-
-            var barHeight = function (d) { return y(d[1]); };
-
-            var transitionStackedBars = function (selection) {
-                selection.transition()
-                    .duration(400)
-                    .delay(10)
-                    .attr("y", function (d) { return stackedBarY(d) })
-                    .attr("height", function (d) { return barHeight(d) });
-            };
-
-            /////////////////////////////// END TEST
-
-
-            //graphData.forEach(function (d) {
-            //    var y0 = 0;
-            //    d.Values;
-            //    d.Values = color.domain().map(function (name) {
-            //        return { 'Name': name, 'y0': y0, 'y1': y0 += +d[name], 'Value': d[name], 'Date': d.Date };
-            //    });
-
-            //});
-
-            cache_Graph_Data = data.d.data.slice();
-
-            y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
-            yOverview.domain(y.domain());
-
-
             var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
 
             buildMainGraph(series);
             buildOverviewGraph(graphData);
-
+            buildLegend();
             
 
-
-            ////Legend attributes
-            var legend = svg.selectAll(".legend")
-                .data(color.domain().slice().reverse())
-                .enter().append("g")
-                .attr("id", "chartLegend")
-                .attr("class", "legend")
-                .attr("transform", function (d, i) { return "translate(140," + i * 20 +")"; });
-
-            var disabledLegendFields = [];
-
-            legend.append("rect")
-                .attr("x", width + -65)
-                .attr("width", 18)
-                .attr("height", 18)
-                .style("fill", color)
-                .style("cursor", "pointer")
-                .on("click", function (d, i) {
-                    if ($(this).css('fill') !== 'rgb(128, 128, 128)'){
-                        $(this).css('fill', '#808080');
-                        disabledLegendFields.push(d);
-
-                    }
-                    else {
-                        $(this).css('fill', color(d));
-                        disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d});
-                    }
-
-                    toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
-                    window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
-
-                });
-
-            legend.append("text")
-                .attr("x", width - 40)
-                .attr("y", 9)
-                .attr("width", 40)
-                .attr("dy", ".35em")
-                .style("text-anchor", "start")
-                .text(function (d) { return d; });
-
-
-
             //// d3 Helper Functions
-
             function buildMainGraph(data) {
                 var numSamples = data[0].length;
                 y.domain([0, d3.max(data, function (d) { return d3.max(d, function(e){ return e[1]}); })]);
@@ -1005,6 +1066,49 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
 
             }
 
+            function buildLegend() {
+                ////Legend attributes
+                legend = svg.selectAll(".legend")
+                    .data(color.domain().slice().reverse())
+                    .enter().append("g")
+                    .attr("id", "chartLegend")
+                    .attr("class", "legend")
+                    .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
+
+                var disabledLegendFields = [];
+
+                legend.append("rect")
+                    .attr("x", width + -65)
+                    .attr("width", 18)
+                    .attr("height", 18)
+                    .style("fill", color)
+                    .style("cursor", "pointer")
+                    .on("click", function (d, i) {
+                        if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
+                            $(this).css('fill', '#808080');
+                            disabledLegendFields.push(d);
+
+                        }
+                        else {
+                            $(this).css('fill', color(d));
+                            disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
+                        }
+                        toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
+                        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
+
+                    });
+
+                legend.append("text")
+                    .attr("x", width - 40)
+                    .attr("y", 9)
+                    .attr("width", 40)
+                    .attr("dy", ".35em")
+                    .style("text-anchor", "start")
+                    .text(function (d) { return d; });
+
+            }
+
+            //called when selection is chosen on overview map
             function brushed() {
                 if (brush.empty())
                     return;
@@ -1035,10 +1139,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
 
             }
 
-            /**
-             * Toggles a certain series.
-             * @param {String} seriesName The name of the series to be toggled
-             */
+            //Toggles a certain series.
             function toggleSeries(seriesName, data, isDisabling) {
 
                 var newData = deepCopy(data);
@@ -1063,6 +1164,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 buildMainGraph(stackedData);
             }
 
+            // Deep copies an obj
             function deepCopy(obj) {
                 if (Object.prototype.toString.call(obj) === '[object Array]') {
                     var out = [], i = 0, len = obj.length;
@@ -2744,39 +2846,12 @@ function resizeDocklet( theparent , chartheight ) {
 
     firstChild.css("height", chartheight);
 
+    //console.log($('#Detail' + currentTab + 'Table').children());
+    if($('#Detail' + currentTab + 'Table').children().length > 0)
+        $('#Detail' + currentTab + 'Table').puidatatable('reload', -1);
+
+        //window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
     
-    // Force Grids to render and fill 100% height
-    //console.log($('#Detail' + currentTab + 'Table').puidatatable());
-    //$('#Detail' + currentTab + 'Table').puidatatable('reload');
-    //switch (currentTab) {
-    //    case "Faults":
-    //        populateFaultsDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Disturbances":
-    //        populateDisturbancesDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Events":
-    //        populateEventsDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Trending":
-    //        populateTrendingDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Breakers":
-    //        populateBreakersDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Completeness":
-    //        populateCompletenessDivWithGrid(cache_Table_Data);
-    //        break;
-
-    //    case "Correctness":
-    //        populateCorrectnessDivWithGrid(cache_Table_Data);
-    //        break;
-    //}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
