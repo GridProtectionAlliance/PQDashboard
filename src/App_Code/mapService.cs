@@ -451,6 +451,8 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.location.longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
 
+                if (severityFilter == "undefined")
+                    severityFilter = "5,4,3,2,1,0";
                 string[] codes = severityFilter.Split(',');
                 int sum = 0;
                 foreach (string s in codes)

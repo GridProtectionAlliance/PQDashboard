@@ -329,8 +329,8 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
 
             var filterString = [];
             var leg = d3.selectAll('.legend');
+
             $.each(leg[0], function (i, d) {
-                console.log(d.children[0].style.fill);
                 if(d.children[0].style.fill === 'rgb(128, 128, 128)')
                     filterString.push(d.children[0].__data__)
             });
@@ -1102,6 +1102,11 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                         }
                         toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
                         window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
+
+                        if ($('#mapGrid')[0].value == "Map" && currentTab === 'Disturbances') {
+                            var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
+                            showHeatmap(document.getElementById('selectHeatmapDisturbances'), legendFields);
+                        }
 
                     });
 
@@ -2472,6 +2477,12 @@ function showSiteSet(thecontrol) {
                 });
                 break;
 
+            case "None":
+                $.each(gridchildren.children, function (key, value) {
+                    $(value).hide();
+                });
+
+                break;
             default:
                 break;
         }
@@ -2491,6 +2502,13 @@ function showSiteSet(thecontrol) {
                     value.show();
                 });
                 break;
+
+            case "None":
+                $.each(map.markers, function (key, value) {
+                    value.hide();
+                });
+                break;
+
 
             case "Events":
                 $.each(map.markers, function (key, value) {
@@ -2565,18 +2583,12 @@ function showSiteSet(thecontrol) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function showHeatmap(thecontrol) {
+function showHeatmap(thecontrol, string ) {
     var i = 0;
 
     var map = getMapInstance(currentTab);
     var datefrom = getMapHeaderDate("From");
     var dateto = getMapHeaderDate("To");
-
-    if ( currentTab === "Disturbances" && Array.isArray($(thecontrol).val())) 
-        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
-    
-    else if (currentTab === "Disturbances" && $(thecontrol).val() === null)
-        getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, '');
 
     switch (thecontrol.value) {
 
@@ -2603,7 +2615,7 @@ function showHeatmap(thecontrol) {
             break;
 
         case "DisturbanceCounts":
-            getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, $(thecontrol).val());
+            getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, string);
             break;
 
         case "AnimateDisturbancecounts":
@@ -3445,7 +3457,7 @@ function loadsitedropdown() {
 
     $('#siteList').multiselect('refresh');
 
-    $('#selectHeatmapDisturbances').multiselect();
+    //$('#selectHeatmapDisturbances').multiselect();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
