@@ -341,6 +341,68 @@ public class eventService : System.Web.Services.WebService {
         return thedata;
     }
 
+
+    /// <summary>
+    /// getSiteLinesDetailsByDate
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="targetDate"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public String getSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
+    {
+
+        String thedata = "";
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        SqlConnection conn2 = null;
+        SqlDataReader rdr2 = null;
+
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+
+            SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDisturbanceDetailsByDate", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+            DataTable dt;
+
+            dt = new DataTable();
+            dt.Load(rdr);
+
+
+            thedata = DataTable2JSON(dt);
+            dt.Dispose();
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+            if (conn2 != null)
+            {
+                conn2.Close();
+            }
+            if (rdr2 != null)
+            {
+                rdr2.Close();
+            }
+        }
+
+        return thedata;
+    }
+
     /// <summary>
     /// getBreakersForPeriod
     /// </summary>

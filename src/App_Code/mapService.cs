@@ -390,6 +390,14 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.location.longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
 
+                IDictionary<string, int> dict = new Dictionary<string, int>();
+                dict["Interruption"] = 6;
+                dict["Fault"] = 5;
+                dict["Sag"] = 4;
+                dict["Transient"] = 3;
+                dict["Swell"] = 2;
+                dict["Other"] = 1;
+
 
                 if (severityFilter == "undefined")
                     severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
@@ -398,7 +406,7 @@ public class mapService : System.Web.Services.WebService
                 foreach (string s in codes)
                 {
                     if (s != "")
-                        sum += (int)rdr[s];
+                        sum += (int)rdr[s]*dict[s];
                 }
                 ourStatus.status = sum;
 

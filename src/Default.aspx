@@ -571,7 +571,7 @@
         <div id="heatmapDisturbances" style="visibility: hidden;">Heatmap:
             <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
                 <option value="DisturbanceCounts">Disturbance Counts</option>
-                <option value="AnimateDisturbanceCounts">Animate Disturbance Counts</option>
+<%--                <option value="AnimateDisturbanceCounts">Animate Disturbance Counts</option>--%>
             </select>
         </div>
         
