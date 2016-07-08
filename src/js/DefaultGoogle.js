@@ -2876,7 +2876,9 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     reflowContents(theNewTab);
     resizeMapAndMatrix(theNewTab);
-    selectsitesincharts();
+    
+    if($('#Overview' + theNewTab).children().length === 0)
+        selectsitesincharts();
 
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto);
 }
