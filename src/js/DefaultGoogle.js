@@ -164,7 +164,7 @@ function selectmapgrid(thecontrol) {
 
 function renderMap() {
     if (cache_Map_Matrix_Data != null) {
-        plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
+        plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, "undefined");
     }
     $.sparkline_display_visible();
     
@@ -193,7 +193,7 @@ function GetCurrentlySelectedSites() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function selectsitesonmap(focussite) {
+function selectsitesonmap(focussite, filter) {
     var themarkers = [];
     var selectedIDs = null;
 
@@ -248,16 +248,21 @@ function selectsitesonmap(focussite) {
         }
 
         if ($("#selectHeatmap" + currentTab).length > 0) {
-            var filterString = [];
-            var leg = d3.selectAll('.legend' + currentTab);
-            var unfilteredString = [];
-            $.each(leg[0], function (i, d) {
-                if (d.children[0].style.fill === 'rgb(128, 128, 128)')
-                    filterString.push(d.children[0].__data__)
-                unfilteredString.push(d.children[0].__data__)
-            });
-            var legendFields = unfilteredString.filter(function (a) { return filterString.indexOf(a) < 0 });
-            showHeatmap($("#selectHeatmap" + currentTab)[0], legendFields);
+            
+            var legendFields;
+            if ($("#application-tabs").tabs("option", "active") === getcurrentconfigsetting("CurrentTab")) {
+                var leg = d3.selectAll('.legend' + currentTab);
+                var filterString = [];
+                var unfilteredString = [];
+                $.each(leg[0], function (i, d) {
+                    if (d.children[0].style.fill === 'rgb(128, 128, 128)')
+                        filterString.push(d.children[0].__data__)
+                    unfilteredString.push(d.children[0].__data__)
+                });
+                legendFields = unfilteredString.filter(function (a) { return filterString.indexOf(a) < 0 });
+            }
+            showHeatmap($("#selectHeatmap" + currentTab)[0], filter);
+
         }
     }
 }
@@ -865,8 +870,27 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         cache: true,
         success: function (data) {
             //console.log(data.d.data);
-            cache_Graph_Data = data.d.data.slice();
-            buildBarChart(data.d.data, thediv, siteName, siteID, thedatefrom, thedateto);
+
+            data.d.data.reverse();
+            var graphData = [];
+            for (var i = 0; i < data.d.data[0].data.length; ++i) {
+                var obj = {};
+                var total = 0;
+                obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
+                data.d.data.forEach(function (d, j) {
+                    obj[d.name] = d.data[i];
+                    total += d.data[i];
+                    obj[d.name + 'Disabled'] = false;
+                });
+                obj["Total"] = total;
+                graphData.push(obj);
+
+            }
+
+
+            cache_Graph_Data = graphData;
+
+            buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
             
         },
         failure: function (msg) {
@@ -932,62 +956,50 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
         
      brush.x(xOverview).on("brush", brushed);
-  
 
 
-    //var brush = d3.svg.brush()
-    //.x(xOverview)
-    //.on("brush", brushed);
 
-
-    var graphData = [];
-
-    chartData.reverse();
-
-    for (var i = 0; i < chartData[0].data.length; ++i) {
-        var obj = {};
-        var total = 0;
-        obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
-        chartData.forEach(function (d, j) {
-            obj[d.name] = d.data[i];
-            total += d.data[i];
-            obj[d.name + 'Disabled'] = false;
-        });
-        obj["Total"] = total;
-        graphData.push(obj);
-
-    }
-
-
-    y.domain([0, d3.max(graphData, function (d) { return d.Total; })]);
+    y.domain([0, d3.max(chartData, function (d) { return d.Total; })]);
     yOverview.domain(y.domain());
-    color.domain(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
+    color.domain(d3.keys(chartData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
 
-    var numSamples = graphData[0].length;
+    var numSamples = chartData[0].length;
     var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
     var layerClass = function (d) { return "layer " + seriesClass(d.key); };
 
     var stack = d3.stack()
-        .keys(d3.keys(graphData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
+        .keys(d3.keys(chartData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
 
     var series = null;
 
+    var tempKeys = d3.keys(chartData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+
+    $.each(chartData, function (i, d) {
+        $.each(tempKeys, function (j, k) {
+            if (chartData[i][k + 'Disabled'] === true)
+                chartData[i][k] = 0;
+
+        });
+
+    });
+
+
     if (brush !== null && !brush.empty()) {
         x.domain(brush.extent());
-        series = stack(graphData.filter(function (d) {
+        series = stack(chartData.filter(function (d) {
             return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
         }));
     }
     else {
-        series = stack(graphData);
+        series = stack(chartData);
     }
 
     var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
     
     buildMainGraph(series);
-    buildOverviewGraph(graphData);
+    buildOverviewGraph(chartData);
     buildLegend();
 
 
@@ -1080,9 +1092,13 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
             contextfromdate = thedate;
             contexttodate = thedate;
-
-            manageTabsByDate(currentTab, thedate, thedate);
-
+            var filter = [];       
+            $.each(legend.selectAll("rect"), function (i, element) {
+                //console.log(element);
+                if ($(this).css('fill') !== 'rgb(128, 128, 128)')
+                    filter.push(element[0].__data__);
+            });
+            manageTabsByDateForClicks(currentTab, thedate, thedate, filter);
             getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
         });
 
@@ -1124,8 +1140,8 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         legend = svg.selectAll(".legend")
             .data(color.domain().slice().reverse())
             .enter().append("g")
-            .attr("id", "chartLegend" + thediv)
-            .attr("class", "legend" + currentTab)
+            .attr("id", "chartLegend")
+            .attr("class", "legend")
             .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
 
         var disabledLegendFields = [];
@@ -1134,7 +1150,13 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("x", width + -65)
             .attr("width", 18)
             .attr("height", 18)
-            .style("fill", color)
+            .style("fill", function (d, i, e) {
+                if (cache_Graph_Data[0][d + 'Disabled']) {
+                    disabledLegendFields.push(d);
+                    return '#808080';
+                }
+                return color(d);
+            })
             .style("cursor", "pointer")
             .on("click", function (d, i) {
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
@@ -1146,7 +1168,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                     $(this).css('fill', color(d));
                     disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
-                toggleSeries(d, graphData, $(this).css('fill') === 'rgb(128, 128, 128)');
+                toggleSeries(d, chartData, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
                 if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events')) {
@@ -1175,7 +1197,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
 
-        var newData = deepCopy(graphData);
+        var newData = deepCopy(cache_Graph_Data);
         var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
 
         $.each(newData, function (i, d) {
@@ -1200,12 +1222,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     //Toggles a certain series.
     function toggleSeries(seriesName, data, isDisabling) {
 
-        var newData = deepCopy(data);
+        var newData = deepCopy(cache_Graph_Data);
 
         var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
         $.each(newData, function (i, d) {
 
-            graphData[i][seriesName + 'Disabled'] = isDisabling;
+            cache_Graph_Data[i][seriesName + 'Disabled'] = isDisabling;
             newData[i][seriesName + 'Disabled'] = isDisabling;
             $.each(tempKeys, function (j, k) {
                 if (newData[i][k + 'Disabled'] === true)
@@ -1376,7 +1398,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) 
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto) {
+function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
     var url = "./mapService.asmx/getLocations" + currentTab;
 
@@ -1408,10 +1430,10 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto) {
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    plotMapLocations(data, currentTab, this.datefrom, this.dateto);
+                    plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
                     break;
                 case "Grid":
-                    plotGridLocations(data, currentTab, this.datefrom, this.dateto);
+                    plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
                     break;
             }
            
@@ -2713,11 +2735,10 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 /// Builds sparklines
 /// Builds Heatmap
 
-function plotMapLocations(locationdata, newTab, thedatefrom , thedateto) {
+function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter) {
 
     //$("#mapHeader" + newTab + "From")[0].innerHTML = thedatefrom;
     //$("#mapHeader" + newTab + "To")[0].innerHTML = thedateto;
-    //console.log("plotMapLocations");
 
     var markerBounds = new google.maps.LatLngBounds();
     var selectedIDs = GetCurrentlySelectedSites();
@@ -2771,7 +2792,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto) {
     /// Render sparklines into injected divs in map
     showSparkLines(thedatefrom, thedateto);
 
-    selectsitesonmap();
+    selectsitesonmap(null, filter);
 
     showSiteSet($("#selectSiteSet" + currentTab)[0]);
 };
@@ -2875,19 +2896,29 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     currentTab = theNewTab;
 
     reflowContents(theNewTab);
-    resizeMapAndMatrix(theNewTab);
     
-    if($('#Overview' + theNewTab).children().length === 0)
-        selectsitesincharts();
+    selectsitesincharts();
 
-    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto);
+    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
+
+function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
+
+    if ((thedatefrom == "") || (thedateto == "")) return;
+
+    currentTab = theNewTab;
+
+    reflowContents(theNewTab);
+
+    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function reflowContents(newTab) {
 
-    //resizeMapAndMatrix(newTab);
+    resizeMapAndMatrix(newTab);
 
     var map = getMapInstance(newTab);
 
@@ -3174,17 +3205,16 @@ function configurationapply(item) {
     }
 
     $('#siteList').multiselect('refresh');
-
-    $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
+    
+    if ($("#application-tabs").tabs("option", "active") !== getcurrentconfigsetting("CurrentTab"))
+        $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
+    else 
+        manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
     $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
     $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
     selectmapgrid($("#mapGrid")[0]);
-
-    manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
-    selectsitesincharts();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3511,7 +3541,7 @@ function loadsitedropdown() {
         close: function (event, ui) {
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
             updateGridWithSelectedSites();
-            selectsitesonmap();
+            selectsitesonmap(null, "undefined");
             selectsitesincharts();
         },
         minWidth: 250, selectedList: 1, noneSelectedText: "Select Site"
@@ -3686,7 +3716,6 @@ function buildPage() {
             //selectsitesincharts();
             $("#mapGrid")[0].value = mapormatrix;
             selectmapgrid($("#mapGrid")[0]);
-            //getLocationsAndPopulateMapAndMatrix(newTab, contextfromdate, contexttodate);
 
             
         }
@@ -3707,7 +3736,7 @@ function buildPage() {
 
     resizeMapAndMatrix(currentTab);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
-    selectsitesincharts();
+    //selectsitesincharts();
 
     $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
     $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
