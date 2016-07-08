@@ -51,8 +51,7 @@ var cache_Map_Matrix_Data_Date_To = null;
 // Billy's cached data
 var cache_Graph_Data = null;
 var cache_Table_Data = null;
-
-
+var brush = null;
 
 var currentTab = null;
 
@@ -155,7 +154,6 @@ function selectmapgrid(thecontrol) {
             createMap(currentTab);
         } else {
             google.maps.event.trigger(map, 'resize');
-            selectsitesonmap();
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
@@ -251,14 +249,15 @@ function selectsitesonmap(focussite) {
 
         if ($("#selectHeatmap" + currentTab).length > 0) {
             var filterString = [];
-            var leg = d3.selectAll('.legend');
-
+            var leg = d3.selectAll('.legend' + currentTab);
+            var unfilteredString = [];
             $.each(leg[0], function (i, d) {
                 if (d.children[0].style.fill === 'rgb(128, 128, 128)')
                     filterString.push(d.children[0].__data__)
+                unfilteredString.push(d.children[0].__data__)
             });
-
-            showHeatmap($("#selectHeatmap" + currentTab)[0], filterString);
+            var legendFields = unfilteredString.filter(function (a) { return filterString.indexOf(a) < 0 });
+            showHeatmap($("#selectHeatmap" + currentTab)[0], legendFields);
         }
     }
 }
@@ -927,9 +926,19 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         .attr("height", height + margin.top + margin.bottom);
 
     var main = null, overview = null, legend = null;
-    var brush = d3.svg.brush()
-    .x(xOverview)
-    .on("brush", brushed);
+
+    if (brush === null) {
+        brush = d3.svg.brush()
+    }
+        
+     brush.x(xOverview).on("brush", brushed);
+  
+
+
+    //var brush = d3.svg.brush()
+    //.x(xOverview)
+    //.on("brush", brushed);
+
 
     var graphData = [];
 
@@ -963,9 +972,20 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
 
-    var series = stack(graphData);
-    var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
+    var series = null;
 
+    if (brush !== null && !brush.empty()) {
+        x.domain(brush.extent());
+        series = stack(graphData.filter(function (d) {
+            return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
+        }));
+    }
+    else {
+        series = stack(graphData);
+    }
+
+    var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
+    
     buildMainGraph(series);
     buildOverviewGraph(graphData);
     buildLegend();
@@ -1104,8 +1124,8 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         legend = svg.selectAll(".legend")
             .data(color.domain().slice().reverse())
             .enter().append("g")
-            .attr("id", "chartLegend")
-            .attr("class", "legend")
+            .attr("id", "chartLegend" + thediv)
+            .attr("class", "legend" + currentTab)
             .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
 
         var disabledLegendFields = [];
@@ -2855,6 +2875,8 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     currentTab = theNewTab;
 
     reflowContents(theNewTab);
+    resizeMapAndMatrix(theNewTab);
+    selectsitesincharts();
 
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto);
 }
@@ -3658,10 +3680,12 @@ function buildPage() {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
             var mapormatrix = $("#mapGrid")[0].value;
             manageTabsByDate(newTab, contextfromdate, contexttodate);
-            resizeMapAndMatrix(newTab);
-            selectsitesincharts();
+            //resizeMapAndMatrix(newTab);
+            //selectsitesincharts();
             $("#mapGrid")[0].value = mapormatrix;
             selectmapgrid($("#mapGrid")[0]);
+            //getLocationsAndPopulateMapAndMatrix(newTab, contextfromdate, contexttodate);
+
             
         }
     });
