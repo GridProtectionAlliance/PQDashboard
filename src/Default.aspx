@@ -112,16 +112,6 @@
                             <select id="siteList" multiple="multiple">
                             </select>
                         </td>
-<%--                        <td width="20%" align="center" nowrap>
-                            Severity:
-                            <select id="severityList" multiple="multiple">
-                                <option val="5">5</option>
-                                <option val="4">4</option>
-                                <option val="3">3</option>
-                                <option val="2">2</option>
-                                <option val="1">1</option>
-                            </select>
-                        </td>--%>
 
                         <td width="20%" align="center" nowrap>
                             From:&nbsp;<input type="text" id="datePickerFrom" class="datepicker">&nbsp;&nbsp;To:&nbsp;<input type="text" id="datePickerTo" class="datepicker">
