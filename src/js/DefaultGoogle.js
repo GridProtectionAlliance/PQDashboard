@@ -3705,7 +3705,7 @@ function loadsitedropdown() {
             selectsitesonmap(null, "undefined");
             selectsitesincharts();
         },
-        minWidth: 250, selectedList: 1, noneSelectedText: "Select Site"
+        minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
     }).multiselectfilter();
 
     $.each(cache_Meters, function (key, value) {

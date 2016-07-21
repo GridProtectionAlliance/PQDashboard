@@ -322,6 +322,9 @@
 
             }
 
+            .ui-multiselect-checkboxes li {
+                font-size: medium;
+            }
             .mapheader {
                 display: inline;
                 font-size: 1.8em;
