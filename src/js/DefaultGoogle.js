@@ -52,6 +52,7 @@ var cache_Map_Matrix_Data_Date_To = null;
 var cache_Graph_Data = null;
 var cache_Table_Data = null;
 var brush = null;
+var cache_Last_Date = null;
 
 var currentTab = null;
 
@@ -291,6 +292,8 @@ function selectsitesincharts() {
             thesiteidlist += thedetails[1] + ",";
         });
     }
+    if (cache_Last_Date !== null)
+        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, sitename, thesiteidlist, cache_Last_Date);
     ManageLocationClick(sitename, thesiteidlist);  
 }
 
@@ -1110,6 +1113,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                     filter.push(element[0].__data__);
             });
             manageTabsByDateForClicks(currentTab, thedate, thedate, filter);
+            cache_Last_Date = thedate;
             getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
         });
 
@@ -3827,8 +3831,6 @@ function buildPage() {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
             var mapormatrix = $("#mapGrid")[0].value;
             manageTabsByDate(newTab, contextfromdate, contexttodate);
-            //resizeMapAndMatrix(newTab);
-            //selectsitesincharts();
             $("#mapGrid")[0].value = mapormatrix;
             selectmapgrid($("#mapGrid")[0]);
 
@@ -3851,7 +3853,7 @@ function buildPage() {
 
     resizeMapAndMatrix(currentTab);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
-    //selectsitesincharts();
+
 
     $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
     $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
