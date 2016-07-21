@@ -1003,7 +1003,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     if (brush !== null && !brush.empty()) {
         x.domain(brush.extent());
         series = stack(chartData.filter(function (d) {
-            return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
+            return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
         }));
     }
     else {
@@ -1165,20 +1165,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("class", "x axis")
             .attr("transform", "translate(0," + heightOverview + ")")
             .call(xAxisOverview);
-
-        //overview.append("g")
-        //        .attr("class", "bars")
-        //        .selectAll(".bar")
-        //        .data(data)
-        //        .enter().append("rect")
-        //        .attr("class", "bar")
-        //        .attr("x", function (d) { return xOverview(d.Date); })
-        //        .attr("width", width/numSamples)
-        //        .attr("y", function (d) {
-        //            //console.log(d);
-        //            return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
-        //        })
-        //        .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
 
         // add the brush target area on the overview chart
         overview.append("g").attr("class", "x brush")
