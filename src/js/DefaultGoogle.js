@@ -620,6 +620,15 @@ function populateTrendingDivWithGrid(data, disabledFields) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            if (disabledFields.indexOf(d.eventtype) < 0)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -634,7 +643,7 @@ function populateTrendingDivWithGrid(data, disabledFields) {
             { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
             { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); } }
         ],
-        datasource: data
+        datasource: filteredData
     });
 
 }
@@ -1173,7 +1182,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 toggleSeries(d, chartData, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
-                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events')) {
+                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab ==='Trending')) {
                     var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
                     showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
                 }
@@ -1371,6 +1380,36 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
+    var url = "./mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    //console.log(thedatasent);
+    heatmap_Cache_Date_From = null;
+    heatmap_Cache_Date_To = null;
+    heatmapCache = null;
+    //console.log(url);
+    $.ajax({
+        datefrom: datefrom,
+        dateto: dateto,
+        type: "POST",
+        url: url,
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            //console.log(data.d);
+            var map = getMapInstance(currentTab);
+            LoadHeatmapData(data.d, map);
+
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
     var url = "./mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     //console.log(thedatasent);
     heatmap_Cache_Date_From = null;
@@ -2738,7 +2777,7 @@ function showHeatmap(thecontrol, string ) {
 
         case "TrendingCounts":
             stopAnimatedHeatmap();
-            getEventsHeatmapCounts(currentTab, datefrom, dateto);
+            getTrendingHeatmapCounts(currentTab, datefrom, dateto, string);
             $('#HeatmapControlsTrending').hide();
             break;
 
