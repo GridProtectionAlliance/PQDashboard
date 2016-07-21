@@ -3180,7 +3180,15 @@ function resizeMatrixCells(newTab) {
         //    $(element).css('height', '30%');
         //});
 
-        $('.faultgridtitle').css("font-size", ((w / columns))/60 + 'em');
+        if ($(".matrix").width() < 200) {
+            $('.faultgridtitle').css("font-size", '10px');
+        }
+        else if ($(".matrix").width() < 1000) {
+            $('.faultgridtitle').css("font-size", '20px');
+        }
+        else {
+            $('.faultgridtitle').css("font-size", '30px');
+        }
 
         $.event.trigger({ type: 'matrixResize', message: 'Matrix Resize', time: new Date() });
 
