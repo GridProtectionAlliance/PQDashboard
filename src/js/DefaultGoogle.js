@@ -1019,7 +1019,19 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
     //// d3 Helper Functions
     function buildMainGraph(data) {
-        var numSamples = data[0].length;
+        var numSamples;
+        if (brush !== null && !brush.empty()) {
+            var date1 = new Date(brush.extent()[0]).setHours(0,0,0,0);
+            var date2 = new Date(brush.extent()[1]).setHours(0,0,0,0);
+            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        }
+        else {
+            var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
+            var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
+            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        }
+
+
         y.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
 
         main = svg.append("g")
@@ -1225,7 +1237,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         });
 
         var stackedData = stack(newData.filter(function (d) {
-            return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1];
+            return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
         }));
 
 
