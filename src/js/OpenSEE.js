@@ -372,12 +372,26 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             else if (series.MeasurementCharacteristic == "FaultDistance")
                 order += 30;
 
-            if (series.Phase == "BN")
+            if (series.Phase == "AN")
+                order += 0;
+            else if (series.Phase == "BN")
                 order += 1;
             else if (series.Phase == "CN")
                 order += 2;
-            else if (series.Phase == "RES")
+            else if (series.Phase == "AB")
                 order += 3;
+            else if (series.Phase == "BC")
+                order += 4;
+            else if (series.Phase == "CA")
+                order += 5;
+            else if (series.Phase == "NG")
+                order += 6;
+            else if (series.Phase == "Net")
+                order += 7;
+            else if (series.Phase == "RES")
+                order += 8;
+            else
+                order += 9;
 
             return order;
         };
