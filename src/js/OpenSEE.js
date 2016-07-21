@@ -734,6 +734,36 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             // display data for the first time
             updatePlotData();
 
+            // Assign function to window to
+            // update the markings on the plots
+            window.UpdateMarkings = function () {
+                try {
+                    if (!window.opener || !window.opener.Highlight)
+                        return;
+                } catch (err) {
+                    return;
+                }
+
+                console.log(window.opener.Highlight);
+
+                $.each(plots, function (key, plot) {
+                    plot.getOptions().grid.markings = [
+                        {
+                            color: "#FFA",
+                            xaxis: {
+                                from: window.opener.Highlight,
+                                to: window.opener.Highlight + 17
+                            }
+                        }
+                    ];
+
+                    plot.draw();
+                });
+            };
+
+            // Update markings on plots
+            window.UpdateMarkings();
+
             // Align all plot axes
             alignAxes();
 
