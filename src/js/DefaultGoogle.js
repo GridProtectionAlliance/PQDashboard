@@ -944,7 +944,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
-    var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
+    var x = d3.time.scale().domain([new Date(thedatefrom), new Date().setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
     var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
     var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
@@ -1133,6 +1133,18 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
 
     function buildOverviewGraph(data) {
+        var numSamples;
+        if (brush !== null && !brush.empty()) {
+            var date1 = new Date(brush.extent()[0]).setHours(0, 0, 0, 0);
+            var date2 = new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
+            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        }
+        else {
+            var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
+            var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
+            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        }
+
         overview = svg.append("g")
             .attr("class", "overview")
             .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
@@ -1148,7 +1160,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 .enter().append("rect")
                 .attr("class", "bar")
                 .attr("x", function (d) { return xOverview(d.Date); })
-                .attr("width", 2)
+                .attr("width", width/numSamples)
                 .attr("y", function (d) {
                     //console.log(d);
                     return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
