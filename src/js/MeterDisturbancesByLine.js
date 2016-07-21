@@ -41,9 +41,13 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                 scrollable: true,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
+                sortMode: 'multiple',
+                sortMeta: [{ field: 'theinceptiontime', order: 1 }],
                 columns: [
                     { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true },
                     { field: 'SeverityCode', headerText: 'Severity', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
+                    { field: 'phase', headerText: 'Phase', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
+                    { field: 'disturbancetype', headerText: 'Disturbance Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
                     { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { headerText: '', headerStyle: 'width: 20%', content: function (row) { return makeOpenSEEButton_html(row); } }
