@@ -1009,11 +1009,11 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     else {
         series = stack(chartData);
     }
-
+    var overviewSeries = stack(chartData);
     var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
     
     buildMainGraph(series);
-    buildOverviewGraph(series);
+    buildOverviewGraph(overviewSeries);
     buildLegend();
 
 
