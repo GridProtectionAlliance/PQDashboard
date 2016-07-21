@@ -1561,7 +1561,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 slicecolors = ['#0E892C'];
             } else {
                 sparkvalues = [data[0]];
-                slicecolors = globalcolors; //['#CC3300'];
+                slicecolors = ['#CC3300'];
                 thetooltip = siteName + "\n" + "Faults: " + data[0];
             }
             break;
@@ -1572,7 +1572,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 slicecolors = ['#0E892C'];
             } else {
                 sparkvalues = [data[0], data[1]];
-                slicecolors = globalcolors; //['#CC3300', '#FFCC00'];
+                slicecolors = ['#CC3300', '#FFCC00'];
 
                 thetooltip = siteName + "\n" + "Alarms: " + data[0] + "\n" + "Off Normals: " + data[1];
             }
@@ -1583,7 +1583,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 slicecolors = ['#0E892C'];
             } else {
                 sparkvalues = [data[0], data[1], data[2]];
-                slicecolors = globalcolors; //['#CC3300', '#FFCC00', '#CC3300'];
+                slicecolors = ['#CC3300', '#FFCC00', '#CC3300'];
 
                 thetooltip = siteName + "\n" + "Normal: " + data[0] + "\n" + "Late: " + data[1] + "\n" + "Indeterminate: " + data[2];
             }
@@ -1595,7 +1595,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 slicecolors = ['#0E892C'];
             } else {
                 sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
-                slicecolors = globalcolorsEvents;
+                slicecolors = globalcolorsEvents.slice().reverse();
                 thetooltip = siteName + "\n" + "Interruptions: " + data[0] + "\n" + "Faults: " + data[1] + "\n" + "Sags: " + data[2] + "\n" + "Transients: " + data[3] + "\n" + "Swells: " + data[4] + "\n" + "Others: " + data[5];
             }
             break;
@@ -1606,7 +1606,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 slicecolors = ['#0E892C'];
             } else {
                 sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
-                slicecolors = globalcolorsEvents;
+                slicecolors = globalcolorsEvents.slice().reverse();
                 thetooltip = siteName + "\n" + "5: " + data[0] + "\n" + "4: " + data[1] + "\n" + "3: " + data[2] + "\n" + "2: " + data[3] + "\n" + "1: " + data[4] + "\n" + "0: " + data[5];
             }
             break;
