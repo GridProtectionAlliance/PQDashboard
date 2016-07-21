@@ -66,13 +66,17 @@ CustomMarker.prototype.draw = function() {
 		
 		var panes = this.getPanes();
 		panes.overlayImage.appendChild(div);
+
+		if (typeof(self.args.drawListener) !== 'undefined') {
+		    self.args.drawListener();
+		}
 	}
 	
 	var point = this.getProjection().fromLatLngToDivPixel(this.latlng);
 	
 	if (point) {
-		div.style.left = (point.x - 10) + 'px';
-		div.style.top = (point.y - 20) + 'px';
+		div.style.left = (point.x - 5) + 'px';
+		div.style.top = (point.y - 10 - 5) + 'px';
 	}
 };
 
