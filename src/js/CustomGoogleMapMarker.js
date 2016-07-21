@@ -66,6 +66,10 @@ CustomMarker.prototype.draw = function() {
 		
 		var panes = this.getPanes();
 		panes.overlayImage.appendChild(div);
+
+		if (typeof(self.args.drawListener) !== 'undefined') {
+		    self.args.drawListener();
+		}
 	}
 	
 	var point = this.getProjection().fromLatLngToDivPixel(this.latlng);

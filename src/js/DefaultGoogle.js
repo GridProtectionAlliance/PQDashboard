@@ -2894,6 +2894,8 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 
     map.markers = [];
 
+    var drawCount = 0;
+
     // For each data unit, build containers, add to layer based on status
     $.each(locationdata.d, function (key, value) {
 
@@ -2912,7 +2914,13 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
                 marker_name: value.name,
                 marker_id: value.id,
                 marker_status: value.status,
-                div_id: 'site_' + value.id + '_sparkline_' + newTab
+                div_id: 'site_' + value.id + '_sparkline_' + newTab,
+                drawListener: function () {
+                    drawCount++;
+
+                    if (drawCount == locationdata.d.length)
+                        showSparkLines(thedatefrom, thedateto);
+                }
             }
         );
 
@@ -2930,7 +2938,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
     //resizeMatrixCells(newTab);
 
     /// Render sparklines into injected divs in map
-    showSparkLines(thedatefrom, thedateto);
+    //showSparkLines(thedatefrom, thedateto);
 
     selectsitesonmap(null, filter);
 
