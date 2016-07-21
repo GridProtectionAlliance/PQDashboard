@@ -391,11 +391,11 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.name = (String)rdr["name"];
 
                 IDictionary<string, int> dict = new Dictionary<string, int>();
-                dict["Interruption"] = 6;
-                dict["Fault"] = 5;
-                dict["Sag"] = 4;
-                dict["Transient"] = 3;
-                dict["Swell"] = 2;
+                dict["Interruption"] = 1;
+                dict["Fault"] = 1;
+                dict["Sag"] = 1;
+                dict["Transient"] = 1;
+                dict["Swell"] = 1;
                 dict["Other"] = 1;
 
 
