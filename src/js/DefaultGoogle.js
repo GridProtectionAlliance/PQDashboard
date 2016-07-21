@@ -944,7 +944,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
-    var x = d3.time.scale().domain([new Date(thedatefrom), new Date().setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
+    var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
     var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
     var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
@@ -1013,7 +1013,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
     
     buildMainGraph(series);
-    buildOverviewGraph(chartData);
+    buildOverviewGraph(series);
     buildLegend();
 
 
@@ -1133,39 +1133,52 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
 
     function buildOverviewGraph(data) {
-        var numSamples;
-        if (brush !== null && !brush.empty()) {
-            var date1 = new Date(brush.extent()[0]).setHours(0, 0, 0, 0);
-            var date2 = new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
-            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
-        }
-        else {
-            var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
-            var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
-            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
-        }
+
+        var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
+        var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
+        var numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+
+
+        yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
 
         overview = svg.append("g")
             .attr("class", "overview")
             .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
 
+        var layersArea = overview.append("g")
+                    .attr("class", "layers");
+
+        var layers = layersArea.selectAll(".layer").data(data)
+            .enter().append("g")
+                .attr("class", layerClass);
+
+        var bar = layers.selectAll("rect").data(function (d) { return d;  })
+            .enter().append("rect")
+                .attr("x", function (d) { return xOverview(d.data.Date); })
+                .attr("width", function () { return width / numSamples; })
+                .attr("y", function (d) {  return yOverview(d[1]); })
+                .attr("height", function (d) { return yOverview(d[0]) - yOverview(d[1]); })
+                .style("fill", "black");
+
+
         overview.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + heightOverview + ")")
             .call(xAxisOverview);
-        overview.append("g")
-                .attr("class", "bars")
-                .selectAll(".bar")
-                .data(data)
-                .enter().append("rect")
-                .attr("class", "bar")
-                .attr("x", function (d) { return xOverview(d.Date); })
-                .attr("width", width/numSamples)
-                .attr("y", function (d) {
-                    //console.log(d);
-                    return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
-                })
-                .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
+
+        //overview.append("g")
+        //        .attr("class", "bars")
+        //        .selectAll(".bar")
+        //        .data(data)
+        //        .enter().append("rect")
+        //        .attr("class", "bar")
+        //        .attr("x", function (d) { return xOverview(d.Date); })
+        //        .attr("width", width/numSamples)
+        //        .attr("y", function (d) {
+        //            //console.log(d);
+        //            return yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total));
+        //        })
+        //        .attr("height", function (d) { return heightOverview - yOverview((d.hasOwnProperty('0%') ? d['0%'] : d.Total)); });
 
         // add the brush target area on the overview chart
         overview.append("g").attr("class", "x brush")
@@ -1277,10 +1290,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         });
 
         var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1]; }) : newData));
-
+        var overviewStackedData = stack(newData);
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
         buildMainGraph(stackedData);
+        overview.selectAll("g").remove();
+        buildOverviewGraph(overviewStackedData);
     }
 
     // Deep copies an obj
