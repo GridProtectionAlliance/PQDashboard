@@ -1647,7 +1647,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
                 thetooltip = "No Data Available";
             } else {
 
-                slicecolors = globalcolorsDQ;
+                slicecolors = globalcolorsDQ.slice().reverse();
 
                 var completepoints = data[1] + data[2] + data[3] + data[4];
 
@@ -1673,7 +1673,7 @@ function populateMapSparklinePie(data, siteID, siteName) {
 
                 sparkvalues = [val1, val2, val3];
 
-                slicecolors = globalcolorsDQ;
+                slicecolors = globalcolorsDQ.slice().reverse();
 
                 thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
             }
@@ -1849,7 +1849,7 @@ function getStatusColorForGridElement( data ) {
                 return ("#CCCCCC");
             }
 
-            var percentage = Math.floor(((data[1] + data[2] + data[3] + data[4]) / data[0]) * 100);
+            var percentage = Math.floor((data[1]/(data[1] + data[2] + data[3] + data[4])) * 100);
 
             if (percentage > 100) {
                 return (globalcolorsDQ[6]);
