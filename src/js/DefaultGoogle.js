@@ -947,7 +947,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
     var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
-    var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto)]).range([0, width]);
+    var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
     var yOverview = d3.scale.linear().range([heightOverview, 0]);
     var color = d3.scale.ordinal().range(getColorsForTab(currentTab));
 
@@ -1289,7 +1289,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         });
 
-        var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date >= brush.extent()[0] && d.Date < brush.extent()[1]; }) : newData));
+        var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0); }) : newData));
         var overviewStackedData = stack(newData);
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
@@ -3193,6 +3193,7 @@ function resizeMatrixCells(newTab) {
         //$.each($(".sparkbox"), function (i, element) {
         //    $(element).css('height', '30%');
         //});
+
         $('.faultgridtitle').css("font-size", ((w / columns))/60 + 'em');
 
         $.event.trigger({ type: 'matrixResize', message: 'Matrix Resize', time: new Date() });
