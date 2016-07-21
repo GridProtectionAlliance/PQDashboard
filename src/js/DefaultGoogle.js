@@ -1795,7 +1795,7 @@ function getStatusColorForGridElement( data ) {
             //100%, 98%, 90%, 70%, 50%
 
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
-                return (globalcolorsDQ[6]);
+                return (globalcolorsDQ[0]);
             }
 
             if (data[0] == 0 || data[1] == 0) {
@@ -1804,16 +1804,16 @@ function getStatusColorForGridElement( data ) {
 
             var percentage = Math.floor(((data[1] + data[2] + data[3] +data[4]) / data[0]) * 100);
 
-            if (percentage >= 100) {
-                return (globalcolorsDQ[0]);
+            if (percentage > 100) {
+                return (globalcolorsDQ[6]);
             }
 
             if (percentage >= 98) {
-                return (globalcolorsDQ[1]);
+                return (globalcolorsDQ[5]);
             }
 
             if (percentage >= 90) {
-                return (globalcolorsDQ[2]);
+                return (globalcolorsDQ[4]);
             }
 
             if (percentage >= 70) {
@@ -1821,10 +1821,12 @@ function getStatusColorForGridElement( data ) {
             }
 
             if (percentage >= 50) {
-                return (globalcolorsDQ[4]);
+                return (globalcolorsDQ[2]);
             }
-
-            return (globalcolorsDQ[5]);
+            if (percentage > 0) {
+                return (globalcolorsDQ[1]);
+            }
+            return (globalcolorsDQ[0]);
 
             break;
 
@@ -1840,7 +1842,7 @@ function getStatusColorForGridElement( data ) {
             //100%, 98%, 90%, 70%, 50%
 
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
-                return (globalcolorsDQ[6]);
+                return (globalcolorsDQ[0]);
             }
 
             if (data[0] == 0 || data[1] == 0) {
@@ -1849,16 +1851,16 @@ function getStatusColorForGridElement( data ) {
 
             var percentage = Math.floor(((data[1] + data[2] + data[3] + data[4]) / data[0]) * 100);
 
-            if (percentage >= 100) {
-                return (globalcolorsDQ[0]);
+            if (percentage > 100) {
+                return (globalcolorsDQ[6]);
             }
 
             if (percentage >= 98) {
-                return (globalcolorsDQ[1]);
+                return (globalcolorsDQ[5]);
             }
 
             if (percentage >= 90) {
-                return (globalcolorsDQ[2]);
+                return (globalcolorsDQ[4]);
             }
 
             if (percentage >= 70) {
@@ -1866,10 +1868,13 @@ function getStatusColorForGridElement( data ) {
             }
 
             if (percentage >= 50) {
-                return (globalcolorsDQ[4]);
+                return (globalcolorsDQ[2]);
             }
+            if (percentage > 0) {
+                return (globalcolorsDQ[1]);
+            }
+            return (globalcolorsDQ[0]);
 
-            return (globalcolorsDQ[5]);
 
             break;
 
