@@ -75,8 +75,8 @@ CustomMarker.prototype.draw = function() {
 	var point = this.getProjection().fromLatLngToDivPixel(this.latlng);
 	
 	if (point) {
-		div.style.left = (point.x - 10) + 'px';
-		div.style.top = (point.y - 20) + 'px';
+		div.style.left = (point.x - 5) + 'px';
+		div.style.top = (point.y - 10 - 5) + 'px';
 	}
 };
 
