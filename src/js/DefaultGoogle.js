@@ -133,10 +133,13 @@ function loadDataForDate() {
         contextfromdate = getFormattedDate(fromdate);
         contexttodate = getFormattedDate(todate);
 
-        if (contextfromdate == contexttodate)
+        if (contextfromdate == contexttodate) {
             cache_Last_Date = contexttodate;
-        else
+        }
+        else {
             cache_Last_Date = null;
+            cache_Table_Data = null;
+        }
 
         setMapHeaderDate(contextfromdate, contexttodate);
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
