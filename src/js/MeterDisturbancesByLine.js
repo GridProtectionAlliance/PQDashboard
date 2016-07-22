@@ -3,6 +3,7 @@
 var postedMeterId = "";
 var postedDate = "";
 var postedMeterName = "";
+var childWindows = { };
 
 
 $(document).ready(function () {
@@ -44,13 +45,15 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                 sortMode: 'multiple',
                 sortMeta: [{ field: 'theinceptiontime', order: 1 }],
                 columns: [
+                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width: 6%; height: 20px', sortable: true },
                     { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true },
-                    { field: 'SeverityCode', headerText: 'Severity', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
-                    { field: 'phase', headerText: 'Phase', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
-                    { field: 'disturbancetype', headerText: 'Disturbance Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
-                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
-                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                    { headerText: '', headerStyle: 'width: 20%', content: function (row) { return makeOpenSEEButton_html(row); } }
+                    { field: 'SeverityCode', headerText: 'Severity', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'disturbancetype', headerText: 'Disturbance Type', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'phase', headerText: 'Phase', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'magnitude', headerText: 'Magnitude (pu)', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'duration', headerText: 'Duration (s)', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { headerText: '', headerStyle: 'width: 9%', content: function (row) { return makeOpenSEEButton_html(row); } }
                 ],
                 datasource: $.parseJSON(data.d)
             });
@@ -60,15 +63,31 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
 
 
 function makeOpenSEEButton_html(id) {
+    var args =
+        id.theeventid + ',' +
+        id.startmillis + ',' +
+        id.endmillis;
+
     var return_html = "";
     //return_html += '<div style="cursor: pointer;">';
-    return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ');" title="Launch OpenSEE Waveform Viewer">';
+    return_html += '<button onClick="OpenWindowToOpenSEE(' + args + ');" title="Launch OpenSEE Waveform Viewer">';
     return_html += '<img src="images/seeButton.png" /></button>';
     //return_html += '</div>';
     return (return_html);
 }
 
-function OpenWindowToOpenSEE(id) {
-    var popup = window.open("openSEE.aspx?eventid=" + id + "&faultcurves=1", id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+function OpenWindowToOpenSEE(id, highlightStart, highlightEnd) {
+    var title = id + "openSEE";
+
+    window.Highlight = {
+        Start: highlightStart,
+        End: highlightEnd
+    };
+
+    if (!childWindows[title] || childWindows[title].closed)
+        childWindows[title] = window.open("openSEE.aspx?eventid=" + id + "&faultcurves=1", id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    else
+        childWindows[title].UpdateMarkings();
+
     return false;
 }
