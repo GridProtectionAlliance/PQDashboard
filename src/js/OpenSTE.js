@@ -251,7 +251,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 }
 
                 var errorBars = {
-                    show: false,
+                    show: true,
                     errorbars: "y",
                     lineWidth: 0.5,
                     radius: 0.5,
