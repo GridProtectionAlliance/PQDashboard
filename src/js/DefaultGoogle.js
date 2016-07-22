@@ -1037,12 +1037,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         if (brush !== null && !brush.empty()) {
             var date1 = new Date(brush.extent()[0]).setHours(0,0,0,0);
             var date2 = new Date(brush.extent()[1]).setHours(0,0,0,0);
-            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+            numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
         }
         else {
             var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
             var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
-            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+            numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
         }
 
 
@@ -1132,7 +1132,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
             contextfromdate = thedate;
             contexttodate = thedate;
-            var filter = [];       
+            var filter = [];
             $.each(legend.selectAll("rect"), function (i, element) {
                 //console.log(element);
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)')
