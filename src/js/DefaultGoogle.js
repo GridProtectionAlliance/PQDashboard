@@ -133,19 +133,13 @@ function loadDataForDate() {
         contextfromdate = getFormattedDate(fromdate);
         contexttodate = getFormattedDate(todate);
 
-        if (contextfromdate == contexttodate) {
+        if (contextfromdate == contexttodate)
             cache_Last_Date = contexttodate;
-        } else {
+        else
             cache_Last_Date = null;
-
-            var parent = $('#Detail' + currentTab + 'Table').parent();
-            $('#Detail' + currentTab + 'Table').remove();
-            $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
-        }
 
         setMapHeaderDate(contextfromdate, contexttodate);
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
         resetAnimatedHeatmap();
     }
 }
@@ -306,8 +300,15 @@ function selectsitesincharts() {
             thesiteidlist += thedetails[1] + ",";
         });
     }
-    if (cache_Last_Date !== null)
+
+    if (cache_Last_Date !== null) {
         getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, sitename, thesiteidlist, cache_Last_Date);
+    } else {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
     ManageLocationClick(sitename, thesiteidlist);  
 }
 
