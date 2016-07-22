@@ -260,7 +260,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
                 data.d.data.forEach(function (d, i) {
                     d.data.forEach(function (e, j) {
-                        graphData[i].data.push([new Date(data.d.xAxis[j]), e]);
+                        graphData[i].data.push([new Date(data.d.xAxis[j]).getTime(), e]);
                     });
                 });
 
@@ -349,11 +349,39 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 });
 
                 $("#WaveformTrending").bind("plotselected", function (event, ranges) {
-                    $.each(plot.getXAxes(), function (_, axis) {
+                    var xAxis = plot.getXAxes();
+
+                    $.each(xAxis, function (_, axis) {
                         var opts = axis.options;
                         opts.min = ranges.xaxis.from;
                         opts.max = ranges.xaxis.to;
                     });
+
+                    var data = plot.getData();
+                    var yMin = null, yMax = null;
+
+                    $.each(data, function (i, d) {
+                        if (d.visible === true) {
+                            $.each(d.data, function (j, e) {
+                                if (e[0] >= ranges.xaxis.from && e[0] <= ranges.xaxis.to) {
+                                    var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
+                                    var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
+
+                                    if (yMin == null || yMin > eMin)
+                                        yMin = eMin;
+                                    if (yMax == null || yMax < eMax)
+                                        yMax = eMax;
+                                }
+                            });
+                        }
+                    });
+                    $.each(plot.getYAxes(), function (_, axis) {
+                        var opts = axis.options;
+                        var pad = (yMax - yMin) * 0.1;
+                        opts.min = yMin - pad;
+                        opts.max = yMax + pad;
+                    });
+
                     plot.setupGrid();
                     plot.draw();
                     plot.clearSelection();
@@ -361,25 +389,29 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
                 $('#WaveformTrending').bind("plotzoom", function (event, stuff) {
                     var data = plot.getData();
-                    var yMin = 100000, yMax = -1000000;
+                    var yMin = null, yMax = null;
                     var xAxis = plot.getXAxes();
 
                     $.each(data, function (i, d) {
                         if (d.visible === true) {
                             $.each(d.data, function (j, e) {
                                 if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
-                                    if (yMin > e[1])
-                                        yMin = e[1];
-                                    if (yMax < e[1])
-                                        yMax = e[1]
+                                    var eMin = (d.label !== "Range") ? e[1]: e[1]-e[2];
+                                    var eMax = (d.label !== "Range") ? e[1]: e[1]+e[3];
+
+                                    if (yMin == null || yMin > eMin)
+                                        yMin = eMin;
+                                    if (yMax == null || yMax < eMax)
+                                        yMax = eMax;
                                 }
                             });
                         }
                     });
                     $.each(plot.getYAxes(), function (_, axis) {
                         var opts = axis.options;
-                        opts.min = yMin - yMin*.50;
-                        opts.max = yMax + yMax*.20;
+                        var pad = (yMax - yMin) * 0.1;
+                        opts.min = yMin - pad;
+                        opts.max = yMax + pad;
                     });
                     plot.setupGrid();
                     plot.draw();
@@ -492,27 +524,30 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     series.yaxis = series.visible + 1;
 
                     var data = graphData;
-                    var yMin = 100000, yMax = -1000000;
+                    var yMin = null, yMax = null;
                     var xAxis = plot.getXAxes();
 
                     $.each(data, function (i, d) {
                         if (d.visible === true) {
                             $.each(d.data, function (j, e) {
                                 if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
-                                    if (yMin > e[1])
-                                        yMin = e[1];
-                                    if (yMax < e[1])
-                                        yMax = e[1]
+                                    var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
+                                    var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
+
+                                    if (yMin == null || yMin > eMin)
+                                        yMin = eMin;
+                                    if (yMax == null || yMax < eMax)
+                                        yMax = eMax;
                                 }
                             });
                         }
                     });
                     $.each(plot.getYAxes(), function (_, axis) {
                         var opts = axis.options;
-                        opts.min = yMin - yMin * .50;
-                        opts.max = yMax + yMax * .20;
+                        var pad = (yMax - yMin) * 0.1;
+                        opts.min = yMin - pad;
+                        opts.max = yMax + pad;
                     });
-
 
                     plot.setData(graphData);
                     plot.setupGrid();
