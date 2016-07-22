@@ -1641,23 +1641,65 @@ function populateMapSparklinePie(data, siteID, siteName) {
             break;
 
         case "Completeness":
+            var completepoints = data[1] + data[2] + data[3] + data[4];
+
+            var percentage = (completepoints / data[0] * 100).toFixed(2);
+
+            var val2 = (data[5] / data[0] * 100).toFixed(2);
+
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
                 sparkvalues = [100];
                 slicecolors = ['#0000FF'];
                 thetooltip = "No Data Available";
+            } else if( percentage > 100) {
+
+                slicecolors = [globalcolorsDQ[6]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
+            } else if (percentage <= 100 && percentage >= 98 ) {
+
+                slicecolors = [globalcolorsDQ[5]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
+            } else if (percentage < 98 && percentage >= 90) {
+
+                slicecolors = [globalcolorsDQ[4]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
+            } else if (percentage < 90 && percentage >= 70) {
+
+                slicecolors = [globalcolorsDQ[3]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
+            } else if (percentage < 70 && percentage >= 50) {
+
+                slicecolors = [globalcolorsDQ[2]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
+            } else if (percentage < 50 && percentage > 0) {
+
+                slicecolors = [globalcolorsDQ[1]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
             } else {
 
-                slicecolors = globalcolorsDQ.slice().reverse();
+                slicecolors = [globalcolorsDQ[0]];
 
-                var completepoints = data[1] + data[2] + data[3] + data[4];
+                sparkvalues = [100];
 
-                var val1 = (completepoints / data[0] * 100).toFixed(2);
-
-                var val2 = (data[5] / data[0] * 100).toFixed(2);
-
-                sparkvalues = [data[0], val1, val2];
-
-                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + val1 + "%\nDuplicate: " + val2 + "%";
+                thetooltip = siteName + "\nExpected: " + data[0] + "\nReceived: " + percentage + "%\nDuplicate: " + val2 + "%";
             }
 
             break;
