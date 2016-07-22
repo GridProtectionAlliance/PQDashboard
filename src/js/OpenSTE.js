@@ -240,7 +240,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 }
 
                 var errorBars = {
-                    show: true,
+                    show: false,
                     errorbars: "y",
                     lineWidth: 0.5,
                     radius: 0.5,
@@ -265,7 +265,10 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 });
 
                 graphData[3].data.forEach(function (d, i) {
-                    graphData[7].data.push([d[0], d[1], d[1] - graphData[4].data[i][1], graphData[2].data[i][1] - d[1]]);
+                    var min = graphData[4].data[i][1];
+                    var max = graphData[2].data[i][1];
+                    var mid = (min + max) / 2;
+                    graphData[7].data.push([d[0], mid, mid - min, max - mid]);
                 });
 
                 //Set mins and maxes
