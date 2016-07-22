@@ -82,18 +82,9 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     function resizeDocklet(theparent, chartheight) {
-
         theparent.css("height", chartheight);
-
         var Child = $("#WaveformTrending");
-
         Child.css("height", chartheight);
-
-       
-
-        if (typeof chart != 'undefined') {
-            chart.reflow();
-        }
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,10 +231,8 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     ctx.stroke();
                 }
 
-                if (data.d == null) {
-                    chart.hideLoading();
+                if (data.d == null)
                     return;
-                }
 
                 var dataPoints = {
                     show: true,

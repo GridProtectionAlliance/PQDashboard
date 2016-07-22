@@ -264,9 +264,9 @@ function selectsitesonmap(focussite, filter) {
                 var filterString = [];
                 var unfilteredString = [];
                 $.each(leg[0], function (i, d) {
-                    if (d.children[0].style.fill === 'rgb(128, 128, 128)')
-                        filterString.push(d.children[0].__data__)
-                    unfilteredString.push(d.children[0].__data__)
+                    if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                        filterString.push($(d).children('text').text());
+                    unfilteredString.push($(d).children('text').text());
                 });
                 legendFields = unfilteredString.filter(function (a) { return filterString.indexOf(a) < 0 });
             }
@@ -359,8 +359,8 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var leg = d3.selectAll('.legend');
 
             $.each(leg[0], function (i, d) {
-                if(d.children[0].style.fill === 'rgb(128, 128, 128)')
-                    filterString.push(d.children[0].__data__)
+                if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                    filterString.push($(d).children('text').text());
             });
 
             window["populate" + currentTab + "DivWithGrid"](json, filterString);
@@ -1135,7 +1135,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             contexttodate = thedate;
             var filter = [];
             $.each(legend.selectAll("rect"), function (i, element) {
-                //console.log(element);
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)')
                     filter.push(element[0].__data__);
             });
@@ -1213,14 +1212,14 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .style("cursor", "pointer")
             .on("click", function (d, i) {
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
-                    $(this).css('fill', '#808080');
+                    $(this).css('fill', 'rgb(128, 128, 128)');
                     disabledLegendFields.push(d);
-
                 }
                 else {
                     $(this).css('fill', color(d));
                     disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
+
                 toggleSeries(d, chartData, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
@@ -3216,8 +3215,8 @@ function resizeDocklet( theparent , chartheight ) {
     var leg = d3.selectAll('.legend');
 
     $.each(leg[0], function (i, d) {
-        if (d.children[0].style.fill === 'rgb(128, 128, 128)')
-            filterString.push(d.children[0].__data__)
+        if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+            filterString.push($(d).children('text').text());
     });
 
 
