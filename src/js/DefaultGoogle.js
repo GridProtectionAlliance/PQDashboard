@@ -126,13 +126,27 @@ function getMapHeaderDate(whichdate) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function loadDataForDate() {
-
-
     if (currentTab != null) {
-        setMapHeaderDate("", "");
+        var fromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
+        var todate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
+
+        contextfromdate = getFormattedDate(fromdate);
+        contexttodate = getFormattedDate(todate);
+
+        if (contextfromdate == contexttodate) {
+            cache_Last_Date = contexttodate;
+        } else {
+            cache_Last_Date = null;
+
+            var parent = $('#Detail' + currentTab + 'Table').parent();
+            $('#Detail' + currentTab + 'Table').remove();
+            $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+        }
+
+        setMapHeaderDate(contextfromdate, contexttodate);
+        manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
         resetAnimatedHeatmap();
-        selectsitesincharts();
     }
 }
 
