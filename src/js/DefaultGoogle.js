@@ -1705,20 +1705,68 @@ function populateMapSparklinePie(data, siteID, siteName) {
             break;
 
         case "Correctness":
+
+            var percentage = (data[1] / (data[1] + data[2] + data[3] + data[4]) * 100).toFixed(2);
+
+            var val1 = (data[2] / data[1] * 100).toFixed(2);
+            var val2 = (data[3] / data[1] * 100).toFixed(2);
+            var val3 = (data[4] / data[1] * 100).toFixed(2);
+
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) {
                 sparkvalues = [100];
-                slicecolors = ['#0E892C'];
+                slicecolors = ['#0000FF'];
+                thetooltip = "No Data Available";
+            } else if (percentage > 100) {
+
+                slicecolors = [globalcolorsDQ[6]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
+            } else if (percentage <= 100 && percentage >= 98) {
+
+                slicecolors = [globalcolorsDQ[5]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
+            } else if (percentage < 98 && percentage >= 90) {
+
+                slicecolors = [globalcolorsDQ[4]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
+            } else if (percentage < 90 && percentage >= 70) {
+
+                slicecolors = [globalcolorsDQ[3]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
+            } else if (percentage < 70 && percentage >= 50) {
+
+                slicecolors = [globalcolorsDQ[2]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
+            } else if (percentage < 50 && percentage > 0) {
+
+                slicecolors = [globalcolorsDQ[1]];
+
+                sparkvalues = [100];
+
+                thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
             } else {
-                var val1 = (data[2] / data[1] * 100).toFixed(2);
-                var val2 = (data[3] / data[1] * 100).toFixed(2);
-                var val3 = (data[4] / data[1] * 100).toFixed(2);
 
-                sparkvalues = [val1, val2, val3];
+                slicecolors = [globalcolorsDQ[0]];
 
-                slicecolors = globalcolorsDQ.slice().reverse();
+                sparkvalues = [100];
 
                 thetooltip = siteName + "\nLatched: " + val1 + "%\nUnreasonable: " + val2 + "%\nNon-Congruent: " + val3 + "%";
             }
+
 
             break;
 
