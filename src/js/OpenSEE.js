@@ -744,15 +744,13 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     return;
                 }
 
-                console.log(window.opener.Highlight);
-
                 $.each(plots, function (key, plot) {
                     plot.getOptions().grid.markings = [
                         {
                             color: "#FFA",
                             xaxis: {
-                                from: window.opener.Highlight,
-                                to: window.opener.Highlight + 17
+                                from: window.opener.Highlight.Start,
+                                to: window.opener.Highlight.End
                             }
                         }
                     ];

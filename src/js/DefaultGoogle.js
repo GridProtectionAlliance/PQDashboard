@@ -133,19 +133,13 @@ function loadDataForDate() {
         contextfromdate = getFormattedDate(fromdate);
         contexttodate = getFormattedDate(todate);
 
-        if (contextfromdate == contexttodate) {
+        if (contextfromdate == contexttodate)
             cache_Last_Date = contexttodate;
-        } else {
+        else
             cache_Last_Date = null;
-
-            var parent = $('#Detail' + currentTab + 'Table').parent();
-            $('#Detail' + currentTab + 'Table').remove();
-            $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
-        }
 
         setMapHeaderDate(contextfromdate, contexttodate);
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
         resetAnimatedHeatmap();
     }
 }
@@ -270,9 +264,9 @@ function selectsitesonmap(focussite, filter) {
                 var filterString = [];
                 var unfilteredString = [];
                 $.each(leg[0], function (i, d) {
-                    if (d.children[0].style.fill === 'rgb(128, 128, 128)')
-                        filterString.push(d.children[0].__data__)
-                    unfilteredString.push(d.children[0].__data__)
+                    if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                        filterString.push($(d).children('text').text());
+                    unfilteredString.push($(d).children('text').text());
                 });
                 legendFields = unfilteredString.filter(function (a) { return filterString.indexOf(a) < 0 });
             }
@@ -306,8 +300,15 @@ function selectsitesincharts() {
             thesiteidlist += thedetails[1] + ",";
         });
     }
-    if (cache_Last_Date !== null)
+
+    if (cache_Last_Date !== null) {
         getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, sitename, thesiteidlist, cache_Last_Date);
+    } else {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
     ManageLocationClick(sitename, thesiteidlist);  
 }
 
@@ -358,8 +359,8 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var leg = d3.selectAll('.legend');
 
             $.each(leg[0], function (i, d) {
-                if(d.children[0].style.fill === 'rgb(128, 128, 128)')
-                    filterString.push(d.children[0].__data__)
+                if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                    filterString.push($(d).children('text').text());
             });
 
             window["populate" + currentTab + "DivWithGrid"](json, filterString);
@@ -1134,7 +1135,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             contexttodate = thedate;
             var filter = [];
             $.each(legend.selectAll("rect"), function (i, element) {
-                //console.log(element);
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)')
                     filter.push(element[0].__data__);
             });
@@ -1150,7 +1150,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
         var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
-        var numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        var numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
 
 
         yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
@@ -1212,14 +1212,14 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .style("cursor", "pointer")
             .on("click", function (d, i) {
                 if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
-                    $(this).css('fill', '#808080');
+                    $(this).css('fill', 'rgb(128, 128, 128)');
                     disabledLegendFields.push(d);
-
                 }
                 else {
                     $(this).css('fill', color(d));
                     disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
+
                 toggleSeries(d, chartData, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
@@ -3215,8 +3215,8 @@ function resizeDocklet( theparent , chartheight ) {
     var leg = d3.selectAll('.legend');
 
     $.each(leg[0], function (i, d) {
-        if (d.children[0].style.fill === 'rgb(128, 128, 128)')
-            filterString.push(d.children[0].__data__)
+        if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+            filterString.push($(d).children('text').text());
     });
 
 
