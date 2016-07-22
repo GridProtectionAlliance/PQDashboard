@@ -27,11 +27,12 @@
     <script type="text/javascript" src="./js/jquery.blockUI.js"></script>
     <script type="text/javascript" src="./js/jquery.multiselect.js"></script>    
     <script type="text/javascript" src="./js/jquery.multiselect.filter.js"></script>
-   	<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
-	<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.errorbars.js"></script>
-	<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.navigate.js"></script>
-  	<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.resize.js"></script>
-  	<script type="text/javascript" src="http://www.flotcharts.org/flot/jquery.flot.time.js"></script>
+   	<script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
+	<script type="text/javascript" src="./js/flot/jquery.flot.errorbars.js"></script>
+	<script type="text/javascript" src="./js/flot/jquery.flot.navigate.js"></script>
+  	<script type="text/javascript" src="./js/flot/jquery.flot.resize.js"></script>
+  	<script type="text/javascript" src="./js/flot/jquery.flot.time.js"></script>
+   	<script type="text/javascript" src="./js/flot/jquery.flot.selection.js"></script>
     <script type="text/javascript" src="./js/OpenSTE.js"></script>
     
     <link rel="stylesheet" href="./css/OpenSTE.css" type="text/css" />

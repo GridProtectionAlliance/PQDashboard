@@ -232,7 +232,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
             dataType: 'json',
             cache: true,
             success: function (data) {
-                console.log(data);
+                //console.log(data);
                 function drawCap(ctx, x, y, radius) {
                     ctx.beginPath();
                     ctx.lineTo(x + radius,y);
@@ -279,10 +279,22 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     graphData[7].data.push([d[0], d[1], d[1] - graphData[4].data[i][1], graphData[2].data[i][1] - d[1]]);
                 });
 
+                //Set mins and maxes
+                var xMin = graphData[0].data[0][0];
+                var xMax = graphData[0].data[graphData[0].data.length - 1][0];
+                var yMax = (graphData[0].data[0][1] > graphData[1].data[0][1]?graphData[0].data[0][1]: graphData[1].data[0][1] );
+                $.each(graphData[2].data, function (i,d) {
+                    if (yMax < d[1])
+                        yMax = d[1];
+                });
 
+                var yMin = (graphData[5].data[0][1] > graphData[6].data[0][1] ? graphData[5].data[0][1] : graphData[6].data[0][1]);
+                $.each(graphData[4].data, function (i, d) {
+                    if (yMin > d[1])
+                        yMin = d[1];
+                });
 
-                console.log(graphData);
-
+                //initiate plot
                 var plot = $.plot($("#WaveformTrending"), graphData, {
                     legend: {
                         show: false
@@ -297,12 +309,13 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                         tickFormatter: function (val, axis) {
                             var d = new Date(val);
                             return (d.getHours() < 10 ? '0' + d.getHours() : d.getHours()) + ':' + (d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes());
-                        }
-
+                        },
+                        zoomRange: [60000*15,xMax],
+                        panRange:[xMin,xMax],
                     },
                     yaxis: {
-       
-
+                        zoomRange: false /*[0.5, yMax+1]*/,
+                        panRange: [yMin-1,yMax+1],
                     },
                     yaxes: [
                     {show: false},
@@ -312,11 +325,12 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                         interactive: true
                     },
                     pan: {
-                        interactive: true
+                        interactive: false
                     },
                     grid: {
                         hoverable: true
-                    }
+                    },
+                    selection:{ mode: "x"}
                 });
 
                 $("<div id='tooltip'></div>").css({
@@ -341,33 +355,46 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     }
 
                 });
+
+                $("#WaveformTrending").bind("plotselected", function (event, ranges) {
+                    $.each(plot.getXAxes(), function (_, axis) {
+                        var opts = axis.options;
+                        opts.min = ranges.xaxis.from;
+                        opts.max = ranges.xaxis.to;
+                    });
+                    plot.setupGrid();
+                    plot.draw();
+                    plot.clearSelection();
+                });
+
+                $('#WaveformTrending').bind("plotzoom", function (event, stuff) {
+                    var data = plot.getData();
+                    var yMin = 100000, yMax = -1000000;
+                    var xAxis = plot.getXAxes();
+
+                    $.each(data, function (i, d) {
+                        if (d.visible === true) {
+                            $.each(d.data, function (j, e) {
+                                if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
+                                    if (yMin > e[1])
+                                        yMin = e[1];
+                                    if (yMax < e[1])
+                                        yMax = e[1]
+                                }
+                            });
+                        }
+                    });
+                    $.each(plot.getYAxes(), function (_, axis) {
+                        var opts = axis.options;
+                        opts.min = yMin - yMin*.50;
+                        opts.max = yMax + yMax*.20;
+                    });
+                    plot.setupGrid();
+                    plot.draw();
+                    plot.clearSelection();
+                });
+
                 initLegend(plot);
-
-                //options.xAxis.categories = data.d.xAxis;
-
-                //$.each(data.d.data[2].data, (function (key, value) {
-
-                //    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
-
-                //}));
-
-                //data.d.data[2].linkedTo = 2;
-                //data.d.data[2].name = 'Range';
-                //options.series = data.d.data;
-                //options.series[3].lineWidth = 0;
-                //options.series[4].showInLegend = false;
-
-                //chart = new Highcharts.Chart(options);
-                //chart.series[4].hide();
-                //chart.series[5].hide();
-                //chart.series[1].hide();
-
-                //if (data.d.data[6].data.length == 0) {
-                //    chart.series[6].hide();
-                //    options.series[6].showInLegend = false;
-                //}
-
-                //chart.hideLoading();
             },
             failure: function (msg) {
                 alert(msg);
@@ -382,301 +409,12 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
         //$("#trendingWaveformHeader")[0].innerHTML = $("#trendingDetailHeader")[0].innerHTML;
         //populateDivWithLineChartByChannelID('getTrendsforChannelIDDate', 'Waveform' + currentTab, postedchannelid, posteddate, datarow.eventtype, datarow.sitename + " - " + datarow.eventtype + " - " + datarow.measurementtype + " - " + datarow.characteristic + " - " + datarow.phasename + " for " + theDate);
-        populateTrendingMetric('MeasurementType', postedmeterid, posteddate, postedmeasurementtype);
-        populateTrendingMetric('MeasurementCharacteristic', postedmeterid, posteddate, postedcharacteristic);
-        populateTrendingMetric('Phase', postedmeterid, posteddate, postedphasename);
-        setTrendingMetric("Period", "Day");
+        //populateTrendingMetric('MeasurementType', postedmeterid, posteddate, postedmeasurementtype);
+        //populateTrendingMetric('MeasurementCharacteristic', postedmeterid, posteddate, postedcharacteristic);
+        //populateTrendingMetric('Phase', postedmeterid, posteddate, postedphasename);
+        //setTrendingMetric("Period", "Day");
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-    function setTrendingMetric(metric, value) {
-
-        //// Disable change event on dropdown to be populated.
-        //var temp = $('#' + metric)[0].change;
-        //$('#' + metric)[0].change = null;
-
-        //$('#' + metric).val(value);
-
-        //$('#' + metric).multiselect("refresh");
-
-        //// Restore change event on completion
-        //$('#' + metric)[0].change = temp;
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////
-
-    function selectMeasure(obj, thedate) {
-        //// Get Day, Week, Month
-        //var theperiod = $("#Period").val();
-        //// obj is the control instance, sent only when the control itself fires selectMeasure.
-        //if (obj != null) {
-        //    switch (obj.id) {
-        //        case ("MeasurementType"):
-        //            populateTrendingMetric('MeasurementCharacteristic', postedmeterid, posteddate);
-        //            populateTrendingMetric('Phase', postedmeterid, posteddate);
-        //            break;
-
-        //        case ("MeasurementCharacteristic"):
-        //            populateTrendingMetric('Phase', postedmeterid, posteddate);
-        //            break;
-        //    }
-        //}
-
-        //var MeasurementType = $("#MeasurementType").val();
-        //var MeasurementCharacteristic = $("#MeasurementCharacteristic").val();
-        //var Phase = $("#Phase").val();
-
-        //// If all exist, then let's act
-        //if (MeasurementType && MeasurementCharacteristic && Phase) {
-
-        //    // Lets build a label for this chart
-        //    var label = "";
-        //    label += postedmetername + " - ";
-        //    label += postedlinename + " - ";
-        //    label += $("#MeasurementType")[0][$("#MeasurementType")[0].selectedIndex].innerHTML + " - ";
-        //    label += $("#MeasurementCharacteristic")[0][$("#MeasurementCharacteristic")[0].selectedIndex].innerHTML + " - ";
-        //    label += $("#Phase")[0][$("#Phase")[0].selectedIndex].innerHTML + " - ";
-        //    label += posteddate;
-        //    label += " for " + $("#Period")[0][$("#Period")[0].selectedIndex].innerHTML;
-
-        //    populateDivWithLineChartByCharacteristics('getTrends', 'WaveformTrending', "THESITENAME", postedmeterid, posteddate, MeasurementType, MeasurementCharacteristic, Phase, theperiod, label);
-        //}
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function populateDivWithLineChartByCharacteristics(thedatasource, thediv, siteName, siteID, thedate, MeasurementType, MeasurementCharacteristic, Phase, Period, label) {
-
-        //var options = {
-        //    colors: globalcolors,
-        //    plotOptions: {
-        //        series: {
-        //            animation: false,
-        //            marker: {
-        //                radius: 2
-        //            },
-        //            turboThreshold: 0
-        //        }
-        //    },
-        //    //tooltip: {
-        //    //    positioner: function () {
-        //    //        return { x: 2, y: 12 };
-        //    //    },
-        //    //    formatter: function () {
-
-        //    //        var tooltipstring = "";
-
-        //    //        if (typeof (this.point.low) != 'undefined' && typeof (this.point.high) != 'undefined') {
-        //    //            tooltipstring = '<b>' + this.series.name + ' : ' + this.point.low.toFixed(3) + ' - ' + this.point.high.toFixed(3) + '</b>';
-        //    //        } else {
-        //    //            tooltipstring = '<b>' + this.series.name + ' @ ' + this.x + ' : ' + this.y.toFixed(3) + '</b>';
-        //    //        }
-
-        //    //        return tooltipstring;
-        //    //    },
-        //    //    shadow: false,
-        //    //    borderWidth: 0,
-        //    //    backgroundColor: 'rgba(255,255,255,0)'
-        //    //},
-        //    chart: {
-        //        panning: true,
-        //        panKey: 'shift',
-        //        type: 'line',
-        //        zoomType: 'x',
-        //        renderTo: thediv
-        //    },
-        //    credits: {
-        //        enabled: false
-        //    },
-        //    title: {
-        //        text: label,
-        //        style: { "color": "#333333", "fontSize": "12px" }
-        //    },
-        //    xAxis: {
-        //        categories: [],
-        //        labels: {
-        //            style: {
-        //                fontSize: '8px'
-        //            },
-        //            rotation: -45,
-        //            enabled: true
-        //        }
-        //    },
-        //    yAxis: {
-
-        //        title: {
-        //            text: 'Trend Magnitude'
-        //        },
-        //        stackLabels: {
-        //            enabled: true,
-        //            style: {
-        //                fontsize: '.3em',
-        //                fontWeight: 'bold',
-        //                color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-        //            }
-        //        }
-        //    },
-        //    legend: {
-        //        layout: 'vertical',
-        //        align: 'right',
-        //        verticalAlign: 'middle',
-        //        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
-        //        borderWidth: 0
-        //    }
-        //};
-
-        var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + thedate + "' , 'MeasurementType':'" + MeasurementType + "' , 'MeasurementCharacteristic':'" + MeasurementCharacteristic + "' , 'Phase':'" + Phase + "' , 'Period':'" + Period + "'}";
-
-        //var chart = new Highcharts.Chart(options);
-        //chart.showLoading('Loading, please wait...');
-
-        $.ajax({
-            type: "POST",
-            url: './eventService.asmx/' + thedatasource,
-            data: thedatasent,
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json',
-            cache: true,
-            success: function (data) {
-
-                //options.xAxis.categories = data.d.xAxis;
-
-                //$.each(data.d.data[2].data, (function (key, value) {
-
-                //    data.d.data[2].data[key] = [data.d.xAxis[key], data.d.data[4].data[key], data.d.data[2].data[key]];
-
-                //}));
-
-                //data.d.data[2].linkedTo = 2;
-                //data.d.data[2].name = 'Range';
-                //options.series = data.d.data;
-                //options.series[3].lineWidth = 0;
-                //options.series[4].showInLegend = false;
-
-                //chart = new Highcharts.Chart(options);
-                //chart.series[4].hide();
-                //chart.series[5].hide();
-                //chart.series[1].hide();
-
-                //if (data.d.data[6].data.length == 0) {
-                //    chart.series[6].hide();
-                //    options.series[6].showInLegend = false;
-                //}
-
-                //chart.hideLoading();
-
-            },
-            failure: function (msg) {
-                alert(msg);
-            },
-            async: true
-        });
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////
-    function populateTrendingMetric(metric, siteID, theDate, desiredvalue) {
-
-        //var thedatasent = "";
-        //var theMeasurementType = "";
-        //var theMeasurementCharacteristic = "";
-
-        //switch (metric) {
-        //    case "MeasurementType":
-        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
-        //        break;
-
-        //    case "MeasurementCharacteristic":
-        //        theMeasurementType = $("#MeasurementType").val();
-        //        if (theMeasurementType == null) {
-        //            $("#MeasurementCharacteristic").empty();
-        //            $("#MeasurementCharacteristic").multiselect("refresh");
-        //            $("#Phase").empty();
-        //            $("#Phase").multiselect("refresh");
-        //            return;
-        //        }
-
-        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "'}";
-        //        break;
-
-        //    case "Phase":
-
-        //        theMeasurementType = $("#MeasurementType").val();
-        //        if (theMeasurementType == null) {
-        //            $("#MeasurementCharacteristic").empty();
-        //            $("#MeasurementCharacteristic").multiselect("refresh");
-        //            return;
-        //        }
-
-        //        theMeasurementCharacteristic = $("#MeasurementCharacteristic").val();
-        //        if (theMeasurementCharacteristic == null) {
-        //            $("#Phase").empty();
-        //            $("#Phase").multiselect("refresh");
-        //            return;
-        //        }
-
-        //        thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "' , 'theType':'" + theMeasurementType + "', 'theCharacteristic':'" + theMeasurementCharacteristic + "'}";
-        //        break;
-
-        //}
-
-        //$.ajax({
-        //    type: "POST",
-        //    url: './eventService.asmx/' + metric,
-        //    data: thedatasent,
-        //    desiredvalue: desiredvalue,
-        //    contentType: "application/json; charset=utf-8",
-        //    dataType: 'json',
-        //    cache: true,
-        //    success: function (data) {
-
-        //        // Disable change event on dropdown to be populated.
-        //        var temp = $('#' + metric)[0].change;
-        //        $('#' + metric)[0].change = null;
-        //        //
-
-        //        $('#' + metric).empty();
-
-        //        if (data.d.length > 0) {
-        //            $.each(data.d, (function (key, value) {
-        //                var selected = "";
-        //                if (value.Item2 == desiredvalue) {
-        //                    selected = "selected";
-        //                }
-        //                SelectAdd(metric, value.Item1, value.Item2, selected);
-        //            }));
-
-        //        }
-
-        //        $('#' + metric).multiselect("refresh");
-
-        //        // Restore change event on completion
-        //        $('#' + metric)[0].change = temp;
-        //        //
-
-        //    },
-        //    failure: function (msg) {
-        //        alert(msg);
-        //    },
-        //    async: false
-        //});
-
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////
-
-    function SelectAdd(theControlID, theValue, theText, selected) {
-
-        var exists = false;
-
-        $('#' + theControlID + ' option').each(function () {
-            if (this.innerHTML == theText) {
-                exists = true;
-                return false;
-            }
-        });
-
-        if (!exists) {
-            $('#' + theControlID).append("<option value='" + theValue + "' " + selected + ">" + theText + "</option>");
-        }
-    }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -761,7 +499,28 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
 
                     series.yaxis = series.visible + 1;
 
-                    console.log(graphData);
+                    var data = graphData;
+                    var yMin = 100000, yMax = -1000000;
+                    var xAxis = plot.getXAxes();
+
+                    $.each(data, function (i, d) {
+                        if (d.visible === true) {
+                            $.each(d.data, function (j, e) {
+                                if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
+                                    if (yMin > e[1])
+                                        yMin = e[1];
+                                    if (yMax < e[1])
+                                        yMax = e[1]
+                                }
+                            });
+                        }
+                    });
+                    $.each(plot.getYAxes(), function (_, axis) {
+                        var opts = axis.options;
+                        opts.min = yMin - yMin * .50;
+                        opts.max = yMax + yMax * .20;
+                    });
+
 
                     plot.setData(graphData);
                     plot.setupGrid();
