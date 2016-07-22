@@ -1150,7 +1150,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
         var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
-        var numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        var numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
 
 
         yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
