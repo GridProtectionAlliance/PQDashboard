@@ -248,43 +248,60 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 }
 
                 var graphData = [
-                    { color: "red", lines: dataPoints, data: [], label: data.d.data[0].name, visible: true, type: 'lines', yaxis: 2},
-                    { color: "orange", lines: dataPoints, data: [], label: data.d.data[1].name, visible: true, type: 'lines', yaxis: 2 },
-                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, yaxis: 2, label: 'Max' },
-                    { color: "#90ed7d", points: dataPoints, data: [], label: data.d.data[3].name, visible: true, type: 'points', yaxis: 2 },
-                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, yaxis: 2, label: 'Min' },
-                    { color: "orange", lines: dataPoints, data: [], label: data.d.data[5].name, visible: true, type: 'lines', yaxis: 2 },
-                    { color: "red", lines: dataPoints, data: [], label: data.d.data[6].name, visible: true, type: 'lines', yaxis: 2 },
-                    { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar', yaxis: 2 }
+                    { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit High', visible: true, type: 'lines' },
+                    { color: "orange", lines: dataPoints, data: [], label: 'Off Normal High', visible: true, type: 'lines' },
+                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Max' },
+                    { color: "#90ed7d", points: dataPoints, data: [], label: 'Average', visible: true, type: 'points' },
+                    { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Min' },
+                    { color: "orange", lines: dataPoints, data: [], label: 'Off Normal Low', visible: true, type: 'lines' },
+                    { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit Low', visible: true, type: 'lines' },
+                    { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar' }
                 ];
 
-                data.d.data.forEach(function (d, i) {
-                    d.data.forEach(function (e, j) {
-                        graphData[i].data.push([new Date(data.d.xAxis[j]).getTime(), e]);
-                    });
+                $.each(data.d.ChannelData, function (_, point) {
+                    var mid = (point.Maximum + point.Minimum) / 2;
+                    graphData[2].data.push([point.Time, point.Maximum]);
+                    graphData[3].data.push([point.Time, point.Average]);
+                    graphData[4].data.push([point.Time, point.Minimum]);
+                    graphData[7].data.push([point.Time, mid, mid - point.Minimum, point.Maximum - mid]);
                 });
 
-                graphData[3].data.forEach(function (d, i) {
-                    var min = graphData[4].data[i][1];
-                    var max = graphData[2].data[i][1];
-                    var mid = (min + max) / 2;
-                    graphData[7].data.push([d[0], mid, mid - min, max - mid]);
+                $.each(data.d.AlarmLimits, function (_, limit) {
+                    if (limit.High !== null) {
+                        graphData[0].data.push([limit.TimeStart, limit.High]);
+                        graphData[0].data.push([limit.TimeEnd, limit.High]);
+                    }
+
+                    if (limit.Low !== null) {
+                        graphData[6].data.push([limit.TimeStart, limit.Low]);
+                        graphData[6].data.push([limit.TimeEnd, limit.Low]);
+                    }
+                });
+
+                $.each(data.d.OffNormalLimits, function (key, limit) {
+                    var nextKey = key + 1;
+                    var hasNextKey = nextKey < data.d.OffNormalLimits.length;
+
+                    if (limit.High !== null) {
+                        graphData[1].data.push([limit.TimeStart, limit.High]);
+                        graphData[1].data.push([limit.TimeEnd, limit.High]);
+                    } else if (hasNextKey && data.d.OffNormalLimits[nextKey].High !== null) {
+                        if (graphData[1].data.length > 0)
+                            graphData[1].data.push(null);
+                    }
+
+                    if (limit.Low !== null) {
+                        graphData[5].data.push([limit.TimeStart, limit.Low]);
+                        graphData[5].data.push([limit.TimeEnd, limit.Low]);
+                    } else if (hasNextKey && data.d.OffNormalLimits[nextKey].Low !== null) {
+                        if (graphData[5].data.length > 0)
+                            graphData[5].data.push(null);
+                    }
                 });
 
                 //Set mins and maxes
-                var xMin = graphData[0].data[0][0];
-                var xMax = graphData[0].data[graphData[0].data.length - 1][0];
-                var yMax = (graphData[0].data[0][1] > graphData[1].data[0][1]?graphData[0].data[0][1]: graphData[1].data[0][1] );
-                $.each(graphData[2].data, function (i,d) {
-                    if (yMax < d[1])
-                        yMax = d[1];
-                });
-
-                var yMin = (graphData[5].data[0][1] > graphData[6].data[0][1] ? graphData[5].data[0][1] : graphData[6].data[0][1]);
-                $.each(graphData[4].data, function (i, d) {
-                    if (yMin > d[1])
-                        yMin = d[1];
-                });
+                var xMin = new Date(thedate + ' UTC').getTime();
+                var xMax = xMin + (24 * 60 * 60 * 1000);
 
                 //initiate plot
                 var plot = $.plot($("#WaveformTrending"), graphData, {
@@ -298,21 +315,13 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     },
                     xaxis: {
                         mode: "time",
-                        tickFormatter: function (val, axis) {
-                            var d = new Date(val);
-                            return (d.getHours() < 10 ? '0' + d.getHours() : d.getHours()) + ':' + (d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes());
-                        },
                         zoomRange: [60000*15,xMax],
                         panRange:[xMin,xMax],
                     },
                     yaxis: {
                         zoomRange: false /*[0.5, yMax+1]*/,
-                        panRange: [yMin-1,yMax+1],
+                        //panRange: [yMin-1,yMax+1],
                     },
-                    yaxes: [
-                    {show: false},
-                    { position: 'left', show: true }
-                    ],
                     zoom: {
                         interactive: true
                     },
@@ -335,7 +344,27 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 }).appendTo("body");
 
                 $("#WaveformTrending").bind("plothover", function (event, pos, item) {
-                    //console.log(item);
+                    if (!item) {
+                        $.each([graphData[0], graphData[6]], function (_, alarmSeries) {
+                            if (alarmSeries.visible && alarmSeries.data.length > 0) {
+                                var alarmLimit = alarmSeries.data[0];
+                                var alarmLimitOffset = plot.p2c({ x: pos.x, y: alarmLimit[1] });
+                                var plotOffset = plot.offset();
+                                var alarmPageX = alarmLimitOffset.left + plotOffset.left;
+                                var alarmPageY = alarmLimitOffset.top + plotOffset.top;
+
+                                if (Math.abs(alarmPageY - pos.pageY) < 10) {
+                                    item = {
+                                        series: alarmSeries,
+                                        datapoint: alarmLimit,
+                                        pageX: alarmPageX,
+                                        pageY: alarmPageY
+                                    };
+                                }
+                            }
+                        });
+                    }
+
                     if (item) {
                         var html = '<div>'+new Date(item.datapoint[0]).toLocaleTimeString()+'</div>';
                         html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
@@ -343,6 +372,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                             .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid '+item.series.color })
                             .fadeIn(200);
                     } else {
+
                         $("#tooltip").hide();
                     }
 
@@ -357,68 +387,17 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                         opts.max = ranges.xaxis.to;
                     });
 
-                    var data = plot.getData();
-                    var yMin = null, yMax = null;
-
-                    $.each(data, function (i, d) {
-                        if (d.visible === true) {
-                            $.each(d.data, function (j, e) {
-                                if (e[0] >= ranges.xaxis.from && e[0] <= ranges.xaxis.to) {
-                                    var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
-                                    var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
-
-                                    if (yMin == null || yMin > eMin)
-                                        yMin = eMin;
-                                    if (yMax == null || yMax < eMax)
-                                        yMax = eMax;
-                                }
-                            });
-                        }
-                    });
-                    $.each(plot.getYAxes(), function (_, axis) {
-                        var opts = axis.options;
-                        var pad = (yMax - yMin) * 0.1;
-                        opts.min = yMin - pad;
-                        opts.max = yMax + pad;
-                    });
-
-                    plot.setupGrid();
-                    plot.draw();
+                    scaleYAxis(plot, ranges.xaxis.from, ranges.xaxis.to);
                     plot.clearSelection();
                 });
 
                 $('#WaveformTrending').bind("plotzoom", function (event, stuff) {
-                    var data = plot.getData();
-                    var yMin = null, yMax = null;
-                    var xAxis = plot.getXAxes();
-
-                    $.each(data, function (i, d) {
-                        if (d.visible === true) {
-                            $.each(d.data, function (j, e) {
-                                if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
-                                    var eMin = (d.label !== "Range") ? e[1]: e[1]-e[2];
-                                    var eMax = (d.label !== "Range") ? e[1]: e[1]+e[3];
-
-                                    if (yMin == null || yMin > eMin)
-                                        yMin = eMin;
-                                    if (yMax == null || yMax < eMax)
-                                        yMax = eMax;
-                                }
-                            });
-                        }
-                    });
-                    $.each(plot.getYAxes(), function (_, axis) {
-                        var opts = axis.options;
-                        var pad = (yMax - yMin) * 0.1;
-                        opts.min = yMin - pad;
-                        opts.max = yMax + pad;
-                    });
-                    plot.setupGrid();
-                    plot.draw();
+                    scaleYAxis(plot);
                     plot.clearSelection();
                 });
 
                 initLegend(plot);
+                scaleYAxis(plot);
             },
             failure: function (msg) {
                 alert(msg);
@@ -518,46 +497,57 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                         series.points.yerr.show = series.visible;
                         graphData[2].points.show = series.visible;
                         graphData[4].points.show = series.visible;
-
                     }
 
                     series.yaxis = series.visible + 1;
-
-                    var data = graphData;
-                    var yMin = null, yMax = null;
-                    var xAxis = plot.getXAxes();
-
-                    $.each(data, function (i, d) {
-                        if (d.visible === true) {
-                            $.each(d.data, function (j, e) {
-                                if (e[0] >= xAxis[0].min && e[0] <= xAxis[0].max) {
-                                    var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
-                                    var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
-
-                                    if (yMin == null || yMin > eMin)
-                                        yMin = eMin;
-                                    if (yMax == null || yMax < eMax)
-                                        yMax = eMax;
-                                }
-                            });
-                        }
-                    });
-                    $.each(plot.getYAxes(), function (_, axis) {
-                        var opts = axis.options;
-                        var pad = (yMax - yMin) * 0.1;
-                        opts.min = yMin - pad;
-                        opts.max = yMax + pad;
-                    });
-
                     plot.setData(graphData);
-                    plot.setupGrid();
-                    plot.draw();
-
+                    scaleYAxis(plot);
                 });
             }
         });
 
         $(".legendCheckbox").hide();
+    }
+
+    function scaleYAxis(plot, xMin, xMax) {
+        var data = plot.getData();
+        var yMin = null, yMax = null;
+
+        $.each(plot.getXAxes(), function (_, xAxis) {
+            if (!xMin)
+                xMin = xAxis.min;
+
+            if (!xMax)
+                xMax = xAxis.max;
+        });
+
+        $.each(data, function (i, d) {
+            if (d.visible === true) {
+                var isAlarmData = (i == 0) || (i == 6);
+
+                $.each(d.data, function (j, e) {
+                    if (isAlarmData || (e[0] >= xMin && e[0] <= xMax)) {
+                        var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
+                        var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
+
+                        if (yMin == null || yMin > eMin)
+                            yMin = eMin;
+                        if (yMax == null || yMax < eMax)
+                            yMax = eMax;
+                    }
+                });
+            }
+        });
+
+        $.each(plot.getYAxes(), function (_, axis) {
+            var opts = axis.options;
+            var pad = (yMax - yMin) * 0.1;
+            opts.min = yMin - pad;
+            opts.max = yMax + pad;
+        });
+
+        plot.setupGrid();
+        plot.draw();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
