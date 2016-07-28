@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
-    <Product Id="{C3A8577C-F2DC-485D-8F71-D445971940A5}" Name="PQ Dashboard" Language="1033" Version="1.0.3.0" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
+    <Product Id="{C3A8577C-F2DC-485D-8F71-D445971940A5}" Name="PQ Dashboard" Language="1033" Version="1.0.3.1" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
         <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -16,11 +16,6 @@
             <Feature Id="PQDashboardFeature" Title="PQ Dashboard" AllowAdvertise="no" Description="Installs the PQ Dashboard website for visualization of power quality data." ConfigurableDirectory="PQDASHFOLDER">
                 <ComponentGroupRef Id="PQDashboardGroup" />
             </Feature>
-            
-            <!-- Dashboard Admin Site -->
-            <Feature Id="DashAdminFeature" Title="PQ Dashboard Admin Interface" AllowAdvertise="no" Description="Installs the administration interface for the PQ Dashboard." ConfigurableDirectory="DASHADMINFOLDER">
-                <ComponentGroupRef Id="DashAdminGroup" />
-            </Feature>
         </Feature>
 
         <UI>
@@ -29,8 +24,7 @@
             <UIRef Id="WixUI_ErrorProgressText" />
             <DialogRef Id="DatabaseConnectionDialog" />
             
-            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DependenciesDialog">NOT Installed AND <![CDATA[&PQDashboardFeature=3]]></Publish>
-            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed AND <![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
+            <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed</Publish>
             <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DatabaseConnectionDialog">NOT Installed</Publish>
             
             <!--
@@ -40,7 +34,6 @@
         </UI>
         
         <Icon Id="PQDashboard.ico" SourceFile="src/PQD.ico" />
-        <Icon Id="DashAdmin.ico" SourceFile="src/PQD-admin.ico" />
         
         <Property Id="WWWROOTDIR">
             <RegistrySearch Id="FindInetPubFolder" Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Name="PathWWWRoot" Type="directory" />
@@ -60,7 +53,6 @@
         <SetProperty Id="DATABASENAME" Value="openXDA" After="LaunchConditions" Sequence="first" />
         <SetProperty Id="SCRIPTPATH" Value="[INSTALLFOLDER]\openXDA.sql" After="LaunchConditions" Sequence="execute" />
         <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard" Before="CreateShortcuts" Sequence="execute" />
-        <SetProperty Id="DASHADMINURL" Value="http://localhost/DashAdmin" Before="CreateShortcuts" Sequence="execute" />
         <WixVariable Id="WixUIBannerBmp" Value="src\PQ Dashboard SetupLogo.bmp" />
         <WixVariable Id="WixUIDialogBmp" Value="src\InstallWelcome.bmp" />
         <WixVariable Id="WixUILicenseRtf" Value="src\INSTALL_LICENSE.rtf" />
@@ -91,11 +83,6 @@
         <CustomAction Id="GrantDBPermissions.SetProperty" Property="GrantDBPermissions" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[DBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[DBPERMISSIONSQUERY]" />
         <CustomAction Id="GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
         
-        <CustomAction Id="UnzipHighChartsAction.SetProperty" Property="UnzipHighChartsAction" Value="ZIPFILE=[HIGHCHARTSPATH];SOURCEDIR=js;DESTINATIONDIR=[HIGHCHARTSFOLDER]" />
-        <CustomAction Id="UnzipHighChartsAction" BinaryKey="InstallerActions" DllEntry="UnzipAction" Execute="deferred" Impersonate="no" />
-        <CustomAction Id="UnzipJQWidgetsAction.SetProperty" Property="UnzipJQWidgetsAction" Value="ZIPFILE=[JQWIDGETSPATH];SOURCEDIR=jqwidgets;DESTINATIONDIR=[JQWIDGETSFOLDER]" />
-        <CustomAction Id="UnzipJQWidgetsAction" BinaryKey="InstallerActions" DllEntry="UnzipAction" Execute="deferred" Impersonate="no" />
-        
         <InstallExecuteSequence>
             <Custom Action="CreateDBLogin.SetProperty" After="InstallFiles">NOT REMOVE</Custom>
             <Custom Action="CreateDBLogin" After="CreateDBLogin.SetProperty">NOT REMOVE</Custom>
@@ -105,11 +92,6 @@
             <Custom Action="CreateDBUser" After="CreateDBUser.SetProperty">NOT REMOVE</Custom>
             <Custom Action="GrantDBPermissions.SetProperty" After="CreateDBUser">NOT REMOVE</Custom>
             <Custom Action="GrantDBPermissions" After="GrantDBPermissions.SetProperty">NOT REMOVE</Custom>
-            
-            <Custom Action="UnzipHighChartsAction.SetProperty" After="GrantDBPermissions">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
-            <Custom Action="UnzipHighChartsAction" After="UnzipHighChartsAction.SetProperty">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
-            <Custom Action="UnzipJQWidgetsAction.SetProperty" After="UnzipHighChartsAction">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
-            <Custom Action="UnzipJQWidgetsAction" After="UnzipJQWidgetsAction.SetProperty">NOT REMOVE AND <![CDATA[&PQDashboardFeature=3]]></Custom>
         </InstallExecuteSequence>
     </Product>
 
@@ -122,7 +104,6 @@
                             <Directory Id="JQWIDGETSFOLDER" Name="jqwidgets" />
                         </Directory>
                     </Directory>
-                    <Directory Id="DASHADMINFOLDER" Name="DashAdmin" />
                 </Directory>
             </Directory>
 
@@ -150,22 +131,6 @@
                 <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="PQDashShortcut" Type="string" Value="" KeyPath="yes" />
             </Component>
         </DirectoryRef>
-        <DirectoryRef Id="DASHADMINFOLDER">
-            <Component Id="DashAdminConnectionString" Guid="{504DCEDC-5794-4113-BAFF-F77740E49E13}" KeyPath="yes">
-                <util:XmlFile Id="SetDashAdminConnectionString" Action="setValue" ElementPath="/configuration/connectionStrings/add[\[]@name='GTCConnectionString'[\]]/@connectionString" Value="[DASHBOARDCONNECTIONSTRING]" File="[#fil4112A65570B8F6D7954AA74282965F04]" SelectionLanguage="XPath" Sequence="1" />
-            </Component>
-            
-            <Component Id="InstallDashAdminSite" Guid="{D305B773-74B2-4CDE-9425-7AB8DC0DADF3}" KeyPath="yes">
-                <iis:WebVirtualDir Id="DashAdminVirtualDir" Alias="DashAdmin" Directory="DASHADMINFOLDER" WebSite="DefaultWebSite">
-                    <iis:WebApplication Id="DashAdmin" Name="PQ Dashboard Administration Interface" />
-                </iis:WebVirtualDir>
-            </Component>
-            
-            <Component Id="DashAdminShortcutComponent" Guid="{4B27C967-37C0-4915-978A-184399A50D4B}">
-                <Shortcut Id="DashAdminStartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PQ Dashboard Administration Interface" Icon="DashAdmin.ico" Description="URL to the PQ Dashboard Administration website." Target="[DASHADMINURL]" />
-                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\DashAdmin" Name="DashAdminShortcut" Type="string" Value="" KeyPath="yes" />
-            </Component>
-        </DirectoryRef>
         <DirectoryRef Id="HIGHCHARTSFOLDER">
             <Component Id="CleanUpHighCharts" Guid="{00822AED-375D-41E9-9AA3-CDFA1860C776}">
                 <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="HighChartsFolder" Type="string" Value="[HIGHCHARTSFOLDER]" KeyPath="yes" />
@@ -188,13 +153,6 @@
             <ComponentRef Id="PQDashboardShortcutComponent" />
             <ComponentRef Id="CleanUpHighCharts" />
             <ComponentRef Id="CleanUpJQWidgets" />
-            <ComponentGroupRef Id="Cleanup" />
-        </ComponentGroup>
-        <ComponentGroup Id="DashAdminGroup">
-            <ComponentGroupRef Id="DashAdminFiles" />
-            <ComponentRef Id="DashAdminConnectionString" />
-            <ComponentRef Id="InstallDashAdminSite" />
-            <ComponentRef Id="DashAdminShortcutComponent" />
             <ComponentGroupRef Id="Cleanup" />
         </ComponentGroup>
         
