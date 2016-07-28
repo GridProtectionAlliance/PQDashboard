@@ -63,8 +63,17 @@ public class faultSegmentDetail
     public int EndSample;
 }
 
+public enum FlotSeriesType
+{
+    Waveform,
+    Cycle,
+    Fault
+}
+
 public class FlotSeries
 {
+    public FlotSeriesType FlotType;
+    public int SeriesID;
     public string ChannelName;
     public string ChannelDescription;
     public string MeasurementType;
@@ -72,6 +81,13 @@ public class FlotSeries
     public string Phase;
     public string SeriesType;
     public List<double[]> DataPoints = new List<double[]>();
+
+    public FlotSeries Clone()
+    {
+        FlotSeries clone = (FlotSeries)MemberwiseClone();
+        clone.DataPoints = new List<double[]>();
+        return clone;
+    }
 }
 
 /// <summary>
@@ -101,29 +117,49 @@ public class signalService : System.Web.Services.WebService {
 
     static signalService()
     {
-        char measurementTypeDesignation;
-
-        foreach (string measurementType in new string[] { "Voltage", "Current" })
+        foreach (string phase in new string[] { "AN", "BN", "CN", "AB", "BC", "CA" })
         {
-            foreach (string phase in new string[] { "AN", "BN", "CN" })
-            {
-                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
-                {
-                    if (measurementType == "Current")
-                        measurementTypeDesignation = 'I';
-                    else
-                        measurementTypeDesignation = measurementType[0];
+            int seriesID = 0;
 
-                    CycleDataInfo.Add(new FlotSeries()
-                    {
-                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
-                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
-                        MeasurementType = measurementType,
-                        MeasurementCharacteristic = measurementCharacteristic,
-                        Phase = phase,
-                        SeriesType = "Values"
-                    });
-                }
+            foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
+            {
+                string measurementType = "Voltage";
+                char measurementTypeDesignation = 'V';
+
+                CycleDataInfo.Add(new FlotSeries()
+                {
+                    FlotType = FlotSeriesType.Cycle,
+                    SeriesID = seriesID++,
+                    ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
+                    ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
+                    MeasurementType = measurementType,
+                    MeasurementCharacteristic = measurementCharacteristic,
+                    Phase = phase,
+                    SeriesType = "Values"
+                });
+            }
+        }
+
+        foreach (string phase in new string[] { "AN", "BN", "CN", "RES" })
+        {
+            int seriesID = 0;
+
+            foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
+            {
+                string measurementType = "Current";
+                char measurementTypeDesignation = 'I';
+
+                CycleDataInfo.Add(new FlotSeries()
+                {
+                    FlotType = FlotSeriesType.Cycle,
+                    SeriesID = seriesID++,
+                    ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
+                    ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
+                    MeasurementType = measurementType,
+                    MeasurementCharacteristic = measurementCharacteristic,
+                    Phase = phase,
+                    SeriesType = "Values"
+                });
             }
         }
     }
@@ -167,9 +203,22 @@ public class signalService : System.Web.Services.WebService {
             if ((object)eventRow == null)
                 return new List<FlotSeries>();
 
+            List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
+
+            var lookup = waveformInfo
+                .Where(info => info.Channel.MeasurementCharacteristic.Name == "Instantaneous")
+                .Where(info => new string[] { "Instantaneous", "Values" }.Contains(info.SeriesType.Name))
+                .Select(info => new { MeasurementType = info.Channel.MeasurementType.Name, Phase = info.Channel.Phase.Name })
+                .Distinct()
+                .ToDictionary(info => info);
+
+            IEnumerable<FlotSeries> cycleDataInfo = CycleDataInfo
+                .Where(info => lookup.ContainsKey(new { info.MeasurementType, info.Phase }))
+                .Select(info => info.Clone());
+
             return GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID)
                 .Select(ToFlotSeries)
-                .Concat(CycleDataInfo)
+                .Concat(cycleDataInfo)
                 .Concat(GetFaultCurveInfo(connection, eventID).Select(ToFlotSeries))
                 .ToList();
         }
@@ -179,6 +228,8 @@ public class signalService : System.Web.Services.WebService {
     {
         return new FlotSeries()
         {
+            FlotType = FlotSeriesType.Waveform,
+            SeriesID = series.ID,
             ChannelName = series.Channel.Name,
             ChannelDescription = series.Channel.Description,
             MeasurementType = series.Channel.MeasurementType.Name,
@@ -192,6 +243,7 @@ public class signalService : System.Web.Services.WebService {
     {
         return new FlotSeries()
         {
+            FlotType = FlotSeriesType.Fault,
             ChannelName = faultLocationAlgorithm,
             ChannelDescription = faultLocationAlgorithm,
             MeasurementType = "Distance",
@@ -218,8 +270,7 @@ public class signalService : System.Web.Services.WebService {
             MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
             Meter meter = meterInfo.Meters.First(m => m.ID == eventRow.MeterID);
 
-            List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
-            List<string> faultCurveInfo = GetFaultCurveInfo(connection, eventID);
+            List<FlotSeries> flotInfo = GetFlotInfo(eventID);
             DateTime epoch = new DateTime(1970, 1, 1);
 
             Lazy<Dictionary<int, DataSeries>> waveformData = new Lazy<Dictionary<int, DataSeries>>(() =>
@@ -246,42 +297,35 @@ public class signalService : System.Web.Services.WebService {
             foreach (int index in seriesIndexes)
             {
                 DataSeries dataSeries = null;
-                FlotSeries flotSeries = null;
+                FlotSeries flotSeries;
 
-                int waveformIndex = index;
-                int cycleIndex = waveformIndex - waveformInfo.Count;
-                int faultCurveIndex = cycleIndex - CycleDataInfo.Count;
+                if (index >= flotInfo.Count)
+                    continue;
 
-                if (waveformIndex < waveformInfo.Count)
+                flotSeries = flotInfo[index];
+
+                if (flotSeries.FlotType == FlotSeriesType.Waveform)
                 {
-                    if (!waveformData.Value.TryGetValue(waveformInfo[index].ID, out dataSeries))
+                    if (!waveformData.Value.TryGetValue(flotSeries.SeriesID, out dataSeries))
                         continue;
-
-                    flotSeries = ToFlotSeries(waveformInfo[index]);
                 }
-                else if (cycleIndex < CycleDataInfo.Count)
+                else if (flotSeries.FlotType == FlotSeriesType.Cycle)
                 {
-                    if (cycleIndex >= cycleData.Value.DataSeries.Count)
+                    dataSeries = cycleData.Value.DataSeries
+                        .Where(series => series.SeriesInfo.Channel.MeasurementType.Name == flotSeries.MeasurementType)
+                        .Where(series => series.SeriesInfo.Channel.Phase.Name == flotSeries.Phase)
+                        .Skip(flotSeries.SeriesID)
+                        .FirstOrDefault();
+
+                    if ((object)dataSeries == null)
                         continue;
-
-                    dataSeries = cycleData.Value[cycleIndex];
-
-                    flotSeries = new FlotSeries()
-                    {
-                        MeasurementType = CycleDataInfo[cycleIndex].MeasurementType,
-                        MeasurementCharacteristic = CycleDataInfo[cycleIndex].MeasurementCharacteristic,
-                        Phase = CycleDataInfo[cycleIndex].Phase,
-                        SeriesType = CycleDataInfo[cycleIndex].SeriesType
-                    };
                 }
-                else if (faultCurveIndex < faultCurveInfo.Count)
+                else if (flotSeries.FlotType == FlotSeriesType.Fault)
                 {
-                    string algorithm = faultCurveInfo[faultCurveIndex];
+                    string algorithm = flotSeries.ChannelName;
 
                     if (!faultCurveData.Value.TryGetValue(algorithm, out dataSeries))
                         continue;
-
-                    flotSeries = ToFlotSeries(faultCurveInfo[faultCurveIndex]);
                 }
                 else
                 {

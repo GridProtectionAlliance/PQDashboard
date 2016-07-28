@@ -54,10 +54,14 @@ var phasorData = [];
 var colorVAN = '#A30000';
 var colorVBN = '#0029A3';
 var colorVCN = '#007A29';
+var colorVAB = '#A3007A';
+var colorVBC = '#007AA3';
+var colorVCA = '#7AA300';
 
 var colorIAN = '#FF0000';
 var colorIBN = '#0066CC';
 var colorICN = '#33CC33';
+var colorIR = '#A3A3A3';
 
 var colorBrown = '#996633';
 var colorGray = '#333300';
@@ -503,6 +507,13 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                 else
                     series.visible = false;
 
+                if (series.Phase == "AB")
+                    series.flotSeries.color = colorVAB;
+                else if (series.Phase == "BC")
+                    series.flotSeries.color = colorVBC;
+                else if (series.Phase == "CA")
+                    series.flotSeries.color = colorVCA;
+
                 series.checked = series.visible;
 
                 plotDataList[plotIndex].push(series);
@@ -553,6 +564,15 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     series.flotSeries.color = colorICN;
                 else
                     series.visible = false;
+
+                if (series.Phase == "AB")
+                    series.flotSeries.color = colorIAB;
+                else if (series.Phase == "BC")
+                    series.flotSeries.color = colorIBC;
+                else if (series.Phase == "CA")
+                    series.flotSeries.color = colorICA;
+                else if (series.Phase == "RES")
+                    series.flotSeries.color = colorIR;
 
                 series.checked = series.visible;
 
@@ -630,6 +650,39 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                 series.checked = series.visible;
 
                 plotDataList[plotIndex].push(series);
+            });
+
+            $.each(plotDataList, function (_, plotData) {
+                var anyVisible = false;
+
+                $.each(plotData, function (_, series) {
+                    anyVisible = series.visible;
+
+                    if (anyVisible)
+                        return false;
+                });
+
+                if (!anyVisible) {
+                    $.each(plotData, function (_, series) {
+                        if (series.MeasurementCharacteristic != "Instantaneous")
+                            return;
+                        
+                        series.visible =
+                            series.Phase == "AB" ||
+                            series.Phase == "BC" ||
+                            series.Phase == "CA";
+
+                        series.checked = series.visible;
+                        anyVisible = anyVisible || series.visible;
+                    });
+                }
+
+                if (!anyVisible) {
+                    $.each(plotData, function (_, series) {
+                        series.visible = true;
+                        series.checked = true;
+                    });
+                }
             });
 
             $.each(data.d, function (_, series) {

@@ -356,7 +356,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                                 if (Math.abs(alarmPageY - pos.pageY) < 10) {
                                     item = {
                                         series: alarmSeries,
-                                        datapoint: alarmLimit,
+                                        datapoint: [pos.x, alarmLimit[1]],
                                         pageX: alarmPageX,
                                         pageY: alarmPageY
                                     };
@@ -366,13 +366,13 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     }
 
                     if (item) {
-                        var html = '<div>'+new Date(item.datapoint[0]).toLocaleTimeString()+'</div>';
+                        var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
+                        var html = '<div>'+time+'</div>';
                         html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
                         $("#tooltip").html(html)
                             .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid '+item.series.color })
                             .fadeIn(200);
                     } else {
-
                         $("#tooltip").hide();
                     }
 
