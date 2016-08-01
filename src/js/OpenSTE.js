@@ -240,7 +240,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                 }
 
                 var errorBars = {
-                    show: true,
+                    show: false,
                     errorbars: "y",
                     lineWidth: 0.5,
                     radius: 0.5,
@@ -304,7 +304,7 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     },
                     yaxis: {
                         zoomRange: false /*[0.5, yMax+1]*/,
-                        panRange: [yMin-1,yMax+1],
+                        panRange: [yMin - (yMax - yMin) * .33, yMax + (yMax - yMin) * .33],
                     },
                     yaxes: [
                     {show: false},
@@ -375,8 +375,8 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     });
                     $.each(plot.getYAxes(), function (_, axis) {
                         var opts = axis.options;
-                        opts.min = yMin - yMin*.50;
-                        opts.max = yMax + yMax*.20;
+                        opts.min = yMin - (yMax - yMin)*.33;
+                        opts.max = yMax + (yMax - yMin) * .33;
                     });
                     plot.setupGrid();
                     plot.draw();
@@ -506,8 +506,8 @@ var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0
                     });
                     $.each(plot.getYAxes(), function (_, axis) {
                         var opts = axis.options;
-                        opts.min = yMin - yMin * .50;
-                        opts.max = yMax + yMax * .20;
+                        opts.min = yMin - (yMax - yMin) * .33;
+                        opts.max = yMax + (yMax - yMin) * .33;
                     });
 
 
