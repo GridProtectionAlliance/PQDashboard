@@ -1747,6 +1747,29 @@ public class eventService : System.Web.Services.WebService {
         return dateTime.AddTicks(halfIntervelTicks - ((dateTime.Ticks + halfIntervelTicks) % interval.Ticks));
     }
 
+    public class TrendingDataSet
+    {
+        public TrendingDataPoint[] ChannelData;
+        public TrendingAlarmLimit[] AlarmLimits;
+        public TrendingAlarmLimit[] OffNormalLimits;
+    }
+
+    public class TrendingDataPoint
+    {
+        public double Time;
+        public double Maximum;
+        public double Minimum;
+        public double Average;
+    }
+
+    public class TrendingAlarmLimit
+    {
+        public double TimeStart;
+        public double TimeEnd;
+        public double? High;
+        public double? Low;
+    }
+
     /// <summary>
     /// getTrendsforChannelIDDate
     /// </summary>
@@ -1754,121 +1777,61 @@ public class eventService : System.Web.Services.WebService {
     /// <param name="targetDate"></param>
     /// <returns></returns>
     [WebMethod]
-    public eventSet getTrendsforChannelIDDate(string ChannelID, string targetDate)
+    public TrendingDataSet getTrendsforChannelIDDate(string ChannelID, string targetDate)
     {
+        DateTime epoch = new DateTime(1970, 1, 1);
+        string theSproc = "dbo.selectTrendingDataByChannelIDDate2";
+        DataSet dataSet = new DataSet();
+        TrendingDataSet trendingDataSet = new TrendingDataSet();
 
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        eventSet theset = new eventSet();
-        String theSproc = "dbo.selectTrendingDataByChannelIDDate";
-
-        List<string> thedates = new List<string>();
-        List<double> minimum = new List<double>();
-        List<double> maximum = new List<double>();
-        List<double> average = new List<double>();
-
-        List<double> alarmlimithigh = new List<double>();
-        List<double> alarmlimitlow = new List<double>();
-        List<double> offlimithigh = new List<double>();
-        List<double> offlimitlow = new List<double>();
-
-        try
+        using (SqlConnection connection = new SqlConnection(connectionstring))
+        using (SqlCommand command = connection.CreateCommand())
+        using (SqlDataAdapter adapter = new SqlDataAdapter(command))
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand(theSproc, conn);
-            cmd.CommandType = CommandType.StoredProcedure;
+            command.CommandText = theSproc;
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@EventDate", targetDate);
+            command.Parameters.AddWithValue("@ChannelID", ChannelID);
+            command.CommandTimeout = 300;
 
-            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
-            cmd.Parameters.Add(new SqlParameter("@ChannelID", ChannelID));
-            cmd.CommandTimeout = 300;
+            connection.Open();
+            adapter.Fill(dataSet);
 
-            rdr = cmd.ExecuteReader();
-            //int i = 0;
-            while (rdr.Read())
-            {
+            trendingDataSet.ChannelData = dataSet.Tables[0].Rows
+                .Cast<DataRow>()
+                .Select(row => new TrendingDataPoint()
+                {
+                    Time = row.Field<DateTime>("thedate").Subtract(epoch).TotalMilliseconds,
+                    Maximum = row.Field<double>("themaximum"),
+                    Minimum = row.Field<double>("theminimum"),
+                    Average = row.Field<double>("theaverage")
+                })
+                .ToArray();
 
-                DateTime thetime = Round((DateTime)rdr["thedate"],new TimeSpan(0,0,1));
-                thedates.Add(thetime.ToString());
+            trendingDataSet.AlarmLimits = dataSet.Tables[1].Rows
+                .Cast<DataRow>()
+                .Select(row => new TrendingAlarmLimit()
+                {
+                    TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
+                    TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
+                    High = row.Field<double?>("alarmlimithigh"),
+                    Low = row.Field<double?>("alarmlimitlow")
+                })
+                .ToArray();
 
-                minimum.Add((double)rdr["theminimum"]);
-                maximum.Add((double)rdr["themaximum"]);
-                average.Add((double)rdr["theaverage"]);
-                alarmlimithigh.Add((double)rdr["alarmlimithigh"]);
-
-                //if (rdr["alarmlimitlow"] == DBNull.Value)
-                //{
-                //    int i = 0;
-                //}
-                //else
-                //{
-                    alarmlimitlow.Add((double)rdr["alarmlimitlow"]);
-                //}
-
-                offlimithigh.Add((double)rdr["offlimithigh"]);
-                offlimitlow.Add((double)rdr["offlimitlow"]);
-                //i++;
-
-                //if (i > 999) break;
-            }
-
-        }
-        catch (Exception e)
-        {
-            return (null);
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
+            trendingDataSet.OffNormalLimits = dataSet.Tables[2].Rows
+                .Cast<DataRow>()
+                .Select(row => new TrendingAlarmLimit()
+                {
+                    TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
+                    TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
+                    High = row.Field<double?>("offlimithigh"),
+                    Low = row.Field<double?>("offlimitlow")
+                })
+                .ToArray();
         }
 
-        theset.xAxis = thedates.ToArray();
-
-        theset.data = new eventDetail[7];
-
-        theset.data[0] = new eventDetail();
-        theset.data[0].name = "Alarm Limit High";
-        theset.data[0].type = "line";
-        theset.data[0].data = alarmlimithigh.ToArray();
-
-        theset.data[1] = new eventDetail();
-        theset.data[1].name = "Off Normal High";
-        theset.data[1].type = "line";
-        theset.data[1].data = offlimithigh.ToArray();
-
-        theset.data[2] = new eventDetail();
-        theset.data[2].name = "Max";
-        theset.data[2].type = "errorbar"; 
-        theset.data[2].data = maximum.ToArray();
-
-        theset.data[3] = new eventDetail();
-        theset.data[3].name = "Average";
-        theset.data[3].type = "line"; 
-        theset.data[3].data = average.ToArray();
-        
-        theset.data[4] = new eventDetail();
-        theset.data[4].name = "Min";
-        theset.data[4].type = "line"; 
-        theset.data[4].data = minimum.ToArray();
-        
-        theset.data[5] = new eventDetail();
-        theset.data[5].name = "Off Normal Low";
-        theset.data[5].type = "line"; 
-        theset.data[5].data = offlimitlow.ToArray();
-
-        theset.data[6] = new eventDetail();
-        theset.data[6].name = "Alarm Limit Low";
-        theset.data[6].type = "line";
-        theset.data[6].data = alarmlimitlow.ToArray();
-
-        return (theset);
+        return trendingDataSet;
     }
 
     /// <summary>
