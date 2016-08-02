@@ -286,12 +286,6 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
-            // DEBUG --
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // DEBUG --
-
-
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsEvents", conn);
@@ -304,12 +298,6 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
 
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
-
-
             while (rdr.Read())
             {
                 locationStatus ourStatus = new locationStatus();
@@ -321,10 +309,6 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["id"];
                 locationStates.Add(ourStatus);
             }
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
         }
         finally
         {
@@ -358,12 +342,6 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
-            // DEBUG --
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // DEBUG --
-
-
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsEvents", conn);
@@ -375,12 +353,6 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
-
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
-
 
             while (rdr.Read())
             {
@@ -413,10 +385,6 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["id"];
                 locationStates.Add(ourStatus);
             }
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
         }
         finally
         {
@@ -450,12 +418,6 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
-            // DEBUG --
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // DEBUG --
-
-
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsDisturbances", conn);
@@ -468,12 +430,6 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
 
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
-
-
             while (rdr.Read())
             {
                 locationStatus ourStatus = new locationStatus();
@@ -485,10 +441,6 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["id"];
                 locationStates.Add(ourStatus);
             }
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
         }
         finally
         {
@@ -522,12 +474,6 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
-            // DEBUG --
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // DEBUG --
-
-
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsDisturbances", conn);
@@ -539,12 +485,6 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
-
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
-
 
             while (rdr.Read())
             {
@@ -567,10 +507,6 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["id"];
                 locationStates.Add(ourStatus);
             }
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
         }
         finally
         {
@@ -866,12 +802,6 @@ public class mapService : System.Web.Services.WebService
 
         try
         {
-            // DEBUG --
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // DEBUG --
-
-
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrending", conn);
@@ -883,12 +813,6 @@ public class mapService : System.Web.Services.WebService
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
-
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
-
 
             while (rdr.Read())
             {
@@ -911,10 +835,6 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.id = (int)rdr["ID"];
                 locationStates.Add(ourStatus);
             }
-
-            // DEBUG --
-            Debug.WriteLine(stopwatch.Elapsed);
-            // DEBUG --
         }
         finally
         {
