@@ -715,7 +715,10 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
             foreach (DataSeries theseries in faultCurves)
             {
                 int datacount = theseries.DataPoints.Count();
-                theset.xAxis = new string[datacount];
+
+                if (theset.xAxis == null)
+                    theset.xAxis = new string[datacount];
+
                 //theset.data[i] = new signalDetail();
                 signalDetail theitem = new signalDetail();
 
@@ -726,13 +729,18 @@ public eventSet getSignalDataByIDAndType(string EventInstanceID, String DataType
 
                 int j = 0;
                 DateTime beginticks = theseries.DataPoints[0].Time;
-                foreach (FaultData.DataAnalysis.DataPoint thepoint in theseries.DataPoints)
+
+                foreach (DataPoint thepoint in theseries.DataPoints)
                 {
                     double elapsed = thepoint.Time.Subtract(beginticks).TotalSeconds;
-                    theset.xAxis[j] = elapsed.ToString();
+
+                    if (theset.xAxis[j] == null)
+                        theset.xAxis[j] = elapsed.ToString();
+
                     theitem.data[j] = thepoint.Value;
                     j++;
                 }
+
                 i++;
                 theset.data.Add(theitem);
             }
