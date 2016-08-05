@@ -65,6 +65,30 @@ public class eventService : System.Web.Services.WebService {
         public List<int> data;
     }
 
+    public class eventSummarySiteNullDoubles
+    {
+        public string siteName;
+        public string siteID;
+        public List<double?> data;
+    }
+
+    public class TrendingData
+    {
+        public string Date;
+        public double Minimum;
+        public double Maximum;
+        public double Average;
+    }
+
+    public class SiteTrendingData
+    {
+        public int siteID;
+        public string siteName;
+        public double? Minimum;
+        public double? Maximum;
+        public double? Average;
+    }
+
     public eventService ()
     {
         //Uncomment the following line if using designed components 
@@ -1026,6 +1050,69 @@ public class eventService : System.Web.Services.WebService {
     }
 
     /// <summary>
+    /// getTrendingDataForPeriod
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public List<TrendingData> getTrendingDataForPeriod(string siteID, string measurementType,string targetDateFrom, string targetDateTo, string userName)
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<TrendingData> theset = new List<TrendingData>();
+        DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectTrendingDataByChannelByDate" + measurementType, conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@StartDate", thedatefrom));
+            cmd.Parameters.Add(new SqlParameter("@EndDate", thedateto));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+            if (rdr.HasRows)
+            {
+
+                while (rdr.Read())
+                {
+                    TrendingData td = new TrendingData();
+                    td.Date = Convert.ToString(rdr["Date"]);
+                    td.Maximum = Convert.ToDouble(rdr["Maximum"]);
+                    td.Minimum = Convert.ToDouble(rdr["Minimum"]);
+                    td.Average = Convert.ToDouble(rdr["Average"]);
+
+                    theset.Add(td);
+                }
+            }
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        return (theset);
+    }
+
+
+    /// <summary>
     /// getFaultsForPeriod
     /// </summary>
     /// <param name="siteID"></param>
@@ -1691,7 +1778,7 @@ public class eventService : System.Web.Services.WebService {
     }
 
     /// <summary>
-    /// getTrendingDetailsForSites
+    /// getDetailsForSitesTrending
     /// </summary>
     /// <param name="siteID"></param>
     /// <param name="targetDate"></param>
@@ -1710,6 +1797,57 @@ public class eventService : System.Web.Services.WebService {
             conn = new SqlConnection(connectionstring);
             conn.Open();
             SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDetailsByDate", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+            rdr = cmd.ExecuteReader();
+            DataTable dt = new DataTable();
+            dt.Load(rdr);
+            thedata = DataTable2JSON(dt);
+            dt.Dispose();
+        }
+        catch (Exception e)
+        {
+            int i = 0;
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        return thedata;
+    }
+
+    /// <summary>
+    /// getDetailsForSitesTrendingData
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="measurementType"></param>
+    /// <param name="targetDate"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public String getDetailsForSitesTrendingData(string siteID, string measurementType, string targetDate, string userName)
+    {
+
+        String thedata = "";
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDataDetailsByDate" + measurementType, conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
             cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
@@ -2310,6 +2448,64 @@ public class eventService : System.Web.Services.WebService {
                 currentEventSummary.data = new List<int>();
                 currentEventSummary.data.Add((int)rdr["alarm"]);
                 currentEventSummary.data.Add((int)rdr["offnormal"]);
+                theEventSummary.Add(currentEventSummary);
+            }
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+        return (theEventSummary);
+    }
+
+    /// <summary>
+    /// getSitesStatusTrendingData
+    /// </summary>
+    /// <param name="siteID"></param>
+    /// <param name="measurementType"></param>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public List<eventSummarySiteNullDoubles> getSitesStatusTrendingData(string siteID, string measurementType, string targetDateFrom, string targetDateTo, string userName)
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<eventSummarySiteNullDoubles> theEventSummary = new List<eventSummarySiteNullDoubles>();
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectTrendingDataForMeterIDsByDate" + measurementType, conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@StartDate", targetDateFrom));
+            cmd.Parameters.Add(new SqlParameter("@EndDate", targetDateTo));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+
+            int classcount = 0;
+            while (rdr.Read())
+            {
+                eventSummarySiteNullDoubles currentEventSummary = new eventSummarySiteNullDoubles();
+                currentEventSummary.siteID = ((int)rdr["ID"]).ToString();
+                currentEventSummary.siteName = (string)rdr["Name"];
+                currentEventSummary.data = new List<double?>();
+                currentEventSummary.data.Add(rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?) null : Convert.ToDouble(rdr["Maximum"]));
+                currentEventSummary.data.Add(rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : Convert.ToDouble(rdr["Minimum"]));
+                currentEventSummary.data.Add(rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : Convert.ToDouble(rdr["Average"]));
+
                 theEventSummary.Add(currentEventSummary);
             }
         }

@@ -50,6 +50,7 @@ var cache_Map_Matrix_Data_Date_To = null;
 
 // Billy's cached data
 var cache_Graph_Data = null;
+var cache_ErrorBar_data = null;
 var cache_Table_Data = null;
 var brush = null;
 var cache_Last_Date = null;
@@ -150,17 +151,19 @@ function loadDataForDate() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectmapgrid(thecontrol) {
-    if (thecontrol.selectedIndex > 0) {
+    if (thecontrol.selectedIndex === 1) {
         $("#theMatrix" + currentTab).show();
         $("#theMap" + currentTab).hide();
+
         if (cache_Map_Matrix_Data != null) {
             plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else {
+    } else if (currentTab !== "TrendingData" && thecontrol.selectedIndex === 0) {
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
+
         var map = getMapInstance(currentTab);
         if (map == null) {
             createMap(currentTab);
@@ -169,6 +172,20 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
+    } else if (currentTab === "TrendingData" && thecontrol.selectedIndex === 0) {
+        $("#theMap" + currentTab).show();
+        $("#theMatrix" + currentTab).hide();
+        loadLeafletMap('theMap' + currentTab);
+        //$('#theContourMap' + currentTab).height($(document))
+        //var map = getMapInstance(currentTab);
+        //if (map == null) {
+        //    createMap(currentTab);
+        //} else {
+        //    google.maps.event.trigger(map, 'resize');
+        //    $.sparkline_display_visible();
+        //    showSiteSet($("#selectSiteSet" + currentTab)[0]);
+        //}
+
     }
 }
 
@@ -345,7 +362,7 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
+    var thedatasent = "{'siteID':'" + siteID + "'"+ (currentTab === "TrendingData"? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'": "")+ ", 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
     //console.log(thedatasent);
     $.ajax({
         type: "POST",
@@ -358,15 +375,20 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var json = $.parseJSON(data.d)
             cache_Table_Data = json;
 
-            var filterString = [];
-            var leg = d3.selectAll('.legend');
+            //if (currentTab === "TrendingData") {
+            //    window["populate" + currentTab + "DivWithGrid"](json, null);
+            //} else {
 
-            $.each(leg[0], function (i, d) {
-                if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
-                    filterString.push($(d).children('text').text());
-            });
+                var filterString = [];
+                var leg = d3.selectAll('.legend');
 
-            window["populate" + currentTab + "DivWithGrid"](json, filterString);
+                $.each(leg[0], function (i, d) {
+                    if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                        filterString.push($(d).children('text').text());
+                });
+                window["populate" + currentTab + "DivWithGrid"](json, filterString);
+
+            //}
         }
     });
 }
@@ -669,6 +691,33 @@ function populateTrendingDivWithGrid(data, disabledFields) {
 
 }
 
+function populateTrendingDataDivWithGrid(data, disabledFields) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+
+    $('#Detail' + currentTab + "Table").puidatatable({
+        scrollable: true,
+        scrollHeight: '100%',
+        columns: [
+            { field: 'Name', headerText: 'Name', headerStyle: 'width: 15%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+            { field: 'characteristic', headerText: 'Characterisitc', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+            { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+            { field: 'Minimum', headerText: 'Minimum', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Minimum).toFixed(4);} },
+            { field: 'Maximum', headerText: 'Maximum', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Maximum).toFixed(4); } },
+            { field: 'Average', headerText: 'Average', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Average).toFixed(4); } },
+            //{ field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+            { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); }}
+        ],
+        datasource: data
+    });
+
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -922,7 +971,12 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
 
             cache_Graph_Data = graphData;
 
-            buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
+            if (thediv === "Overview") {
+
+            } else if (thediv === "TrendingData") {
+
+            }else
+                buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
             
         },
         failure: function (msg) {
@@ -1322,6 +1376,220 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
+function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
+    //console.log("disturbances");
+    var thestartdateX = new Date(thedatefrom);
+    thestartdateX.setHours(0, 0, 0, 0);
+
+    var contextfromdateX = new Date(contextfromdate);
+    contextfromdateX.setHours(0, 0, 0, 0);
+
+    var contexttodateX = new Date(contexttodate);
+    contexttodateX.setHours(0, 0, 0, 0);
+
+    var thestartdate = new Date(Date.UTC(thestartdateX.getUTCFullYear(), thestartdateX.getUTCMonth(), thestartdateX.getUTCDate(), 0, 0, 0)).getTime();
+    var contextfromdateUTC = new Date(Date.UTC(contextfromdateX.getUTCFullYear(), contextfromdateX.getUTCMonth(), contextfromdateX.getUTCDate(), 0, 0, 0)).getTime();
+    var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
+
+
+    var thedatasent = "";
+    thedatasent = "{'siteID':'" + siteID + "', 'measurementType':'"+$('#trendingDataSelection').val()+"', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
+    //console.log(thedatasource);
+    $.ajax({
+        type: "POST",
+        url: './eventService.asmx/' + thedatasource,
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+
+            cache_ErrorBar_Data = data.d;
+
+            buildErrorBarChart(data.d, thediv, siteName, siteID, thedatefrom, thedateto);
+
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
+}
+
+function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
+    function drawCap(ctx, x, y, radius) {
+        ctx.beginPath();
+        ctx.lineTo(x + radius, y);
+        ctx.lineTo(x - radius, y);
+        ctx.stroke();
+    }
+
+    if (data == null)
+        return;
+
+    var dataPoints = {
+        show: true,
+        radius: 2
+    }
+
+    var errorBars = {
+        show: false,
+        errorbars: "y",
+        lineWidth: 0.5,
+        radius: 0.5,
+        yerr: { show: true, asymmetric: true, upperCap: drawCap, lowerCap: drawCap, shadowSize: 0, radius: 3 }
+    }
+
+    var graphData = [
+        { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Max' },
+        { color: "#90ed7d", points: dataPoints, data: [], label: 'Average', visible: true, type: 'points' },
+        { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Min' },
+        { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar' }
+    ];
+
+    $.each(data, function (_, point) {
+        var mid = (point.Maximum + point.Minimum) / 2;
+        graphData[0].data.push([new Date(point.Date + ' UTC'), point.Maximum]);
+        graphData[1].data.push([new Date(point.Date + ' UTC'), point.Average]);
+        graphData[2].data.push([new Date(point.Date + ' UTC'), point.Minimum]);
+        graphData[3].data.push([new Date(point.Date + ' UTC'), mid, mid - point.Minimum, point.Maximum - mid]);
+    });
+
+
+    //Set mins and maxes
+    var xMin = new Date(thedatefrom + ' UTC').getTime();
+    var xMax = new Date(thedateto + ' UTC').getTime();
+
+    //initiate plot
+    var plot = $.plot($('#' + thediv), graphData, {
+        legend: {
+            show: false
+        },
+        series: {
+            lines: {
+                show: false
+            }
+        },
+        xaxis: {
+            mode: "time",
+            zoomRange: [60000 * 15, xMax],
+            panRange: [xMin, xMax],
+            min: xMin,
+            max: xMax
+        },
+        yaxis: {
+            zoomRange: false /*[0.5, yMax+1]*/,
+            //panRange: [yMin-1,yMax+1],
+        },
+        zoom: {
+            interactive: true
+        },
+        pan: {
+            interactive: false
+        },
+        grid: {
+            hoverable: true,
+            clickable: true
+        },
+        selection: { mode: "x" }
+    });
+
+    $("<div id='tooltip'></div>").css({
+        position: "absolute",
+        display: "none",
+        border: "1px solid #fdd",
+        padding: "2px",
+        "background-color": "#fee",
+        opacity: 0.80
+    }).appendTo("body");
+
+    $('#' + thediv).bind("plothover", function (event, pos, item) {
+        if (item) {
+            var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
+            var html = '<div>' + time + '</div>';
+            html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
+            $("#tooltip").html(html)
+                .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid ' + item.series.color })
+                .fadeIn(200);
+        } else {
+            $("#tooltip").hide();
+        }
+
+    });
+
+    $('#' + thediv).bind("plotclick", function (event, pos, item) {
+        if (item) {
+            var thedate = getFormattedDate(new Date(item.datapoint[0]) + (new Date(item.datapoint[0]).getTimezoneOffset() * 60 * 1000));
+            manageTabsByDateForClicks(currentTab,thedate, thedate, null);
+            cache_Last_Date = thedate;
+            getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
+
+        }
+    });
+
+    $('#' + thediv).bind("plotselected", function (event, ranges) {
+        var xAxis = plot.getXAxes();
+
+        $.each(xAxis, function (_, axis) {
+            var opts = axis.options;
+            opts.min = ranges.xaxis.from;
+            opts.max = ranges.xaxis.to;
+        });
+
+        scaleYAxis(plot, ranges.xaxis.from, ranges.xaxis.to);
+        plot.clearSelection();
+    });
+
+    $('#' + thediv).bind("plotzoom", function (event, stuff) {
+        scaleYAxis(plot);
+        plot.clearSelection();
+    });
+
+    function scaleYAxis(plot, xMin, xMax) {
+        var data = plot.getData();
+        var yMin = null, yMax = null;
+
+        $.each(plot.getXAxes(), function (_, xAxis) {
+            if (!xMin)
+                xMin = xAxis.min;
+
+            if (!xMax)
+                xMax = xAxis.max;
+        });
+
+        $.each(data, function (i, d) {
+            if (d.visible === true) {
+                var isAlarmData = (i == 0) || (i == 6);
+
+                $.each(d.data, function (j, e) {
+                    if (isAlarmData || (e[0] >= xMin && e[0] <= xMax)) {
+                        var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
+                        var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
+
+                        if (yMin == null || yMin > eMin)
+                            yMin = eMin;
+                        if (yMax == null || yMax < eMax)
+                            yMax = eMax;
+                    }
+                });
+            }
+        });
+
+        $.each(plot.getYAxes(), function (_, axis) {
+            var opts = axis.options;
+            var pad = (yMax - yMin) * 0.1;
+            opts.min = yMin - pad;
+            opts.max = yMax + pad;
+        });
+
+        plot.setupGrid();
+        plot.draw();
+    }
+
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
@@ -1486,7 +1754,7 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "'"+ (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "" ) + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
     var url = "./mapService.asmx/getLocations" + currentTab;
 
     //console.log("getLocationsAndPopulateMapAndMatrix");
@@ -1517,11 +1785,15 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
+                    if (currentTab == "TrendingData")
+                        plotContourMapLocations(data, currentTab, this.datefrom, this.dateto, string);
+                    else
+                        plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
                     break;
                 case "Grid":
                     plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
                     break;
+
             }
            
         },
@@ -1538,7 +1810,7 @@ function getSitesStatus(siteID, thedatefrom, thedateto) {
 
     var datefrom = $.datepicker.formatDate("mm/dd/yy", new Date(thedatefrom));
     var dateto = $.datepicker.formatDate("mm/dd/yy", new Date(thedateto));
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "','userName':'" + postedUserName + "' }";
+    var thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "','userName':'" + postedUserName + "' }";
     var datasource = './eventService.asmx/getSitesStatus' + currentTab;
 
     $.ajax({
@@ -2004,6 +2276,43 @@ function getStatusColorForGridElement( data ) {
             }
             break;
 
+
+        case "TrendingData":
+            if ($('#trendingDataSelection').val() === "Voltage") {
+                if ($('#trendingDataTypeSelection').val() === "Average") {
+                    if (data[2] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
+                    if (data[1] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
+                    if (data[0] !== null) return ("#0E892C");
+                }
+            }
+            else if ($('#trendingDataSelection').val() === "Current") {
+                if ($('#trendingDataTypeSelection').val() === "Average") {
+                    if (data[2] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
+                    if (data[1] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
+                    if (data[0] !== null) return ("#0E892C");
+                }
+            }
+            else if ($('#trendingDataSelection').val() === "Power") {
+                if ($('#trendingDataTypeSelection').val() === "Average") {
+                    if (data[2] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
+                    if (data[1] !== null) return ("#0E892C");
+                }
+                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
+                    if (data[0] !== null) return ("#0E892C");
+                }
+            }
+
+            break;
         case "Faults":
             if (data[0] == 0) {
                 return ("#0E892C");
@@ -2891,6 +3200,10 @@ function showSiteSet(thecontrol) {
 
         }
     }
+
+    if (mapormatrix == "Values") {
+
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3058,6 +3371,10 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
     showSiteSet($("#selectSiteSet" + currentTab)[0]);
 };
 
+function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
+
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function highlightDaysInCalendar(date) {
@@ -3128,6 +3445,10 @@ function ManageLocationClick(siteName, siteID) {
 
             break;
 
+        case "TrendingData":
+            populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+
+            break;
         case "Breakers":
             populateDivWithBarChart('getBreakersForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
 
@@ -3228,8 +3549,14 @@ function resizeDocklet( theparent , chartheight ) {
     var firstChild = $("#" + theparent[0].firstElementChild.id);
 
     firstChild.css("height", chartheight);
-    if ($('#Overview' + currentTab).children().length > 0)
-        buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+    if (currentTab === "TrendingData") {
+        if ($('#Overview' + currentTab).children().length > 0)
+            buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+    }
+    else {
+        if ($('#Overview' + currentTab).children().length > 0)
+            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+    }
 
 
     //console.log($('#Detail' + currentTab + 'Table').children());
@@ -3250,6 +3577,8 @@ function resizeMapAndMatrix(newTab) {
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 30;
 
     $("#theMap" + newTab).css("height", columnheight);
+    $("#theContourMap" + newTab).css("height", columnheight);
+
     $("#theMatrix" + newTab).css("height", columnheight);
 
     var theuncollapsedcount = $("#Portlet1" + currentTab).closest(".column").children().children().find('.ui-icon-minusthick').length;
@@ -3983,10 +4312,14 @@ function buildPage() {
         activate: function (event, ui) {
             stopAnimatedHeatmap();
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
-            var mapormatrix = $("#mapGrid")[0].value;
-            manageTabsByDate(newTab, contextfromdate, contexttodate);
-            $("#mapGrid")[0].value = mapormatrix;
-            selectmapgrid($("#mapGrid")[0]);
+            if (newTab === "Overview")
+                showOverviewPage();
+            else {
+                var mapormatrix = $("#mapGrid")[0].value;
+                manageTabsByDate(newTab, contextfromdate, contexttodate);
+                $("#mapGrid")[0].value = mapormatrix;
+                selectmapgrid($("#mapGrid")[0]);
+            }
 
             
         }
@@ -4320,4 +4653,70 @@ function stopAnimatedHeatmap() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadLeafletMap(theDiv) {
+
+    var map = L.map(theDiv).setView([0, 0], 13);
+    mapLink =
+        '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+    L.tileLayer(
+        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+        }).addTo(map);
+    
+    
+    // Add an SVG element to Leaflet’s overlay pane
+    var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+     g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+    //d3.json("rectangle.json", function (geoShape) {
+
+    //    //  create a d3.geo.path to convert GeoJSON to SVG
+    //    var transform = d3.geo.transform({ point: projectPoint }),
+    //              path = d3.geo.path().projection(transform);
+
+    //    // create path elements for each of the features
+    //    d3_features = g.selectAll("path")
+    //     .data(geoShape.features)
+    //     .enter().append("path");
+
+    //    map.on("viewreset", reset);
+
+    //    reset();
+
+    //    // fit the SVG element to leaflet's map layer
+    //    function reset() {
+
+    //        bounds = path.bounds(geoShape);
+
+    //        var topLeft = bounds[0],
+    //         bottomRight = bounds[1];
+
+    //        svg.attr("width", bottomRight[0] - topLeft[0])
+    //         .attr("height", bottomRight[1] - topLeft[1])
+    //         .style("left", topLeft[0] + "px")
+    //         .style("top", topLeft[1] + "px");
+
+    //        g.attr("transform", "translate(" + -topLeft[0] + ","
+    //                                          + -topLeft[1] + ")");
+
+    //        // initialize the path data 
+    //        d3_features.attr("d", path)
+    //         .style("fill-opacity", 0.7)
+    //         .attr('fill', 'blue');
+    //    }
+
+    //    // Use Leaflet to implement a D3 geometric transformation.
+    //    function projectPoint(x, y) {
+    //        var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+    //        this.stream.point(point.x, point.y);
+    //    }
+
+    //})
+}
+
+function showOverviewPage() {
+
+}
 /// EOF

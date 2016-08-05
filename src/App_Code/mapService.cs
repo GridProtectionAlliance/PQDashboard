@@ -65,6 +65,17 @@ public class mapService : System.Web.Services.WebService
         public siteGeocoordinates location;
         public string datetime;
     }
+
+    public class TrendingDataLocations
+    {
+        public int id;
+        public string name;
+        public double Latitude;
+        public double Longitude;
+        public double? Average;
+        public double? Maximum;
+        public double? Minimum;
+    }
     private enum eventFilter
     {
         Other = 1,
@@ -768,6 +779,63 @@ public class mapService : System.Web.Services.WebService
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["AlarmCount"];
                 ourStatus.id = (int)rdr["id"];
+                locationStates.Add(ourStatus);
+            }
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+        return (locationStates);
+    }
+
+
+    /// <summary>
+    /// getLocationsTrendingData 
+    /// </summary>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="measurementType"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public List<TrendingDataLocations> getLocationsTrendingData(string targetDateFrom, string measurementType,  string targetDateTo, string userName)
+    {
+
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<TrendingDataLocations> locationStates = new List<TrendingDataLocations> { };
+        
+       
+
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingData" + measurementType, conn);
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 300;
+            rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                TrendingDataLocations ourStatus = new TrendingDataLocations();
+                ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.Longitude = (double)rdr["Longitude"];
+                ourStatus.name = (String)rdr["Name"];
+                ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?) null:(double)rdr["Average"]);
+                ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
+                ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
+                ourStatus.id = (int)rdr["ID"];
                 locationStates.Add(ourStatus);
             }
         }

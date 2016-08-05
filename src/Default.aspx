@@ -47,6 +47,7 @@
     <link rel="stylesheet" href="./css/jquery.multiselect.filter.css"/> 
     <link rel="stylesheet" href="./css/Default_Google.css" type="text/css" />
     <link rel="stylesheet" href="./css/bootstrap-multiselect.css"/>
+    <link rel="stylesheet" type="text/css" href="js/Leaflet/leaflet.css"/>
 
     <script type="text/javascript" src="./js/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="./js/jquery-ui.js"></script>
@@ -77,6 +78,14 @@
     <script src="https://d3js.org/d3-path.v1.min.js"></script>
     <script src="https://d3js.org/d3-shape.v1.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <script type="text/javascript" src="js/Leaflet/leaflet.js"></script>
+  	<script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
+	<script type="text/javascript" src="./js/flot/jquery.flot.errorbars.js"></script>
+	<script type="text/javascript" src="./js/flot/jquery.flot.navigate.js"></script>
+  	<script type="text/javascript" src="./js/flot/jquery.flot.resize.js"></script>
+  	<script type="text/javascript" src="./js/flot/jquery.flot.time.js"></script>
+   	<script type="text/javascript" src="./js/flot/jquery.flot.selection.js"></script>
+
   
 </head>
     
@@ -137,14 +146,19 @@
 
             <div id="application-tabs" class="noselect" >
                 <ul>
+<%--                    <li id="tabsOverview"><a href="#tabs-Overview">Overview</a></li>--%>
                     <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
                     <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
                     <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
+                    <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
                     <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
                     <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
                     <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
                     <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
                 </ul>
+<%--                <div  id="tabs-Overview">
+                </div>--%>
+
                 <div  id="tabs-Events">
                     <div  id="column_1" class="column resizeable">
                         <div  class="portlet" id="Portlet1Events">
@@ -307,6 +321,74 @@
                             <div  id="MapMatrixTrending" class="portlet-content portlet-header-text">
                                 <div  class="theMapStyle" id="theMapTrending"></div>
                                 <div  class="theMatrixStyle noselect" id="theMatrixTrending"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div  id="tabs-TrendingData">
+                    <div  id="column_5" class="column resizeable">
+                        <div  class="portlet" id="Portlet1TrendingData">
+                            <div  class="portlet-header"><div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
+                                <select class="smallbutton" style="float:right; margin-right: 18px; height: 17px; font-size: 12px"id="trendingDataSelection">
+                                    <option value="Voltage">Voltage</option>
+                                    <option value="Current">Current</option>
+                                    <option value="Power">Power</option>
+                                </select>
+                            </div>
+                            <div  id="DockOverviewTrendingData" class="portlet-content">
+                                <div  id="OverviewTrendingData" class="docklet">
+                                </div>
+                            </div>
+                        </div>
+                        <div  class="portlet" id="Portlet2TrendingData">
+                            <div  class="portlet-header">
+                                <div  class="portlet-header-text" style="display: inline">
+                                    Trending Data Detail for
+                                    <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
+                                    &nbsp;(24 Hours)
+                                    <%--<div style="height: 18px; display: block; float: right; margin-right: 30px; margin-top: 5px;"><input type="image" src="./images/fileexport.png" id="excelExportTrending" title="Export To Excel"/></div>--%>
+                                </div>
+                            </div>
+                            <div  id="DockDetailTrendingData" class="portlet-content">
+                                <div  id="DetailTrendingData" class="docklet">
+                                    <div id="DetailTrendingDataTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div  id="column_6" class="column">
+                        <div  class="portlet">
+                            <div  class="portlet-header portlet-header-text">
+                                <div class="header-container">
+                                    <div class="siteselectdropdown" style="position: absolute;">
+                                        <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
+                                            <option value="All">All Sites</option>
+                                            <option value="Events">Events</option>
+                                            <option value="NoEvents">No Events</option>
+                                            <option value="SelectedSites">Selected Sites</option>
+                                            <option value="None">None</option>
+                                        </select>
+                                        <select class="smallbutton" id="trendingDataTypeSelection">
+                                            <option value="Average">Average</option>
+                                            <option value="Maximum">Maximum</option>
+                                            <option value="Minimum">Minimum</option>
+                                        </select>
+                                    </div>
+                                    <div class="overlaydate">
+                                        <center>
+                                            <div id="mapHeaderTrendingDataFrom" class="mapheader noselect" ></div>
+                                            <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
+                                            <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
+                                        </center>
+                                    </div>
+                                    
+                                    
+                                </div>
+                            </div>
+                            <div  id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
+                                <div  class="theMapStyle" id="theMapTrendingData"></div>
+                                <div  class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
                             </div>
                         </div>
                     </div>
