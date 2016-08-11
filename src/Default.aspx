@@ -377,7 +377,7 @@
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
                                         </select>
-                                        <select class="smallbutton" id="trendingDataTypeSelection">
+                                        <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this)">
                                             <option value="Average">Average</option>
                                             <option value="Maximum">Maximum</option>
                                             <option value="Minimum">Minimum</option>

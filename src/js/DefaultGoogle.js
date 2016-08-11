@@ -177,7 +177,13 @@ function selectmapgrid(thecontrol) {
     } else if (currentTab === "TrendingData" && thecontrol.selectedIndex === 0) {
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
-        loadLeafletMap( 'theMap' + currentTab);
+        if (contourMap == null) {
+            loadLeafletMap('theMap' + currentTab);
+            loadDataForDate();
+        }
+
+        showSiteSet($("#selectSiteSet" + currentTab)[0]);
+        
         //$('#theContourMap' + currentTab).height($(document))
         //var map = getMapInstance(currentTab);
         //if (map == null) {
@@ -4898,6 +4904,10 @@ function loadLeafletMap( theDiv) {
 
         //L.svg().addTo(contourMap);
     }
+}
+
+function showType(thecontrol) {
+    loadDataForDate();
 }
 
 function showOverviewPage() {
