@@ -54,6 +54,8 @@ var cache_ErrorBar_data = null;
 var cache_Table_Data = null;
 var brush = null;
 var cache_Last_Date = null;
+var contourMap = null;
+var markerGroup = null;
 
 var currentTab = null;
 
@@ -175,7 +177,7 @@ function selectmapgrid(thecontrol) {
     } else if (currentTab === "TrendingData" && thecontrol.selectedIndex === 0) {
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
-        loadLeafletMap('theMap' + currentTab);
+        loadLeafletMap( 'theMap' + currentTab);
         //$('#theContourMap' + currentTab).height($(document))
         //var map = getMapInstance(currentTab);
         //if (map == null) {
@@ -1450,10 +1452,10 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
     $.each(data, function (_, point) {
         var mid = (point.Maximum + point.Minimum) / 2;
-        graphData[0].data.push([new Date(point.Date + ' UTC'), point.Maximum]);
-        graphData[1].data.push([new Date(point.Date + ' UTC'), point.Average]);
-        graphData[2].data.push([new Date(point.Date + ' UTC'), point.Minimum]);
-        graphData[3].data.push([new Date(point.Date + ' UTC'), mid, mid - point.Minimum, point.Maximum - mid]);
+        graphData[0].data.push([new Date(point.Date + ' UTC').getTime(), point.Maximum]);
+        graphData[1].data.push([new Date(point.Date + ' UTC').getTime(), point.Average]);
+        graphData[2].data.push([new Date(point.Date + ' UTC').getTime(), point.Minimum]);
+        graphData[3].data.push([new Date(point.Date + ' UTC').getTime(), mid, mid - point.Minimum, point.Maximum - mid]);
     });
 
 
@@ -1504,6 +1506,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
         opacity: 0.80
     }).appendTo("body");
 
+    $('#' + thediv).unbind("plothover");
     $('#' + thediv).bind("plothover", function (event, pos, item) {
         if (item) {
             var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
@@ -1518,9 +1521,10 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
     });
 
+    $('#' + thediv).unbind("plotclick");
     $('#' + thediv).bind("plotclick", function (event, pos, item) {
         if (item) {
-            var thedate = getFormattedDate(new Date(item.datapoint[0]) + (new Date(item.datapoint[0]).getTimezoneOffset() * 60 * 1000));
+            var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
             cache_Last_Date = thedate;
             getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
@@ -1528,6 +1532,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
         }
     });
 
+    $('#' + thediv).unbind("plotselected");
     $('#' + thediv).bind("plotselected", function (event, ranges) {
         var xAxis = plot.getXAxes();
 
@@ -1541,6 +1546,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
         plot.clearSelection();
     });
 
+    $('#' + thediv).unbind("plotzoom");
     $('#' + thediv).bind("plotzoom", function (event, stuff) {
         scaleYAxis(plot);
         plot.clearSelection();
@@ -3373,9 +3379,182 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 
 function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
 
+    $(contourMap.getPanes().markerPane).children().remove()
+    var markers = [];
+    $.each(locationdata.d, function (index, data) {
+        var color = 'rgb(0,255,0)'; // green
+        if (data[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
+        else if (data[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
+        else if (data[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
+
+        var html = '<svg height="12" width="12">' +
+                        '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
+                   '</svg>';
+
+        var popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + data.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>Average:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Average).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "<tr><td>Minimum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Minimum).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "<tr><td>Maximum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Maximum).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+        var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
+
+        var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(contourMap).bindPopup(popup);
+
+        marker.on('click', function (event) {
+            if (!event.originalEvent.ctrlKey) {
+                $('#siteList').multiselect("uncheckAll");
+            }
+
+            if ($('#siteList').multiselect("option").multiple) {
+
+                $('#siteList').multiselect("widget").find(":checkbox").each(function () {
+                    if (this.value == data.id) {
+                        this.click();
+                    }
+
+                });
+
+                selectsitesincharts();
+
+            } else {
+                $('#siteList').multiselect("widget").find(":radio[value='" + data.id+ "']").each(function () { this.click(); });
+                $('#siteList').multiselect('refresh');
+            }
+
+        });
+
+        marker.on('mouseover', function (event) {
+            marker.openPopup();
+        });
+
+        marker.on('mouseout', function (event) {
+            marker.closePopup();
+        });
+
+        markers.push(marker);
+    });
+
+    markerGroup = new L.featureGroup(markers);
+    contourMap.fitBounds(markerGroup.getBounds());
+
+    var timeoutVal;
+    contourMap.on('boxzoomend', function (event) {
+        $('#siteList').multiselect("uncheckAll");
+
+        $.each(locationdata.d, function (index, data) {
+            if(data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat 
+                && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
+                if ($('#siteList').multiselect("option").multiple) {
+
+                    $('#siteList').multiselect("widget").find(":checkbox").each(function () {
+                        if (this.value == data.id) {
+                            this.click();
+                        }
+
+                    });
+
+                    clearTimeout(timeoutVal);
+                    timeoutVal = setTimeout(function () {
+                        selectsitesincharts();
+                    }, 500);
+
+
+                } else {
+                    $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
+                    $('#siteList').multiselect('refresh');
+                }
+
+            }
+        });
+    });
+
+    //LoadHeatmapLeaflet(locationdata.d);
+    plotContourMap(locationdata.d);
 };
 
+function plotContourMap(data) {
+    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove()
+    var color = d3.scale.linear()
+            .domain([ 0, 0.1 , 0.5, 0.7, 0.8, 1, 1.2, 2 , 3, 4, 5, 6, 7, 8, 9, 10])
+            .range(['#000000', '#3F250B', '#654321', '#B2906F', 'green', 'green', 'green', '#ff7079', '#fd5159', '#f6303e', '#dd5e0e', '#d35e0e', '#c4502f', '#bc1f52', '#7e0c6e', '#7d6991']);
+
+    zs = [0, 0.1, 0.5, 0.7, 0.8, 1, 1.2, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        
+    var plotData = { type: "FeatureCollection", features: [] };
+    $.each(data, function (index, points) {
+
+        if (true) {
+            var newPoint = {
+                geometry: {
+                    type: "Point",
+                    coordinates: [points.Latitude, points.Longitude]
+                },
+                properties: {
+                    z: (points[$('#trendingDataTypeSelection').val()] == null ? 0 : (points[$('#trendingDataTypeSelection').val()] > 10 ? 10 : points[$('#trendingDataTypeSelection').val()]))
+                },
+                type: "Feature"
+            };
+            plotData.features.push(newPoint);
+        }
+    });
+
+    var isolined = turf.isobands(plotData, 'z', 100, zs);
+    
+    $.each(isolined.features, function (index, feature) {
+        var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+
+        var polygon = L.polygon(feature.geometry.coordinates, {
+            color: '#000000',
+            fillColor: color(feature.properties.z),
+            weight: .5
+        }).addTo(contourMap).bindPopup(popup);
+
+        polygon.on('mouseover', function (event) {
+            polygon.setStyle({ 'fillOpacity': 0.5 });
+            polygon.openPopup();
+        });
+
+        polygon.on('mouseout', function (event) {
+            polygon.setStyle({ 'fillOpacity': 0.2 });
+            polygon.closePopup();
+        });
+
+    });
+
+}
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+function LoadHeatmapLeaflet(data) {
+    var cfg = {
+        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        // if scaleRadius is false it will be the constant radius used in pixels
+        "radius": 1,
+        "scaleRadius": true,
+        "maxOpacity": .5,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        // if set to false the heatmap uses the global maximum for colorization
+        // if activated: uses the data maximum within the current map boundaries 
+        //   (there will always be a red spot with useLocalExtremas true)
+        "useLocalExtrema": true,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'Latitude',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'Longitude',
+        // which field name in your data represents the data value - default "value"
+        valueField: $('#trendingDataTypeSelection').val()
+    };
+
+    var testData = { data: data };
+    var heatmapLayer = new HeatmapOverlay(cfg);
+    var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(contourMap);
+    heatmapLayer.setData(testData);
+    L.control.layers().addOverlay(heatmap, "Heatmap layer");
+}
+
 
 function highlightDaysInCalendar(date) {
     var i = -1;
@@ -4316,9 +4495,11 @@ function buildPage() {
                 showOverviewPage();
             else {
                 var mapormatrix = $("#mapGrid")[0].value;
+
                 manageTabsByDate(newTab, contextfromdate, contexttodate);
                 $("#mapGrid")[0].value = mapormatrix;
                 selectmapgrid($("#mapGrid")[0]);
+
             }
 
             
@@ -4654,66 +4835,26 @@ function stopAnimatedHeatmap() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadLeafletMap(theDiv) {
+function loadLeafletMap( theDiv) {
 
-    var map = L.map(theDiv).setView([0, 0], 13);
-    mapLink =
-        '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-    L.tileLayer(
-        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; ' + mapLink + ' Contributors',
-            maxZoom: 18,
-        }).addTo(map);
-    
-    
-    // Add an SVG element to Leaflet’s overlay pane
-    var svg = d3.select(map.getPanes().overlayPane).append("svg"),
-     g = svg.append("g").attr("class", "leaflet-zoom-hide");
+    if (contourMap === null) {
+        contourMap = L.map(theDiv, {
+            center: [35.0456, -85.3097],
+            zoom: 6,
+            minZoom: 2,
+            maxZoom: 15,
+        });
 
-    //d3.json("rectangle.json", function (geoShape) {
+        mapLink =
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
 
-    //    //  create a d3.geo.path to convert GeoJSON to SVG
-    //    var transform = d3.geo.transform({ point: projectPoint }),
-    //              path = d3.geo.path().projection(transform);
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; ' + mapLink + ' Contributors'
+            }).addTo(contourMap);
 
-    //    // create path elements for each of the features
-    //    d3_features = g.selectAll("path")
-    //     .data(geoShape.features)
-    //     .enter().append("path");
-
-    //    map.on("viewreset", reset);
-
-    //    reset();
-
-    //    // fit the SVG element to leaflet's map layer
-    //    function reset() {
-
-    //        bounds = path.bounds(geoShape);
-
-    //        var topLeft = bounds[0],
-    //         bottomRight = bounds[1];
-
-    //        svg.attr("width", bottomRight[0] - topLeft[0])
-    //         .attr("height", bottomRight[1] - topLeft[1])
-    //         .style("left", topLeft[0] + "px")
-    //         .style("top", topLeft[1] + "px");
-
-    //        g.attr("transform", "translate(" + -topLeft[0] + ","
-    //                                          + -topLeft[1] + ")");
-
-    //        // initialize the path data 
-    //        d3_features.attr("d", path)
-    //         .style("fill-opacity", 0.7)
-    //         .attr('fill', 'blue');
-    //    }
-
-    //    // Use Leaflet to implement a D3 geometric transformation.
-    //    function projectPoint(x, y) {
-    //        var point = map.latLngToLayerPoint(new L.LatLng(y, x));
-    //        this.stream.point(point.x, point.y);
-    //    }
-
-    //})
+        //L.svg().addTo(contourMap);
+    }
 }
 
 function showOverviewPage() {

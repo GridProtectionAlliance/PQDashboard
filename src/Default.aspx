@@ -47,7 +47,7 @@
     <link rel="stylesheet" href="./css/jquery.multiselect.filter.css"/> 
     <link rel="stylesheet" href="./css/Default_Google.css" type="text/css" />
     <link rel="stylesheet" href="./css/bootstrap-multiselect.css"/>
-    <link rel="stylesheet" type="text/css" href="js/Leaflet/leaflet.css"/>
+    <link rel="stylesheet" type="text/css" href="js/Leaflet/leaflet1.0.css"/>
 
     <script type="text/javascript" src="./js/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="./js/jquery-ui.js"></script>
@@ -77,8 +77,16 @@
     <script src="https://d3js.org/d3-scale.v1.min.js"></script>
     <script src="https://d3js.org/d3-path.v1.min.js"></script>
     <script src="https://d3js.org/d3-shape.v1.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+<%--    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>--%>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-    <script type="text/javascript" src="js/Leaflet/leaflet.js"></script>
+    <script src="./js/D3/d3.geom.contour.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="js/Leaflet/leaflet1.0.js"></script>
+    <script src="./js/heatmap.js"></script>
+    <script src="./js/D3/turf.custom.js"></script>
+    <script src="./js/D3/marchingsquares-isobands.js"></script>
+    <script src="./js/leaflet-heatmap.js"></script>
   	<script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
 	<script type="text/javascript" src="./js/flot/jquery.flot.errorbars.js"></script>
 	<script type="text/javascript" src="./js/flot/jquery.flot.navigate.js"></script>

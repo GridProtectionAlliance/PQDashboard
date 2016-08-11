@@ -608,3 +608,20 @@
         top: 10px;
         left: 0;
     }
+
+    circle:hover {
+        cursor: pointer;
+
+    }
+
+    .leafletCircle {
+        cursor: pointer;
+    }
+
+    .leafletCircle:hover {
+        -webkit-filter: hue-rotate(360deg);
+    filter: hue-rotate(360deg);
+    -webkit-transition: all 3s;
+    -moz-transition: all 3s;
+    transition: all 3s;
+    }
