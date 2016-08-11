@@ -3488,6 +3488,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     contourMap.fitBounds(markerGroup.getBounds());
 
     var timeoutVal;
+    contourMap.off('boxzoomend');
     contourMap.on('boxzoomend', function (event) {
         $('#siteList').multiselect("uncheckAll");
 
@@ -3503,10 +3504,10 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
                     });
 
-                    clearTimeout(timeoutVal);
-                    timeoutVal = setTimeout(function () {
-                        selectsitesincharts();
-                    }, 500);
+                    //clearTimeout(timeoutVal);
+                    //timeoutVal = setTimeout(function () {
+                    //    selectsitesincharts();
+                    //}, 500);
 
 
                 } else {
@@ -3516,6 +3517,12 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
             }
         });
+
+        clearTimeout(timeoutVal);
+        timeoutVal = setTimeout(function () {
+            selectsitesincharts();
+        }, 500);
+
     });
 
     //LoadHeatmapLeaflet(locationdata.d);
@@ -4907,8 +4914,17 @@ function loadLeafletMap( theDiv) {
 }
 
 function showType(thecontrol) {
-    loadDataForDate();
+    plotContourMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 }
+
+function showTrendingData(thecontrol) {
+    var mapormatrix = $("#mapGrid")[0].value;
+
+    manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
+    $("#mapGrid")[0].value = mapormatrix;
+    selectmapgrid($("#mapGrid")[0]);
+}
+
 
 function showOverviewPage() {
 
