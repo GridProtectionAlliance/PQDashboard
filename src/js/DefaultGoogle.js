@@ -3125,15 +3125,29 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                $.each(map.markers, function (key, value) {
-                    value.show();
-                });
+                if (currentTab == "TrendingData") {
+                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                        $(marker).show();
+                    });
+                }
+                else {
+                    $.each(map.markers, function (key, value) {
+                        value.show();
+                    });
+                }
                 break;
 
             case "None":
-                $.each(map.markers, function (key, value) {
-                    value.hide();
-                });
+                if (currentTab == "TrendingData") {
+                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                        $(marker).hide();
+                    });
+                }
+                else {
+                    $.each(map.markers, function (key, value) {
+                        value.hide();
+                    });
+                }
                 break;
 
 
@@ -3178,15 +3192,24 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "SelectedSites":
-
                 var selectedIDs = GetCurrentlySelectedSites();
-                $.each(map.markers, function (key, value) {
-                    if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                        value.show();
-                    } else {
-                        value.hide();
-                    }
-                });
+                if (currentTab == "TrendingData") {
+                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                        if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
+                            $(marker).show();
+                        else
+                            $(marker).hide();
+                    });
+                }
+                else {
+                    $.each(map.markers, function (key, value) {
+                        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
+                            value.show();
+                        } else {
+                            value.hide();
+                        }
+                    });
+                }
                 break;
 
             case "Sags":
@@ -3200,9 +3223,29 @@ function showSiteSet(thecontrol) {
                 });
                 break;
 
+            case "RecievedData":
+                $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') !== '#000000')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
+                });
+                
+                break;
+
+            case "NoData":
+                $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') === '#000000')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
+                });
+
+                break;
 
             default:
                 break;
+
 
         }
     }
@@ -3387,7 +3430,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         else if (data[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
         else if (data[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
 
-        var html = '<svg height="12" width="12">' +
+        var html = '<svg height="12" width="12" id="'+data.name+'|'+data.id+'">' +
                         '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
                    '</svg>';
 

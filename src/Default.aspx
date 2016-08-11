@@ -372,8 +372,8 @@
                                     <div class="siteselectdropdown" style="position: absolute;">
                                         <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
                                             <option value="All">All Sites</option>
-                                            <option value="Events">Events</option>
-                                            <option value="NoEvents">No Events</option>
+                                            <option value="RecievedData">Recieved Data</option>
+                                            <option value="NoData">No Data</option>
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
                                         </select>
