@@ -76,14 +76,17 @@ public class mapService : System.Web.Services.WebService
         public double? Maximum;
         public double? Minimum;
     }
-    private enum eventFilter
+
+    public class ContourAnimations
     {
-        Other = 1,
-        Swell,
-        Trainsient,
-        Sag,
-        Fault,
-        Interruption
+        public int id;
+        public string Date;
+        public double? Minimum;
+        public double? Maximum;
+        public double? Average;
+        public double? Longitude;
+        public double? Latitude;
+        public string name;
     }
 
     [WebMethod]
@@ -969,4 +972,61 @@ public class mapService : System.Web.Services.WebService
         }
         return (locationStates);
     }
+
+    /// <summary>
+    /// getContourAnimations 
+    /// </summary>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="meterID"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public List<ContourAnimations> getContourAnimations(string targetDateFrom, string targetDateTo, string meterID, string userName)
+    {
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
+        List<ContourAnimations> returnList = new List<ContourAnimations> { };
+        DateTime dateFrom = DateTime.Parse(targetDateFrom);
+        DateTime dateTo = DateTime.Parse(targetDateTo);
+        try
+        {
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingDataVoltageAnimation", conn);
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", dateFrom));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", dateTo));
+            cmd.Parameters.Add(new SqlParameter("@MeterID", meterID));
+            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 300;
+            rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                ContourAnimations ca = new ContourAnimations();
+                ca.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
+                ca.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
+                ca.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
+                ca.Date = (String)((DateTime)rdr["Date"]).ToString("MM/dd/yy HH:mm:ss");
+                ca.id = (int)rdr["ID"];
+                ca.Latitude = (double)rdr["Latitude"];
+                ca.Longitude = (double)rdr["Longitude"];
+                ca.name = (string)rdr["Name"];
+                returnList.Add(ca);
+            }
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+        return (returnList);
+    }
+
 }

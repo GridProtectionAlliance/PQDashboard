@@ -52,6 +52,7 @@ var cache_Map_Matrix_Data_Date_To = null;
 var cache_Graph_Data = null;
 var cache_ErrorBar_data = null;
 var cache_Table_Data = null;
+var cache_Contour_Data = null;
 var brush = null;
 var cache_Last_Date = null;
 var contourMap = null;
@@ -156,13 +157,14 @@ function selectmapgrid(thecontrol) {
     if (thecontrol.selectedIndex === 1) {
         $("#theMatrix" + currentTab).show();
         $("#theMap" + currentTab).hide();
-
+        $("#ContoursControlsTrending").hide();
         if (cache_Map_Matrix_Data != null) {
             plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
     } else if (currentTab !== "TrendingData" && thecontrol.selectedIndex === 0) {
+        $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
 
@@ -175,6 +177,7 @@ function selectmapgrid(thecontrol) {
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
     } else if (currentTab === "TrendingData" && thecontrol.selectedIndex === 0) {
+        $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
         if (contourMap == null) {
@@ -1530,6 +1533,8 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
     $('#' + thediv).unbind("plotclick");
     $('#' + thediv).bind("plotclick", function (event, pos, item) {
         if (item) {
+            $("#ContoursControlsTrending").show();
+            cache_Contour_Data = null;
             var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
             cache_Last_Date = thedate;
@@ -3427,6 +3432,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 };
 
 function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
+    var selectedIDs = GetCurrentlySelectedSites();
 
     $(contourMap.getPanes().markerPane).children().remove()
     var markers = [];
@@ -3480,8 +3486,8 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         marker.on('mouseout', function (event) {
             marker.closePopup();
         });
-
-        markers.push(marker);
+        if ($.inArray(data.name + "|" + data.id, selectedIDs) > -1)
+            markers.push(marker);
     });
 
     markerGroup = new L.featureGroup(markers);
@@ -3503,13 +3509,6 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
                         }
 
                     });
-
-                    //clearTimeout(timeoutVal);
-                    //timeoutVal = setTimeout(function () {
-                    //    selectsitesincharts();
-                    //}, 500);
-
-
                 } else {
                     $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
                     $('#siteList').multiselect('refresh');
@@ -3525,7 +3524,6 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
     });
 
-    //LoadHeatmapLeaflet(locationdata.d);
     plotContourMap(locationdata.d);
 };
 
@@ -4573,7 +4571,7 @@ function buildPage() {
     initializeDatePickers(datafromdate, datatodate);
     getMeters();
     loadsitedropdown();
-    loadSeverityDropdown();
+    initiateTimeRangeSlider();
 
     resizeMapAndMatrix(currentTab);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
@@ -4891,7 +4889,7 @@ function stopAnimatedHeatmap() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadLeafletMap( theDiv) {
+function loadLeafletMap(theDiv) {
 
     if (contourMap === null) {
         contourMap = L.map(theDiv, {
@@ -4908,8 +4906,6 @@ function loadLeafletMap( theDiv) {
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; ' + mapLink + ' Contributors'
             }).addTo(contourMap);
-
-        //L.svg().addTo(contourMap);
     }
 }
 
@@ -4925,7 +4921,172 @@ function showTrendingData(thecontrol) {
     selectmapgrid($("#mapGrid")[0]);
 }
 
+function initiateTimeRangeSlider() {
+    $("#slider-range").slider({
+        range: true,
+        min: 0,
+        max: 1440,
+        step: 15,
+        values: [0, 1440],
+        slide: function (e, ui) {
+            var hours1 = Math.floor(ui.values[0] / 60);
+            var minutes1 = ui.values[0] - (hours1 * 60);
 
+            if (hours1.length == 1) hours1 = '0' + hours1;
+            if (minutes1.length == 1) minutes1 = '0' + minutes1;
+            if (minutes1 == 0) minutes1 = '00';
+            if (hours1 >= 12) {
+                if (hours1 == 12) {
+                    hours1 = hours1;
+                    minutes1 = minutes1 + " PM";
+                } else {
+                    hours1 = hours1 - 12;
+                    minutes1 = minutes1 + " PM";
+                }
+            } else {
+                hours1 = hours1;
+                minutes1 = minutes1 + " AM";
+            }
+            if (hours1 == 0) {
+                hours1 = 12;
+                minutes1 = minutes1;
+            }
+
+
+
+            $('.slider-time').html(hours1 + ':' + minutes1);
+
+            var hours2 = Math.floor(ui.values[1] / 60);
+            var minutes2 = ui.values[1] - (hours2 * 60);
+
+            if (hours2.length == 1) hours2 = '0' + hours2;
+            if (minutes2.length == 1) minutes2 = '0' + minutes2;
+            if (minutes2 == 0) minutes2 = '00';
+            if (hours2 >= 12) {
+                if (hours2 == 12) {
+                    hours2 = hours2;
+                    minutes2 = minutes2 + " PM";
+                } else if (hours2 == 24) {
+                    hours2 = 11;
+                    minutes2 = "59 PM";
+                } else {
+                    hours2 = hours2 - 12;
+                    minutes2 = minutes2 + " PM";
+                }
+            } else {
+                hours2 = hours2;
+                minutes2 = minutes2 + " AM";
+            }
+
+            $('.slider-time2').html(hours2 + ':' + minutes2);
+        }
+    });
+}
+
+function loadContourAnimationData() {
+    var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('.slider-time').text() + ' UTC').toUTCString();
+    var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('.slider-time2').text() + ' UTC').toUTCString();
+    var meters = "";
+    $.each($('#siteList').multiselect("getChecked").map(function () { return this.value; }), function (index, data) {
+        if (index === 0)
+            meters = data;
+        else
+            meters += ',' + data;
+    });
+
+    var thedatasent = "{'targetDateFrom':'" + dateFrom + 
+                    "', 'targetDateTo':'" + dateTo +
+                    "', 'meterID':'" + meters + 
+                    "', 'userName':'" + postedUserName + "'}";
+    $.ajax({
+        type: "POST",
+        url: './mapService.asmx/getContourAnimations',
+        data: thedatasent,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            var startTime = new Date(data.d[0].Date);
+            var contourData = [{ Date: startTime, d: [] }];
+            var contourDateIndex = 0;
+            $.each(data.d, function (index, d) {
+                if (new Date(d.Date).getTime() === startTime.getTime())
+                    contourData[contourDateIndex].d.push(d);
+                else {
+                    startTime = new Date(d.Date);
+                    contourData.push({ Date: startTime, d: [] });
+                    contourData[++contourDateIndex].d.push(d)
+                }
+            });
+
+            cache_Contour_Data = contourData;
+            runContourAnimation(contourData);
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
+
+
+}
+
+function runContourAnimation(contourData) {
+    var progressBarIndex = 0;
+    $('#contourPlayerButtons').show();
+
+    var index = 0
+    $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+    plotContourMapLocations(contourData[index++], null, null, null, null);
+
+    var interval;
+
+    $('#button_play').off('click');
+    $('#button_play').on('click', function () {
+        interval = setInterval(function () {
+            progressBarIndex = Math.ceil(index / contourData.length * 100);
+            $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
+            $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+
+            if (index == contourData.length)
+                clearInterval(interval);
+            else
+                plotContourMapLocations(contourData[index++], null, null, null, null);
+        }, 1000);
+    });
+
+    $('#button_stop').off('click');
+    $('#button_stop').on('click', function () {
+        clearInterval(interval);
+    });
+
+    $('#button_bw').off('click');
+    $('#button_bw').on('click', function () {
+        --index;
+    });
+
+    $('#button_fbw').off('click');
+    $('#button_fbw').on('click', function () {
+        index = 0;
+        $('#contourAnimationInnerBar').css('width', 0 + '%');
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+
+    });
+
+    $('#button_fw').off('click');
+    $('#button_fw').on('click', function () {
+        ++index;
+    });
+
+    $('#button_ffw').off('click');
+    $('#button_ffw').on('click', function () {
+        index = contourData.length;
+        $('#contourAnimationInnerBar').css('width', 100 + '%');
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+
+    });
+}
 function showOverviewPage() {
 
 }
