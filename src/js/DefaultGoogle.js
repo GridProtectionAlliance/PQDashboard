@@ -4996,6 +4996,7 @@ function loadContourAnimationData() {
 
     var thedatasent = "{'targetDateFrom':'" + dateFrom + 
                     "', 'targetDateTo':'" + dateTo +
+                    "', 'stepSize':'" + $('#contourAnimationStepSelect').val() +
                     "', 'meterID':'" + meters + 
                     "', 'userName':'" + postedUserName + "'}";
     $.ajax({
@@ -5033,8 +5034,9 @@ function loadContourAnimationData() {
 }
 
 function runContourAnimation(contourData) {
+    var d = new Date(contourData[0].Date + ' UTC');
     if ($('#weatherCheckbox').prop('checked')) {
-        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(contourData[0].Date + ' UTC').toISOString() }).addTo(contourMap);
+        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes()%5)).toISOString() }).addTo(contourMap);
     }
     var progressBarIndex = 0;
     $('#contourPlayerButtons').show();
@@ -5056,7 +5058,8 @@ function runContourAnimation(contourData) {
             }
             else
                 if ($('#weatherCheckbox').prop('checked')) {
-                    wmsLayer.setParams({ time: new Date(contourData[0].Date + ' UTC').toISOString() }, false);
+                    d = new Date(contourData[index].Date + ' UTC');
+                    wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
                 }
                 progressBarIndex = Math.ceil(index / contourData.length * 100);
                 $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
@@ -5102,6 +5105,10 @@ function runContourAnimation(contourData) {
         $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
 
     });
+}
+
+function stepSelectionChange(thecontrol) {
+    $('#slider-range').slider("option", "step", parseInt(thecontrol.value));
 }
 function showOverviewPage() {
 

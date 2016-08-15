@@ -377,7 +377,7 @@
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
                                         </select>
-                                        <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this)">
+                                        <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
                                             <option value="Average">Average</option>
                                             <option value="Maximum">Maximum</option>
                                             <option value="Minimum">Minimum</option>
@@ -403,12 +403,20 @@
                                                             <td style="width: 50%">
                                                                 <div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Include Weather</label></div>
                                                             </td>
-                                                            <td style="width: 50%; text-align: center">
-                                                                <button class="btn btn-default" onclick="loadContourAnimationData()">Load Data</button>
+                                                            <td>
+                                                                <select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">
+                                                                    <option value="60">60 min</option>
+                                                                    <option value="30">30 min</option>
+                                                                    <option value="20">20 min</option>
+                                                                    <option selected="selected" value="15">15 min</option>
+                                                                    <option value="10">10 min</option>
+                                                                    <option value="5">5 min</option>
+                                                                    <option value="1">1 min</option>
+                                                                </select>
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td colspan="2">
+                                                             <td colspan="2">
                                                                 <div id="time-range">
                                                                     <div class="sliders_step1">
                                                                         &nbsp;<div id="slider-range"></div>
@@ -416,6 +424,13 @@
                                                                     <p>Time Range: <span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>
                                                                 </div>
                                                             </td>
+                                                        </tr>
+
+                                                        <tr>
+                                                            <td colspan="2">
+                                                                <button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>
+                                                            </td>
+
                                                         </tr>
                                                     </table>
                                                 </div>

@@ -982,7 +982,7 @@ public class mapService : System.Web.Services.WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<ContourAnimations> getContourAnimations(string targetDateFrom, string targetDateTo, string meterID, string userName)
+    public List<ContourAnimations> getContourAnimations(string targetDateFrom, string targetDateTo, string stepSize, string meterID, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -998,6 +998,7 @@ public class mapService : System.Web.Services.WebService
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", dateTo));
             cmd.Parameters.Add(new SqlParameter("@MeterID", meterID));
             cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@StepSize", stepSize));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
