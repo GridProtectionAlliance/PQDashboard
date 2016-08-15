@@ -5033,11 +5033,14 @@ function loadContourAnimationData() {
 }
 
 function runContourAnimation(contourData) {
+    if ($('#weatherCheckbox').prop('checked')) {
+        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(contourData[0].Date + ' UTC').toISOString() }).addTo(contourMap);
+    }
     var progressBarIndex = 0;
     $('#contourPlayerButtons').show();
 
     var index = 0
-    $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+    $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
     plotContourMapLocations(contourData[index++], null, null, null, null);
 
     var interval;
@@ -5045,45 +5048,58 @@ function runContourAnimation(contourData) {
     $('#button_play').off('click');
     $('#button_play').on('click', function () {
         interval = setInterval(function () {
-            progressBarIndex = Math.ceil(index / contourData.length * 100);
-            $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
-            $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
 
-            if (index == contourData.length)
+            if (index == contourData.length) {
                 clearInterval(interval);
+                index = 0;
+                $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+            }
             else
+                if ($('#weatherCheckbox').prop('checked')) {
+                    wmsLayer.setParams({ time: new Date(contourData[0].Date + ' UTC').toISOString() }, false);
+                }
+                progressBarIndex = Math.ceil(index / contourData.length * 100);
+                $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
+                $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+
                 plotContourMapLocations(contourData[index++], null, null, null, null);
-        }, 1000);
+        }, 3000);
     });
 
     $('#button_stop').off('click');
     $('#button_stop').on('click', function () {
         clearInterval(interval);
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+
     });
 
     $('#button_bw').off('click');
     $('#button_bw').on('click', function () {
         --index;
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+
     });
 
     $('#button_fbw').off('click');
     $('#button_fbw').on('click', function () {
         index = 0;
         $('#contourAnimationInnerBar').css('width', 0 + '%');
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
 
     });
 
     $('#button_fw').off('click');
     $('#button_fw').on('click', function () {
         ++index;
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+
     });
 
     $('#button_ffw').off('click');
     $('#button_ffw').on('click', function () {
         index = contourData.length;
         $('#contourAnimationInnerBar').css('width', 100 + '%');
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getHours() + ':' + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
 
     });
 }
