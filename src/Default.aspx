@@ -154,7 +154,7 @@
 
             <div id="application-tabs" class="noselect" >
                 <ul>
-<%--                    <li id="tabsOverview"><a href="#tabs-Overview">Overview</a></li>--%>
+                    <li id="tabsOverview"><a href="#tabs-Overview">Overview</a></li>
                     <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
                     <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
                     <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
@@ -164,8 +164,20 @@
                     <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
                     <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
                 </ul>
-<%--                <div  id="tabs-Overview">
-                </div>--%>
+                <div  id="tabs-Overview">
+                    <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
+                        <div style="text-align: center; color: white"><h3>PQ Overview for <span id="overviewDate"></span></h3></div>
+                        <div style="height: 1px; width: 80%; display: inline-block; background-color: #66ffe0"></div>
+                        <div id="elementContainer" >
+                            <div id="meters"></div>
+                            <div id="alarms"></div>
+                            <div id="offnormal"></div>
+                            <div id="last30days"></div>
+                            <div id="voltageDisturbances"></div>
+                            <div id="faults"></div>
+                        </div>
+                    </div>
+                </div>
 
                 <div  id="tabs-Events">
                     <div  id="column_1" class="column resizeable">

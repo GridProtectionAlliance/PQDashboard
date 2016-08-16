@@ -3527,58 +3527,399 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     plotContourMap(locationdata.d);
 };
 
-function plotContourMap(data) {
-    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove()
-    var color = d3.scale.linear()
-            .domain([ 0, 0.1 , 0.5, 0.7, 0.8, 1, 1.2, 2 , 3, 4, 5, 6, 7, 8, 9, 10])
-            .range(['#000000', '#3F250B', '#654321', '#B2906F', 'green', 'green', 'green', '#ff7079', '#fd5159', '#f6303e', '#dd5e0e', '#d35e0e', '#c4502f', '#bc1f52', '#7e0c6e', '#7d6991']);
+//function plotContourMap(data) {
+//    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove()
+//    var color = d3.scale.linear()
+//            .domain([ 0, 0.1 , 0.5, 0.7, 0.8, 1, 1.2, 2 , 3, 4, 5, 6, 7, 8, 9, 10])
+//            .range(['#000000', '#3F250B', '#654321', '#B2906F', 'green', 'green', 'green', '#ff7079', '#fd5159', '#f6303e', '#dd5e0e', '#d35e0e', '#c4502f', '#bc1f52', '#7e0c6e', '#7d6991']);
 
-    zs = [0, 0.1, 0.5, 0.7, 0.8, 1, 1.2, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+//    zs = [0, 0.1, 0.5, 0.7, 0.8, 1, 1.2, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         
-    var plotData = { type: "FeatureCollection", features: [] };
-    $.each(data, function (index, points) {
+//    var plotData = { type: "FeatureCollection", features: [] };
+//    $.each(data, function (index, points) {
 
-        if (true) {
-            var newPoint = {
-                geometry: {
-                    type: "Point",
-                    coordinates: [points.Latitude, points.Longitude]
-                },
-                properties: {
-                    z: (points[$('#trendingDataTypeSelection').val()] == null ? 0 : (points[$('#trendingDataTypeSelection').val()] > 10 ? 10 : points[$('#trendingDataTypeSelection').val()]))
-                },
-                type: "Feature"
-            };
-            plotData.features.push(newPoint);
+//        if (true) {
+//            var newPoint = {
+//                geometry: {
+//                    type: "Point",
+//                    coordinates: [points.Latitude, points.Longitude]
+//                },
+//                properties: {
+//                    z: (points[$('#trendingDataTypeSelection').val()] == null ? 0 : (points[$('#trendingDataTypeSelection').val()] > 10 ? 10 : points[$('#trendingDataTypeSelection').val()]))
+//                },
+//                type: "Feature"
+//            };
+//            plotData.features.push(newPoint);
+//        }
+//    });
+
+//    var isolined = turf.isobands(plotData, 'z', 100, zs);
+    
+//    $.each(isolined.features, function (index, feature) {
+//        var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
+//        popup += "</table>";
+
+
+//        var polygon = L.polygon(feature.geometry.coordinates, {
+//            color: '#000000',
+//            fillColor: color(feature.properties.z),
+//            weight: .5
+//        }).addTo(contourMap).bindPopup(popup);
+
+//        polygon.on('mouseover', function (event) {
+//            polygon.setStyle({ 'fillOpacity': 0.5 });
+//            polygon.openPopup();
+//        });
+
+//        polygon.on('mouseout', function (event) {
+//            polygon.setStyle({ 'fillOpacity': 0.2 });
+//            polygon.closePopup();
+//        });
+
+//    });
+
+//}
+
+//function plotContourMap(data) {
+//    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove();
+//    var getLng = function (miles, latitude) {
+//        return miles / 69.1710411 / Math.cos(latitude * (Math.PI / 180));
+//    };
+
+//    var getLat = function (miles) {
+//        return miles / 68.6863716;
+//    };
+
+//    var getMilesNorth = function (deg) {
+//        return deg * 68.6863716;
+//    };
+
+//    var getMilesEast = function (deg, latitude) {
+//        return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
+//    };
+
+//    zs = [0, 0.01, 0.5, 0.8, 0.99, 1, 1.01, 1.2, 1.5, 999999999999999];
+
+
+//    var color = d3.scale.linear()
+//            .domain(zs)
+//            .range(['', 'black', '#a5682a', 'green', 'blue', 'blue', 'green', 'red', 'purple']);
+
+
+//    var maxLat = d3.max(data, function (d) { return d.Latitude; }) + getLat(50);
+//    var minLat = d3.min(data, function (d) { return d.Latitude; }) - getLat(50);
+//    var maxLng = d3.max(data, function (d) { return d.Longitude; }) + getLng(50, maxLat);
+//    var minLng = d3.min(data, function (d) { return d.Longitude; }) - getLng(50, minLat);
+
+//    var bounds = contourMap.getBounds();
+
+//    var pointsLat = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).y - contourMap.latLngToLayerPoint(bounds._southWest).y);
+//    var pointsLng = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).x - contourMap.latLngToLayerPoint(bounds._southWest).x);
+//    var x = d3.scale.linear()
+//                .domain([minLng, maxLng])
+//                .range([0, pointsLng ]);
+
+//    var y = d3.scale.linear()
+//                .domain([minLat, maxLat])
+//                .range([0, pointsLat]);
+
+//    var plotData = [];
+
+//    for (var i = 0; i <= pointsLat; i++) {
+//        plotData.push([]);
+//        for (var j = 0; j <= pointsLng; j++) {
+//            if (i == 0 || j == 0)
+//                plotData[i].push(-1);
+//            else
+//                plotData[i].push(1);
+//        }
+//    }
+
+//    $.each(data, function (index, points) {
+//        if (points[$('#trendingDataTypeSelection').val()] != null && (points[$('#trendingDataTypeSelection').val()] > 1.1 || points[$('#trendingDataTypeSelection').val()] < 0.9)) {
+//            var xIndex = Math.floor(x(points.Longitude));
+//            var yIndex = Math.floor(y(points.Latitude));
+//            var radius = 50;  // 20 miles
+//            var yMax = Math.floor(y(getLat(radius) + points.Latitude));
+//            var yMin = Math.floor(y(points.Latitude - getLat(radius)));
+//            var xMax = Math.floor(x(points.Longitude + getLng(radius, points.Latitude)));
+//            var xMin = Math.floor(x(points.Longitude - getLng(radius, points.Latitude)));
+//            var radiusPixels = ((yMax - yIndex) + (yIndex - yMin) + (xIndex - xMin) + (xMax - xIndex)) / 4;
+//            plotData[yIndex][xIndex] = points[$('#trendingDataTypeSelection').val()];
+//            for (var i = yMin; i <= yMax; ++i) {
+//                for (var j = xMin; j <= xMax; ++j) {
+//                    var iDist = Math.abs(yIndex - i);
+//                    var jDist = Math.abs(xIndex - j);
+//                    var d = Math.sqrt(Math.pow(iDist, 2) + Math.pow(jDist, 2));
+
+//                    if ((iDist + jDist) <= Math.ceil(radiusPixels)) {
+//                        if (points[$('#trendingDataTypeSelection').val()] >= 1)
+//                            plotData[i][j] = (points[$('#trendingDataTypeSelection').val()] * (radiusPixels - d) / radiusPixels > plotData[i][j] ? points[$('#trendingDataTypeSelection').val()] * (radiusPixels - d) / radiusPixels : plotData[i][j]);
+//                        else
+//                            plotData[i][j] = (points[$('#trendingDataTypeSelection').val()] * (radiusPixels - d) / radiusPixels < plotData[i][j] ? points[$('#trendingDataTypeSelection').val()] * (radiusPixels - d) / radiusPixels : plotData[i][j]);
+
+//                    }
+//                }
+//            }
+//        }
+
+//    });
+
+//    plotData = d3.transpose(plotData);
+//    //$.each(plotData, function (i, d) {
+//    //    $.each(d, function (j, e) {
+//    //        if (e > 0) console.log(e);
+//    //    })
+//    //})
+//    var isobands = [];
+
+//    for (var i = 1; i < zs.length; i++) {
+//        var lowerBand = zs[i - 1];
+//        var upperBand = zs[i];
+
+//        var band = MarchingSquaresJS.IsoBands(plotData, lowerBand, upperBand - lowerBand);
+//        isobands.push({ "coords": band, "level": i, "val": zs[i] });
+//    }
+
+//    //var isoBandsLatLng = { type: "FeatureCollection", features: [] };
+//    //$.each(isobands, function (index, isoband) {
+//    //    $.each(isoband.coords, function (innerIndex, shape) {
+//    //        var coords = [];
+//    //        $.each(shape, function(innerInnerIndex, point){
+//    //            coords.push([y.invert(point[0]), x.invert(point[1])]);
+//    //        });
+//    //        isoBandsLatLng.features.push({ geometry: {coordinates: coords, type: "Polygon"}, properties: {z: isoband.val}, type: "Feature"});
+//    //    });
+
+//    //});
+
+//    var isoBandsLatLng = { type: "FeatureCollection", features: [] };
+//    $.each(isobands, function (index, isoband) {
+//        var coords = [];
+
+//        $.each(isoband.coords, function (innerIndex, shape) {
+//            coords.push([]);
+//                $.each(shape, function(innerInnerIndex, point){
+//                    coords[innerIndex].push([y.invert(point[0]), x.invert(point[1])]);
+//                });
+//            });
+//       isoBandsLatLng.features.push({ geometry: { coordinates: coords, type: "Polygon" }, properties: { z: isoband.val }, type: "Feature" });
+
+//    });
+
+//    $.each(isoBandsLatLng.features, function (index, feature) {
+//            var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
+//            popup += "</table>";
+
+//            if (feature.properties.z == 1.01) {
+//                var polygon = L.polygon(feature.geometry.coordinates, {
+//                    color: '#000000',
+//                    fillColor: color(feature.properties.z),
+//                    weight: 0,
+//                    fillOpacity: 0.1
+//                }).addTo(contourMap).bindPopup(popup);
+//            }
+//            else {
+//                var polygon = L.polygon(feature.geometry.coordinates, {
+//                    color: '#000000',
+//                    fillColor: color(feature.properties.z),
+//                    weight: 0,
+//                    fillOpacity: 0.6
+//                }).addTo(contourMap).bindPopup(popup);
+
+//            }
+//            polygon.on('mouseover', function (event) {
+//                polygon.setStyle({ 'fillOpacity': 0.5 });
+//                polygon.openPopup();
+//            });
+
+//            polygon.on('mouseout', function (event) {
+//                polygon.setStyle({ 'fillOpacity': 0.6 });
+//                polygon.closePopup();
+//            });
+
+//        });
+
+
+//}
+
+function plotContourMap(data) {
+    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove();
+    var getLng = function (miles, latitude) {
+        return miles / 69.1710411 / Math.cos(latitude * (Math.PI / 180));
+    };
+
+    var getLat = function (miles) {
+        return miles / 68.6863716;
+    };
+
+    var getMilesNorth = function (deg) {
+        return deg * 68.6863716;
+    };
+
+    var getMilesEast = function (deg, latitude) {
+        return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
+    };
+
+    zs = [-0.001, 0.5, 0.8, 1.2, 1.5, 999999999999999];
+
+
+    var color = d3.scale.linear()
+            .domain(zs)
+            .range(['black', '#3f2a14', '#a5682a', 'green', 'red', 'purple']);
+
+
+    var maxLat = d3.max(data, function (d) { return d.Latitude; }) + getLat(50);
+    var minLat = d3.min(data, function (d) { return d.Latitude; }) - getLat(50);
+    var maxLng = d3.max(data, function (d) { return d.Longitude; }) + getLng(50, maxLat);
+    var minLng = d3.min(data, function (d) { return d.Longitude; }) - getLng(50, minLat);
+
+    var bounds = contourMap.getBounds();
+
+    var pointsLat = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).y - contourMap.latLngToLayerPoint(bounds._southWest).y);
+    var pointsLng = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).x - contourMap.latLngToLayerPoint(bounds._southWest).x);
+    var x = d3.scale.linear()
+                .domain([minLng, maxLng])
+                .range([0, pointsLng]);
+
+    var y = d3.scale.linear()
+                .domain([minLat, maxLat])
+                .range([0, pointsLat]);
+
+    var plotData = [];
+
+    for (var i = 0; i <= pointsLat; i++) {
+        plotData.push([]);
+        for (var j = 0; j <= pointsLng; j++) {
+            if (i == 0 || j == 0)
+                plotData[i].push(-1);
+            else
+                plotData[i].push(1);
         }
+    }
+    
+    var trendingDataTypeSelection = $('#trendingDataTypeSelection').val();
+
+    for (var yIndex = 0; yIndex < plotData.length; ++yIndex){
+        for(var xIndex = 0; xIndex < plotData[yIndex].length; ++xIndex){
+            var sum = 0;
+            var totalDistance = 0;
+            for (var dataIndex = 0; dataIndex < data.length; ++dataIndex) {
+                if (data[dataIndex][trendingDataTypeSelection] !== null) {
+                    var radius = 30;  // 20 miles
+                    var xLocation = Math.floor(x(data[dataIndex].Longitude));
+                    var yLocation = Math.floor(y(data[dataIndex].Latitude));
+
+                    var xDist = Math.abs(xIndex - xLocation);
+                    var yDist = Math.abs(yIndex - yLocation);
+
+                    var distance = 1/Math.sqrt(xDist*xDist + yDist*yDist);
+                    totalDistance += distance;
+
+                    sum += data[dataIndex][trendingDataTypeSelection] * distance;
+                }
+            }
+
+            plotData[yIndex][xIndex] = sum/totalDistance;
+        }
+    }
+
+    plotData = d3.transpose(plotData);
+    //$.each(plotData, function (i, d) {
+    //    $.each(d, function (j, e) {
+    //        if (e > 0) console.log(e);
+    //    })
+    //})
+    var isobands = [];
+
+    for (var i = 1; i < zs.length; i++) {
+        var lowerBand = zs[i - 1];
+        var upperBand = zs[i];
+
+        var band = MarchingSquaresJS.IsoBands(plotData, lowerBand, upperBand - lowerBand);
+        isobands.push({ "coords": band, "level": i, "val": zs[i] });
+    }
+
+    //var isoBandsLatLng = { type: "FeatureCollection", features: [] };
+    //$.each(isobands, function (index, isoband) {
+    //    $.each(isoband.coords, function (innerIndex, shape) {
+    //        var coords = [];
+    //        $.each(shape, function(innerInnerIndex, point){
+    //            coords.push([y.invert(point[0]), x.invert(point[1])]);
+    //        });
+    //        isoBandsLatLng.features.push({ geometry: {coordinates: coords, type: "Polygon"}, properties: {z: isoband.val}, type: "Feature"});
+    //    });
+
+    //});
+
+    $.each(plotData, function (i, d) {
+        if (d.indexOf(function (dat) { return dat > 1; }))
+            console.log(d.indexOf(function (dat) { return dat > 1; }));
     });
 
-    var isolined = turf.isobands(plotData, 'z', 100, zs);
-    
-    $.each(isolined.features, function (index, feature) {
+    var isoBandsLatLng = { type: "FeatureCollection", features: [] };
+    $.each(isobands, function (index, isoband) {
+        var coords = [];
+
+        $.each(isoband.coords, function (innerIndex, shape) {
+            coords.push([]);
+            $.each(shape, function (innerInnerIndex, point) {
+                coords[innerIndex].push([y.invert(point[0]), x.invert(point[1])]);
+            });
+        });
+        isoBandsLatLng.features.push({ geometry: { coordinates: coords, type: "Polygon" }, properties: { z: isoband.val }, type: "Feature" });
+
+    });
+
+    $.each(isoBandsLatLng.features, function (index, feature) {
         var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
         popup += "</table>";
-
 
         var polygon = L.polygon(feature.geometry.coordinates, {
             color: '#000000',
             fillColor: color(feature.properties.z),
-            weight: .5
+            weight: 0.5,
+            fillOpacity: 0.6
         }).addTo(contourMap).bindPopup(popup);
 
-        polygon.on('mouseover', function (event) {
-            polygon.setStyle({ 'fillOpacity': 0.5 });
-            polygon.openPopup();
-        });
+  
+        //polygon.on('mouseover', function (event) {
+        //    polygon.setStyle({ 'fillOpacity': 0.5 });
+        //    polygon.openPopup();
+        //});
 
-        polygon.on('mouseout', function (event) {
-            polygon.setStyle({ 'fillOpacity': 0.2 });
-            polygon.closePopup();
-        });
+        //polygon.on('mouseout', function (event) {
+        //    polygon.setStyle({ 'fillOpacity': 0.6 });
+        //    polygon.closePopup();
+        //});
 
     });
 
+    $('.info.legend.leaflet-control').remove();
+    var legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function (map) {
+
+        var div = L.DomUtil.create('div', 'info legend'),
+            labels = [];
+
+        // loop through our density intervals and generate a label with a colored square for each interval
+        for (var i = zs.length - 1; i >= 0; i--) {
+            div.innerHTML +=
+                '<div class="row"><i style="background:' + color(zs[i]) + '"></i> ' +
+                (i == zs.length - 1 ? '>' + zs[zs.length - 2] : '') +
+                (i < zs.length - 1 && i > 0 ? zs[i-1] + '&ndash;' + zs[i] : '') +
+                (i == 0 ? '<' + zs[1] : '')
+                + '</div>';
+        }
+
+        return div;
+    };
+
+    legend.addTo(contourMap);
+
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function LoadHeatmapLeaflet(data) {
@@ -4535,7 +4876,7 @@ function buildPage() {
 
     loadconfigdropdown(usersettings.lastSetting);
 
-    currentTab = "Events";
+    currentTab = "Overview";
 
     $("#application-tabs").tabs({
         active: getcurrentconfigsetting("CurrentTab"),
@@ -4574,14 +4915,18 @@ function buildPage() {
     initiateTimeRangeSlider();
 
     resizeMapAndMatrix(currentTab);
-    manageTabsByDate(currentTab, contextfromdate, contexttodate);
+    if (currentTab === "Overview") {
+        showOverviewPage();
+    } else {
+        manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
 
-    $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
-    $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
-    $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+        $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
+        $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
+        $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
-    selectmapgrid($("#mapGrid")[0]);
+        selectmapgrid($("#mapGrid")[0]);
+    }
 
     $('#actionButton').click(function () {
         $('#actionButton').toggleClass('off');
@@ -4904,7 +5249,6 @@ function loadLeafletMap(theDiv) {
 
         L.tileLayer(
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; ' + mapLink + ' Contributors'
             }).addTo(contourMap);
     }
 }
@@ -5111,6 +5455,8 @@ function stepSelectionChange(thecontrol) {
     $('#slider-range').slider("option", "step", parseInt(thecontrol.value));
 }
 function showOverviewPage() {
-
+    var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top - 30;
+    $('#overviewContainer').css('height', columnHeight);
+    $('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString())
 }
 /// EOF
