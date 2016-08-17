@@ -387,6 +387,8 @@
                                             <option value="RecievedData">Recieved Data</option>
                                             <option value="NoData">No Data</option>
                                             <option value="SelectedSites">Selected Sites</option>
+                                            <option value="Swells">Swells</option>
+                                            <option value="Sags">Sags</option>
                                             <option value="None">None</option>
                                         </select>
                                         <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
@@ -407,7 +409,7 @@
                                 </div>
                             </div>
                             <div  id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-                                <div id="ContoursControlsTrending" style="background-color: '#FFD2D2D2'">
+                                <div id="ContoursControlsTrending" style="background-color: '#FFD2D2D2'; display: none">
                                         <div class="row">
                                                 <div class="col-md-4">
                                                     <table>
