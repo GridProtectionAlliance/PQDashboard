@@ -32,6 +32,8 @@ using System.Web.Services;
 using System.Web.Script.Serialization;
 using System.Web.UI.WebControls;
 using GSF.Collections;
+using GSF.Data;
+using openHistorian.XDALink;
 
 /// <summary>
 /// Summary description for MapService
@@ -72,9 +74,27 @@ public class mapService : System.Web.Services.WebService
         public string name;
         public double Latitude;
         public double Longitude;
-        public double? Average;
         public double? Maximum;
         public double? Minimum;
+
+        public double? Average
+        {
+            get
+            {
+                return (m_count > 0)
+                    ? m_sum / m_count
+                    : (double?)null;
+            }
+        }
+
+        public void Aggregate(double average)
+        {
+            m_sum += average;
+            m_count++;
+        }
+
+        private double m_sum;
+        private int m_count;
     }
 
     public class ContourAnimations
@@ -809,51 +829,94 @@ public class mapService : System.Web.Services.WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<TrendingDataLocations> getLocationsTrendingData(string targetDateFrom, string measurementType,  string targetDateTo, string userName)
+    public List<TrendingDataLocations> getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName)
     {
+        List<TrendingDataLocations> locationStates;
 
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        List<TrendingDataLocations> locationStates = new List<TrendingDataLocations> { };
-        
-       
+        DataTable idTable;
+        string historianServer;
+        string historianInstance;
 
-        try
+        using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingData" + measurementType, conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+            string query =
+                "SELECT " +
+                "   Channel.ID AS ChannelID, " +
+                "   Meter.ID AS MeterID, " +
+                "   Meter.Name AS MeterName, " +
+                "   MeterLocation.Latitude, " +
+                "   MeterLocation.Longitude, " +
+                "   Channel.PerUnitValue " +
+                "FROM " +
+                "   Channel JOIN " +
+                "   Meter ON Channel.MeterID = Meter.ID JOIN " +
+                "   MeterLocation ON Meter.MeterLocationID = MeterLocation.ID JOIN " +
+                "   MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN " +
+                "   MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID JOIN " +
+                "   Phase ON Channel.PhaseID = Phase.ID " +
+                "WHERE " +
+                "   Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
+                "   MeasurementType.Name = {1} AND " +
+                "   MeasurementCharacteristic.Name = 'RMS' AND " +
+                "   Phase.Name IN ('AN', 'BN', 'CN', 'AB', 'BC', 'CA')";
+
+            idTable = connection.RetrieveData(query, userName, measurementType);
+            historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
+            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+        }
+
+        locationStates = idTable
+            .Select()
+            .DistinctBy(row => row.ConvertField<int>("MeterID"))
+            .Select(row => new TrendingDataLocations()
             {
-                TrendingDataLocations ourStatus = new TrendingDataLocations();
-                ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["Name"];
-                ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?) null:(double)rdr["Average"]);
-                ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
-                ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                ourStatus.id = (int)rdr["ID"];
-                locationStates.Add(ourStatus);
+                id = row.ConvertField<int>("MeterID"),
+                name = row.ConvertField<string>("MeterName"),
+                Latitude = row.ConvertField<double>("Latitude"),
+                Longitude = row.ConvertField<double>("Longitude")
+            })
+            .ToList();
+
+        Dictionary<int, double?> nominalLookup = idTable
+            .Select()
+            .ToDictionary(row => row.ConvertField<int>("ChannelID"), row => row.ConvertField<double?>("PerUnitValue"));
+
+        Dictionary<int, TrendingDataLocations> lookup = idTable
+            .Select()
+            .Select(row => new
+            {
+                ChannelID = row.ConvertField<int>("ChannelID"),
+                MeterID = row.ConvertField<int>("MeterID")
+            })
+            .Join(locationStates, obj => obj.MeterID, loc => loc.id, (obj, Locations) => new { obj.ChannelID, Locations })
+            .ToDictionary(obj => obj.ChannelID, obj => obj.Locations);
+
+        using (Historian historian = new Historian(historianServer, historianInstance))
+        {
+            foreach (TrendingDataPoint point in historian.Read(lookup.Keys, DateTime.Parse(targetDateFrom), DateTime.Parse(targetDateTo)))
+            {
+                TrendingDataLocations locations = lookup[point.ChannelID];
+                double nominal = nominalLookup[point.ChannelID] ?? 1.0D;
+                double value = point.Value / nominal;
+
+                switch (point.SeriesID)
+                {
+                    case SeriesID.Minimum:
+                        locations.Minimum = Math.Min(value, locations.Minimum ?? value);
+                        break;
+
+                    case SeriesID.Maximum:
+                        locations.Maximum = Math.Max(value, locations.Maximum ?? value);
+                        break;
+
+                    case SeriesID.Average:
+                        locations.Aggregate(value);
+                        break;
+                }
             }
         }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
+
+        return locationStates;
     }
 
     /// <summary>
