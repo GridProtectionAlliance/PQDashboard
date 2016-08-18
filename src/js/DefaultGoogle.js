@@ -1771,7 +1771,7 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "'"+ (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "" ) + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
     var url = "./mapService.asmx/getLocations" + currentTab;
 
     //console.log("getLocationsAndPopulateMapAndMatrix");
@@ -3578,7 +3578,7 @@ function plotContourMap(data) {
         return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
     };
 
-    zs = [-0.001, 0.5, 0.8,0.9, 1.1, 1.2, 1.5, 999999999999999];
+    var zs = [-0.001, 0.5, 0.8,0.9, 1.1, 1.2, 1.5, 999999999999999];
 
 
     var color = d3.scale.linear()
@@ -3604,42 +3604,6 @@ function plotContourMap(data) {
                 .range([0, pointsLat]);
 
     var plotData = [];
-
-    for (var i = 0; i <= pointsLat; i++) {
-        plotData.push([]);
-        for (var j = 0; j <= pointsLng; j++) {
-            if (i == 0 || j == 0)
-                plotData[i].push(-1);
-            else
-                plotData[i].push(1);
-        }
-    }
-    
-    var trendingDataTypeSelection = $('#trendingDataTypeSelection').val();
-
-    for (var yIndex = 0; yIndex < plotData.length; ++yIndex){
-        for(var xIndex = 0; xIndex < plotData[yIndex].length; ++xIndex){
-            var sum = 0;
-            var totalDistance = 0;
-            for (var dataIndex = 0; dataIndex < data.length; ++dataIndex) {
-                if (data[dataIndex][trendingDataTypeSelection] !== null) {
-                    var radius = 30;  // 20 miles
-                    var xLocation = Math.floor(x(data[dataIndex].Longitude));
-                    var yLocation = Math.floor(y(data[dataIndex].Latitude));
-
-                    var xDist = Math.abs(xIndex - xLocation);
-                    var yDist = Math.abs(yIndex - yLocation);
-
-                    var distance = 1/Math.sqrt(xDist*xDist + yDist*yDist);
-                    totalDistance += distance;
-
-                    sum += data[dataIndex][trendingDataTypeSelection] * distance;
-                }
-            }
-
-            plotData[yIndex][xIndex] = sum/totalDistance;
-        }
-    }
 
     plotData = d3.transpose(plotData);
 
