@@ -3665,6 +3665,8 @@ function plotContourMap(data) {
 
     L.marker([data.MaxLatitude, data.MinLongitude], { icon: contourIcon, clickable: false }).addTo(contourMap);
 
+    $('.contourIcon').removeClass('leaflet-interactive');
+
     contourMap.on('zoomstart', function () {
         $('.contourIcon').hide();
     });
