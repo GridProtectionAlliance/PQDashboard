@@ -29,7 +29,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.Caching;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Services;
 using System.Web.UI.WebControls;
 using GSF.Collections;
@@ -48,7 +51,6 @@ using scale;
 [System.Web.Script.Services.ScriptService]
 public class mapService : WebService
 {
-
     private string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     public class siteGeocoordinates
@@ -113,6 +115,64 @@ public class mapService : WebService
             Locations = new List<TrendingDataLocations>();
         }
     }
+
+    public class ContourQuery
+    {
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string MeasurementType { get; set; }
+        public string DataType { get; set; }
+        public string UserName { get; set; }
+
+        private Lazy<DateTime> m_startDate;
+        private Lazy<DateTime> m_endDate;
+
+        public ContourQuery()
+        {
+            m_startDate = new Lazy<DateTime>(() => DateTime.Parse(StartDate));
+            m_endDate = new Lazy<DateTime>(() => DateTime.Parse(EndDate));
+        }
+
+        public DateTime GetStartDate()
+        {
+            return m_startDate.Value;
+        }
+
+        public DateTime GetEndDate()
+        {
+            return m_endDate.Value;
+        }
+    }
+
+    public class ContourInfo
+    {
+        public List<TrendingDataLocations> Locations { get; set; }
+        public string URL { get; set; }
+        public double[] ColorDomain { get; set; }
+        public double[] ColorRange { get; set; }
+        public double MinLatitude { get; set; }
+        public double MaxLatitude { get; set; }
+        public double MinLongitude { get; set; }
+        public double MaxLongitude { get; set; }
+    }
+
+    private class ContourData
+    {
+        public string Key { get; set; }
+        public byte[] ImageData { get; set; }
+        public double[] ColorDomain { get; set; }
+        public double[] ColorRange { get; set; }
+
+        public string URL
+        {
+            get
+            {
+                return "./mapService.asmx/getContour?key=" + HttpUtility.UrlEncode(Key);
+            }
+        }
+    }
+
+    private static MemoryCache s_contourDataCache = new MemoryCache("ContourDataCache");
 
     public class ContourAnimations
     {
@@ -849,7 +909,7 @@ public class mapService : WebService
         }
         return (locationStates);
     }
-
+    
     /// <summary>
     /// getLocationsTrendingData 
     /// </summary>
@@ -859,7 +919,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public TrendingDataLocationList getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName, string dataType)
+    public ContourInfo getLocationsTrendingData(ContourQuery contourQuery)
     {
         TrendingDataLocationList locationStates = new TrendingDataLocationList();
 
@@ -871,26 +931,31 @@ public class mapService : WebService
         {
             string query =
                 "SELECT " +
-                "   Channel.ID AS ChannelID, " +
-                "   Meter.ID AS MeterID, " +
-                "   Meter.Name AS MeterName, " +
-                "   MeterLocation.Latitude, " +
-                "   MeterLocation.Longitude, " +
-                "   Channel.PerUnitValue " +
+                "    Channel.ID AS ChannelID, " +
+                "    Meter.ID AS MeterID, " +
+                "    Meter.Name AS MeterName, " +
+                "    MeterLocation.Latitude, " +
+                "    MeterLocation.Longitude, " +
+                "    Channel.PerUnitValue " +
                 "FROM " +
-                "   Channel JOIN " +
-                "   Meter ON Channel.MeterID = Meter.ID JOIN " +
-                "   MeterLocation ON Meter.MeterLocationID = MeterLocation.ID JOIN " +
-                "   MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN " +
-                "   MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID JOIN " +
-                "   Phase ON Channel.PhaseID = Phase.ID " +
+                "    Meter JOIN " +
+                "    MeterLocation ON Meter.MeterLocationID = MeterLocation.ID LEFT OUTER JOIN " +
+                "    Channel ON Channel.MeterID = Meter.ID LEFT OUTER JOIN " +
+                "    MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID LEFT OUTER JOIN " +
+                "    MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID LEFT OUTER JOIN " +
+                "    Phase ON Channel.PhaseID = Phase.ID " +
                 "WHERE " +
-                "   Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
-                "   MeasurementType.Name = {1} AND " +
-                "   MeasurementCharacteristic.Name = 'RMS' AND " +
-                "   Phase.Name IN ('AN', 'BN', 'CN', 'AB', 'BC', 'CA')";
+                "    Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
+                "    ( " +
+                "        Channel.ID IS NULL OR " +
+                "        ( " +
+                "            MeasurementType.Name = {1} AND " +
+                "            MeasurementCharacteristic.Name = 'RMS' AND " +
+                "            Phase.Name IN ('AN', 'BN', 'CN', 'AB', 'BC', 'CA') " +
+                "        ) " +
+                "    )";
 
-            idTable = connection.RetrieveData(query, userName, measurementType);
+            idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.MeasurementType);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
             historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
         }
@@ -909,10 +974,12 @@ public class mapService : WebService
 
         Dictionary<int, double?> nominalLookup = idTable
             .Select()
+            .Where(row => !Convert.IsDBNull(row["ChannelID"]))
             .ToDictionary(row => row.ConvertField<int>("ChannelID"), row => row.ConvertField<double?>("PerUnitValue"));
 
         Dictionary<int, TrendingDataLocations> lookup = idTable
             .Select()
+            .Where(row => !Convert.IsDBNull(row["ChannelID"]))
             .Select(row => new
             {
                 ChannelID = row.ConvertField<int>("ChannelID"),
@@ -923,7 +990,7 @@ public class mapService : WebService
 
         using (Historian historian = new Historian(historianServer, historianInstance))
         {
-            foreach (TrendingDataPoint point in historian.Read(lookup.Keys, DateTime.Parse(targetDateFrom), DateTime.Parse(targetDateTo)))
+            foreach (TrendingDataPoint point in historian.Read(lookup.Keys, contourQuery.GetStartDate(), contourQuery.GetEndDate()))
             {
                 TrendingDataLocations locations = lookup[point.ChannelID];
                 double nominal = nominalLookup[point.ChannelID] ?? 1.0D;
@@ -970,29 +1037,37 @@ public class mapService : WebService
 
         double step = 0.9D / 4.0D;
 
+        double[] colorDomain =
+        {
+            0, 0,
+            step, step,
+            2 * step, 2 * step,
+            3 * step, 3 * step,
+            0.9, 0.9,
+            1.1, 1.1,
+            1.1 + step, 1.1 + step,
+            1.1 + 2 * step, 1.1 + 2 * step,
+            1.1 + 3 * step, 1.1 + 3 * step,
+            2, 2
+        };
+
+        double[] colorRange =
+        {
+            0xAAFF0000, 0xAAFFFF00,
+            0xAAFFFF00, 0xAA00FF00,
+            0xAA00FF00, 0xAA00FFFF,
+            0xAA00FFFF, 0xAA0000FF,
+            0xAA0000FF, 0x0,
+            0x0, 0xAA0000FF,
+            0xAA0000FF, 0xAA00FFFF,
+            0xAA00FFFF, 0xAA00FF00,
+            0xAA00FF00, 0xAAFFFF00,
+            0xAAFFFF00, 0xAAFF0000
+        };
+
         Conversion colorScale = new Linear()
-            .domain(
-                0, 0,
-                step, step,
-                2 * step, 2 * step,
-                3 * step, 3 * step,
-                0.9, 0.9,
-                1.1, 1.1,
-                1.1 + step, 1.1 + step,
-                1.1 + 2 * step, 1.1 + 2 * step,
-                1.1 + 3 * step, 1.1 + 3 * step,
-                2, 2)
-            .range(
-                0xAAFF0000, 0xAAFFFF00,
-                0xAAFFFF00, 0xAA00FF00,
-                0xAA00FF00, 0xAA00FFFF,
-                0xAA00FFFF, 0xAA0000FF,
-                0xAA0000FF, 0x0,
-                0x0, 0xAA0000FF,
-                0xAA0000FF, 0xAA00FFFF,
-                0xAA00FFFF, 0xAA00FF00,
-                0xAA00FF00, 0xAAFFFF00,
-                0xAAFFFF00, 0xAAFF0000);
+            .domain(colorDomain)
+            .range(colorRange);
 
         uint[] pixelData = new uint[resolution * resolution];
 
@@ -1010,7 +1085,7 @@ public class mapService : WebService
                 {
                     double? value = null;
 
-                    switch (dataType)
+                    switch (contourQuery.DataType)
                     {
                         case "Average": value = data.Average; break;
                         case "Minimum": value = data.Minimum; break;
@@ -1019,7 +1094,7 @@ public class mapService : WebService
 
                     if (value != null)
                     {
-                        var R = 6371e3; // metres
+                        var r = 6371e3; // metres
                         var lambda1 = lngScale(x) * Math.PI / 180.0D;
                         var lambda2 = data.Longitude * Math.PI / 180.0D;
                         var phi1 = latScale(y) * Math.PI / 180.0D;
@@ -1032,7 +1107,7 @@ public class mapService : WebService
                                 Math.Sin(dLambda / 2) * Math.Sin(dLambda / 2);
 
                         var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-                        var distance = R * c;
+                        var distance = r * c;
                         var inverseDistance = 1 / distance;
 
                         totalDistance += inverseDistance;
@@ -1048,20 +1123,50 @@ public class mapService : WebService
 
         string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) , "contour.png");
         using (Bitmap bitmap = BitmapExtensions.FromPixelData(resolution, pixelData))
+        using (MemoryStream stream = new MemoryStream())
         {
-            // TODO: Cache the image and make it available through a temporary URL
-            string dir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            bitmap.Save(Path.Combine(dir, "contour.png"), ImageFormat.Png);
+            bitmap.Save(stream, ImageFormat.Png);
+
+            ContourData contourData = new ContourData()
+            {
+                Key = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                ImageData = stream.ToArray(),
+                ColorDomain = colorDomain,
+                ColorRange = colorRange
+            };
+
+            s_contourDataCache.Add(contourData.Key, contourData, new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(1) });
+
+            return new ContourInfo()
+            {
+                Locations = locationStates.Locations,
+                URL = contourData.URL,
+                ColorDomain = contourData.ColorDomain,
+                ColorRange = contourData.ColorRange,
+                MinLatitude = minLat,
+                MaxLatitude = maxLat,
+                MinLongitude = minLng,
+                MaxLongitude = maxLng
+            };
+        }
+    }
+
+    [WebMethod(EnableSession = true)]
+    public void getContour()
+    {
+        string key = HttpContext.Current.Request.QueryString["key"];
+        ContourData contourData = (ContourData)s_contourDataCache.Get(key);
+
+        if ((object)contourData == null)
+        {
+            HttpContext.Current.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            return;
         }
 
-
-        locationStates.Longitude = minLng;
-        locationStates.Latitude = minLat;
-        locationStates.Url = path;
-        // Unlock the browser
-        return locationStates;
-
-        // TODO: Return the temporary URL so the client can display the image on the map
+        HttpContext.Current.Response.ContentType = "image/png";
+        HttpContext.Current.Response.AddHeader("Content-Disposition", "attachment;filename=contour.png");
+        HttpContext.Current.Response.BinaryWrite(contourData.ImageData);
+        HttpContext.Current.Response.End();
     }
 
     /// <summary>
