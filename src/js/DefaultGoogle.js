@@ -1771,8 +1771,26 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
     var url = "./mapService.asmx/getLocations" + currentTab;
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
+
+    if (currentTab !== "TrendingData") {
+        thedatasent = {
+            targetDateFrom: datefrom,
+            targetDateTo: dateto,
+            userName: postedUserName
+        };
+    } else {
+        thedatasent = {
+            contourQuery: {
+                StartDate: datefrom,
+                EndDate: dateto,
+                MeasurementType: $('#trendingDataSelection').val(),
+                DataType: $('#trendingDataTypeSelection').val(),
+                UserName: postedUserName
+            }
+        };
+    }
 
     //console.log("getLocationsAndPopulateMapAndMatrix");
 
@@ -1788,7 +1806,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         dateto: dateto,
         type: "POST",
         url: url,
-        data: thedatasent,
+        data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
@@ -3561,126 +3579,56 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
 
 function plotContourMap(data) {
-    $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove();
-    //var getLng = function (miles, latitude) {
-    //    return miles / 69.1710411 / Math.cos(latitude * (Math.PI / 180));
+    var topLeft = contourMap.latLngToLayerPoint(L.latLng(data.MaxLatitude, data.MinLongitude));
+    var bottomRight = contourMap.latLngToLayerPoint(L.latLng(data.MinLatitude, data.MaxLongitude));
+    var iconSize = L.point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+
+    var contourIcon = L.icon({
+        iconUrl: data.URL,
+        iconAnchor: [0, 0],
+        iconSize: iconSize,
+        className: 'contourIcon'
+    });
+
+    L.marker([data.MaxLatitude, data.MinLongitude], { icon: contourIcon, clickable: false }).addTo(contourMap);
+
+    contourMap.on('zoomstart', function () {
+        $('.contourIcon').hide();
+    });
+
+    contourMap.on('zoomend', function () {
+        var topLeft = contourMap.latLngToLayerPoint(L.latLng(data.MaxLatitude, data.MinLongitude));
+        var bottomRight = contourMap.latLngToLayerPoint(L.latLng(data.MinLatitude, data.MaxLongitude));
+        var iconSize = L.point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+        $('.contourIcon').width(iconSize.x).height(iconSize.y);
+        $('.contourIcon').show();
+    });
+
+    //$('.info.legend.leaflet-control').remove();
+    //var legend = L.control({ position: 'bottomright' });
+
+    //legend.onAdd = function (map) {
+
+    //    var div = L.DomUtil.create('div', 'info legend'),
+    //        labels = [];
+    //    div.innerHTML += "<div ><h4>Legend</h4></div>" +
+    //        "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
+    //    // loop through our density intervals and generate a label with a colored square for each interval
+    //    for (var i = zs.length - 1; i > 0; i--) {
+    //        div.innerHTML +=
+    //            '<div class="row"><i style="background:' + color(zs[i]) + '"></i> ' +
+    //            (i == zs.length - 1 ? '>' + zs[zs.length - 2] : '') +
+    //            (i < zs.length - 1 && i > 1 ? zs[i-1] + '&ndash;' + zs[i] : '') +
+    //            (i == 1 ? '<' + zs[1] : '')
+    //            + '</div>';
+    //    }
+
+    //    div.innerHTML += '</div>';
+
+    //    return div;
     //};
 
-    //var getLat = function (miles) {
-    //    return miles / 68.6863716;
-    //};
-
-    //var getMilesNorth = function (deg) {
-    //    return deg * 68.6863716;
-    //};
-
-    //var getMilesEast = function (deg, latitude) {
-    //    return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
-    //};
-
-    var zs = [-0.001, 0.5, 0.8,0.9, 1.1, 1.2, 1.5, 999999999999999];
-
-
-    var color = d3.scale.linear()
-            .domain(zs)
-            .range(['black', 'black', '#3f2a14', '#a5682a', 'green', '#FFCCCC',  'red', 'purple']);
-
-
-    //var maxLat = d3.max(data, function (d) { return d.Latitude; }) + getLat(50);
-    //var minLat = d3.min(data, function (d) { return d.Latitude; }) - getLat(50);
-    //var maxLng = d3.max(data, function (d) { return d.Longitude; }) + getLng(50, maxLat);
-    //var minLng = d3.min(data, function (d) { return d.Longitude; }) - getLng(50, minLat);
-
-    //var bounds = contourMap.getBounds();
-
-    //var pointsLat = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).y - contourMap.latLngToLayerPoint(bounds._southWest).y);
-    //var pointsLng = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).x - contourMap.latLngToLayerPoint(bounds._southWest).x);
-    //var x = d3.scale.linear()
-    //            .domain([minLng, maxLng])
-    //            .range([0, pointsLng]);
-
-    //var y = d3.scale.linear()
-    //            .domain([minLat, maxLat])
-    //            .range([0, pointsLat]);
-
-    //var plotData = [];
-
-    //plotData = d3.transpose(plotData);
-
-    //var isobands = [];
-
-    //for (var i = 1; i < zs.length; i++) {
-    //    var lowerBand = zs[i - 1];
-    //    var upperBand = zs[i];
-
-    //    var band = MarchingSquaresJS.IsoBands(plotData, lowerBand, upperBand - lowerBand);
-    //    isobands.push({ "coords": band, "level": i, "val": zs[i] });
-    //}
-
-
-    //var isoBandsLatLng = { type: "FeatureCollection", features: [] };
-    //$.each(isobands, function (index, isoband) {
-    //    var coords = [];
-
-    //    $.each(isoband.coords, function (innerIndex, shape) {
-    //        coords.push([]);
-    //        $.each(shape, function (innerInnerIndex, point) {
-    //            coords[innerIndex].push([y.invert(point[0]), x.invert(point[1])]);
-    //        });
-    //    });
-    //    isoBandsLatLng.features.push({ geometry: { coordinates: coords, type: "Polygon" }, properties: { z: isoband.val }, type: "Feature" });
-
-    //});
-
-    //$.each(isoBandsLatLng.features, function (index, feature) {
-    //    var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
-    //    popup += "</table>";
-
-    //    var polygon = L.polygon(feature.geometry.coordinates, {
-    //        color: '#000000',
-    //        fillColor: color(feature.properties.z),
-    //        weight: 0.1,
-    //        fillOpacity: 0.5
-    //    }).addTo(contourMap).bindPopup(popup);
-
-  
-    //    //polygon.on('mouseover', function (event) {
-    //    //    polygon.setStyle({ 'fillOpacity': 0.5 });
-    //    //    polygon.openPopup();
-    //    //});
-
-    //    //polygon.on('mouseout', function (event) {
-    //    //    polygon.setStyle({ 'fillOpacity': 0.6 });
-    //    //    polygon.closePopup();
-    //    //});
-
-    //});
-
-    $('.info.legend.leaflet-control').remove();
-    var legend = L.control({ position: 'bottomright' });
-
-    legend.onAdd = function (map) {
-
-        var div = L.DomUtil.create('div', 'info legend'),
-            labels = [];
-        div.innerHTML += "<div ><h4>Legend</h4></div>" +
-            "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
-        // loop through our density intervals and generate a label with a colored square for each interval
-        for (var i = zs.length - 1; i > 0; i--) {
-            div.innerHTML +=
-                '<div class="row"><i style="background:' + color(zs[i]) + '"></i> ' +
-                (i == zs.length - 1 ? '>' + zs[zs.length - 2] : '') +
-                (i < zs.length - 1 && i > 1 ? zs[i-1] + '&ndash;' + zs[i] : '') +
-                (i == 1 ? '<' + zs[1] : '')
-                + '</div>';
-        }
-
-        div.innerHTML += '</div>';
-
-        return div;
-    };
-
-    legend.addTo(contourMap);
+    //legend.addTo(contourMap);
 
 }
 
