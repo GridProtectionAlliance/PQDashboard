@@ -5111,8 +5111,10 @@ function loadContourAnimationData() {
 
     var thedatasent = "{'targetDateFrom':'" + dateFrom + 
                     "', 'targetDateTo':'" + dateTo +
+                    "', 'measurementType':'" + $('#tredingDataSelection').val() +
                     "', 'stepSize':'" + $('#contourAnimationStepSelect').val() +
-                    "', 'meterID':'" + meters + 
+                    "', 'meterID':'" + meters +
+                    "', 'dataType':'" + $('#tredingDataTypeSelection').val() +
                     "', 'userName':'" + postedUserName + "'}";
     $.ajax({
         type: "POST",
