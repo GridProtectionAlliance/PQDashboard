@@ -1533,7 +1533,80 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
     $('#' + thediv).unbind("plotclick");
     $('#' + thediv).bind("plotclick", function (event, pos, item) {
         if (item) {
-            $("#ContoursControlsTrending").show();
+            $('.info.contourControl.leaflet-control').remove();
+            var contourControl = L.control({ position: 'bottomleft' });
+
+            contourControl.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info contourControl'),
+                    labels = [];
+                div.innerHTML = '<div id="ContoursControlsTrending">' +
+                                        '<div class="row" style="width: 100%; margin: auto">' +
+                                                '<div class="" style="float: left; margin-right: 4px;">' +
+                                                   '<table>'+
+                                                        '<tr>' +
+                                                            '<td style="width: 50%">' +
+                                                                '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>'+
+                                                            '</td>'+
+                                                            '<td style="width: 50%">' +
+                                                                '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">'+
+                                                                   '<option value="60">60 min</option>' +
+                                                                   '<option value="30">30 min</option>' +
+                                                                   '<option value="20">20 min</option>' +
+                                                                   '<option selected="selected" value="15">15 min</option>' +
+                                                                   '<option value="10">10 min</option>' +
+                                                                   '<option value="5">5 min</option>' +
+                                                                   '<option value="1">1 min</option>' +
+                                                                '</select>' +
+                                                            '</td>' +
+                                                        '</tr>' +
+                                                        '<tr>' +
+                                                             '<td colspan="2">' +
+                                                                '<div id="time-range">' +
+                                                                    '<div class="sliders_step1">' +
+                                                                        '&nbsp;<div id="slider-range"></div> ' +
+                                                                    '</div>' +
+                                                                    '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
+                                                                '</div>' +
+                                                            '</td>' +
+                                                        '</tr>' +
+                                                        '<tr>' +
+                                                            '<td colspan="2">' +
+                                                                '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
+                                                            '</td>' +
+                                                        '</tr>' +
+                                                    '</table>' + 
+                                                '</div>' +
+                                                '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
+                                                    '<table style="width: 100%">' +
+                                                        '<tr><td>&nbsp;</td></tr>' +
+                                                        '<tr><td>&nbsp;</td></tr>' +
+                                                        '<tr><td>&nbsp;</td></tr>' +
+                                                        '<tr><td style="width: 100%">' +
+                                                                '<div id="contourAnimationProgressBar"><div id="contourAnimationInnerBar"><div id="progressbarLabel"></div></div></div>' +
+                                                        '</td></tr>'+
+                                                        '<tr><td>&nbsp;</td></tr>' +
+                                                        '<tr><td>&nbsp;</td></tr>' +
+                                                        '<tr><td style="width: 100%; text-align: center">' +
+                                                                    '<div class="player text-center" id="contourPlayerButtons">' +
+                                                                        '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>'  +
+                                                                        '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
+                                                                        '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
+                                                                        '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
+                                                                        '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
+                                                                        '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +    
+                                                                    '</div>'+
+                                                        '</td></tr>' +
+                                                   '</table>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>';
+
+                return div;
+            };
+
+            contourControl.addTo(contourMap);
+            initiateTimeRangeSlider();
             cache_Contour_Data = null;
             var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
@@ -1821,7 +1894,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             switch ($('#mapGrid')[0].value) {
                 case "Map":
                     if (currentTab == "TrendingData")
-                        plotContourMapLocations(data, currentTab, this.datefrom, this.dateto, string);
+                        plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
                     break;
@@ -3485,7 +3558,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
     $(contourMap.getPanes().markerPane).children().remove()
     var markers = [];
-    $.each(locationdata.d.Locations, function (index, data) {
+    $.each(locationdata.Locations, function (index, data) {
         var color = 'rgb(0,255,0)'; // green
         if (data[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
         else if (data[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
@@ -3547,7 +3620,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     contourMap.on('boxzoomend', function (event) {
         $('#siteList').multiselect("uncheckAll");
 
-        $.each(locationdata.d, function (index, data) {
+        $.each(locationdata, function (index, data) {
             if(data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat 
                 && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
                 if ($('#siteList').multiselect("option").multiple) {
@@ -3574,7 +3647,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     });
     
     showSiteSet($('#selectSiteSet' + currentTab)[0]);
-    plotContourMap(locationdata.d);
+    plotContourMap(locationdata);
 };
 
 
@@ -3604,31 +3677,39 @@ function plotContourMap(data) {
         $('.contourIcon').show();
     });
 
-    //$('.info.legend.leaflet-control').remove();
-    //var legend = L.control({ position: 'bottomright' });
+    $('.info.legend.leaflet-control').remove();
+    var legend = L.control({ position: 'bottomright' });
 
-    //legend.onAdd = function (map) {
+    legend.onAdd = function (map) {
 
-    //    var div = L.DomUtil.create('div', 'info legend'),
-    //        labels = [];
-    //    div.innerHTML += "<div ><h4>Legend</h4></div>" +
-    //        "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
-    //    // loop through our density intervals and generate a label with a colored square for each interval
-    //    for (var i = zs.length - 1; i > 0; i--) {
-    //        div.innerHTML +=
-    //            '<div class="row"><i style="background:' + color(zs[i]) + '"></i> ' +
-    //            (i == zs.length - 1 ? '>' + zs[zs.length - 2] : '') +
-    //            (i < zs.length - 1 && i > 1 ? zs[i-1] + '&ndash;' + zs[i] : '') +
-    //            (i == 1 ? '<' + zs[1] : '')
-    //            + '</div>';
-    //    }
+        var div = L.DomUtil.create('div', 'info legend'),
+            labels = [];
+        div.innerHTML += "<div ><h4>Legend</h4></div>" +
+            "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
+        // loop through our density intervals and generate a label with a colored square for each interval
+        for (var i = data.ColorDomain.length - 1; i >= 0; i -= 1) {
+            if (i === data.ColorDomain.length - 1) {
+                div.innerHTML +=
+                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[data.ColorDomain.length - 1].toFixed(2)+ '</div>';
+            }
+            else if (i == 0) {
+                div.innerHTML +=
+                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>';
+            }
+            else if( i % 2 !== 0){
+                div.innerHTML +=
+                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' +  data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>';
+            }
+        }
 
-    //    div.innerHTML += '</div>';
+        div.innerHTML += '</div>';
 
-    //    return div;
-    //};
+        return div;
+    };
 
-    //legend.addTo(contourMap);
+    legend.addTo(contourMap);
+
+
 
 }
 
@@ -3862,7 +3943,7 @@ function resizeMapAndMatrix(newTab) {
 
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
-    $("#theMap" + newTab).css("height", columnheight - ($('#ContoursControlsTrending').css('display') === "none" ? 0 : $('#ContoursControlsTrending').height()));
+    $("#theMap" + newTab).css("height", columnheight /*- ($('#ContoursControlsTrending').css('display') === "none" ? 0 : $('#ContoursControlsTrending').height())*/);
 
     $("#theMatrix" + newTab).css("height", columnheight);
 
@@ -4973,7 +5054,7 @@ function loadLeafletMap(theDiv) {
 }
 
 function showType(thecontrol) {
-    plotContourMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+    plotContourMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 }
 
 function showTrendingData(thecontrol) {
@@ -5059,7 +5140,7 @@ function loadContourAnimationData() {
 
     var thedatasent = "{'targetDateFrom':'" + dateFrom + 
                     "', 'targetDateTo':'" + dateTo +
-                    "', 'measurementType':'" + $('#tredingDataSelection').val() +
+                    "', 'measurementType':'" + $('#trendingDataSelection').val() +
                     "', 'stepSize':'" + $('#contourAnimationStepSelect').val() +
                     "', 'meterID':'" + meters +
                     "', 'dataType':'" + $('#tredingDataTypeSelection').val() +
@@ -5072,21 +5153,21 @@ function loadContourAnimationData() {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            var startTime = new Date(data.d[0].Date);
-            var contourData = [{ Date: startTime, d: [] }];
-            var contourDateIndex = 0;
-            $.each(data.d, function (index, d) {
-                if (new Date(d.Date).getTime() === startTime.getTime())
-                    contourData[contourDateIndex].d.push(d);
-                else {
-                    startTime = new Date(d.Date);
-                    contourData.push({ Date: startTime, d: [] });
-                    contourData[++contourDateIndex].d.push(d)
-                }
-            });
+            //var startTime = new Date(data.d[0].Date);
+            //var contourData = [{ Date: startTime, d: [] }];
+            //var contourDateIndex = 0;
+            //$.each(data.d, function (index, d) {
+            //    if (new Date(d.Date).getTime() === startTime.getTime())
+            //        contourData[contourDateIndex].d.push(d);
+            //    else {
+            //        startTime = new Date(d.Date);
+            //        contourData.push({ Date: startTime, d: [] });
+            //        contourData[++contourDateIndex].d.push(d)
+            //    }
+            //});
 
-            cache_Contour_Data = contourData;
-            runContourAnimation(contourData);
+            //cache_Contour_Data = contourData;
+            runContourAnimation(data.d);
         },
         failure: function (msg) {
             alert(msg);
@@ -5099,16 +5180,17 @@ function loadContourAnimationData() {
 }
 
 function runContourAnimation(contourData) {
-    var d = new Date(contourData[0].Date + ' UTC');
+    var d = new Date(contourData.Date + ' UTC');
     if ($('#weatherCheckbox').prop('checked')) {
         var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes()%5)).toISOString() }).addTo(contourMap);
     }
     var progressBarIndex = 0;
-    $('#contourPlayerButtons').show();
+    $('.contourControl').css('width', '500px');
+    $('#progressBar').show();
 
     var index = 0
-    $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
-    plotContourMapLocations(contourData[index++], null, null, null, null);
+    $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
+    plotContourMapLocations(contourData.Infos[index++], null, null, null, null);
 
     var interval;
 
@@ -5116,35 +5198,35 @@ function runContourAnimation(contourData) {
     $('#button_play').on('click', function () {
         interval = setInterval(function () {
 
-            if (index == contourData.length) {
+            if (index == contourData.Infos.length) {
                 clearInterval(interval);
                 index = 0;
-                $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+                $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
             }
             else
                 if ($('#weatherCheckbox').prop('checked')) {
-                    d = new Date(contourData[index].Date + ' UTC');
+                    d = new Date(contourData.Infos[index].Date + ' UTC');
                     wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
                 }
-                progressBarIndex = Math.ceil(index / contourData.length * 100);
+                progressBarIndex = Math.ceil(index / contourData.Infos.length * 100);
                 $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
-                $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+                $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
-                plotContourMapLocations(contourData[index++], null, null, null, null);
+                plotContourMapLocations(contourData.Infos[index++], null, null, null, null);
         }, 3000);
     });
 
     $('#button_stop').off('click');
     $('#button_stop').on('click', function () {
         clearInterval(interval);
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
     });
 
     $('#button_bw').off('click');
     $('#button_bw').on('click', function () {
         --index;
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
     });
 
@@ -5152,14 +5234,14 @@ function runContourAnimation(contourData) {
     $('#button_fbw').on('click', function () {
         index = 0;
         $('#contourAnimationInnerBar').css('width', 0 + '%');
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
     });
 
     $('#button_fw').off('click');
     $('#button_fw').on('click', function () {
         ++index;
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
     });
 
@@ -5167,7 +5249,7 @@ function runContourAnimation(contourData) {
     $('#button_ffw').on('click', function () {
         index = contourData.length;
         $('#contourAnimationInnerBar').css('width', 100 + '%');
-        $('#progressbarLabel').html(new Date(contourData[index].Date).getUTCHours() + ':' + (new Date(contourData[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData[index].Date).getMinutes());
+        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
 
     });
 }

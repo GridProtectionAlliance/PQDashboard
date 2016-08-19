@@ -83,9 +83,24 @@ public class mapService : WebService
         public double? Maximum;
         public double? Minimum;
 
-        public double? Average
+        public double? Average;
+        //{
+        //    get
+        //    {
+        //        return (m_count > 0)
+        //            ? m_sum / m_count
+        //            : (double?)null;
+        //    }
+        //}
+
+        public void Aggregate(double average)
         {
-            get
+            m_sum += average;
+            m_count++;
+        }
+
+        public double? GetAverage()
+        {
             {
                 return (m_count > 0)
                     ? m_sum / m_count
@@ -93,11 +108,6 @@ public class mapService : WebService
             }
         }
 
-        public void Aggregate(double average)
-        {
-            m_sum += average;
-            m_count++;
-        }
 
         private double m_sum;
         private int m_count;
@@ -154,6 +164,8 @@ public class mapService : WebService
         public double MaxLatitude { get; set; }
         public double MinLongitude { get; set; }
         public double MaxLongitude { get; set; }
+        public string Date { get; set; }
+
     }
 
     private class ContourData
@@ -188,15 +200,13 @@ public class mapService : WebService
 
     public class ContourAnimationsList
     {
-        public List<ContourAnimations> Locations;
+        public List<ContourInfo> Infos;
         public string Date;
-        public double Latitude;
-        public double Longitude;
-        public string Url;
+
 
         public ContourAnimationsList()
         {
-            Locations = new List<ContourAnimations>();
+            Infos = new List<ContourInfo>();
         }
     }
 
@@ -923,93 +933,42 @@ public class mapService : WebService
     {
         TrendingDataLocationList locationStates = new TrendingDataLocationList();
 
-        DataTable idTable;
-        string historianServer;
-        string historianInstance;
+        SqlConnection conn = null;
+        SqlDataReader rdr = null;
 
-        using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+        try
         {
-            string query =
-                "SELECT " +
-                "    Channel.ID AS ChannelID, " +
-                "    Meter.ID AS MeterID, " +
-                "    Meter.Name AS MeterName, " +
-                "    MeterLocation.Latitude, " +
-                "    MeterLocation.Longitude, " +
-                "    Channel.PerUnitValue " +
-                "FROM " +
-                "    Meter JOIN " +
-                "    MeterLocation ON Meter.MeterLocationID = MeterLocation.ID LEFT OUTER JOIN " +
-                "    Channel ON Channel.MeterID = Meter.ID LEFT OUTER JOIN " +
-                "    MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID LEFT OUTER JOIN " +
-                "    MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID LEFT OUTER JOIN " +
-                "    Phase ON Channel.PhaseID = Phase.ID " +
-                "WHERE " +
-                "    Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
-                "    ( " +
-                "        Channel.ID IS NULL OR " +
-                "        ( " +
-                "            MeasurementType.Name = {1} AND " +
-                "            MeasurementCharacteristic.Name = 'RMS' AND " +
-                "            Phase.Name IN ('AN', 'BN', 'CN', 'AB', 'BC', 'CA') " +
-                "        ) " +
-                "    )";
-
-            idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.MeasurementType);
-            historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            conn = new SqlConnection(connectionstring);
+            conn.Open();
+            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingData" + contourQuery.MeasurementType, conn);
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.StartDate));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.EndDate));
+            cmd.Parameters.Add(new SqlParameter("@username", contourQuery.UserName));
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 300;
+            rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                TrendingDataLocations ourStatus = new TrendingDataLocations();
+                ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.Longitude = (double)rdr["Longitude"];
+                ourStatus.name = (String)rdr["Name"];
+                ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
+                ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
+                ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
+                ourStatus.id = (int)rdr["id"];
+                locationStates.Locations.Add(ourStatus);
+            }
         }
-
-        locationStates.Locations = idTable
-            .Select()
-            .DistinctBy(row => row.ConvertField<int>("MeterID"))
-            .Select(row => new TrendingDataLocations()
-            {
-                id = row.ConvertField<int>("MeterID"),
-                name = row.ConvertField<string>("MeterName"),
-                Latitude = row.ConvertField<double>("Latitude"),
-                Longitude = row.ConvertField<double>("Longitude")
-            })
-            .ToList();
-
-        Dictionary<int, double?> nominalLookup = idTable
-            .Select()
-            .Where(row => !Convert.IsDBNull(row["ChannelID"]))
-            .ToDictionary(row => row.ConvertField<int>("ChannelID"), row => row.ConvertField<double?>("PerUnitValue"));
-
-        Dictionary<int, TrendingDataLocations> lookup = idTable
-            .Select()
-            .Where(row => !Convert.IsDBNull(row["ChannelID"]))
-            .Select(row => new
-            {
-                ChannelID = row.ConvertField<int>("ChannelID"),
-                MeterID = row.ConvertField<int>("MeterID")
-            })
-            .Join(locationStates.Locations, obj => obj.MeterID, loc => loc.id, (obj, Locations) => new { obj.ChannelID, Locations })
-            .ToDictionary(obj => obj.ChannelID, obj => obj.Locations);
-
-        using (Historian historian = new Historian(historianServer, historianInstance))
+        finally
         {
-            foreach (TrendingDataPoint point in historian.Read(lookup.Keys, contourQuery.GetStartDate(), contourQuery.GetEndDate()))
+            if (conn != null)
             {
-                TrendingDataLocations locations = lookup[point.ChannelID];
-                double nominal = nominalLookup[point.ChannelID] ?? 1.0D;
-                double value = point.Value / nominal;
-
-                switch (point.SeriesID)
-                {
-                    case SeriesID.Minimum:
-                        locations.Minimum = Math.Min(value, locations.Minimum ?? value);
-                        break;
-
-                    case SeriesID.Maximum:
-                        locations.Maximum = Math.Max(value, locations.Maximum ?? value);
-                        break;
-
-                    case SeriesID.Average:
-                        locations.Aggregate(value);
-                        break;
-                }
+                conn.Close();
+            }
+            if (rdr != null)
+            {
+                rdr.Close();
             }
         }
 
@@ -1295,52 +1254,249 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public ContourAnimationsList getContourAnimations(string targetDateFrom, string targetDateTo, string stepSize, string meterID, string userName)
+    public ContourAnimationsList getContourAnimations(string targetDateFrom, string targetDateTo, string measurementType, string stepSize, string meterID, string dataType, string userName)
     {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
+        DataTable idTable;
+        string historianServer;
+        string historianInstance;
         ContourAnimationsList returnList = new ContourAnimationsList();
         DateTime dateFrom = DateTime.Parse(targetDateFrom);
         DateTime dateTo = DateTime.Parse(targetDateTo);
+        returnList.Date = dateFrom.ToString();
+        int numberOfIntervals = (int)(new TimeSpan(dateTo.Ticks - dateFrom.Ticks).TotalMinutes) / int.Parse(stepSize);
 
-        try
+        Parallel.For(0, numberOfIntervals, iter =>
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingDataVoltageAnimation", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", dateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", dateTo));
-            cmd.Parameters.Add(new SqlParameter("@MeterID", meterID));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.Parameters.Add(new SqlParameter("@StepSize", stepSize));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+            DateTime dateIterFrom = dateFrom.AddMinutes(double.Parse(stepSize) * iter);
+            DateTime dateIterTo = dateIterFrom.AddMinutes(double.Parse(stepSize));
+
+            ContourInfo list = new ContourInfo();
+            list.Date = dateIterFrom.ToString();
+
+            list.Locations = new List<TrendingDataLocations>();
+            using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
             {
-                ContourAnimations ca = new ContourAnimations();
-                ca.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
-                ca.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
-                ca.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                ca.Date = (String)((DateTime)rdr["Date"]).ToString("MM/dd/yy HH:mm:ss");
-                ca.id = (int)rdr["ID"];
-                ca.Latitude = (double)rdr["Latitude"];
-                ca.Longitude = (double)rdr["Longitude"];
-                ca.name = (string)rdr["Name"];
-                returnList.Locations.Add(ca);
+                string query =
+                    "SELECT " +
+                    "   Channel.ID AS ChannelID, " +
+                    "   Meter.ID AS MeterID, " +
+                    "   Meter.Name AS MeterName, " +
+                    "   MeterLocation.Latitude, " +
+                    "   MeterLocation.Longitude, " +
+                    "   Channel.PerUnitValue " +
+                    "FROM " +
+                    "   Channel JOIN " +
+                    "   Meter ON Channel.MeterID = Meter.ID JOIN " +
+                    "   MeterLocation ON Meter.MeterLocationID = MeterLocation.ID JOIN " +
+                    "   MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN " +
+                    "   MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID JOIN " +
+                    "   Phase ON Channel.PhaseID = Phase.ID " +
+                    "WHERE " +
+                    "   Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
+                    "   MeasurementType.Name = {1} AND " +
+                    "   MeasurementCharacteristic.Name = 'RMS' AND " +
+                    "   Phase.Name IN ('AN', 'BN', 'CN', 'AB', 'BC', 'CA')";
+
+                idTable = connection.RetrieveData(query, userName, measurementType);
+                historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
+                historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
             }
-        }
-        finally
-        {
-            if (conn != null)
+
+            list.Locations = idTable
+                .Select()
+                .DistinctBy(row => row.ConvertField<int>("MeterID"))
+                .Select(row => new TrendingDataLocations()
+                {
+                    id = row.ConvertField<int>("MeterID"),
+                    name = row.ConvertField<string>("MeterName"),
+                    Latitude = row.ConvertField<double>("Latitude"),
+                    Longitude = row.ConvertField<double>("Longitude")
+                })
+                .ToList();
+
+            Dictionary<int, double?> nominalLookup = idTable
+                .Select()
+                .ToDictionary(row => row.ConvertField<int>("ChannelID"), row => row.ConvertField<double?>("PerUnitValue"));
+
+            Dictionary<int, TrendingDataLocations> lookup = idTable
+                .Select()
+                .Select(row => new
+                {
+                    ChannelID = row.ConvertField<int>("ChannelID"),
+                    MeterID = row.ConvertField<int>("MeterID")
+                })
+                .Join(list.Locations, obj => obj.MeterID, loc => loc.id, (obj, Locations) => new { obj.ChannelID, Locations })
+                .ToDictionary(obj => obj.ChannelID, obj => obj.Locations);
+
+            using (Historian historian = new Historian(historianServer, historianInstance))
             {
-                conn.Close();
+                foreach (TrendingDataPoint point in historian.Read(lookup.Keys, dateIterFrom, dateIterTo))
+                {
+                    TrendingDataLocations locations = lookup[point.ChannelID];
+                    double nominal = nominalLookup[point.ChannelID] ?? 1.0D;
+                    double value = point.Value / nominal;
+
+                    switch (point.SeriesID)
+                    {
+                        case SeriesID.Minimum:
+                            locations.Minimum = Math.Min(value, locations.Minimum ?? value);
+                            break;
+
+                        case SeriesID.Maximum:
+                            locations.Maximum = Math.Max(value, locations.Maximum ?? value);
+                            break;
+
+                        case SeriesID.Average:
+                            locations.Aggregate(value);
+                            locations.Average = locations.GetAverage();
+                            break;
+                    }
+                }
             }
-            if (rdr != null)
+
+
+            double maxLat = list.Locations.Max(x => x.Latitude) + GetLatFromMiles(50);
+            double minLat = list.Locations.Min(x => x.Latitude) - GetLatFromMiles(50);
+            double maxLng = list.Locations.Max(x => x.Longitude) + GetLngFromMiles(50, maxLat);
+            double minLng = list.Locations.Min(x => x.Longitude) - GetLngFromMiles(50, minLat);
+            int resolution = 1000;
+
+            Conversion xScale = new Linear()
+                .domain(minLng, maxLng)
+                .range(0, resolution);
+
+            Conversion yScale = new Linear()
+                .domain(minLat, maxLat)
+                .range(0, resolution);
+
+            Conversion lngScale = new Linear()
+                .domain(0, resolution)
+                .range(minLng, maxLng);
+
+            Conversion latScale = new Linear()
+                .domain(0, resolution)
+                .range(minLat, maxLat);
+
+            double step = 0.9D / 4.0D;
+
+
+            double[] colorDomain =
             {
-                rdr.Close();
+            0, 0,
+            step, step,
+            2 * step, 2 * step,
+            3 * step, 3 * step,
+            0.9, 0.9,
+            1.1, 1.1,
+            1.1 + step, 1.1 + step,
+            1.1 + 2 * step, 1.1 + 2 * step,
+            1.1 + 3 * step, 1.1 + 3 * step,
+            2, 2
+        };
+
+            double[] colorRange =
+            {
+            0xAAFF0000, 0xAAFFFF00,
+            0xAAFFFF00, 0xAA00FF00,
+            0xAA00FF00, 0xAA00FFFF,
+            0xAA00FFFF, 0xAA0000FF,
+            0xAA0000FF, 0x0,
+            0x0, 0xAA0000FF,
+            0xAA0000FF, 0xAA00FFFF,
+            0xAA00FFFF, 0xAA00FF00,
+            0xAA00FF00, 0xAAFFFF00,
+            0xAAFFFF00, 0xAAFF0000
+        };
+
+            Conversion colorScale = new Linear()
+                .domain(colorDomain)
+                .range(colorRange);
+
+            uint[] pixelData = new uint[resolution * resolution];
+
+            for (int yIndex = 0; yIndex < resolution; ++yIndex)
+            {
+                int y = yIndex;
+
+                Parallel.For(0, resolution, xIndex =>
+                {
+                    double sum = 0;
+                    double totalDistance = 0;
+                    int x = xIndex;
+
+                    foreach (TrendingDataLocations data in list.Locations)
+                    {
+                        double? value = null;
+
+                        switch (dataType)
+                        {
+                            case "Average": value = data.Average; break;
+                            case "Minimum": value = data.Minimum; break;
+                            case "Maximum": value = data.Maximum; break;
+                        }
+
+                        if (value != null)
+                        {
+                            var R = 6371e3; // metres
+                            var lambda1 = lngScale(x) * Math.PI / 180.0D;
+                            var lambda2 = data.Longitude * Math.PI / 180.0D;
+                            var phi1 = latScale(y) * Math.PI / 180.0D;
+                            var phi2 = data.Latitude * Math.PI / 180.0D;
+                            var dPhi = phi2 - phi1;
+                            var dLambda = lambda2 - lambda1;
+
+                            var a = Math.Sin(dPhi / 2) * Math.Sin(dPhi / 2) +
+                                    Math.Cos(phi1) * Math.Cos(phi2) *
+                                    Math.Sin(dLambda / 2) * Math.Sin(dLambda / 2);
+
+                            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                            var distance = R * c;
+                            var inverseDistance = 1 / distance;
+
+                            totalDistance += inverseDistance;
+                            sum += (double)value * inverseDistance;
+                        }
+                    }
+
+                    double interpolatedValue = sum / totalDistance;
+                    uint color = (uint)colorScale(interpolatedValue);
+                    pixelData[(resolution - y - 1) * resolution + x] = color;
+                });
             }
-        }
+
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "contour" + iter + ".png");
+            using (Bitmap bitmap = BitmapExtensions.FromPixelData(resolution, pixelData))
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Png);
+
+                ContourData contourData = new ContourData()
+                {
+                    Key = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                    ImageData = stream.ToArray(),
+                    ColorDomain = colorDomain,
+                    ColorRange = colorRange
+                };
+
+                s_contourDataCache.Add(contourData.Key, contourData, new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(100) });
+
+                returnList.Infos.Add(new ContourInfo()
+                {
+                    Locations = list.Locations,
+                    Date = dateIterFrom.ToString(),
+                    URL = contourData.URL,
+                    ColorDomain = contourData.ColorDomain,
+                    ColorRange = contourData.ColorRange,
+                    MinLatitude = minLat,
+                    MaxLatitude = maxLat,
+                    MinLongitude = minLng,
+                    MaxLongitude = maxLng
+                });
+            }
+
+        });
+
+        returnList.Infos = returnList.Infos.OrderBy(x => x.Date).ToList();
         return (returnList);
     }
 

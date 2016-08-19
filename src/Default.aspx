@@ -429,7 +429,7 @@
                                 </div>
                             </div>
                             <div  id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-                                <div id="ContoursControlsTrending" style="background-color: '#FFD2D2D2'; display: none">
+<%--                                <div id="ContoursControlsTrending" style="background-color: '#FFD2D2D2'; display: none">
                                         <div class="row">
                                                 <div class="col-md-4">
                                                     <table>
@@ -510,7 +510,7 @@
                                                     </table>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div>--%>
                                 <div  class="theMapStyle" id="theMapTrendingData">
                                 </div>
                                 <div  class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
