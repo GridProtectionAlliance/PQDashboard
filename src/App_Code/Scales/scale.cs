@@ -34,26 +34,34 @@ namespace scale
         {
             m_conversion = x =>
             {
-                if (x <= m_domainValues.First())
-                    return m_rangeValues.First();
+                int i = 0;
+                int j = m_domainValues.Length - 1;
+                double di = m_domainValues[i];
+                double dj = m_domainValues[j];
 
-                if (x >= m_domainValues.Last())
-                    return m_rangeValues.Last();
-
-                for (int i = 0, j = 1; j < m_domainValues.Length; i++, j++)
+                while (j - i > 1)
                 {
-                    double dmin = m_domainValues[i];
-                    double dmax = m_domainValues[j];
+                    int mid = (i + j) / 2;
+                    double dmid = m_domainValues[mid];
 
-                    if (dmin <= x && x <= dmax)
+                    if ((di < dmid && x <= dmid) || (di > dmid && x >= dmid))
                     {
-                        double rmin = m_rangeValues[i];
-                        double rmax = m_rangeValues[j];
-                        return (((x - dmin) / (dmax - dmin)) * (rmax - rmin)) + rmin;
+                        j = mid;
+                        dj = dmid;
+                    }
+                    else
+                    {
+                        i = mid;
+                        di = dmid;
                     }
                 }
 
-                return double.NaN;
+                if (di == dj)
+                    return m_rangeValues[i];
+
+                double ri = m_rangeValues[i];
+                double rj = m_rangeValues[j];
+                return (((x - di) / (dj - di)) * (rj - ri)) + ri;
             };
 
             return m_conversion;

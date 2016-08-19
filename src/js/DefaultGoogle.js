@@ -1863,6 +1863,17 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 UserName: postedUserName
             }
         };
+
+        if (contourMap === null) {
+            var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+
+            $.each(thedatasent.contourQuery, function (key, value) {
+                tileURL += '&' + key + '=' + encodeURIComponent(value);
+            });
+
+            loadLeafletMap('theMap' + currentTab);
+            L.tileLayer(tileURL).addTo(contourMap);
+        }
     }
 
     //console.log("getLocationsAndPopulateMapAndMatrix");
@@ -3556,7 +3567,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
     var selectedIDs = GetCurrentlySelectedSites();
 
-    $(contourMap.getPanes().markerPane).children().remove()
+    $(contourMap.getPanes().markerPane).children().remove();
     var markers = [];
     $.each(locationdata.Locations, function (index, data) {
         var color = 'rgb(0,255,0)'; // green
@@ -3652,33 +3663,6 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
 
 function plotContourMap(data) {
-    var topLeft = contourMap.latLngToLayerPoint(L.latLng(data.MaxLatitude, data.MinLongitude));
-    var bottomRight = contourMap.latLngToLayerPoint(L.latLng(data.MinLatitude, data.MaxLongitude));
-    var iconSize = L.point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-
-    var contourIcon = L.icon({
-        iconUrl: data.URL,
-        iconAnchor: [0, 0],
-        iconSize: iconSize,
-        className: 'contourIcon'
-    });
-
-    L.marker([data.MaxLatitude, data.MinLongitude], { icon: contourIcon, clickable: false }).addTo(contourMap);
-
-    $('.contourIcon').removeClass('leaflet-interactive');
-
-    contourMap.on('zoomstart', function () {
-        $('.contourIcon').hide();
-    });
-
-    contourMap.on('zoomend', function () {
-        var topLeft = contourMap.latLngToLayerPoint(L.latLng(data.MaxLatitude, data.MinLongitude));
-        var bottomRight = contourMap.latLngToLayerPoint(L.latLng(data.MinLatitude, data.MaxLongitude));
-        var iconSize = L.point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-        $('.contourIcon').width(iconSize.x).height(iconSize.y);
-        $('.contourIcon').show();
-    });
-
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
 
@@ -3689,12 +3673,12 @@ function plotContourMap(data) {
         div.innerHTML += "<div ><h4>Legend</h4></div>" +
             "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
         // loop through our density intervals and generate a label with a colored square for each interval
-        for (var i = data.ColorDomain.length - 1; i >= 0; i -= 1) {
-            if (i === data.ColorDomain.length - 1) {
+        for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
+            if (i === data.ColorDomain.length - 2) {
                 div.innerHTML +=
-                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[data.ColorDomain.length - 1].toFixed(2)+ '</div>';
+                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2)+ '</div>';
             }
-            else if (i == 0) {
+            else if (i == 1) {
                 div.innerHTML +=
                     '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>';
             }
