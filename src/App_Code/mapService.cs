@@ -36,6 +36,7 @@ using GSF.Collections;
 using GSF.Data;
 using GSF.Drawing;
 using openHistorian.XDALink;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using scale;
 
 /// <summary>
@@ -100,6 +101,19 @@ public class mapService : WebService
         private int m_count;
     }
 
+    public class TrendingDataLocationList
+    {
+        public List<TrendingDataLocations> Locations;
+        public string Url;
+        public double Latitude;
+        public double Longitude;
+        
+        public TrendingDataLocationList()
+        {
+            Locations = new List<TrendingDataLocations>();
+        }
+    }
+
     public class ContourAnimations
     {
         public int id;
@@ -110,6 +124,20 @@ public class mapService : WebService
         public double? Longitude;
         public double? Latitude;
         public string name;
+    }
+
+    public class ContourAnimationsList
+    {
+        public List<ContourAnimations> Locations;
+        public string Date;
+        public double Latitude;
+        public double Longitude;
+        public string Url;
+
+        public ContourAnimationsList()
+        {
+            Locations = new List<ContourAnimations>();
+        }
     }
 
     [WebMethod]
@@ -831,9 +859,9 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<List<double>> getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName, string dataType)
+    public TrendingDataLocationList getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName, string dataType)
     {
-        List<TrendingDataLocations> locationStates;
+        TrendingDataLocationList locationStates = new TrendingDataLocationList();
 
         DataTable idTable;
         string historianServer;
@@ -867,7 +895,7 @@ public class mapService : WebService
             historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
         }
 
-        locationStates = idTable
+        locationStates.Locations = idTable
             .Select()
             .DistinctBy(row => row.ConvertField<int>("MeterID"))
             .Select(row => new TrendingDataLocations()
@@ -890,7 +918,7 @@ public class mapService : WebService
                 ChannelID = row.ConvertField<int>("ChannelID"),
                 MeterID = row.ConvertField<int>("MeterID")
             })
-            .Join(locationStates, obj => obj.MeterID, loc => loc.id, (obj, Locations) => new { obj.ChannelID, Locations })
+            .Join(locationStates.Locations, obj => obj.MeterID, loc => loc.id, (obj, Locations) => new { obj.ChannelID, Locations })
             .ToDictionary(obj => obj.ChannelID, obj => obj.Locations);
 
         using (Historian historian = new Historian(historianServer, historianInstance))
@@ -918,10 +946,10 @@ public class mapService : WebService
             }
         }
 
-        double maxLat = locationStates.Max(x => x.Latitude) + GetLatFromMiles(50);
-        double minLat = locationStates.Min(x => x.Latitude) - GetLatFromMiles(50);
-        double maxLng = locationStates.Max(x => x.Longitude) + GetLngFromMiles(50, maxLat);
-        double minLng = locationStates.Min(x => x.Longitude) - GetLngFromMiles(50, minLat);
+        double maxLat = locationStates.Locations.Max(x => x.Latitude) + GetLatFromMiles(50);
+        double minLat = locationStates.Locations.Min(x => x.Latitude) - GetLatFromMiles(50);
+        double maxLng = locationStates.Locations.Max(x => x.Longitude) + GetLngFromMiles(50, maxLat);
+        double minLng = locationStates.Locations.Min(x => x.Longitude) - GetLngFromMiles(50, minLat);
         int resolution = 1000;
 
         Conversion xScale = new Linear()
@@ -978,7 +1006,7 @@ public class mapService : WebService
                 double totalDistance = 0;
                 int x = xIndex;
 
-                foreach (TrendingDataLocations data in locationStates)
+                foreach (TrendingDataLocations data in locationStates.Locations)
                 {
                     double? value = null;
 
@@ -1018,6 +1046,7 @@ public class mapService : WebService
             });
         }
 
+        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) , "contour.png");
         using (Bitmap bitmap = BitmapExtensions.FromPixelData(resolution, pixelData))
         {
             // TODO: Cache the image and make it available through a temporary URL
@@ -1025,8 +1054,12 @@ public class mapService : WebService
             bitmap.Save(Path.Combine(dir, "contour.png"), ImageFormat.Png);
         }
 
+
+        locationStates.Longitude = minLng;
+        locationStates.Latitude = minLat;
+        locationStates.Url = path;
         // Unlock the browser
-        throw new Exception();
+        return locationStates;
 
         // TODO: Return the temporary URL so the client can display the image on the map
     }
@@ -1157,13 +1190,14 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<ContourAnimations> getContourAnimations(string targetDateFrom, string targetDateTo, string stepSize, string meterID, string userName)
+    public ContourAnimationsList getContourAnimations(string targetDateFrom, string targetDateTo, string stepSize, string meterID, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<ContourAnimations> returnList = new List<ContourAnimations> { };
+        ContourAnimationsList returnList = new ContourAnimationsList();
         DateTime dateFrom = DateTime.Parse(targetDateFrom);
         DateTime dateTo = DateTime.Parse(targetDateTo);
+
         try
         {
             conn = new SqlConnection(connectionstring);
@@ -1188,7 +1222,7 @@ public class mapService : WebService
                 ca.Latitude = (double)rdr["Latitude"];
                 ca.Longitude = (double)rdr["Longitude"];
                 ca.name = (string)rdr["Name"];
-                returnList.Add(ca);
+                returnList.Locations.Add(ca);
             }
         }
         finally

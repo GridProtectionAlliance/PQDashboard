@@ -3467,7 +3467,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
     $(contourMap.getPanes().markerPane).children().remove()
     var markers = [];
-    $.each(locationdata.d, function (index, data) {
+    $.each(locationdata.d.Locations, function (index, data) {
         var color = 'rgb(0,255,0)'; // green
         if (data[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
         else if (data[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
@@ -3562,21 +3562,21 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
 function plotContourMap(data) {
     $(contourMap.getPanes().overlayPane).children('svg').children('g').children().remove();
-    var getLng = function (miles, latitude) {
-        return miles / 69.1710411 / Math.cos(latitude * (Math.PI / 180));
-    };
+    //var getLng = function (miles, latitude) {
+    //    return miles / 69.1710411 / Math.cos(latitude * (Math.PI / 180));
+    //};
 
-    var getLat = function (miles) {
-        return miles / 68.6863716;
-    };
+    //var getLat = function (miles) {
+    //    return miles / 68.6863716;
+    //};
 
-    var getMilesNorth = function (deg) {
-        return deg * 68.6863716;
-    };
+    //var getMilesNorth = function (deg) {
+    //    return deg * 68.6863716;
+    //};
 
-    var getMilesEast = function (deg, latitude) {
-        return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
-    };
+    //var getMilesEast = function (deg, latitude) {
+    //    return deg * 69.1710411 * Math.cos(latitude * (Math.PI / 180));
+    //};
 
     var zs = [-0.001, 0.5, 0.8,0.9, 1.1, 1.2, 1.5, 999999999999999];
 
@@ -3586,75 +3586,75 @@ function plotContourMap(data) {
             .range(['black', 'black', '#3f2a14', '#a5682a', 'green', '#FFCCCC',  'red', 'purple']);
 
 
-    var maxLat = d3.max(data, function (d) { return d.Latitude; }) + getLat(50);
-    var minLat = d3.min(data, function (d) { return d.Latitude; }) - getLat(50);
-    var maxLng = d3.max(data, function (d) { return d.Longitude; }) + getLng(50, maxLat);
-    var minLng = d3.min(data, function (d) { return d.Longitude; }) - getLng(50, minLat);
+    //var maxLat = d3.max(data, function (d) { return d.Latitude; }) + getLat(50);
+    //var minLat = d3.min(data, function (d) { return d.Latitude; }) - getLat(50);
+    //var maxLng = d3.max(data, function (d) { return d.Longitude; }) + getLng(50, maxLat);
+    //var minLng = d3.min(data, function (d) { return d.Longitude; }) - getLng(50, minLat);
 
-    var bounds = contourMap.getBounds();
+    //var bounds = contourMap.getBounds();
 
-    var pointsLat = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).y - contourMap.latLngToLayerPoint(bounds._southWest).y);
-    var pointsLng = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).x - contourMap.latLngToLayerPoint(bounds._southWest).x);
-    var x = d3.scale.linear()
-                .domain([minLng, maxLng])
-                .range([0, pointsLng]);
+    //var pointsLat = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).y - contourMap.latLngToLayerPoint(bounds._southWest).y);
+    //var pointsLng = Math.abs(contourMap.latLngToLayerPoint(bounds._northEast).x - contourMap.latLngToLayerPoint(bounds._southWest).x);
+    //var x = d3.scale.linear()
+    //            .domain([minLng, maxLng])
+    //            .range([0, pointsLng]);
 
-    var y = d3.scale.linear()
-                .domain([minLat, maxLat])
-                .range([0, pointsLat]);
+    //var y = d3.scale.linear()
+    //            .domain([minLat, maxLat])
+    //            .range([0, pointsLat]);
 
-    var plotData = [];
+    //var plotData = [];
 
-    plotData = d3.transpose(plotData);
+    //plotData = d3.transpose(plotData);
 
-    var isobands = [];
+    //var isobands = [];
 
-    for (var i = 1; i < zs.length; i++) {
-        var lowerBand = zs[i - 1];
-        var upperBand = zs[i];
+    //for (var i = 1; i < zs.length; i++) {
+    //    var lowerBand = zs[i - 1];
+    //    var upperBand = zs[i];
 
-        var band = MarchingSquaresJS.IsoBands(plotData, lowerBand, upperBand - lowerBand);
-        isobands.push({ "coords": band, "level": i, "val": zs[i] });
-    }
+    //    var band = MarchingSquaresJS.IsoBands(plotData, lowerBand, upperBand - lowerBand);
+    //    isobands.push({ "coords": band, "level": i, "val": zs[i] });
+    //}
 
 
-    var isoBandsLatLng = { type: "FeatureCollection", features: [] };
-    $.each(isobands, function (index, isoband) {
-        var coords = [];
+    //var isoBandsLatLng = { type: "FeatureCollection", features: [] };
+    //$.each(isobands, function (index, isoband) {
+    //    var coords = [];
 
-        $.each(isoband.coords, function (innerIndex, shape) {
-            coords.push([]);
-            $.each(shape, function (innerInnerIndex, point) {
-                coords[innerIndex].push([y.invert(point[0]), x.invert(point[1])]);
-            });
-        });
-        isoBandsLatLng.features.push({ geometry: { coordinates: coords, type: "Polygon" }, properties: { z: isoband.val }, type: "Feature" });
+    //    $.each(isoband.coords, function (innerIndex, shape) {
+    //        coords.push([]);
+    //        $.each(shape, function (innerInnerIndex, point) {
+    //            coords[innerIndex].push([y.invert(point[0]), x.invert(point[1])]);
+    //        });
+    //    });
+    //    isoBandsLatLng.features.push({ geometry: { coordinates: coords, type: "Polygon" }, properties: { z: isoband.val }, type: "Feature" });
 
-    });
+    //});
 
-    $.each(isoBandsLatLng.features, function (index, feature) {
-        var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
-        popup += "</table>";
+    //$.each(isoBandsLatLng.features, function (index, feature) {
+    //    var popup = "<table><tr><td>Band:&nbsp;</td><td style='text-align: right'>&nbsp;" + feature.properties.z + "&nbsp;</td></tr>";
+    //    popup += "</table>";
 
-        var polygon = L.polygon(feature.geometry.coordinates, {
-            color: '#000000',
-            fillColor: color(feature.properties.z),
-            weight: 0.1,
-            fillOpacity: 0.5
-        }).addTo(contourMap).bindPopup(popup);
+    //    var polygon = L.polygon(feature.geometry.coordinates, {
+    //        color: '#000000',
+    //        fillColor: color(feature.properties.z),
+    //        weight: 0.1,
+    //        fillOpacity: 0.5
+    //    }).addTo(contourMap).bindPopup(popup);
 
   
-        //polygon.on('mouseover', function (event) {
-        //    polygon.setStyle({ 'fillOpacity': 0.5 });
-        //    polygon.openPopup();
-        //});
+    //    //polygon.on('mouseover', function (event) {
+    //    //    polygon.setStyle({ 'fillOpacity': 0.5 });
+    //    //    polygon.openPopup();
+    //    //});
 
-        //polygon.on('mouseout', function (event) {
-        //    polygon.setStyle({ 'fillOpacity': 0.6 });
-        //    polygon.closePopup();
-        //});
+    //    //polygon.on('mouseout', function (event) {
+    //    //    polygon.setStyle({ 'fillOpacity': 0.6 });
+    //    //    polygon.closePopup();
+    //    //});
 
-    });
+    //});
 
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
@@ -4639,7 +4639,7 @@ function buildPage() {
 
     loadconfigdropdown(usersettings.lastSetting);
 
-    currentTab = "Overview";
+    currentTab = "Overview-Today";
 
     $("#application-tabs").tabs({
         active: getcurrentconfigsetting("CurrentTab"),
@@ -4649,11 +4649,13 @@ function buildPage() {
         activate: function (event, ui) {
             stopAnimatedHeatmap();
             var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
-            if (newTab === "Overview")
-                showOverviewPage();
+            if (newTab.indexOf("Overview") > -1) {
+                $('#headerStrip').hide();
+                showOverviewPage(currentTab);
+            }
             else {
                 var mapormatrix = $("#mapGrid")[0].value;
-
+                $('#headerStrip').show();
                 manageTabsByDate(newTab, contextfromdate, contexttodate);
                 $("#mapGrid")[0].value = mapormatrix;
                 selectmapgrid($("#mapGrid")[0]);
@@ -4678,9 +4680,12 @@ function buildPage() {
     initiateTimeRangeSlider();
 
     resizeMapAndMatrix(currentTab);
-    if (currentTab === "Overview") {
-        showOverviewPage();
+    if (currentTab.indexOf("Overview") > -1) {
+        $('#headerStrip').hide();
+        showOverviewPage(currentTab);
+
     } else {
+        $('#headerStrip').show();
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
 
@@ -5221,9 +5226,10 @@ function stepSelectionChange(thecontrol) {
     $('#slider-range').slider("option", "step", parseInt(thecontrol.value));
 }
 
-function showOverviewPage() {
-    var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top - 30;
-    $('#overviewContainer').css('height', columnHeight);
-    $('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString())
+function showOverviewPage(tab) {
+    var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top;
+    $('#tabs-'+tab).css('height', columnHeight);
+    //$('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
+
 }
 /// EOF
