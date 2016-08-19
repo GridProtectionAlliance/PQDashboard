@@ -86,6 +86,7 @@
     <script src="./js/heatmap.js"></script>
     <script src="./js/D3/turf.custom.js"></script>
     <script src="./js/D3/marchingsquares-isobands.js"></script>
+    <script src="./js/D3/marchingsquares-isocontours.js"></script>
     <script src="./js/leaflet-heatmap.js"></script>
   	<script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
 	<script type="text/javascript" src="./js/flot/jquery.flot.errorbars.js"></script>

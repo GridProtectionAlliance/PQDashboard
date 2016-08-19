@@ -25,15 +25,18 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 using System.Web.Services;
-using System.Web.Script.Serialization;
 using System.Web.UI.WebControls;
 using GSF.Collections;
 using GSF.Data;
+using GSF.Drawing;
 using openHistorian.XDALink;
+using scale;
 
 /// <summary>
 /// Summary description for MapService
@@ -42,10 +45,10 @@ using openHistorian.XDALink;
 [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
 // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
 [System.Web.Script.Services.ScriptService]
-public class mapService : System.Web.Services.WebService
+public class mapService : WebService
 {
 
-    private String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
+    private string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     public class siteGeocoordinates
     {
@@ -819,7 +822,6 @@ public class mapService : System.Web.Services.WebService
         return (locationStates);
     }
 
-
     /// <summary>
     /// getLocationsTrendingData 
     /// </summary>
@@ -829,7 +831,7 @@ public class mapService : System.Web.Services.WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<TrendingDataLocations> getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName)
+    public List<List<double>> getLocationsTrendingData(string targetDateFrom, string measurementType, string targetDateTo, string userName, string dataType)
     {
         List<TrendingDataLocations> locationStates;
 
@@ -916,7 +918,117 @@ public class mapService : System.Web.Services.WebService
             }
         }
 
-        return locationStates;
+        double maxLat = locationStates.Max(x => x.Latitude) + GetLatFromMiles(50);
+        double minLat = locationStates.Min(x => x.Latitude) - GetLatFromMiles(50);
+        double maxLng = locationStates.Max(x => x.Longitude) + GetLngFromMiles(50, maxLat);
+        double minLng = locationStates.Min(x => x.Longitude) - GetLngFromMiles(50, minLat);
+        int resolution = 1000;
+
+        Conversion xScale = new Linear()
+            .domain(minLng, maxLng)
+            .range(0, resolution);
+
+        Conversion yScale = new Linear()
+            .domain(minLat, maxLat)
+            .range(0, resolution);
+
+        Conversion lngScale = new Linear()
+            .domain(0, resolution)
+            .range(minLng, maxLng);
+
+        Conversion latScale = new Linear()
+            .domain(0, resolution)
+            .range(minLat, maxLat);
+
+        double step = 0.9D / 4.0D;
+
+        Conversion colorScale = new Linear()
+            .domain(
+                0, 0,
+                step, step,
+                2 * step, 2 * step,
+                3 * step, 3 * step,
+                0.9, 0.9,
+                1.1, 1.1,
+                1.1 + step, 1.1 + step,
+                1.1 + 2 * step, 1.1 + 2 * step,
+                1.1 + 3 * step, 1.1 + 3 * step,
+                2, 2)
+            .range(
+                0xAAFF0000, 0xAAFFFF00,
+                0xAAFFFF00, 0xAA00FF00,
+                0xAA00FF00, 0xAA00FFFF,
+                0xAA00FFFF, 0xAA0000FF,
+                0xAA0000FF, 0x0,
+                0x0, 0xAA0000FF,
+                0xAA0000FF, 0xAA00FFFF,
+                0xAA00FFFF, 0xAA00FF00,
+                0xAA00FF00, 0xAAFFFF00,
+                0xAAFFFF00, 0xAAFF0000);
+
+        uint[] pixelData = new uint[resolution * resolution];
+
+        for (int yIndex = 0; yIndex < resolution; ++yIndex)
+        {
+            int y = yIndex;
+
+            Parallel.For(0, resolution, xIndex =>
+            {
+                double sum = 0;
+                double totalDistance = 0;
+                int x = xIndex;
+
+                foreach (TrendingDataLocations data in locationStates)
+                {
+                    double? value = null;
+
+                    switch (dataType)
+                    {
+                        case "Average": value = data.Average; break;
+                        case "Minimum": value = data.Minimum; break;
+                        case "Maximum": value = data.Maximum; break;
+                    }
+
+                    if (value != null)
+                    {
+                        var R = 6371e3; // metres
+                        var lambda1 = lngScale(x) * Math.PI / 180.0D;
+                        var lambda2 = data.Longitude * Math.PI / 180.0D;
+                        var phi1 = latScale(y) * Math.PI / 180.0D;
+                        var phi2 = data.Latitude * Math.PI / 180.0D;
+                        var dPhi = phi2 - phi1;
+                        var dLambda = lambda2 - lambda1;
+
+                        var a = Math.Sin(dPhi / 2) * Math.Sin(dPhi / 2) +
+                                Math.Cos(phi1) * Math.Cos(phi2) *
+                                Math.Sin(dLambda / 2) * Math.Sin(dLambda / 2);
+
+                        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                        var distance = R * c;
+                        var inverseDistance = 1 / distance;
+
+                        totalDistance += inverseDistance;
+                        sum += (double)value * inverseDistance;
+                    }
+                }
+
+                double interpolatedValue = sum / totalDistance;
+                uint color = (uint)colorScale(interpolatedValue);
+                pixelData[(resolution - y - 1) * resolution + x] = color;
+            });
+        }
+
+        using (Bitmap bitmap = BitmapExtensions.FromPixelData(resolution, pixelData))
+        {
+            // TODO: Cache the image and make it available through a temporary URL
+            string dir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            bitmap.Save(Path.Combine(dir, "contour.png"), ImageFormat.Png);
+        }
+
+        // Unlock the browser
+        throw new Exception();
+
+        // TODO: Return the temporary URL so the client can display the image on the map
     }
 
     /// <summary>
@@ -1093,4 +1205,23 @@ public class mapService : System.Web.Services.WebService
         return (returnList);
     }
 
+    public double GetLngFromMiles(double miles, double latitude)
+    {
+        return miles / 69.1710411 / Math.Cos(latitude * (Math.PI / 180));
+    }
+
+    public double GetLatFromMiles(double miles)
+    {
+        return miles / 68.6863716;
+    }
+
+    public double GetMilesFromLng(double deg, double latitude)
+    {
+        return deg * 69.1710411 * Math.Cos(latitude * (Math.PI / 180));
+    }
+
+    public double GetMilesFromLat(double deg)
+    {
+        return deg * 68.6863716;
+    }
 }
