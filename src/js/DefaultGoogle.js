@@ -117,8 +117,8 @@ function setMapHeaderDate(datefrom, dateto) {
         $("#mapHeader" + currentTab + "Divider").show();
     }
         
-    $("#mapHeader" + currentTab + "From")[0].innerHTML = datefrom;
-    $("#mapHeader" + currentTab + "To")[0].innerHTML = dateto;
+    $("#mapHeader" + currentTab + "From")[0].innerHTML = (new  Date(datefrom).getMonth() + 1)+ '/' + new Date(datefrom).getDate() + '/' + new Date(datefrom).getFullYear() ;
+    $("#mapHeader" + currentTab + "To")[0].innerHTML = (new Date(dateto).getMonth() + 1) + '/' + new Date(dateto).getDate() + '/' + new Date(dateto).getFullYear();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1540,72 +1540,134 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
                 var div = L.DomUtil.create('div', 'info contourControl'),
                     labels = [];
-                div.innerHTML = '<div id="ContoursControlsTrending">' +
-                                        '<div class="row" style="width: 100%; margin: auto">' +
-                                                '<div class="" style="float: left; margin-right: 4px;">' +
-                                                   '<table>'+
-                                                        '<tr>' +
-                                                            '<td style="width: 50%">' +
-                                                                '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>'+
-                                                            '</td>'+
-                                                            '<td style="width: 50%">' +
-                                                                '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">'+
-                                                                   '<option value="60">60 min</option>' +
-                                                                   '<option value="30">30 min</option>' +
-                                                                   '<option value="20">20 min</option>' +
-                                                                   '<option selected="selected" value="15">15 min</option>' +
-                                                                   '<option value="10">10 min</option>' +
-                                                                   '<option value="5">5 min</option>' +
-                                                                   '<option value="1">1 min</option>' +
-                                                                '</select>' +
-                                                            '</td>' +
-                                                        '</tr>' +
-                                                        '<tr>' +
-                                                             '<td colspan="2">' +
-                                                                '<div id="time-range">' +
-                                                                    '<div class="sliders_step1">' +
-                                                                        '&nbsp;<div id="slider-range"></div> ' +
-                                                                    '</div>' +
-                                                                    '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
-                                                                '</div>' +
-                                                            '</td>' +
-                                                        '</tr>' +
-                                                        '<tr>' +
-                                                            '<td colspan="2">' +
-                                                                '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
-                                                            '</td>' +
-                                                        '</tr>' +
-                                                    '</table>' + 
+                div.innerHTML =
+                    '<div id="ContoursControlsTrending">' +
+                        '<div class="row" style="width: 100%; margin: auto">' +
+                            '<div class="" style="float: left; margin-right: 4px;">' +
+                                '<table>'+
+                                    '<tr>' +
+                                        '<td colspan="1">' +
+                                            '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>'+
+                                        '</td>' +
+                                        '<td colspan="1">' +
+                                            '<select class="form-control" id="contourAnimationResolutionSelect">' +
+                                                '<option value="15">15</option>' +
+                                                '<option value="14">14</option>' +
+                                                '<option value="13">13</option>' +
+                                                '<option value="12">12</option>' +
+                                                '<option value="11">11</option>' +
+                                                '<option value="10">10</option>' +
+                                                '<option value="9">9</option>' +
+                                                '<option value="8">8</option>' +
+                                                '<option value="7">7</option>' +
+                                                '<option selected="selected" value="6">6</option>' +
+                                                '<option value="5">5</option>' +
+                                                '<option value="4">4</option>' +
+                                                '<option value="3">3</option>' +
+                                                '<option value="2">2</option>' +
+                                            '</select>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                    '<tr><td colspan="2">' +
+                                        '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">'+
+                                            '<option value="60">60 min</option>' +
+                                            '<option value="30">30 min</option>' +
+                                            '<option value="20">20 min</option>' +
+                                            '<option selected="selected" value="15">15 min</option>' +
+                                            '<option value="10">10 min</option>' +
+                                            '<option value="5">5 min</option>' +
+                                            '<option value="1">1 min</option>' +
+                                        '</select>' +
+                                    '</td></tr>' +
+                                    '<tr><td colspan="2">' +
+                                        '<select class="form-control" id="contourColorScaleSelect">' +
+                                        '</select>' +
+                                    '</td></tr>' +
+                                    '<tr>' +
+                                            '<td colspan="2">' +
+                                            '<div id="time-range">' +
+                                                '<div class="sliders_step1">' +
+                                                    '&nbsp;<div id="slider-range"></div> ' +
                                                 '</div>' +
-                                                '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
-                                                    '<table style="width: 100%">' +
-                                                        '<tr><td>&nbsp;</td></tr>' +
-                                                        '<tr><td>&nbsp;</td></tr>' +
-                                                        '<tr><td>&nbsp;</td></tr>' +
-                                                        '<tr><td style="width: 100%">' +
-                                                                '<div id="contourAnimationProgressBar"><div id="contourAnimationInnerBar"><div id="progressbarLabel"></div></div></div>' +
-                                                        '</td></tr>'+
-                                                        '<tr><td>&nbsp;</td></tr>' +
-                                                        '<tr><td>&nbsp;</td></tr>' +
-                                                        '<tr><td style="width: 100%; text-align: center">' +
-                                                                    '<div class="player text-center" id="contourPlayerButtons">' +
-                                                                        '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>'  +
-                                                                        '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
-                                                                        '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
-                                                                        '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
-                                                                        '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
-                                                                        '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +    
-                                                                    '</div>'+
-                                                        '</td></tr>' +
-                                                   '</table>' +
+                                                '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
                                             '</div>' +
-                                        '</div>' +
-                                    '</div>';
+                                        '</td>' +
+                                    '</tr>' +
+                                    '<tr>' +
+                                        '<td colspan="2">' +
+                                            '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                '</table>' + 
+                            '</div>' +
+                            '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
+                                '<table style="width: 100%">' +
+                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td style="width: 100%">' +
+                                            '<div id="contourAnimationProgressBar"><div id="contourAnimationInnerBar"><div id="progressbarLabel"></div></div></div>' +
+                                    '</td></tr>'+
+                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td style="width: 100%; text-align: center">' +
+                                                '<div class="player text-center" id="contourPlayerButtons">' +
+                                                    '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>'  +
+                                                    '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
+                                                    '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
+                                                    '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
+                                                    '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
+                                                    '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +    
+                                                '</div>'+
+                                    '</td></tr>' +
+                                '</table>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
 
                 return div;
             };
 
             contourControl.addTo(contourMap);
+
+            contourControl.getContainer().addEventListener('mouseover', function () {
+                contourMap.dragging.disable();
+                contourMap.doubleClickZoom.disable();
+                contourMap.touchZoom.disable();
+                contourMap.scrollWheelZoom.disable();
+                contourMap.boxZoom.disable();
+                contourMap.keyboard.disable();
+
+            });
+
+            contourControl.getContainer().addEventListener('mouseout', function () {
+                contourMap.dragging.enable();
+                contourMap.doubleClickZoom.enable();
+                contourMap.touchZoom.enable();
+                contourMap.scrollWheelZoom.enable();
+                contourMap.boxZoom.enable();
+                contourMap.keyboard.enable();
+
+            });
+
+            $.ajax({
+                type: "POST",
+                url: './mapService.asmx/getColorScales',
+                contentType: "application/json; charset=utf-8",
+                cache: true,
+                success: function (data) {
+                    $.each(Object.keys(data.d), function (i, d) {
+                        $('#contourColorScaleSelect').append(new Option(data.d[d], parseInt(d)));
+                    });
+
+                },
+                failure: function (msg) {
+                    alert(msg);
+                },
+                async: true
+            });
+
+
             initiateTimeRangeSlider();
             cache_Contour_Data = null;
             var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
@@ -5025,6 +5087,8 @@ function loadLeafletMap(theDiv) {
             zoom: 6,
             minZoom: 2,
             maxZoom: 15,
+            zoomControl: false,
+            attributionControl: false
         });
 
         mapLink =
@@ -5034,8 +5098,6 @@ function loadLeafletMap(theDiv) {
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             }).addTo(contourMap);
 
-        $('.leaflet-control-attribution.leaflet-control').remove();
-        $('.leaflet-control-zoom').children().remove();
     }
 }
 
@@ -5131,6 +5193,9 @@ function loadContourAnimationData() {
                     "', 'meterID':'" + meters +
                     "', 'dataType':'" + $('#tredingDataTypeSelection').val() +
                     "', 'userName':'" + postedUserName + "'}";
+
+    getLocationsAndPopulateMapAndMatrix(currentTab, dateFrom, dateFrom, null);
+
     $.ajax({
         type: "POST",
         url: './mapService.asmx/getContourAnimations',
@@ -5160,7 +5225,83 @@ function loadContourAnimationData() {
         },
         async: true
     });
+    //var url = "./mapService.asmx/getLocations" + currentTab;
+    //var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
 
+    //if (currentTab !== "TrendingData") {
+    //    thedatasent = {
+    //        targetDateFrom: datefrom,
+    //        targetDateTo: dateto,
+    //        userName: postedUserName
+    //    };
+    //} else {
+    //    thedatasent = {
+    //        contourQuery: {
+    //            StartDate: datefrom,
+    //            EndDate: dateto,
+    //            MeasurementType: $('#trendingDataSelection').val(),
+    //            DataType: $('#trendingDataTypeSelection').val(),
+    //            UserName: postedUserName
+    //        }
+    //    };
+
+    //    if (contourMap === null) {
+    //        var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+
+    //        $.each(thedatasent.contourQuery, function (key, value) {
+    //            tileURL += '&' + key + '=' + encodeURIComponent(value);
+    //        });
+
+    //        loadLeafletMap('theMap' + currentTab);
+    //        L.tileLayer(tileURL).addTo(contourMap);
+    //    }
+    //}
+
+    ////console.log("getLocationsAndPopulateMapAndMatrix");
+
+    //cache_Map_Matrix_Data = null;
+    //cache_Map_Matrix_Data_Date_From = null;
+    //cache_Map_Matrix_Data_Date_To = null;
+
+    //setMapHeaderDate(datefrom, dateto);
+
+    //// Jeff Walker
+    //$.ajax({
+    //    datefrom: datefrom,
+    //    dateto: dateto,
+    //    type: "POST",
+    //    url: url,
+    //    data: JSON.stringify(thedatasent),
+    //    contentType: "application/json; charset=utf-8",
+    //    dataType: 'json',
+    //    cache: true,
+    //    success: function (data) {
+    //        //console.log(data);
+    //        cache_Map_Matrix_Data_Date_From = this.datefrom;
+    //        cache_Map_Matrix_Data_Date_To = this.dateto;
+    //        cache_Map_Matrix_Data = data;
+
+    //        //console.log(data);
+    //        // Plot Map or Plot Matrix
+    //        switch ($('#mapGrid')[0].value) {
+    //            case "Map":
+    //                if (currentTab == "TrendingData")
+    //                    plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+    //                else
+    //                    plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
+    //                break;
+    //            case "Grid":
+    //                plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+    //                break;
+
+    //        }
+
+    //    },
+    //    failure: function (msg) {
+    //        alert(msg);
+    //    },
+    //    async: true
+    //});
 
 
 }
