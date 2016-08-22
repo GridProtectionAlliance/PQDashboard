@@ -1920,8 +1920,8 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             contourQuery: {
                 StartDate: datefrom,
                 EndDate: dateto,
-                MeasurementType: $('#trendingDataSelection').val(),
                 DataType: $('#trendingDataTypeSelection').val(),
+                ColorScaleName: 'Voltage RMS',
                 UserName: postedUserName
             }
         };

@@ -132,9 +132,9 @@ public class mapService : WebService
 
     public class ContourQuery
     {
+        public string ColorScaleName { get; set; }
         public string StartDate { get; set; }
         public string EndDate { get; set; }
-        public string MeasurementType { get; set; }
         public string DataType { get; set; }
         public string UserName { get; set; }
 
@@ -950,81 +950,57 @@ public class mapService : WebService
     public ContourInfo getLocationsTrendingData(ContourQuery contourQuery)
     {
         TrendingDataLocationList locationStates = new TrendingDataLocationList();
-
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        DateTime startDate = DateTime.Parse(contourQuery.StartDate);
-        DateTime endDate = DateTime.Parse(contourQuery.EndDate);
-        try
+        DataTable colorScale;
+        using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+        using (IDbCommand cmd = conn.Connection.CreateCommand())
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingData" + contourQuery.MeasurementType, conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", startDate));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", endDate));
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.StartDate));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.EndDate));
+            cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
             cmd.Parameters.Add(new SqlParameter("@username", contourQuery.UserName));
+            cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+
+            using (IDataReader rdr = cmd.ExecuteReader())
             {
-                TrendingDataLocations ourStatus = new TrendingDataLocations();
-                ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["Name"];
-                ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
-                ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
-                ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                ourStatus.id = (int)rdr["id"];
-                locationStates.Locations.Add(ourStatus);
+                while (rdr.Read())
+                {
+                    TrendingDataLocations ourStatus = new TrendingDataLocations();
+                    ourStatus.Latitude = (double)rdr["Latitude"];
+                    ourStatus.Longitude = (double)rdr["Longitude"];
+                    ourStatus.name = (string)rdr["Name"];
+                    ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
+                    ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
+                    ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
+                    ourStatus.id = (int)rdr["id"];
+                    locationStates.Locations.Add(ourStatus);
+                }
             }
+
+            string query =
+                "SELECT " +
+                "    ContourColorScalePoint.Value, " +
+                "    ContourColorScalePoint.Color " +
+                "FROM " +
+                "    ContourColorScale JOIN " +
+                "    ContourColorScalePoint ON ContourColorScalePoint.ContourColorScaleID = ContourColorScale.ID " +
+                "WHERE ContourColorScale.Name = {0} " +
+                "ORDER BY ContourColorScalePoint.OrderID";
+
+            colorScale = conn.RetrieveData(query, contourQuery.ColorScaleName);
         }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
 
-        double step = 0.9D / 4.0D;
+        double[] colorDomain = colorScale
+            .Select()
+            .Select(row => row.ConvertField<double>("Value"))
+            .ToArray();
 
-        double[] colorDomain =
-        {
-            -1,
-            0, 0,
-            step, step,
-            2 * step, 2 * step,
-            3 * step, 3 * step,
-            0.9, 0.9,
-            1.1, 1.1,
-            1.1 + step, 1.1 + step,
-            1.1 + 2 * step, 1.1 + 2 * step,
-            1.1 + 3 * step, 1.1 + 3 * step,
-            2, 2,
-            3
-        };
+        double[] colorRange = colorScale
+            .Select()
+            .Select(row => row.ConvertField<double>("Color"))
+            .ToArray();
 
-        double[] colorRange =
-        {
-            0xAAFF0000,
-            0xAAFF0000, 0xAAFFFF00,
-            0xAAFFFF00, 0xAA00FF00,
-            0xAA00FF00, 0xAA00FFFF,
-            0xAA00FFFF, 0xAA0000FF,
-            0xAA0000FF, 0x00000000,
-            0x00000000, 0xAA0000FF,
-            0xAA0000FF, 0xAA00FFFF,
-            0xAA00FFFF, 0xAA00FF00,
-            0xAA00FF00, 0xAAFFFF00,
-            0xAAFFFF00, 0xAAFF0000,
-            0xAAFF0000
-        };
-        
         return new ContourInfo()
         {
             Locations = locationStates.Locations,
@@ -1038,14 +1014,13 @@ public class mapService : WebService
     {
         ContourQuery contourQuery = new ContourQuery()
         {
-            MeasurementType = HttpContext.Current.Request.QueryString["MeasurementType"],
-            DataType = HttpContext.Current.Request.QueryString["DataType"],
-            UserName = HttpContext.Current.Request.QueryString["Username"],
             StartDate = HttpContext.Current.Request.QueryString["StartDate"],
-            EndDate = HttpContext.Current.Request.QueryString["EndDate"]
+            EndDate = HttpContext.Current.Request.QueryString["EndDate"],
+            ColorScaleName = HttpContext.Current.Request.QueryString["ColorScaleName"],
+            DataType = HttpContext.Current.Request.QueryString["DataType"],
+            UserName = HttpContext.Current.Request.QueryString["Username"]
         };
 
-        
         ContourTileData contourTileData = GetContourTileData(contourQuery);
 
         double minLat = contourTileData.MinLatitude;
@@ -1567,14 +1542,16 @@ public class mapService : WebService
             }
 
             List<TrendingDataLocations> locations = new List<TrendingDataLocations>();
+            DataTable colorScale;
 
-            using (SqlConnection conn = new SqlConnection(connectionstring))
-            using (SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrendingData" + contourQuery.MeasurementType, conn))
+            using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+            using (IDbCommand cmd = conn.Connection.CreateCommand())
             {
-                conn.Open();
                 cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.StartDate));
                 cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.EndDate));
+                cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
                 cmd.Parameters.Add(new SqlParameter("@username", contourQuery.UserName));
+                cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = 300;
 
@@ -1593,6 +1570,18 @@ public class mapService : WebService
                         locations.Add(ourStatus);
                     }
                 }
+
+                string query =
+                    "SELECT " +
+                    "    ContourColorScalePoint.Value, " +
+                    "    ContourColorScalePoint.Color " +
+                    "FROM " +
+                    "    ContourColorScale JOIN " +
+                    "    ContourColorScalePoint ON ContourColorScalePoint.ContourColorScaleID = ContourColorScale.ID " +
+                    "WHERE ContourColorScale.Name = {0} " +
+                    "ORDER BY ContourColorScalePoint.OrderID";
+
+                colorScale = conn.RetrieveData(query, contourQuery.ColorScaleName);
             }
 
             CoordinateReferenceSystem crs = new EPSG3857();
@@ -1633,39 +1622,15 @@ public class mapService : WebService
                     return crs.Distance(coordinate1, coordinate2);
                 });
 
-            double step = 0.9D / 4.0D;
+            double[] colorDomain = colorScale
+                .Select()
+                .Select(row => row.ConvertField<double>("Value"))
+                .ToArray();
 
-            double[] colorDomain =
-            {
-                -1,
-                0, 0,
-                step, step,
-                2 * step, 2 * step,
-                3 * step, 3 * step,
-                0.9, 0.9,
-                1.1, 1.1,
-                1.1 + step, 1.1 + step,
-                1.1 + 2 * step, 1.1 + 2 * step,
-                1.1 + 3 * step, 1.1 + 3 * step,
-                2, 2,
-                3
-            };
-
-            double[] colorRange =
-            {
-                0xAAFF0000,
-                0xAAFF0000, 0xAAFFFF00,
-                0xAAFFFF00, 0xAA00FF00,
-                0xAA00FF00, 0xAA00FFFF,
-                0xAA00FFFF, 0xAA0000FF,
-                0xAA0000FF, 0x00000000,
-                0x00000000, 0xAA0000FF,
-                0xAA0000FF, 0xAA00FFFF,
-                0xAA00FFFF, 0xAA00FF00,
-                0xAA00FF00, 0xAAFFFF00,
-                0xAAFFFF00, 0xAAFF0000,
-                0xAAFF0000
-            };
+            double[] colorRange = colorScale
+                .Select()
+                .Select(row => row.ConvertField<double>("Color"))
+                .ToArray();
 
             Func<double, double> colorFunction = new PiecewiseLinearFunction()
                 .SetDomain(colorDomain)
