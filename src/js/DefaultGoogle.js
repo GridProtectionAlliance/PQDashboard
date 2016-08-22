@@ -1656,8 +1656,8 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
                 contentType: "application/json; charset=utf-8",
                 cache: true,
                 success: function (data) {
-                    $.each(Object.keys(data.d), function (i, d) {
-                        $('#contourColorScaleSelect').append(new Option(data.d[d], parseInt(d)));
+                    $.each(data.d, function (i, d) {
+                        $('#contourColorScaleSelect').append(new Option(d, d));
                     });
 
                 },

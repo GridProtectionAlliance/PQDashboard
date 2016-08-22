@@ -1504,11 +1504,11 @@ public class mapService : WebService
     /// </summary>
     /// <returns>List</returns>
     [WebMethod]
-    public Dictionary<string, string> getColorScales()
+    public List<string> getColorScales()
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        Dictionary<string,string> colorScales = new Dictionary<string, string>();
+        List<string> colorScales = new List<string>();
 
         try
         {
@@ -1520,7 +1520,7 @@ public class mapService : WebService
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
-                colorScales.Add(((int)rdr["ID"]).ToString(),(string)rdr["Name"]);
+                colorScales.Add((string)rdr["Name"]);
             }
         }
         finally
