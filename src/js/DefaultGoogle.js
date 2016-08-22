@@ -57,6 +57,7 @@ var brush = null;
 var cache_Last_Date = null;
 var contourMap = null;
 var markerGroup = null;
+var contourLayer = null;
 
 var currentTab = null;
 
@@ -389,20 +390,15 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
             var json = $.parseJSON(data.d)
             cache_Table_Data = json;
 
-            //if (currentTab === "TrendingData") {
-            //    window["populate" + currentTab + "DivWithGrid"](json, null);
-            //} else {
+            var filterString = [];
+            var leg = d3.selectAll('.legend');
 
-                var filterString = [];
-                var leg = d3.selectAll('.legend');
+            $.each(leg[0], function (i, d) {
+                if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                    filterString.push($(d).children('text').text());
+            });
+            window["populate" + currentTab + "DivWithGrid"](json, filterString);
 
-                $.each(leg[0], function (i, d) {
-                    if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
-                        filterString.push($(d).children('text').text());
-                });
-                window["populate" + currentTab + "DivWithGrid"](json, filterString);
-
-            //}
         }
     });
 }
@@ -1913,7 +1909,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 UserName: postedUserName
             }
         };
-
+        
         if (contourMap === null) {
             var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
 
@@ -1922,7 +1918,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             });
 
             loadLeafletMap('theMap' + currentTab);
-            L.tileLayer(tileURL).addTo(contourMap);
+            contourLayer = L.tileLayer(tileURL).addTo(contourMap);
         }
     }
 
@@ -5109,14 +5105,27 @@ function loadLeafletMap(theDiv) {
 
 function showType(thecontrol) {
     plotContourMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+
+    thedatasent = {
+        contourQuery: {
+            StartDate: cache_Map_Matrix_Data_Date_From,
+            EndDate: cache_Map_Matrix_Data_Date_To,
+            DataType: $('#trendingDataTypeSelection').val(),
+            ColorScaleName: 'Voltage RMS',
+            UserName: postedUserName
+        }
+    };
+        
+    var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+
+    $.each(thedatasent.contourQuery, function (key, value) {
+        tileURL += '&' + key + '=' + encodeURIComponent(value);
+    });
+
+    contourLayer.setUrl(tileURL);
 }
 
 function showTrendingData(thecontrol) {
-    var mapormatrix = $("#mapGrid")[0].value;
-
-    manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
-    $("#mapGrid")[0].value = mapormatrix;
-    selectmapgrid($("#mapGrid")[0]);
 }
 
 function initiateTimeRangeSlider() {
@@ -5417,7 +5426,30 @@ function initiateColorScale() {
     });
 
 }
+
 function showColorScale(thecontrol) {
+    var mapormatrix = $("#mapGrid")[0].value;
+
+    manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
+    $("#mapGrid")[0].value = mapormatrix;
+    selectmapgrid($("#mapGrid")[0]);
+    thedatasent = {
+        contourQuery: {
+            StartDate: cache_Map_Matrix_Data_Date_From,
+            EndDate: cache_Map_Matrix_Data_Date_To,
+            DataType: $('#trendingDataTypeSelection').val(),
+            ColorScaleName: 'Voltage RMS',
+            UserName: postedUserName
+        }
+    };
+
+    var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+
+    $.each(thedatasent.contourQuery, function (key, value) {
+        tileURL += '&' + key + '=' + encodeURIComponent(value);
+    });
+
+    contourLayer.setUrl(tileURL);
 
 }
 /// EOF
