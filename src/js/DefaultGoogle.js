@@ -1579,10 +1579,6 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
                                             '<option value="1">1 min</option>' +
                                         '</select>' +
                                     '</td></tr>' +
-                                    '<tr><td colspan="2">' +
-                                        '<select class="form-control" id="contourColorScaleSelect">' +
-                                        '</select>' +
-                                    '</td></tr>' +
                                     '<tr>' +
                                             '<td colspan="2">' +
                                             '<div id="time-range">' +
@@ -1650,22 +1646,6 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
             });
 
-            $.ajax({
-                type: "POST",
-                url: './mapService.asmx/getColorScales',
-                contentType: "application/json; charset=utf-8",
-                cache: true,
-                success: function (data) {
-                    $.each(data.d, function (i, d) {
-                        $('#contourColorScaleSelect').append(new Option(d, d));
-                    });
-
-                },
-                failure: function (msg) {
-                    alert(msg);
-                },
-                async: true
-            });
 
 
             initiateTimeRangeSlider();
@@ -4755,6 +4735,8 @@ function buildPage() {
     getMeters();
     loadsitedropdown();
     initiateTimeRangeSlider();
+    initiateColorScale();
+
 
     resizeMapAndMatrix(currentTab);
     if (currentTab.indexOf("Overview") > -1) {
@@ -5389,6 +5371,29 @@ function showOverviewPage(tab) {
     var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top;
     $('#tabs-'+tab).css('height', columnHeight);
     //$('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
+
+}
+
+function initiateColorScale() {
+    $.ajax({
+        type: "POST",
+        url: './mapService.asmx/getColorScales',
+        contentType: "application/json; charset=utf-8",
+        cache: true,
+        success: function (data) {
+            $.each(data.d, function (i, d) {
+                $('#contourColorScaleSelect').append(new Option(d, d));
+            });
+
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
+}
+function showColorScale(thecontrol) {
 
 }
 /// EOF

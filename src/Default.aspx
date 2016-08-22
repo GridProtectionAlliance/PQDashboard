@@ -416,6 +416,8 @@
                                             <option value="Maximum">Maximum</option>
                                             <option value="Minimum">Minimum</option>
                                         </select>
+                                        <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
+                                        </select>
                                     </div>
                                     <div class="overlaydate">
                                         <center>
@@ -429,88 +431,6 @@
                                 </div>
                             </div>
                             <div  id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-<%--                                <div id="ContoursControlsTrending" style="background-color: '#FFD2D2D2'; display: none">
-                                        <div class="row">
-                                                <div class="col-md-4">
-                                                    <table>
-                                                        <tr>
-                                                            <td style="width: 50%">
-                                                                <div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Include Weather</label></div>
-                                                            </td>
-                                                            <td>
-                                                                <select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">
-                                                                    <option value="60">60 min</option>
-                                                                    <option value="30">30 min</option>
-                                                                    <option value="20">20 min</option>
-                                                                    <option selected="selected" value="15">15 min</option>
-                                                                    <option value="10">10 min</option>
-                                                                    <option value="5">5 min</option>
-                                                                    <option value="1">1 min</option>
-                                                                </select>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                             <td colspan="2">
-                                                                <div id="time-range">
-                                                                    <div class="sliders_step1">
-                                                                        &nbsp;<div id="slider-range"></div>
-                                                                    </div>
-                                                                    <p>Time Range: <span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-
-                                                        <tr>
-                                                            <td colspan="2">
-                                                                <button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>
-                                                            </td>
-
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <table style="width: 100%">
-                                                        <tr>
-                                                            <td>&nbsp;</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="width: 100%">
-                                                                <div id="contourAnimationProgressBar"><div id="contourAnimationInnerBar"><div id="progressbarLabel"></div></div></div>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="width: 100%; text-align: center">
-                                                                    <div class="player text-center" style="display: none" id="contourPlayerButtons">
-                                                                        <button type="button" id="button_fbw" class="btn">
-                                                                            <i class="fa fa-fast-backward"></i>
-                                                                        </button>
-    
-                                                                        <button type="button" id="button_bw" class="btn">
-                                                                            <i class="fa fa-backward"></i>
-                                                                        </button>
-    
-                                                                        <button type="button" id="button_play" class="btn">
-                                                                            <i class="fa fa-play"></i>
-                                                                        </button>
-    
-                                                                        <button type="button" id="button_stop" class="btn">
-                                                                            <i class="fa fa-stop"></i>
-                                                                        </button>
-    
-                                                                        <button type="button" id="button_fw" class="btn">
-                                                                            <i class="fa fa-forward"></i>
-                                                                        </button>
-    
-                                                                        <button type="button" id="button_ffw" class="btn">
-                                                                            <i class="fa fa-fast-forward"></i>
-                                                                        </button>    
-                                                                    </div>
-                                                                </td>
-                                                        </tr>
-                                                    </table>
-                                            </div>
-                                        </div>
-                                    </div>--%>
                                 <div  class="theMapStyle" id="theMapTrendingData">
                                 </div>
                                 <div  class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
