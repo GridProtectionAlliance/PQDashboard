@@ -370,11 +370,11 @@
                     <div  id="column_5" class="column resizeable">
                         <div  class="portlet" id="Portlet1TrendingData">
                             <div  class="portlet-header"><div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
-                                <select class="smallbutton" style="float:right; margin-right: 18px; height: 17px; font-size: 12px"id="trendingDataSelection" onchange="showTrendingData(this)">
+<%--                                <select class="smallbutton" style="float:right; margin-right: 18px; height: 17px; font-size: 12px"id="trendingDataSelection" onchange="showTrendingData(this)">
                                     <option value="Voltage">Voltage</option>
                                     <option value="Current">Current</option>
                                     <option value="Power">Power</option>
-                                </select>
+                                </select>--%>
                             </div>
                             <div  id="DockOverviewTrendingData" class="portlet-content">
                                 <div  id="OverviewTrendingData" class="docklet">

@@ -1058,7 +1058,7 @@ public class eventService : System.Web.Services.WebService {
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<TrendingData> getTrendingDataForPeriod(string siteID, string measurementType,string targetDateFrom, string targetDateTo, string userName)
+    public List<TrendingData> getTrendingDataForPeriod(string siteID, string colorScale,string targetDateFrom, string targetDateTo, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -1072,10 +1072,11 @@ public class eventService : System.Web.Services.WebService {
         {
             conn = new SqlConnection(connectionstring);
             conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectTrendingDataByChannelByDate" + measurementType, conn);
+            SqlCommand cmd = new SqlCommand("dbo.selectTrendingDataByChannelByDate", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@StartDate", thedatefrom));
             cmd.Parameters.Add(new SqlParameter("@EndDate", thedateto));
+            cmd.Parameters.Add(new SqlParameter("@colorScale", colorScale));
             cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
             cmd.Parameters.Add(new SqlParameter("@username", userName));
             cmd.CommandTimeout = 300;
@@ -1836,7 +1837,7 @@ public class eventService : System.Web.Services.WebService {
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public String getDetailsForSitesTrendingData(string siteID, string measurementType, string targetDate, string userName)
+    public String getDetailsForSitesTrendingData(string siteID, string colorScale, string targetDate, string userName)
     {
 
         String thedata = "";
@@ -1847,10 +1848,11 @@ public class eventService : System.Web.Services.WebService {
         {
             conn = new SqlConnection(connectionstring);
             conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDataDetailsByDate" + measurementType, conn);
+            SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDataDetailsByDate", conn);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
             cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+            cmd.Parameters.Add(new SqlParameter("@colorScaleName", colorScale));
             cmd.Parameters.Add(new SqlParameter("@username", userName));
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();

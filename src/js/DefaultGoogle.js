@@ -373,7 +373,10 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
-    var thedatasent = "{'siteID':'" + siteID + "'"+ (currentTab === "TrendingData"? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'": "")+ ", 'targetDate':'" + theDate + "','userName':'" + postedUserName + "'   }";
+    var thedatasent = "{'siteID':'" + siteID + "'" +
+                    (currentTab === "TrendingData" ? ", 'colorScale': '" + $('#contourColorScaleSelect').val() + "'" : "") +
+                    ", 'targetDate':'" + theDate +
+                    "','userName':'" + postedUserName + "'}";
     //console.log(thedatasent);
     $.ajax({
         type: "POST",
@@ -1404,7 +1407,12 @@ function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, t
 
 
     var thedatasent = "";
-    thedatasent = "{'siteID':'" + siteID + "', 'measurementType':'"+$('#trendingDataSelection').val()+"', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
+    thedatasent = "{'siteID':'" + siteID +
+                "', 'colorScale':'" + $('#contourColorScaleSelect').val() +
+                "', 'targetDateFrom':'" + thedatefrom +
+                "', 'targetDateTo':'" + thedateto +
+                "', 'userName':'" + postedUserName +
+                "'}";
     //console.log(thedatasource);
     $.ajax({
         type: "POST",
@@ -1520,7 +1528,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
         if (item) {
             var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
             var html = '<div>' + time + '</div>';
-            html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
+            html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? parseFloat(item.datapoint[1]).toFixed(3) : (item.datapoint[1] - item.datapoint[2]).toFixed(3) + ' - ' + (item.datapoint[1] + item.datapoint[3]).toFixed(3)) + '</span></div>';
             $("#tooltip").html(html)
                 .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid ' + item.series.color })
                 .fadeIn(200);
