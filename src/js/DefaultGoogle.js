@@ -3712,30 +3712,46 @@ function plotContourMap(data) {
 
         var div = L.DomUtil.create('div', 'info legend'),
             labels = [];
-        div.innerHTML += "<div ><h4>Legend</h4></div>" +
-            "<div><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
+        div.innerHTML += "<h4><button class='btn btn-link' style='padding: 0;'data-toggle='collapse' data-target='#innerLegend'><u>Legend</u></button></h4>" +
+            "<div id='innerLegend' class='collapse'><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
         // loop through our density intervals and generate a label with a colored square for each interval
-        for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
-            if (i === data.ColorDomain.length - 2) {
-                div.innerHTML +=
-                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2)+ '</div>';
-            }
-            else if (i == 1) {
-                div.innerHTML +=
-                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>';
-            }
-            else if( i % 2 !== 0){
-                div.innerHTML +=
-                    '<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' +  data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>';
-            }
-        }
-
-        div.innerHTML += '</div>';
-
         return div;
     };
 
+
+
     legend.addTo(contourMap);
+
+    for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
+        if (i === data.ColorDomain.length - 2) {
+            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2) + '</div>');
+        }
+        else if (i == 1) {
+            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>');
+        }
+        else if (i % 2 !== 0) {
+            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>');
+        }
+    }
+
+    legend.getContainer().addEventListener('mouseover', function () {
+        contourMap.dragging.disable();
+        contourMap.doubleClickZoom.disable();
+        contourMap.touchZoom.disable();
+        contourMap.scrollWheelZoom.disable();
+        contourMap.boxZoom.disable();
+        contourMap.keyboard.disable();
+    });
+
+    legend.getContainer().addEventListener('mouseout', function () {
+        contourMap.dragging.enable();
+        contourMap.doubleClickZoom.enable();
+        contourMap.touchZoom.enable();
+        contourMap.scrollWheelZoom.enable();
+        contourMap.boxZoom.enable();
+        contourMap.keyboard.enable();
+    });
+
 
 
 
