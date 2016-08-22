@@ -998,7 +998,7 @@ public class mapService : WebService
 
         double[] colorRange = colorScale
             .Select()
-            .Select(row => row.ConvertField<double>("Color"))
+            .Select(row => (double)(uint)row.ConvertField<int>("Color"))
             .ToArray();
 
         return new ContourInfo()
@@ -1629,7 +1629,7 @@ public class mapService : WebService
 
             double[] colorRange = colorScale
                 .Select()
-                .Select(row => row.ConvertField<double>("Color"))
+                .Select(row => (double)(uint)row.ConvertField<int>("Color"))
                 .ToArray();
 
             Func<double, double> colorFunction = new PiecewiseLinearFunction()
