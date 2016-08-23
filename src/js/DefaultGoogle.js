@@ -165,7 +165,7 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && currentTab !== "Breakers" && thecontrol.selectedIndex === 0) {
+    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && currentTab !== "Breakers" && currentTab !== "Faults" && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -178,7 +178,7 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
-    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") && thecontrol.selectedIndex === 0) {
+    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -1945,7 +1945,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers")
+                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults")
                         plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
@@ -3279,7 +3279,7 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
@@ -3292,7 +3292,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "None":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
@@ -3347,7 +3347,7 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
@@ -3728,13 +3728,21 @@ function getLeafletLocationColors(dataPoint) {
         }
     }
     else if (currentTab === "Breakers") {
-        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0) {
+        if (dataPoint.data[0] === 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0) {
             color = '#0E892C';
         } else {
             color = '#CC3300';
         }
 
     }
+    else if (currentTab === "Faults") {
+            if (dataPoint.status === 0) {
+                color = '#0E892C';
+            } else {
+                color = '#CC3300';
+            }
+
+        }
     return color;
 
 }
@@ -3787,6 +3795,13 @@ function getLeafletLocationPopup(dataPoint) {
         popup += "</table>";
 
     }
+    else if (currentTab === "Faults") {
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>Faults:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.status + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+    }
+
 
 
     return popup;
@@ -3828,6 +3843,10 @@ function plotContourMap(data) {
     else if (currentTab === "Breakers") {
         $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Breaker Events</div>');
         $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Breaker Events</div>');
+    }
+    else if (currentTab === "Faults") {
+        $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Faults</div>');
+        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Faults</div>');
     }
     else {
         for (var i = data.ColorDomain.length - 1; i >= 0; --i) {
