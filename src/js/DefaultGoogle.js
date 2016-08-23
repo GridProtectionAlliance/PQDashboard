@@ -55,10 +55,10 @@ var cache_Table_Data = null;
 var cache_Contour_Data = null;
 var brush = null;
 var cache_Last_Date = null;
-var contourMap = null;
 var leafletMap = {Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
 var markerGroup = null;
 var contourLayer = null;
+var contourOverlay = null;
 
 var currentTab = null;
 
@@ -1912,14 +1912,8 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         };
         
         if (leafletMap[currentTab] === null) {
-            var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
-
-            $.each(thedatasent.contourQuery, function (key, value) {
-                tileURL += '&' + key + '=' + encodeURIComponent(value);
-            });
-
             loadLeafletMap('theMap' + currentTab);
-            contourLayer = L.tileLayer(tileURL).addTo(leafletMap[currentTab]);
+            loadContourLayer(thedatasent.contourQuery);
         }
     }
 
@@ -3800,6 +3794,9 @@ function getLeafletLocationPopup(dataPoint) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function plotContourMap(data) {
+    if (data.URL)
+        loadContourOverlay(data);
+
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
 
@@ -3812,8 +3809,6 @@ function plotContourMap(data) {
         // loop through our density intervals and generate a label with a colored square for each interval
         return div;
     };
-
-
 
     legend.addTo(leafletMap[currentTab]);
 
@@ -3866,10 +3861,6 @@ function plotContourMap(data) {
         leafletMap[currentTab].boxZoom.enable();
         leafletMap[currentTab].keyboard.enable();
     });
-
-
-
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -5214,10 +5205,42 @@ function loadLeafletMap(theDiv) {
     }
 }
 
+function loadContourLayer(contourQuery) {
+    var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+
+    $.each(contourQuery, function (key, value) {
+        tileURL += '&' + key + '=' + encodeURIComponent(value);
+    });
+
+    if (contourOverlay) {
+        leafletMap[currentTab].removeLayer(imageOverlay);
+        contourOverlay = null;
+    }
+
+    if (contourLayer)
+        contourLayer.setUrl(tileURL);
+    else
+        contourLayer = L.tileLayer(tileURL).addTo(leafletMap[currentTab]);
+}
+
+function loadContourOverlay(contourInfo) {
+    var bounds = [[contourInfo.MaxLatitude, contourInfo.MinLongitude], [contourInfo.MinLatitude, contourInfo.MaxLongitude]];
+
+    if (contourLayer) {
+        leafletMap[currentTab].removeLayer(contourLayer);
+        contourLayer = null;
+    }
+
+    if (contourOverlay)
+        contourOverlay.setUrl(contourInfo.URL);
+    else
+        contourOverlay = L.imageOverlay(contourInfo.URL, bounds).addTo(leafletMap[currentTab]);
+}
+
 function showType(thecontrol) {
     plotContourMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 
-    thedatasent = {
+    var thedatasent = {
         contourQuery: {
             StartDate: cache_Map_Matrix_Data_Date_From,
             EndDate: cache_Map_Matrix_Data_Date_To,
@@ -5227,13 +5250,7 @@ function showType(thecontrol) {
         }
     };
         
-    var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
-
-    $.each(thedatasent.contourQuery, function (key, value) {
-        tileURL += '&' + key + '=' + encodeURIComponent(value);
-    });
-
-    contourLayer.setUrl(tileURL);
+    loadContourLayer(thedatasent.contourQuery);
 }
 
 function showTrendingData(thecontrol) {
@@ -5312,38 +5329,28 @@ function loadContourAnimationData() {
             meters += ',' + data;
     });
 
-    var thedatasent = "{'targetDateFrom':'" + dateFrom + 
-                    "', 'targetDateTo':'" + dateTo +
-                    "', 'measurementType':'" + $('#trendingDataSelection').val() +
-                    "', 'stepSize':'" + $('#contourAnimationStepSelect').val() +
-                    "', 'meterID':'" + meters +
-                    "', 'dataType':'" + $('#tredingDataTypeSelection').val() +
-                    "', 'userName':'" + postedUserName + "'}";
+    var thedatasent = {
+        contourQuery: {
+            StartDate: dateFrom,
+            EndDate: dateTo,
+            DataType: $('#trendingDataTypeSelection').val(),
+            ColorScaleName: 'Voltage RMS',
+            UserName: postedUserName,
+            StepSize: $('#contourAnimationStepSelect').val(),
+            Resolution: $('#contourAnimationResolutionSelect').val()
+        }
+    };
 
     getLocationsAndPopulateMapAndMatrix(currentTab, dateFrom, dateFrom, null);
 
     $.ajax({
         type: "POST",
         url: './mapService.asmx/getContourAnimations',
-        data: thedatasent,
+        data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
         success: function (data) {
-            //var startTime = new Date(data.d[0].Date);
-            //var contourData = [{ Date: startTime, d: [] }];
-            //var contourDateIndex = 0;
-            //$.each(data.d, function (index, d) {
-            //    if (new Date(d.Date).getTime() === startTime.getTime())
-            //        contourData[contourDateIndex].d.push(d);
-            //    else {
-            //        startTime = new Date(d.Date);
-            //        contourData.push({ Date: startTime, d: [] });
-            //        contourData[++contourDateIndex].d.push(d)
-            //    }
-            //});
-
-            //cache_Contour_Data = contourData;
             runContourAnimation(data.d);
         },
         failure: function (msg) {
@@ -5351,159 +5358,96 @@ function loadContourAnimationData() {
         },
         async: true
     });
-    //var url = "./mapService.asmx/getLocations" + currentTab;
-    //var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
-
-    //if (currentTab !== "TrendingData") {
-    //    thedatasent = {
-    //        targetDateFrom: datefrom,
-    //        targetDateTo: dateto,
-    //        userName: postedUserName
-    //    };
-    //} else {
-    //    thedatasent = {
-    //        contourQuery: {
-    //            StartDate: datefrom,
-    //            EndDate: dateto,
-    //            MeasurementType: $('#trendingDataSelection').val(),
-    //            DataType: $('#trendingDataTypeSelection').val(),
-    //            UserName: postedUserName
-    //        }
-    //    };
-
-    //    if (contourMap === null) {
-    //        var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
-
-    //        $.each(thedatasent.contourQuery, function (key, value) {
-    //            tileURL += '&' + key + '=' + encodeURIComponent(value);
-    //        });
-
-    //        loadLeafletMap('theMap' + currentTab);
-    //        L.tileLayer(tileURL).addTo(contourMap);
-    //    }
-    //}
-
-    ////console.log("getLocationsAndPopulateMapAndMatrix");
-
-    //cache_Map_Matrix_Data = null;
-    //cache_Map_Matrix_Data_Date_From = null;
-    //cache_Map_Matrix_Data_Date_To = null;
-
-    //setMapHeaderDate(datefrom, dateto);
-
-    //// Jeff Walker
-    //$.ajax({
-    //    datefrom: datefrom,
-    //    dateto: dateto,
-    //    type: "POST",
-    //    url: url,
-    //    data: JSON.stringify(thedatasent),
-    //    contentType: "application/json; charset=utf-8",
-    //    dataType: 'json',
-    //    cache: true,
-    //    success: function (data) {
-    //        //console.log(data);
-    //        cache_Map_Matrix_Data_Date_From = this.datefrom;
-    //        cache_Map_Matrix_Data_Date_To = this.dateto;
-    //        cache_Map_Matrix_Data = data;
-
-    //        //console.log(data);
-    //        // Plot Map or Plot Matrix
-    //        switch ($('#mapGrid')[0].value) {
-    //            case "Map":
-    //                if (currentTab == "TrendingData")
-    //                    plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-    //                else
-    //                    plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
-    //                break;
-    //            case "Grid":
-    //                plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
-    //                break;
-
-    //        }
-
-    //    },
-    //    failure: function (msg) {
-    //        alert(msg);
-    //    },
-    //    async: true
-    //});
-
-
 }
 
 function runContourAnimation(contourData) {
-    var d = new Date(contourData.Date + ' UTC');
-    if ($('#weatherCheckbox').prop('checked')) {
-        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
-    }
-    var progressBarIndex = 0;
+    //var d = new Date(contourData.Date + ' UTC');
+    //if ($('#weatherCheckbox').prop('checked')) {
+    //    var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
+    //}
+
     $('.contourControl').css('width', '500px');
     $('#progressBar').show();
 
+    $.each(contourData.Infos, function (_, info) {
+        info.ColorDomain = contourData.ColorDomain;
+        info.ColorRange = contourData.ColorRange;
+        info.MinLatitude = contourData.MinLatitude;
+        info.MaxLatitude = contourData.MaxLatitude;
+        info.MinLongitude = contourData.MinLongitude;
+        info.MaxLongitude = contourData.MaxLongitude;
+    });
+
     var index = 0
-    $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-    plotContourMapLocations(contourData.Infos[index++], null, null, null, null);
+    update();
+
+    function update() {
+        var info = contourData.Infos[index];
+        var progressBarIndex = Math.ceil(index / (contourData.Infos.length - 1) * 100);
+        $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
+        $('#progressbarLabel').html(new Date(info.Date).getUTCHours() + ':' + (new Date(info.Date).getMinutes() < 10 ? '0' : '') + new Date(info.Date).getMinutes());
+        plotContourMapLocations(info, null, null, null, null);
+    }
 
     var interval;
 
     $('#button_play').off('click');
     $('#button_play').on('click', function () {
+        clearInterval(interval);
+
         interval = setInterval(function () {
+            index++;
 
-            if (index == contourData.Infos.length) {
-                clearInterval(interval);
+            if (index >= contourData.Infos.length) {
                 index = 0;
-                $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
+                update();
+                clearInterval(interval);
             }
-            else
-                if ($('#weatherCheckbox').prop('checked')) {
-                    d = new Date(contourData.Infos[index].Date + ' UTC');
-                    wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
-                }
-                progressBarIndex = Math.ceil(index / contourData.Infos.length * 100);
-                $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
-                $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
-                plotContourMapLocations(contourData.Infos[index++], null, null, null, null);
-        }, 3000);
+            else {
+                //if ($('#weatherCheckbox').prop('checked')) {
+                //    d = new Date(contourData.Infos[index].Date + ' UTC');
+                //    wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
+                //}
+                update();
+            }
+        }, 1000);
     });
 
     $('#button_stop').off('click');
     $('#button_stop').on('click', function () {
         clearInterval(interval);
-        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
     });
 
     $('#button_bw').off('click');
     $('#button_bw').on('click', function () {
-        --index;
-        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
+        if (index > 0) {
+            --index;
+            update();
+        }
     });
 
     $('#button_fbw').off('click');
     $('#button_fbw').on('click', function () {
-        index = 0;
-        $('#contourAnimationInnerBar').css('width', 0 + '%');
-        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
+        if (index > 0) {
+            index = 0;
+            update();
+        }
     });
 
     $('#button_fw').off('click');
     $('#button_fw').on('click', function () {
-        ++index;
-        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
+        if (index < contourData.Infos.length - 1) {
+            ++index;
+            update();
+        }
     });
 
     $('#button_ffw').off('click');
     $('#button_ffw').on('click', function () {
-        index = contourData.length;
-        $('#contourAnimationInnerBar').css('width', 100 + '%');
-        $('#progressbarLabel').html(new Date(contourData.Infos[index].Date).getUTCHours() + ':' + (new Date(contourData.Infos[index].Date).getMinutes() < 10 ? '0' : '') + new Date(contourData.Infos[index].Date).getMinutes());
-
+        if (index < contourData.Infos.length - 1) {
+            index = contourData.Infos.length - 1;
+            update();
+        }
     });
 }
 
@@ -5544,7 +5488,7 @@ function showColorScale(thecontrol) {
     manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
     $("#mapGrid")[0].value = mapormatrix;
     selectmapgrid($("#mapGrid")[0]);
-    thedatasent = {
+    var thedatasent = {
         contourQuery: {
             StartDate: cache_Map_Matrix_Data_Date_From,
             EndDate: cache_Map_Matrix_Data_Date_To,
@@ -5554,13 +5498,6 @@ function showColorScale(thecontrol) {
         }
     };
 
-    var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
-
-    $.each(thedatasent.contourQuery, function (key, value) {
-        tileURL += '&' + key + '=' + encodeURIComponent(value);
-    });
-
-    contourLayer.setUrl(tileURL);
-
+    loadContourLayer(thedatasent.contourQuery);
 }
 /// EOF
