@@ -82,7 +82,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
     <script src="./js/D3/d3.geom.contour.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script type="text/javascript" src="js/Leaflet/leaflet1.0.js"></script>
+    <script type="text/javascript" src="js/Leaflet/leaflet-src.js"></script>
     <script src="./js/heatmap.js"></script>
     <script src="./js/D3/turf.custom.js"></script>
     <script src="./js/D3/marchingsquares-isobands.js"></script>
