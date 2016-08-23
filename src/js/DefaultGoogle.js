@@ -165,7 +165,7 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && thecontrol.selectedIndex === 0) {
+    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -178,7 +178,7 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
-    } else if ((currentTab === "TrendingData" || currentTab === "Correctness") && thecontrol.selectedIndex === 0) {
+    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -809,7 +809,7 @@ function OpenWindowToOpenSTE(url, id) {
 function OpenWindowToOpenSEE(id) {
     var url = "openSEE.aspx?eventid=" + id;
 
-    if (currentTab == "Breakers")
+    if (currentTab === "Breakers")
         url += "&breakerdigitals=1";
     else
         url += "&faultcurves=1";
@@ -1951,7 +1951,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    if (currentTab == "TrendingData" || currentTab == "Correctness")
+                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness")
                         plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
@@ -3285,7 +3285,7 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
@@ -3298,7 +3298,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "None":
-                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
@@ -3353,7 +3353,7 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
@@ -3374,7 +3374,7 @@ function showSiteSet(thecontrol) {
 
             case "Sags":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab == "TrendingData") {
+                if (currentTab === "TrendingData") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#996633')
                             $(marker).show();
@@ -3395,7 +3395,7 @@ function showSiteSet(thecontrol) {
 
             case "Swells":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab == "TrendingData") {
+                if (currentTab === "TrendingData") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#ff0000')
                             $(marker).show();
@@ -3712,7 +3712,7 @@ function getLeafletLocationColors(dataPoint) {
         else if (dataPoint[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
         else if (dataPoint[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
     }
-    else if (currentTab === "Correctness") {
+    else if (currentTab === "Correctness" || currentTab === "Completeness") {
         var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
 
         if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0) {
@@ -3746,6 +3746,18 @@ function getLeafletLocationPopup(dataPoint) {
         popup += "<tr><td>Average:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Average).toFixed(2) + "&nbsp;</td></tr>";
         popup += "<tr><td>Minimum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Minimum).toFixed(2) + "&nbsp;</td></tr>";
         popup += "<tr><td>Maximum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Maximum).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+    }
+    else if (currentTab === "Completeness") {
+        var completepoints = dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4];
+        var recieved = (completepoints / dataPoint.data[0] * 100).toFixed(2);
+        var duplicate = (dataPoint.data[5] / dataPoint.data[0] * 100).toFixed(2);
+
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>Expected:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
+        popup += "<tr><td>Recieved:&nbsp;</td><td style='text-align: right'>&nbsp;" + recieved + "&nbsp;</td></tr>";
+        popup += "<tr><td>Duplicate:&nbsp;</td><td style='text-align: right'>&nbsp;" + duplicate + "&nbsp;</td></tr>";
         popup += "</table>";
 
     }
