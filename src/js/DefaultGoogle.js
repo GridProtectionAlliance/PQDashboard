@@ -165,7 +165,7 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && thecontrol.selectedIndex === 0) {
+    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && currentTab !== "Breakers" && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -178,7 +178,7 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
-    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") && thecontrol.selectedIndex === 0) {
+    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -1951,7 +1951,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness")
+                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers")
                         plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
@@ -3285,7 +3285,7 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
@@ -3298,7 +3298,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "None":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
@@ -3353,7 +3353,7 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
@@ -3733,7 +3733,14 @@ function getLeafletLocationColors(dataPoint) {
             color = [globalcolorsDQ[0]];
         }
     }
+    else if (currentTab === "Breakers") {
+        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0) {
+            color = '#0E892C';
+        } else {
+            color = '#CC3300';
+        }
 
+    }
     return color;
 
 }
@@ -3778,6 +3785,14 @@ function getLeafletLocationPopup(dataPoint) {
             popup += "</table>";
         }
     }
+    else if (currentTab === "Breakers") {
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>Normal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
+        popup += "<tr><td>Late:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
+        popup += "<tr><td>Indeterminate:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[2] + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+    }
 
 
     return popup;
@@ -3793,7 +3808,7 @@ function plotContourMap(data) {
         var div = L.DomUtil.create('div', 'info legend'),
             labels = [];
         div.innerHTML += "<h4><button class='btn btn-link' style='padding: 0;'data-toggle='collapse' data-target='#innerLegend'><u>Legend</u></button></h4>" +
-            "<div id='innerLegend' class='collapse'><h6>" + $('#trendingDataTypeSelection').val() + ' ' + $('#trendingDataSelection').val() + '</h6></div>';
+            "<div id='innerLegend' class='collapse'></div>";
         // loop through our density intervals and generate a label with a colored square for each interval
         return div;
     };
@@ -3814,6 +3829,10 @@ function plotContourMap(data) {
                 $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>');
             }
         }
+    }
+    else if (currentTab === "Breakers") {
+        $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Breaker Events</div>');
+        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Breaker Events</div>');
     }
     else {
         for (var i = data.ColorDomain.length - 1; i >= 0; --i) {
@@ -4732,15 +4751,15 @@ function buildPage() {
     $.blockUI({ css: { border: '0px' } });
 
     $(document).ajaxStart(function () {
-        timeout = setTimeout(function () {
-            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
-        }, 1000);
+        //timeout = setTimeout(function () {
+        //    //$.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
+        //}, 1000);
     });
 
     $(document).ajaxStop(function () {
         if (timeout != null) {
-            clearTimeout(timeout);
-            timeout = null;
+            //clearTimeout(timeout);
+            //timeout = null;
         }
 
         $.unblockUI();
