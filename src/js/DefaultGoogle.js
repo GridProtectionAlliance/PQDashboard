@@ -56,6 +56,7 @@ var cache_Contour_Data = null;
 var brush = null;
 var cache_Last_Date = null;
 var contourMap = null;
+var leafletMap = {Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
 var markerGroup = null;
 var contourLayer = null;
 
@@ -164,7 +165,7 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab !== "TrendingData" && thecontrol.selectedIndex === 0) {
+    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -177,11 +178,11 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
-    } else if (currentTab === "TrendingData" && thecontrol.selectedIndex === 0) {
+    } else if ((currentTab === "TrendingData" || currentTab === "Correctness") && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
-        if (contourMap == null) {
+        if (leafletMap[currentTab] == null) {
             loadLeafletMap('theMap' + currentTab);
             //loadDataForDate();
         }
@@ -1628,25 +1629,25 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
                 return div;
             };
 
-            contourControl.addTo(contourMap);
+            contourControl.addTo(leafletMap[currentTab]);
 
             contourControl.getContainer().addEventListener('mouseover', function () {
-                contourMap.dragging.disable();
-                contourMap.doubleClickZoom.disable();
-                contourMap.touchZoom.disable();
-                contourMap.scrollWheelZoom.disable();
-                contourMap.boxZoom.disable();
-                contourMap.keyboard.disable();
+                leafletMap[currentTab].dragging.disable();
+                leafletMap[currentTab].doubleClickZoom.disable();
+                leafletMap[currentTab].touchZoom.disable();
+                leafletMap[currentTab].scrollWheelZoom.disable();
+                leafletMap[currentTab].boxZoom.disable();
+                leafletMap[currentTab].keyboard.disable();
 
             });
 
             contourControl.getContainer().addEventListener('mouseout', function () {
-                contourMap.dragging.enable();
-                contourMap.doubleClickZoom.enable();
-                contourMap.touchZoom.enable();
-                contourMap.scrollWheelZoom.enable();
-                contourMap.boxZoom.enable();
-                contourMap.keyboard.enable();
+                leafletMap[currentTab].dragging.enable();
+                leafletMap[currentTab].doubleClickZoom.enable();
+                leafletMap[currentTab].touchZoom.enable();
+                leafletMap[currentTab].scrollWheelZoom.enable();
+                leafletMap[currentTab].boxZoom.enable();
+                leafletMap[currentTab].keyboard.enable();
 
             });
 
@@ -1910,7 +1911,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             }
         };
         
-        if (contourMap === null) {
+        if (leafletMap[currentTab] === null) {
             var tileURL = './mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
 
             $.each(thedatasent.contourQuery, function (key, value) {
@@ -1918,7 +1919,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             });
 
             loadLeafletMap('theMap' + currentTab);
-            contourLayer = L.tileLayer(tileURL).addTo(contourMap);
+            contourLayer = L.tileLayer(tileURL).addTo(leafletMap[currentTab]);
         }
     }
 
@@ -1950,7 +1951,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    if (currentTab == "TrendingData")
+                    if (currentTab == "TrendingData" || currentTab == "Correctness")
                         plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
@@ -3284,8 +3285,8 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab == "TrendingData") {
-                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
                 }
@@ -3297,8 +3298,8 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "None":
-                if (currentTab == "TrendingData") {
-                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
                 }
@@ -3352,8 +3353,8 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab == "TrendingData") {
-                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                if (currentTab == "TrendingData" || currentTab == "Correctness") {
+                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
                         else
@@ -3374,7 +3375,7 @@ function showSiteSet(thecontrol) {
             case "Sags":
                 var selectedIDs = GetCurrentlySelectedSites();
                 if (currentTab == "TrendingData") {
-                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#996633')
                             $(marker).show();
                         else
@@ -3395,7 +3396,7 @@ function showSiteSet(thecontrol) {
             case "Swells":
                 var selectedIDs = GetCurrentlySelectedSites();
                 if (currentTab == "TrendingData") {
-                    $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#ff0000')
                             $(marker).show();
                         else
@@ -3414,7 +3415,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "RecievedData":
-                $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                     if ($(marker).children().children().attr('fill') !== '#000000')
                         $(marker).show();
                     else
@@ -3424,7 +3425,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "NoData":
-                $.each($(contourMap.getPanes().markerPane).children(), function (index, marker) {
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                     if ($(marker).children().children().attr('fill') === '#000000')
                         $(marker).show();
                     else
@@ -3612,28 +3613,22 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 
 function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
     var selectedIDs = GetCurrentlySelectedSites();
+    if(leafletMap[currentTab] !== null)
+        $(leafletMap[currentTab].getPanes().markerPane).children().remove();
 
-    $(contourMap.getPanes().markerPane).children().remove();
     var markers = [];
     $.each(locationdata.Locations, function (index, data) {
-        var color = 'rgb(0,255,0)'; // green
-        if (data[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
-        else if (data[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
-        else if (data[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
+        var color = getLeafletLocationColors(data);
 
         var html = '<svg height="12" width="12" id="'+data.name+'|'+data.id+'">' +
                         '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
                    '</svg>';
 
-        var popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + data.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Average:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Average).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "<tr><td>Minimum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Minimum).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "<tr><td>Maximum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(data.Maximum).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "</table>";
+        var popup = getLeafletLocationPopup(data);
 
         var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
 
-        var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(contourMap).bindPopup(popup);
+        var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(leafletMap[currentTab]).bindPopup(popup);
 
         marker.on('click', function (event) {
             if (!event.originalEvent.ctrlKey) {
@@ -3670,14 +3665,14 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     });
 
     markerGroup = new L.featureGroup(markers);
-    contourMap.fitBounds(markerGroup.getBounds());
+    leafletMap[currentTab].fitBounds(markerGroup.getBounds());
 
     var timeoutVal;
-    contourMap.off('boxzoomend');
-    contourMap.on('boxzoomend', function (event) {
+    leafletMap[currentTab].off('boxzoomend');
+    leafletMap[currentTab].on('boxzoomend', function (event) {
         $('#siteList').multiselect("uncheckAll");
 
-        $.each(locationdata, function (index, data) {
+        $.each(locationdata.Locations, function (index, data) {
             if(data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat 
                 && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
                 if ($('#siteList').multiselect("option").multiple) {
@@ -3707,7 +3702,76 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     plotContourMap(locationdata);
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+function getLeafletLocationColors(dataPoint) {
+    var color = '#000000';
 
+    if (currentTab === "TrendingData") {
+        color = 'rgb(0,255,0)'; // green
+        if (dataPoint[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
+        else if (dataPoint[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
+        else if (dataPoint[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
+    }
+    else if (currentTab === "Correctness") {
+        var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+
+        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0) {
+            color = ['#0000FF'];
+        } else if (percentage > 100) {
+            color = [globalcolorsDQ[6]];
+        } else if (percentage <= 100 && percentage >= 98) {
+            color = [globalcolorsDQ[5]];
+        } else if (percentage < 98 && percentage >= 90) {
+            color = [globalcolorsDQ[4]];
+        } else if (percentage < 90 && percentage >= 70) {
+            color = [globalcolorsDQ[3]];
+        } else if (percentage < 70 && percentage >= 50) {
+            color = [globalcolorsDQ[2]];
+        } else if (percentage < 50 && percentage > 0) {
+            color = [globalcolorsDQ[1]];
+        } else {
+            color = [globalcolorsDQ[0]];
+        }
+    }
+
+    return color;
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+function getLeafletLocationPopup(dataPoint) {
+    var popup;
+    if (currentTab === "TrendingData") {
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>Average:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Average).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "<tr><td>Minimum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Minimum).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "<tr><td>Maximum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Maximum).toFixed(2) + "&nbsp;</td></tr>";
+        popup += "</table>";
+
+    }
+    else if (currentTab === "Correctness") {
+        var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+
+        var val1 = (dataPoint.data[2] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+        var val2 = (dataPoint.data[3] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+        var val3 = (dataPoint.data[4] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0) {
+            popup += "<tr><td>No Data Available</td></tr>";
+        } else {
+
+            popup += "<tr><td>Latched:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val1).toFixed(2) + "&nbsp;</td></tr>";
+            popup += "<tr><td>Unreasonable:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val2).toFixed(2) + "&nbsp;</td></tr>";
+            popup += "<tr><td>Non-Congruent:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val3).toFixed(2) + "&nbsp;</td></tr>";
+            popup += "</table>";
+        }
+    }
+
+
+    return popup;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 function plotContourMap(data) {
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
@@ -3724,36 +3788,52 @@ function plotContourMap(data) {
 
 
 
-    legend.addTo(contourMap);
+    legend.addTo(leafletMap[currentTab]);
 
-    for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
-        if (i === data.ColorDomain.length - 2) {
-            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2) + '</div>');
+    if (currentTab === "TrendingData") {
+        for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
+            if (i === data.ColorDomain.length - 2) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2) + '</div>');
+            }
+            else if (i == 1) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>');
+            }
+            else if (i % 2 !== 0) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>');
+            }
         }
-        else if (i == 1) {
-            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>');
+    }
+    else {
+        for (var i = data.ColorDomain.length - 1; i >= 0; --i) {
+            if (i === data.ColorDomain.length - 1) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i] + '</div>');
+            }
+            if (i == 0) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i] + '</div>');
+            }
+            else if (i % 2 === 0) {
+                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i-1].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i-1] + '&ndash;' + data.ColorDomain[i] + '</div>');
+            }
         }
-        else if (i % 2 !== 0) {
-            $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>');
-        }
+
     }
 
     legend.getContainer().addEventListener('mouseover', function () {
-        contourMap.dragging.disable();
-        contourMap.doubleClickZoom.disable();
-        contourMap.touchZoom.disable();
-        contourMap.scrollWheelZoom.disable();
-        contourMap.boxZoom.disable();
-        contourMap.keyboard.disable();
+        leafletMap[currentTab].dragging.disable();
+        leafletMap[currentTab].doubleClickZoom.disable();
+        leafletMap[currentTab].touchZoom.disable();
+        leafletMap[currentTab].scrollWheelZoom.disable();
+        leafletMap[currentTab].boxZoom.disable();
+        leafletMap[currentTab].keyboard.disable();
     });
 
     legend.getContainer().addEventListener('mouseout', function () {
-        contourMap.dragging.enable();
-        contourMap.doubleClickZoom.enable();
-        contourMap.touchZoom.enable();
-        contourMap.scrollWheelZoom.enable();
-        contourMap.boxZoom.enable();
-        contourMap.keyboard.enable();
+        leafletMap[currentTab].dragging.enable();
+        leafletMap[currentTab].doubleClickZoom.enable();
+        leafletMap[currentTab].touchZoom.enable();
+        leafletMap[currentTab].scrollWheelZoom.enable();
+        leafletMap[currentTab].boxZoom.enable();
+        leafletMap[currentTab].keyboard.enable();
     });
 
 
@@ -3786,7 +3866,7 @@ function LoadHeatmapLeaflet(data) {
 
     var testData = { data: data };
     var heatmapLayer = new HeatmapOverlay(cfg);
-    var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(contourMap);
+    var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
     heatmapLayer.setData(testData);
     L.control.layers().addOverlay(heatmap, "Heatmap layer");
 }
@@ -5083,8 +5163,8 @@ function stopAnimatedHeatmap() {
 
 function loadLeafletMap(theDiv) {
 
-    if (contourMap === null) {
-        contourMap = L.map(theDiv, {
+    if (leafletMap[currentTab] === null) {
+        leafletMap[currentTab] = L.map(theDiv, {
             center: [35.0456, -85.3097],
             zoom: 6,
             minZoom: 2,
@@ -5098,7 +5178,7 @@ function loadLeafletMap(theDiv) {
 
         L.tileLayer(
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            }).addTo(contourMap);
+            }).addTo(leafletMap[currentTab]);
 
     }
 }
@@ -5324,7 +5404,7 @@ function loadContourAnimationData() {
 function runContourAnimation(contourData) {
     var d = new Date(contourData.Date + ' UTC');
     if ($('#weatherCheckbox').prop('checked')) {
-        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes()%5)).toISOString() }).addTo(contourMap);
+        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
     }
     var progressBarIndex = 0;
     $('.contourControl').css('width', '500px');

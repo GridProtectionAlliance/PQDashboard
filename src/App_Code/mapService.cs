@@ -75,7 +75,26 @@ public class mapService : WebService
         public int id;
         public int status;
         public siteGeocoordinates location;
+        public double Latitude;
+        public double Longitude;
         public string datetime;
+        public List<int> data;
+        public locationStatus()
+        {
+            data = new List<int>();
+        }
+    }
+
+    public class LocationStatusList
+    {
+        public List<locationStatus> Locations;
+        public double[] ColorDomain;
+        public double[] ColorRange;
+        
+        public LocationStatusList()
+        {
+            Locations = new List<locationStatus>();
+        } 
     }
 
     public class TrendingDataLocations
@@ -685,12 +704,13 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsCorrectness(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsCorrectness(string targetDateFrom, string targetDateTo, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
-
+        LocationStatusList locationStates = new LocationStatusList();
+        locationStates.ColorRange = new double[] { 4278190335, 4294905584,0,4294912000,0, 4294940160,0, 4294967040, 0, 4278241294, 4278255604};
+        locationStates.ColorDomain = new double[] {0, 0,  49, 50,69, 70 ,89,90,97,98 , 100};
         try
         {
             conn = new SqlConnection(connectionstring);
@@ -706,12 +726,19 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude= (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+                ourStatus.data.Add((int)rdr["ExpectedPoints"]);
+                ourStatus.data.Add((int)rdr["GoodPoints"]);
+                ourStatus.data.Add((int)rdr["LatchedPoints"]);
+                ourStatus.data.Add((int)rdr["UnreasonablePoints"]);
+                ourStatus.data.Add((int)rdr["NoncongruentPoints"]);
+                ourStatus.data.Add((int)rdr["DuplicatePoints"]);
+
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
