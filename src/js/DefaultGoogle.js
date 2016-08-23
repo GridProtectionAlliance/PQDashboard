@@ -165,7 +165,7 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && currentTab !== "Breakers" && currentTab !== "Faults" && thecontrol.selectedIndex === 0) {
+    } else if (currentTab !== "TrendingData" && currentTab !== "Correctness" && currentTab !== "Completeness" && currentTab !== "Breakers" && currentTab !== "Faults" && currentTab !== "Disturbances" && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -178,7 +178,7 @@ function selectmapgrid(thecontrol) {
             $.sparkline_display_visible();
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
         }
-    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") && thecontrol.selectedIndex === 0) {
+    } else if ((currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults" || currentTab === "Disturbances") && thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
@@ -1945,7 +1945,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             // Plot Map or Plot Matrix
             switch ($('#mapGrid')[0].value) {
                 case "Map":
-                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults")
+                    if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults" || currentTab === "Disturbances")
                         plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                     else
                         plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
@@ -3279,7 +3279,7 @@ function showSiteSet(thecontrol) {
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults" || currentTab === "Disturbances") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
@@ -3292,7 +3292,7 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "None":
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults" || currentTab === "Disturbances") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
@@ -3326,28 +3326,42 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "Disturbances":
-                $.each(map.markers, function (key, value) {
-                    if (value.args.marker_status > 0) {
-                        value.show();
-                    } else {
-                        value.hide();
-                    }
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') !== '#0E892C')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
                 });
+
+                //$.each(map.markers, function (key, value) {
+                //    if (value.args.marker_status > 0) {
+                //        value.show();
+                //    } else {
+                //        value.hide();
+                //    }
+                //});
                 break;
 
             case "NoDisturbances":
-                $.each(map.markers, function (key, value) {
-                    if (value.args.marker_status == 0) {
-                        value.show();
-                    } else {
-                        value.hide();
-                    }
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') === '#0E892C')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
                 });
+
+                //$.each(map.markers, function (key, value) {
+                //    if (value.args.marker_status == 0) {
+                //        value.show();
+                //    } else {
+                //        value.hide();
+                //    }
+                //});
                 break;
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults") {
+                if (currentTab === "TrendingData" || currentTab === "Correctness" || currentTab === "Completeness" || currentTab === "Breakers" || currentTab === "Faults" || currentTab === "Disturbances") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
@@ -3742,7 +3756,23 @@ function getLeafletLocationColors(dataPoint) {
                 color = '#CC3300';
             }
 
-        }
+    }
+    else if (currentTab === "Disturbances") {
+        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0)
+            color = '#0E892C';
+        else if (dataPoint.data[5] > 0)
+            color = globalcolorsEvents[5];
+        else if (dataPoint.data[4] > 0)
+            color = globalcolorsEvents[4];
+        else if (dataPoint.data[3] > 0)
+            color = globalcolorsEvents[3];
+        else if (dataPoint.data[2] > 0)
+            color = globalcolorsEvents[2];
+        else if (dataPoint.data[1] > 0)
+            color = globalcolorsEvents[1];
+        else if (dataPoint.data[0] > 0)
+            color = globalcolorsEvents[0];
+    }
     return color;
 
 }
@@ -3801,7 +3831,17 @@ function getLeafletLocationPopup(dataPoint) {
         popup += "</table>";
 
     }
+    else if (currentTab === "Disturbances") {
+        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+        popup += "<tr><td>5:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[5] + "&nbsp;</td></tr>";
+        popup += "<tr><td>4:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[4] + "&nbsp;</td></tr>";
+        popup += "<tr><td>3:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[3] + "&nbsp;</td></tr>";
+        popup += "<tr><td>2:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[2] + "&nbsp;</td></tr>";
+        popup += "<tr><td>1:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
+        popup += "<tr><td>0:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
+        popup += "</table>";
 
+    }
 
 
     return popup;
@@ -3847,6 +3887,11 @@ function plotContourMap(data) {
     else if (currentTab === "Faults") {
         $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Faults</div>');
         $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Faults</div>');
+    }
+    else if (currentTab === "Disturbances") {
+        for (var i = globalcolorsEvents.length - 1, j= 0; i >= 0; --i, ++j)
+            $('#innerLegend').append('<div class="row"><i style="background: ' + globalcolorsEvents[i] + '"></i> ' + i + '</div>');
+        LoadHeatmapLeaflet(data);
     }
     else {
         for (var i = data.ColorDomain.length - 1; i >= 0; --i) {
@@ -3902,10 +3947,10 @@ function LoadHeatmapLeaflet(data) {
         // which field name in your data represents the longitude - default "lng"
         lngField: 'Longitude',
         // which field name in your data represents the data value - default "value"
-        valueField: $('#trendingDataTypeSelection').val()
+        valueField: 'status'
     };
 
-    var testData = { data: data };
+    var testData = { data: data.Locations, min: 1, max: 100 };
     var heatmapLayer = new HeatmapOverlay(cfg);
     var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
     heatmapLayer.setData(testData);
