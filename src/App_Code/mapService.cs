@@ -31,6 +31,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Services;
 using System.Web.UI.WebControls;
@@ -1272,10 +1273,11 @@ public class mapService : WebService
                 "FROM " +
                 "    Meter JOIN " +
                 "    MeterLocation ON Meter.MeterLocationID = MeterLocation.ID LEFT OUTER JOIN " +
-                "    Channel ON Channel.MeterID = Meter.ID " +
+                "    Channel ON " +
+                "        Channel.MeterID = Meter.ID AND " +
+                "        Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1}) " +
                 "WHERE " +
-                "    Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
-                "    Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1})";
+                "    Meter.ID IN (SELECT * FROM authMeters({0}))";
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
@@ -1488,10 +1490,11 @@ public class mapService : WebService
 
         int width = (int)(bottomRightPoint.X - topLeftPoint.X + 1);
         int height = (int)(bottomRightPoint.Y - topLeftPoint.Y + 1);
-        List<byte[]> frameImages = new List<byte[]>();
+        byte[][] frameImages = new byte[frames.Count][];
 
-        foreach (List<TrendingDataLocation> frame in frames)
+        Parallel.For(0, frames.Count, i =>
         {
+            List<TrendingDataLocation> frame = frames[i];
             IDWFunc idwFunction = GetIDWFunction(contourQuery, frame);
             uint[] pixelData = new uint[width * height];
 
@@ -1510,9 +1513,9 @@ public class mapService : WebService
             using (MemoryStream stream = new MemoryStream())
             {
                 bitmap.Save(stream, ImageFormat.Png);
-                frameImages.Add(stream.ToArray());
+                frameImages[i] = stream.ToArray();
             }
-        }
+        });
 
         int animationID;
 
@@ -1521,7 +1524,7 @@ public class mapService : WebService
             connection.ExecuteNonQuery("INSERT INTO ContourAnimation(ColorScaleName, StartTime, EndTime, StepSize) VALUES({0}, {1}, {2}, {3})", contourQuery.ColorScaleName, contourQuery.GetStartDate(), contourQuery.GetEndDate(), contourQuery.StepSize);
             animationID = connection.ExecuteScalar<int>("SELECT @@IDENTITY");
 
-            for (int i = 0; i < frameImages.Count; i++)
+            for (int i = 0; i < frameImages.Length; i++)
                 connection.ExecuteNonQuery("INSERT INTO ContourAnimationFrame VALUES({0}, {1}, {2})", animationID, i, frameImages[i]);
         }
 
