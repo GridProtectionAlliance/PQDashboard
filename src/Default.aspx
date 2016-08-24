@@ -77,9 +77,9 @@
     <script src="https://d3js.org/d3-scale.v1.min.js"></script>
     <script src="https://d3js.org/d3-path.v1.min.js"></script>
     <script src="https://d3js.org/d3-shape.v1.min.js"></script>
-    <script src="http://d3js.org/topojson.v1.min.js"></script>
+<%--    <script src="http://d3js.org/topojson.v1.min.js"></script>--%>
 <%--    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>--%>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+<%--    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>--%>
     <script src="./js/D3/d3.geom.contour.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="js/Leaflet/leaflet-src.js"></script>
@@ -355,6 +355,10 @@
                                             <option value="NoEvents">No Events</option>
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
+                                        </select>
+                                        <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
+                                            <option value="TrendingCounts">Event Counts</option>
+                                            <option value="THD">Animate THD</option>
                                         </select>
                                     </div>
                                     <div class="overlaydate">
@@ -681,40 +685,6 @@
                 </center>
             </div>
         </div>
-        
-        <div  id="legend" style="cursor: not-allowed;"></div>
-
-
-        
-        
-        <div id="heatmapTrending" style="visibility: hidden;">Heatmap:
-            <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
-                <option value="TrendingCounts">Event Counts</option>
-                <option value="THD">Animate THD</option>
-            </select>
-        </div>
-
-<%--        <div id="eventslegend" class="eventslegend">
-            <div id="interruptionlegend" class="interruptionlegend">Interruption</div>
-            <div id="faultslegend" class="faultslegend">Fault</div>
-            <div id="saglegend" class="saglegend">Sag</div>
-            <div id="transientlegend" class="transientlegend">Transient</div>
-            <div id="swelllegend" class="swelllegend">Swell</div>
-            <div id="otherlegend" class="otherlegend">Other</div>
-            <div id="nonelegend" class="nonelegend">None</div>
-            <div id="ooslegend" class="ooslegend">Out of Service</div>
-        </div>
-        
-        <div id="disturbanceslegend" class="eventslegend" >
-            <div id="5legend" class="interruptionlegend">5</div>
-            <div id="4legend" class="faultslegend">4</div>
-            <div id="3legend" class="saglegend">3</div>
-            <div id="2legend" class="transientlegend">2</div>
-            <div id="1legend" class="swelllegend">1</div>
-            <div id="0legend" class="otherlegend">0</div>
-            <div id="nonelegend" class="nonelegend">None</div>
-            <div id="ooslegend" class="ooslegend">Out of Service</div>
-        </div>--%>
 
         <div id="HeatmapControlsTrending">
             <table cellspacing="0" cellpadding="0" width="300px">

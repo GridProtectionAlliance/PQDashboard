@@ -16,7 +16,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  07/15/2014 - Jeff Walker
 //       Generated original version of source code.
-//
+//  08/24/2016 - William Ernest
+//       Removed jqwidgets, highcharts and replaced with primeui, d3
 //******************************************************************************************************
 //Weather Underground API Key 598829512645b690
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3858,7 +3859,7 @@ function getLeafletLocationPopup(dataPoint) {
         popup += "</table>";
 
     }
-    else if (currentTab === "Disturbances") {
+    else if (currentTab === "Events") {
         popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
         popup += "<tr><td>Interruption:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
         popup += "<tr><td>Fault:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
@@ -4839,15 +4840,15 @@ function buildPage() {
     $.blockUI({ css: { border: '0px' } });
 
     $(document).ajaxStart(function () {
-        //timeout = setTimeout(function () {
-        //    //$.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
-        //}, 1000);
+        timeout = setTimeout(function () {
+            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div>'+(currentTab === "TrendingData"? '<br><button class="btn btn-default" onclick="cancelCall()">Cancel</button><br>': '')+'</div>' });
+        }, 1000);
     });
 
     $(document).ajaxStop(function () {
         if (timeout != null) {
-            //clearTimeout(timeout);
-            //timeout = null;
+            clearTimeout(timeout);
+            timeout = null;
         }
 
         $.unblockUI();
@@ -5596,5 +5597,21 @@ function showColorScale(thecontrol) {
     };
 
     loadContourLayer(thedatasent.contourQuery);
+}
+
+function cancelCall() {
+
+    $.ajax({
+        type: "POST",
+        url: './mapService.asmx/CancelCall',
+        success: function (data) {
+            $.unblockUI();
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
 }
 /// EOF

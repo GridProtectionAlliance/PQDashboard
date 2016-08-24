@@ -53,6 +53,7 @@ using openHistorian.XDALink;
 [System.Web.Script.Services.ScriptService]
 public class mapService : WebService
 {
+    private bool cancelBool = false;
     private static string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     public class siteGeocoordinates
@@ -1607,6 +1608,13 @@ public class mapService : WebService
         }
         return (colorScales);
 
+    }
+
+    [WebMethod]
+    public bool CancelCall()
+    {
+        cancelBool = true;
+        return cancelBool;
     }
 
     private ContourTileData GetContourTileData(ContourQuery contourQuery)
