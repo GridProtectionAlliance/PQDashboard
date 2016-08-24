@@ -1902,10 +1902,10 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             }
         };
         
-        if (leafletMap[currentTab] === null) {
+        if (leafletMap[currentTab] === null) 
             loadLeafletMap('theMap' + currentTab);
-            loadContourLayer(thedatasent.contourQuery);
-        }
+        loadContourLayer(thedatasent.contourQuery);
+        
     }
 
     //console.log("getLocationsAndPopulateMapAndMatrix");
