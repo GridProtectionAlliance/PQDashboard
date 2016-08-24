@@ -3673,8 +3673,12 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
             markers.push(marker);
     });
 
-    markerGroup = new L.featureGroup(markers);
-    leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+    // Hack: if displaying an overlay for animation,
+    //       do not automatically fit bounds
+    if (!locationdata.URL) {
+        markerGroup = new L.featureGroup(markers);
+        leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+    }
 
     var timeoutVal;
     leafletMap[currentTab].off('boxzoomend');
