@@ -1608,7 +1608,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
                                     '<tr><td>&nbsp;</td></tr>' +
                                     '<tr><td>&nbsp;</td></tr>' +
                                     '<tr><td style="width: 100%">' +
-                                            '<div id="contourAnimationProgressBar"><div id="contourAnimationInnerBar"><div id="progressbarLabel"></div></div></div>' +
+                                            '<div id="contourAnimationProgressBar" class="progressBar"><div id="contourAnimationInnerBar" class="progressInnerBar"><div id="progressbarLabel" class="progressBarLabel"></div></div></div>' +
                                     '</td></tr>'+
                                     '<tr><td>&nbsp;</td></tr>' +
                                     '<tr><td>&nbsp;</td></tr>' +
@@ -4841,7 +4841,7 @@ function buildPage() {
 
     $(document).ajaxStart(function () {
         timeout = setTimeout(function () {
-            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div>'+(currentTab === "TrendingData"? '<br><button class="btn btn-default" onclick="cancelCall()">Cancel</button><br>': '')+'</div>' });
+            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
         }, 1000);
     });
 
@@ -5439,7 +5439,7 @@ function loadContourAnimationData() {
         }
     };
 
-    getLocationsAndPopulateMapAndMatrix(currentTab, dateFrom, dateFrom, null);
+    $.blockUI({ message: '<div unselectable="on" class="wait_container"><div unselectable="on" class="wait">Please Wait. Loading...</div><br><div id="loadAnimationProgressBar" class="progressBar"><div id="loadAnimationProgressInnerBar" class="progressInnerBar"><div id="loadAnimationProgressLabel" class="progressBarLabel">0%</div></div></div><br><button class="btn btn-default btn-cancel">Cancel</button><br></div>' });
 
     $.ajax({
         type: "POST",
@@ -5449,11 +5449,48 @@ function loadContourAnimationData() {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            runContourAnimation(data.d);
+            $('.btn-cancel').click(function () {
+                data.d.Cancelled = true;
+                cancelCall(data.d.AnimationID);
+            });
+
+            loopForAnimation(data.d);
         },
         failure: function (msg) {
             alert(msg);
         },
+        global: false,
+        async: true
+    });
+}
+
+function loopForAnimation(animationData) {
+    var message = {
+        taskID: animationData.AnimationID
+    };
+
+    $.ajax({
+        type: "POST",
+        url: './mapService.asmx/GetProgress',
+        data: JSON.stringify(message),
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            $('#loadAnimationProgressInnerBar').css('width', data.d + '%');
+            $('#loadAnimationProgressLabel').text(data.d + '%');
+
+            if (data.d < 100 && !animationData.Cancelled) {
+                setTimeout(loopForAnimation, 100, animationData);
+            } else if (!animationData.Cancelled) {
+                $.unblockUI();
+                runContourAnimation(animationData);
+            }
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        global: false,
         async: true
     });
 }
@@ -5570,7 +5607,6 @@ function initiateColorScale() {
             $.each(data.d, function (i, d) {
                 $('#contourColorScaleSelect').append(new Option(d, d));
             });
-
         },
         failure: function (msg) {
             alert(msg);
@@ -5599,19 +5635,18 @@ function showColorScale(thecontrol) {
     loadContourLayer(thedatasent.contourQuery);
 }
 
-function cancelCall() {
+function cancelCall(animationID) {
+    $.unblockUI();
 
     $.ajax({
         type: "POST",
+        data: { 'taskID': animationID },
         url: './mapService.asmx/CancelCall',
-        success: function (data) {
-            $.unblockUI();
-        },
         failure: function (msg) {
             alert(msg);
         },
+        global: false,
         async: true
     });
-
 }
 /// EOF
