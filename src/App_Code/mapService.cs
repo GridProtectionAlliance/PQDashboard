@@ -289,11 +289,11 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsHeatmapSwell(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsHeatmapSwell(string targetDateFrom, string targetDateTo, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList { };
 
         try
         {
@@ -311,12 +311,12 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
@@ -342,11 +342,11 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsHeatmapSags(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsHeatmapSags(string targetDateFrom, string targetDateTo, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList { };
 
         try
         {
@@ -364,12 +364,12 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
@@ -394,11 +394,11 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod (EnableSession = true)]
-    public List<locationStatus> getLocationsEvents(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsEvents(string targetDateFrom, string targetDateTo, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList { };
 
         try
         {
@@ -418,12 +418,36 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+
+                IDictionary<string, int> dict = new Dictionary<string, int>();
+                dict["Interruption"] = 1;
+                dict["Fault"] = 1;
+                dict["Sag"] = 1;
+                dict["Transient"] = 1;
+                dict["Swell"] = 1;
+                dict["Other"] = 1;
+
+
+                string   severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
+                string[] codes = severityFilter.Split(',');
+                int sum = 0;
+                foreach (string s in codes)
+                {
+                    if (s != "")
+                    {
+                        sum += (int)rdr[s] * dict[s];
+                        ourStatus.data.Add((int)rdr[s]);
+                    }
+                }
+                ourStatus.status = sum;
+
+
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
@@ -450,12 +474,13 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsEventsHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
+    public LocationStatusList getLocationsEventsHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
-
+        LocationStatusList locationStates = new LocationStatusList();
+        locationStates.ColorDomain = new double[] {};
+        locationStates.ColorRange = new double[] {};
         try
         {
             conn = new SqlConnection(connectionstring);
@@ -474,8 +499,8 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
 
                 IDictionary<string, int> dict = new Dictionary<string, int>();
@@ -494,12 +519,16 @@ public class mapService : WebService
                 foreach (string s in codes)
                 {
                     if (s != "")
-                        sum += (int)rdr[s]*dict[s];
+                    {
+                        sum += (int)rdr[s] * dict[s];
+                        ourStatus.data.Add((int)rdr[s]);
+                    }
                 }
                 ourStatus.status = sum;
 
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally

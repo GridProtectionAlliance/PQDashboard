@@ -233,6 +233,11 @@
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
                                         </select>
+                                        <select class="smallbutton" id="selectHeatmapEvents" onchange="showHeatmap(this);">
+                                            <option value="EventCounts">Event Counts</option>
+                                            <option value="MinimumSags">Sag Minimum</option>
+                                            <option value="MaximumSwells">Swell Maximum</option>
+                                        </select>
                                     </div>
 
                                     <div class="overlaydate">
@@ -288,6 +293,9 @@
                                             <option value="NoDisturbances">No Disturbances</option>
                                             <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
+                                        </select>
+                                        <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
+                                            <option value="DisturbanceCounts">Disturbance Counts</option>
                                         </select>
                                     </div>
 
@@ -677,20 +685,7 @@
         <div  id="legend" style="cursor: not-allowed;"></div>
 
 
-        <div id="heatmapEvents" style="visibility: hidden;">Heatmap:
-            <select class="smallbutton" id="selectHeatmapEvents" onchange="showHeatmap(this);">
-                <option value="EventCounts">Event Counts</option>
-                <option value="MinimumSags">Sag Minimum</option>
-                <option value="MaximumSwells">Swell Maximum</option>
-            </select>
-        </div>
         
-        <div id="heatmapDisturbances" style="visibility: hidden;">Heatmap:
-            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
-                <option value="DisturbanceCounts">Disturbance Counts</option>
-<%--                <option value="AnimateDisturbanceCounts">Animate Disturbance Counts</option>--%>
-            </select>
-        </div>
         
         <div id="heatmapTrending" style="visibility: hidden;">Heatmap:
             <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
@@ -699,7 +694,7 @@
             </select>
         </div>
 
-        <div id="eventslegend" class="eventslegend">
+<%--        <div id="eventslegend" class="eventslegend">
             <div id="interruptionlegend" class="interruptionlegend">Interruption</div>
             <div id="faultslegend" class="faultslegend">Fault</div>
             <div id="saglegend" class="saglegend">Sag</div>
@@ -719,7 +714,7 @@
             <div id="0legend" class="otherlegend">0</div>
             <div id="nonelegend" class="nonelegend">None</div>
             <div id="ooslegend" class="ooslegend">Out of Service</div>
-        </div>
+        </div>--%>
 
         <div id="HeatmapControlsTrending">
             <table cellspacing="0" cellpadding="0" width="300px">
