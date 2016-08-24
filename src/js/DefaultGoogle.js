@@ -60,7 +60,7 @@ var leafletMap = {Events: null, Disturbances: null, Trending: null, TrendingData
 var markerGroup = null;
 var contourLayer = null;
 var contourOverlay = null;
-
+var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: []};
 var currentTab = null;
 
 var calendardatesEvents = [];
@@ -185,11 +185,11 @@ function selectmapgrid(thecontrol) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
-        if (leafletMap[currentTab] == null) {
-            loadLeafletMap('theMap' + currentTab);
-        }
+        //if (leafletMap[currentTab] == null) {
+        //    loadLeafletMap('theMap' + currentTab);
+        //}
         resizeMapAndMatrix(currentTab);
-        showSiteSet($("#selectSiteSet" + currentTab)[0]);
+        //showSiteSet($("#selectSiteSet" + currentTab)[0]);
     }
 }
 
@@ -1902,9 +1902,9 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             }
         };
         
-        if (leafletMap[currentTab] === null) 
-            loadLeafletMap('theMap' + currentTab);
-        loadContourLayer(thedatasent.contourQuery);
+        //if (leafletMap[currentTab] === null) 
+        //    loadLeafletMap('theMap' + currentTab);
+        //loadContourLayer(thedatasent.contourQuery);
         
     }
 
@@ -3618,74 +3618,36 @@ function plotMapLocations(locationdata, newTab, thedatefrom , thedateto, filter)
 
 function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
     var selectedIDs = GetCurrentlySelectedSites();
-    if(leafletMap[currentTab] !== null)
-        $(leafletMap[currentTab].getPanes().markerPane).children().remove();
-    else 
+    if (leafletMap[currentTab] !== null){
+        $.each(locationdata.Locations, function (index, data) {
+            $('#' + data.name + '-' + data.id + ' circle').css('fill', getLeafletLocationColors(data));
+            $.each(mapMarkers[currentTab], function (mmIndex, object) {
+                if(object.id === data.id)
+                    object.marker.getPopup().setContent(getLeafletLocationPopup(data))
+            });
+        });
+    }
+    else {
         loadLeafletMap('theMap' + currentTab);
 
-    var markers = [];
-    $.each(locationdata.Locations, function (index, data) {
-        var color = getLeafletLocationColors(data);
-
-        var html = '<svg height="12" width="12" id="'+data.name+'|'+data.id+'">' +
-                        '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
-                   '</svg>';
-
-        var popup = getLeafletLocationPopup(data);
-
-        var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
-
-        var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(leafletMap[currentTab]).bindPopup(popup);
-
-        marker.on('click', function (event) {
-            if (!event.originalEvent.ctrlKey) {
-                $('#siteList').multiselect("uncheckAll");
-            }
-
-            if ($('#siteList').multiselect("option").multiple) {
-
-                $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                    if (this.value == data.id) {
-                        this.click();
-                    }
-
-                });
-
-                selectsitesincharts();
-
-            } else {
-                $('#siteList').multiselect("widget").find(":radio[value='" + data.id+ "']").each(function () { this.click(); });
-                $('#siteList').multiselect('refresh');
-            }
-
-        });
-
-        marker.on('mouseover', function (event) {
-            marker.openPopup();
-        });
-
-        marker.on('mouseout', function (event) {
-            marker.closePopup();
-        });
-        if ($.inArray(data.name + "|" + data.id, selectedIDs) > -1)
-            markers.push(marker);
-    });
-
-    // Hack: if displaying an overlay for animation,
-    //       do not automatically fit bounds
-    if (!locationdata.URL) {
-        markerGroup = new L.featureGroup(markers);
-        leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-    }
-
-    var timeoutVal;
-    leafletMap[currentTab].off('boxzoomend');
-    leafletMap[currentTab].on('boxzoomend', function (event) {
-        $('#siteList').multiselect("uncheckAll");
-
         $.each(locationdata.Locations, function (index, data) {
-            if(data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat 
-                && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
+            var color = getLeafletLocationColors(data);
+
+            var html = '<svg height="12" width="12" id="' + data.name + '-' + data.id + '">' +
+                            '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
+                       '</svg>';
+
+            var popup = getLeafletLocationPopup(data);
+
+            var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
+
+            var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(leafletMap[currentTab]).bindPopup(popup);
+
+            marker.on('click', function (event) {
+                if (!event.originalEvent.ctrlKey) {
+                    $('#siteList').multiselect("uncheckAll");
+                }
+
                 if ($('#siteList').multiselect("option").multiple) {
 
                     $('#siteList').multiselect("widget").find(":checkbox").each(function () {
@@ -3694,23 +3656,68 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
                         }
 
                     });
+
+                    selectsitesincharts();
+
                 } else {
                     $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
                     $('#siteList').multiselect('refresh');
                 }
 
-            }
+            });
+
+            marker.on('mouseover', function (event) {
+                marker.openPopup();
+            });
+
+            marker.on('mouseout', function (event) {
+                marker.closePopup();
+            });
+            if ($.inArray(data.name + "|" + data.id, selectedIDs) > -1)
+                mapMarkers[currentTab].push({ id: data.id, marker: marker });
         });
 
-        clearTimeout(timeoutVal);
-        timeoutVal = setTimeout(function () {
-            selectsitesincharts();
-        }, 500);
+        // Hack: if displaying an overlay for animation,
+        //       do not automatically fit bounds
+        if (!locationdata.URL) {
+            markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker;}));
+            leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        }
 
-    });
-    
-    showSiteSet($('#selectSiteSet' + currentTab)[0]);
-    plotContourMap(locationdata);
+        var timeoutVal;
+        leafletMap[currentTab].off('boxzoomend');
+        leafletMap[currentTab].on('boxzoomend', function (event) {
+            $('#siteList').multiselect("uncheckAll");
+
+            $.each(locationdata.Locations, function (index, data) {
+                if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
+                    && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
+                    if ($('#siteList').multiselect("option").multiple) {
+
+                        $('#siteList').multiselect("widget").find(":checkbox").each(function () {
+                            if (this.value == data.id) {
+                                this.click();
+                            }
+
+                        });
+                    } else {
+                        $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
+                        $('#siteList').multiselect('refresh');
+                    }
+
+                }
+            });
+
+            clearTimeout(timeoutVal);
+            timeoutVal = setTimeout(function () {
+                selectsitesincharts();
+            }, 500);
+
+        });
+
+        showSiteSet($('#selectSiteSet' + currentTab)[0]);
+        plotContourMap(locationdata);
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3896,7 +3903,20 @@ function getLeafletLocationPopup(dataPoint) {
 function plotContourMap(data) {
     if (data.URL)
         loadContourOverlay(data);
+    else if (currentTab === "TrendingData") {
+        thedatasent = {
+            contourQuery: {
+                StartDate: cache_Map_Matrix_Data_Date_From,
+                EndDate: cache_Map_Matrix_Data_Date_To,
+                DataType: $('#trendingDataTypeSelection').val(),
+                ColorScaleName: $('#contourColorScaleSelect').val(),
+                UserName: postedUserName
+            }
+        };
 
+        loadContourLayer(thedatasent.contourQuery);
+
+    }
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
 
