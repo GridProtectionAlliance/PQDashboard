@@ -1897,7 +1897,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 StartDate: datefrom,
                 EndDate: dateto,
                 DataType: $('#trendingDataTypeSelection').val(),
-                ColorScaleName: 'Voltage RMS',
+                ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName
             }
         };
@@ -5368,7 +5368,7 @@ function showType(thecontrol) {
             StartDate: cache_Map_Matrix_Data_Date_From,
             EndDate: cache_Map_Matrix_Data_Date_To,
             DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: 'Voltage RMS',
+            ColorScaleName: $('#contourColorScaleSelect').val(),
             UserName: postedUserName
         }
     };
@@ -5457,7 +5457,7 @@ function loadContourAnimationData() {
             StartDate: dateFrom,
             EndDate: dateTo,
             DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: 'Voltage RMS',
+            ColorScaleName: $('#contourColorScaleSelect').val(),
             UserName: postedUserName,
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val()
@@ -5652,7 +5652,7 @@ function showColorScale(thecontrol) {
             StartDate: cache_Map_Matrix_Data_Date_From,
             EndDate: cache_Map_Matrix_Data_Date_To,
             DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: 'Voltage RMS',
+            ColorScaleName: $('#contourColorScaleSelect').val(),
             UserName: postedUserName
         }
     };
