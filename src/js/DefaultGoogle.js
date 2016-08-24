@@ -5315,7 +5315,7 @@ function loadContourLayer(contourQuery) {
     });
 
     if (contourOverlay) {
-        leafletMap[currentTab].removeLayer(imageOverlay);
+        leafletMap[currentTab].removeLayer(contourOverlay);
         contourOverlay = null;
     }
 
