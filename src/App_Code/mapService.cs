@@ -21,6 +21,7 @@
 //******************************************************************************************************
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -31,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Services;
 using System.Web.UI.WebControls;
@@ -53,7 +55,6 @@ using openHistorian.XDALink;
 [System.Web.Script.Services.ScriptService]
 public class mapService : WebService
 {
-    private bool cancelBool = false;
     private static string connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
 
     public class siteGeocoordinates
@@ -157,6 +158,7 @@ public class mapService : WebService
 
     public class ContourAnimationInfo
     {
+        public int AnimationID { get; set; }
         public List<ContourInfo> Infos { get; set; }
         public double[] ColorDomain { get; set; }
         public double[] ColorRange { get; set; }
@@ -188,7 +190,34 @@ public class mapService : WebService
         public Func<double, double> ColorFunction { get; set; }
     }
 
+    private class ProgressCounter
+    {
+        private int m_progress;
+        private int m_total;
+
+        public ProgressCounter(int total)
+        {
+            m_total = total;
+        }
+
+        public int Progress
+        {
+            get
+            {
+                return Interlocked.CompareExchange(ref m_progress, 0, 0) * 100 / m_total;
+            }
+        }
+
+        public void Increment()
+        {
+            Interlocked.Increment(ref m_progress);
+        }
+    }
+
     private static MemoryCache s_contourDataCache = new MemoryCache("ContourDataCache");
+    private static ConcurrentDictionary<int, ICancellationToken> s_cancellationTokens = new ConcurrentDictionary<int, ICancellationToken>();
+    private static ConcurrentDictionary<int, ProgressCounter> s_progressCounters = new ConcurrentDictionary<int, ProgressCounter>();
+
     private static CoordinateReferenceSystem s_crs = new EPSG3857();
     private static LongSynchronizedOperation s_cleanUpAnimationOperation = new LongSynchronizedOperation(CleanUpAnimation);
 
@@ -1289,10 +1318,11 @@ public class mapService : WebService
                 "FROM " +
                 "    Meter JOIN " +
                 "    MeterLocation ON Meter.MeterLocationID = MeterLocation.ID LEFT OUTER JOIN " +
-                "    Channel ON Channel.MeterID = Meter.ID " +
+                "    Channel ON " +
+                "        Channel.MeterID = Meter.ID AND " +
+                "        Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1}) " +
                 "WHERE " +
-                "    Meter.ID IN (SELECT * FROM authMeters({0})) AND " +
-                "    Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1})";
+                "    Meter.ID IN (SELECT * FROM authMeters({0}))";
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
@@ -1505,31 +1535,6 @@ public class mapService : WebService
 
         int width = (int)(bottomRightPoint.X - topLeftPoint.X + 1);
         int height = (int)(bottomRightPoint.Y - topLeftPoint.Y + 1);
-        List<byte[]> frameImages = new List<byte[]>();
-
-        foreach (List<TrendingDataLocation> frame in frames)
-        {
-            IDWFunc idwFunction = GetIDWFunction(contourQuery, frame);
-            uint[] pixelData = new uint[width * height];
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    GSF.Drawing.Point offsetPixel = new GSF.Drawing.Point(topLeftPoint.X + x, topLeftPoint.Y + y);
-                    GeoCoordinate pixelCoordinate = s_crs.Translate(offsetPixel, contourQuery.Resolution);
-                    double interpolatedValue = idwFunction(pixelCoordinate.Longitude, pixelCoordinate.Latitude);
-                    pixelData[y * width + x] = (uint)colorFunc(interpolatedValue);
-                }
-            }
-
-            using (Bitmap bitmap = BitmapExtensions.FromPixelData(width, pixelData))
-            using (MemoryStream stream = new MemoryStream())
-            {
-                bitmap.Save(stream, ImageFormat.Png);
-                frameImages.Add(stream.ToArray());
-            }
-        }
 
         int animationID;
 
@@ -1537,15 +1542,80 @@ public class mapService : WebService
         {
             connection.ExecuteNonQuery("INSERT INTO ContourAnimation(ColorScaleName, StartTime, EndTime, StepSize) VALUES({0}, {1}, {2}, {3})", contourQuery.ColorScaleName, contourQuery.GetStartDate(), contourQuery.GetEndDate(), contourQuery.StepSize);
             animationID = connection.ExecuteScalar<int>("SELECT @@IDENTITY");
-
-            for (int i = 0; i < frameImages.Count; i++)
-                connection.ExecuteNonQuery("INSERT INTO ContourAnimationFrame VALUES({0}, {1}, {2})", animationID, i, frameImages[i]);
         }
+
+        GSF.Threading.CancellationToken cancellationToken = new GSF.Threading.CancellationToken();
+        s_cancellationTokens[animationID] = cancellationToken;
+
+        ProgressCounter progressCounter = new ProgressCounter(frames.Count);
+        s_progressCounters[animationID] = progressCounter;
+
+        Action<int> createFrame = i =>
+        {
+            List<TrendingDataLocation> frame = frames[i];
+            IDWFunc idwFunction = GetIDWFunction(contourQuery, frame);
+            uint[] pixelData = new uint[width * height];
+
+            if (cancellationToken.Cancelled)
+                return;
+
+            for (int x = 0; x < width; x++)
+            {
+                if (cancellationToken.Cancelled)
+                    return;
+
+                for (int y = 0; y < height; y++)
+                {
+                    if (cancellationToken.Cancelled)
+                        return;
+
+                    GSF.Drawing.Point offsetPixel = new GSF.Drawing.Point(topLeftPoint.X + x, topLeftPoint.Y + y);
+                    GeoCoordinate pixelCoordinate = s_crs.Translate(offsetPixel, contourQuery.Resolution);
+                    double interpolatedValue = idwFunction(pixelCoordinate.Longitude, pixelCoordinate.Latitude);
+                    pixelData[y * width + x] = (uint)colorFunc(interpolatedValue);
+                }
+            }
+
+            if (cancellationToken.Cancelled)
+                return;
+
+            using (Bitmap bitmap = BitmapExtensions.FromPixelData(width, pixelData))
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Png);
+
+                using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+                {
+                    connection.ExecuteNonQuery("INSERT INTO ContourAnimationFrame VALUES({0}, {1}, {2})", animationID, i, stream.ToArray());
+                }
+            }
+
+            progressCounter.Increment();
+        };
+
+        Task.Run(() =>
+        {
+            ICancellationToken token;
+            ProgressCounter counter;
+            Parallel.For(0, frames.Count, createFrame);
+            s_cancellationTokens.TryRemove(animationID, out token);
+            s_progressCounters.TryRemove(animationID, out counter);
+
+            if (cancellationToken.Cancelled)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+                {
+                    connection.ExecuteNonQuery("DELETE FROM ContourAnimationFrame WHERE ContourAnimationID = {0}", animationID);
+                    connection.ExecuteNonQuery("DELETE FROM ContourAnimation WHERE ID = {0}", animationID);
+                }
+            }
+        });
 
         s_cleanUpAnimationOperation.TryRunOnceAsync();
 
         return new ContourAnimationInfo()
         {
+            AnimationID = animationID,
             ColorDomain = colorScale.Domain,
             ColorRange = colorScale.Range,
             MinLatitude = bottomRight.Latitude,
@@ -1623,15 +1693,28 @@ public class mapService : WebService
                 rdr.Close();
             }
         }
-        return (colorScales);
 
+        return (colorScales);
     }
 
     [WebMethod]
-    public bool CancelCall()
+    public int GetProgress(int taskID)
     {
-        cancelBool = true;
-        return cancelBool;
+        ProgressCounter progressCounter;
+
+        if (s_progressCounters.TryGetValue(taskID, out progressCounter))
+            return progressCounter.Progress;
+
+        return 100;
+    }
+
+    [WebMethod]
+    public void CancelCall(int taskID)
+    {
+        ICancellationToken cancellationToken;
+
+        if (s_cancellationTokens.TryGetValue(taskID, out cancellationToken))
+            cancellationToken.Cancel();
     }
 
     private ContourTileData GetContourTileData(ContourQuery contourQuery)
