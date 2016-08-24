@@ -555,7 +555,7 @@ public class mapService : WebService
                 ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
                 ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Disturbance_Count"];
+                ourStatus.status = 0;
                 ourStatus.id = (int)rdr["id"];
                 ourStatus.data.Add((int)rdr["0"]);
                 ourStatus.data.Add((int)rdr["1"]);
@@ -563,7 +563,10 @@ public class mapService : WebService
                 ourStatus.data.Add((int)rdr["3"]);
                 ourStatus.data.Add((int)rdr["4"]);
                 ourStatus.data.Add((int)rdr["5"]);
-
+                for(int i = 0; i < ourStatus.data.Count; ++i)
+                {
+                    ourStatus.status += ourStatus.data[i]*(i+1);
+                }
                 locationStates.Locations.Add(ourStatus);
             }
         }
@@ -591,11 +594,11 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter )
+    public LocationStatusList getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter )
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList();
 
         try
         {
@@ -615,8 +618,8 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
 
                 if (severityFilter == "undefined")
@@ -630,7 +633,7 @@ public class mapService : WebService
                 }
                 ourStatus.status = sum;
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally

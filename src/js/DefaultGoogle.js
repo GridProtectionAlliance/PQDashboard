@@ -1848,8 +1848,8 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) 
         cache: true,
         success: function (data) {
             //console.log(data.d);
-            var map = getMapInstance(currentTab);
-            LoadHeatmapData(data.d, map);
+            //var map = getMapInstance(currentTab);
+            LoadHeatmapLeaflet(data.d);
 
         },
         failure: function (msg) {
@@ -1879,7 +1879,7 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
         success: function (data) {
             //console.log(data.d);
             var map = getMapInstance(currentTab);
-            LoadHeatmapData(data.d, map);
+            LoadHeatmapLeaflet(data.d, map);
 
         },
         failure: function (msg) {
@@ -3929,19 +3929,19 @@ function plotContourMap(data) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function LoadHeatmapLeaflet(data) {
+function LoadHeatmapLeaflet(thedata) {
     var cfg = {
         // radius should be small ONLY if scaleRadius is true (or small radius is intended)
         // if scaleRadius is false it will be the constant radius used in pixels
         "radius": 1,
-        "scaleRadius": true,
+        "scaleRadius": false,
         "maxOpacity": .5,
         // scales the radius based on map zoom
         "scaleRadius": true,
         // if set to false the heatmap uses the global maximum for colorization
         // if activated: uses the data maximum within the current map boundaries 
         //   (there will always be a red spot with useLocalExtremas true)
-        "useLocalExtrema": true,
+        "useLocalExtrema": false,
         // which field name in your data represents the latitude - default "lat"
         latField: 'Latitude',
         // which field name in your data represents the longitude - default "lng"
@@ -3950,7 +3950,8 @@ function LoadHeatmapLeaflet(data) {
         valueField: 'status'
     };
 
-    var testData = { data: data.Locations, min: 1, max: 100 };
+    $(leafletMap[currentTab].getPanes().overlayPane).children().remove();
+    var testData = { data: thedata.Locations.filter(function (currentValue, index, array) { return currentValue.status > 0;}), min: 1, max: 100 };
     var heatmapLayer = new HeatmapOverlay(cfg);
     var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
     heatmapLayer.setData(testData);
