@@ -840,6 +840,7 @@ public class mapService : WebService
                 ourStatus.name = (String)rdr["name"];
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
+                ourStatus.data.Add(ourStatus.status);
                 locationStates.Locations.Add(ourStatus);
             }
         }
@@ -865,12 +866,12 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<locationStatus> getHeatmapLocationsTrending(string targetDateFrom, string meterIDs, string userName)
+    public LocationStatusList getHeatmapLocationsTrending(string targetDateFrom, string meterIDs, string userName)
     {
 
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList();
         Random rand = new Random();
 
         try
@@ -888,12 +889,12 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.id = (int)rdr["MeterID"];
                 ourStatus.status = (int)rdr["Value"];
                 ourStatus.datetime = (String)((DateTime)rdr["thedate"]).ToString("MM/dd/yy HH:mm:ss");
-                locationStates.Add(ourStatus);
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
@@ -918,12 +919,12 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public List<locationStatus> getLocationsTrending(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsTrending(string targetDateFrom, string targetDateTo, string userName)
     {
 
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList { };
 
         try
         {
@@ -940,12 +941,24 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["AlarmCount"];
                 ourStatus.id = (int)rdr["id"];
-                locationStates.Add(ourStatus);
+
+                string severityFilter = "Alarm,Offnormal";
+                string[] codes = severityFilter.Split(',');
+                int sum = 0;
+                foreach (string s in codes)
+                {
+                    if (s != "")
+                    {
+                        sum += (int)rdr[s];
+                        ourStatus.data.Add((int)rdr[s]);
+                    }
+                }
+                ourStatus.status = sum;
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally
@@ -1105,11 +1118,11 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public List<locationStatus> getLocationsTrendingHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
+    public LocationStatusList getLocationsTrendingHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
-        List<locationStatus> locationStates = new List<locationStatus> { };
+        LocationStatusList locationStates = new LocationStatusList { };
 
         try
         {
@@ -1129,8 +1142,8 @@ public class mapService : WebService
             {
                 locationStatus ourStatus = new locationStatus();
                 ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = (double)rdr["Longitude"];
+                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
+                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
                 ourStatus.name = (String)rdr["name"];
 
                 if (severityFilter == "undefined")
@@ -1140,11 +1153,15 @@ public class mapService : WebService
                 foreach (string s in codes)
                 {
                     if (s != "")
+                    {
                         sum += (int)rdr[s];
+                        ourStatus.data.Add((int)rdr[s]);
+                    }
                 }
+
                 ourStatus.status = sum;
                 ourStatus.id = (int)rdr["ID"];
-                locationStates.Add(ourStatus);
+                locationStates.Locations.Add(ourStatus);
             }
         }
         finally

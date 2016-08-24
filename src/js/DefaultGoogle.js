@@ -166,40 +166,30 @@ function selectmapgrid(thecontrol) {
         }
         $.sparkline_display_visible();
         updateGridWithSelectedSites();
-    } else if (currentTab === "Trending" && thecontrol.selectedIndex === 0) {
-        $("#ContoursControlsTrending").hide();
-        $("#theMap" + currentTab).show();
-        $("#theMatrix" + currentTab).hide();
+    }
+    //else if (currentTab === "Trending" && thecontrol.selectedIndex === 0) {
+    //    $("#ContoursControlsTrending").hide();
+    //    $("#theMap" + currentTab).show();
+    //    $("#theMatrix" + currentTab).hide();
 
-        var map = getMapInstance(currentTab);
-        if (map == null) {
-            createMap(currentTab);
-        } else {
-            google.maps.event.trigger(map, 'resize');
-            $.sparkline_display_visible();
-            showSiteSet($("#selectSiteSet" + currentTab)[0]);
-        }
-    } else if (currentTab !== "Trending"  && thecontrol.selectedIndex === 0) {
+    //    var map = getMapInstance(currentTab);
+    //    if (map == null) {
+    //        createMap(currentTab);
+    //    } else {
+    //        google.maps.event.trigger(map, 'resize');
+    //        $.sparkline_display_visible();
+    //        showSiteSet($("#selectSiteSet" + currentTab)[0]);
+    //    }
+    //}
+     else if (thecontrol.selectedIndex === 0) {
         $("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
         if (leafletMap[currentTab] == null) {
             loadLeafletMap('theMap' + currentTab);
-            //loadDataForDate();
         }
-
+        resizeMapAndMatrix(currentTab);
         showSiteSet($("#selectSiteSet" + currentTab)[0]);
-        
-        //$('#theContourMap' + currentTab).height($(document))
-        //var map = getMapInstance(currentTab);
-        //if (map == null) {
-        //    createMap(currentTab);
-        //} else {
-        //    google.maps.event.trigger(map, 'resize');
-        //    $.sparkline_display_visible();
-        //    showSiteSet($("#selectSiteSet" + currentTab)[0]);
-        //}
-
     }
 }
 
@@ -1944,19 +1934,21 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
 
             //console.log(data);
             // Plot Map or Plot Matrix
-            switch ($('#mapGrid')[0].value) {
-                case "Map":
-                    if (currentTab !== "Trending")
-                        plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-                    else
-                        plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
-                    break;
-                case "Grid":
-                    plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
-                    break;
+            //switch ($('#mapGrid')[0].value) {
+            //    case "Map":
+            //        //if (currentTab !== "Trending")
+            //            plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+            //        //else
+            //        //    plotMapLocations(data, currentTab, this.datefrom, this.dateto, string);
+            //        break;
+            //    case "Grid":
+            //        plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+            //        break;
 
-            }
-           
+            //}
+            plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+            plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+
         },
         failure: function (msg) {
             alert(msg);
@@ -3275,54 +3267,52 @@ function showSiteSet(thecontrol) {
 
     if (mapormatrix == "Map") {
 
-        var map = getMapInstance(currentTab);
+        //var map = getMapInstance(currentTab);
 
         switch (thecontrol.value) {
 
             case "All":
-                if (currentTab !== "Trending") {
+                //if (currentTab !== "Trending") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).show();
                     });
-                }
-                else {
-                    $.each(map.markers, function (key, value) {
-                        value.show();
-                    });
-                }
+                //}
+                //else {
+                //    $.each(map.markers, function (key, value) {
+                //        value.show();
+                //    });
+                //}
                 break;
 
             case "None":
-                if (currentTab !== "Trending") {
+                //if (currentTab !== "Trending") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         $(marker).hide();
                     });
-                }
-                else {
-                    $.each(map.markers, function (key, value) {
-                        value.hide();
-                    });
-                }
+                //}
+                //else {
+                //    $.each(map.markers, function (key, value) {
+                //        value.hide();
+                //    });
+                //}
                 break;
 
 
             case "Events":
-                $.each(map.markers, function (key, value) {
-                    if (value.args.marker_status > 0) {
-                        value.show();
-                    } else {
-                        value.hide();
-                    }
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') !== '#0E892C')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
                 });
                 break;
 
             case "NoEvents":
-                $.each(map.markers, function (key, value) {
-                    if (value.args.marker_status == 0) {
-                        value.show();
-                    } else {
-                        value.hide();
-                    }
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') === '#0E892C')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
                 });
                 break;
 
@@ -3362,65 +3352,65 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab !== "Trending") {
+                //if (currentTab !== "Trending") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
                             $(marker).show();
                         else
                             $(marker).hide();
                     });
-                }
-                else {
-                    $.each(map.markers, function (key, value) {
-                        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                            value.show();
-                        } else {
-                            value.hide();
-                        }
-                    });
-                }
+                //}
+                //else {
+                //    $.each(map.markers, function (key, value) {
+                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
+                //            value.show();
+                //        } else {
+                //            value.hide();
+                //        }
+                //    });
+                //}
                 break;
 
             case "Sags":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab === "TrendingData") {
+                //if (currentTab === "TrendingData") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#996633')
                             $(marker).show();
                         else
                             $(marker).hide();
                     });
-                }
-                else {
-                    $.each(map.markers, function (key, value) {
-                        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                            value.show();
-                        } else {
-                            value.hide();
-                        }
-                    });
-                }
+                //}
+                //else {
+                //    $.each(map.markers, function (key, value) {
+                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
+                //            value.show();
+                //        } else {
+                //            value.hide();
+                //        }
+                //    });
+                //}
                 break;
 
             case "Swells":
                 var selectedIDs = GetCurrentlySelectedSites();
-                if (currentTab === "TrendingData") {
+                //if (currentTab === "TrendingData") {
                     $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                         if ($(marker).children().children().attr('fill') === '#ff0000')
                             $(marker).show();
                         else
                             $(marker).hide();
                     });
-                }
-                else {
-                    $.each(map.markers, function (key, value) {
-                        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                            value.show();
-                        } else {
-                            value.hide();
-                        }
-                    });
-                }
+                //}
+                //else {
+                //    $.each(map.markers, function (key, value) {
+                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
+                //            value.show();
+                //        } else {
+                //            value.hide();
+                //        }
+                //    });
+                //}
                 break;
 
             case "RecievedData":
@@ -3518,7 +3508,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
     var selectedIDs = GetCurrentlySelectedSites();
 
     // For each data unit, build containers, add to layer based on status
-    $.each(locationdata.d, function (key, value) {
+    $.each(locationdata.d.Locations, function (key, value) {
         var theindex = $.inArray(value.name + "|" + value.id, selectedIDs);
  
         var item;
@@ -3540,8 +3530,14 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
     /// Set Matrix Cell size
     resizeMatrixCells(newTab);
 
+    $.each(locationdata.d.Locations, (function (key, value) {
+        populateGridMatrix(value.data, value.id, value.name);
+    }));
+
+    showSiteSet($("#selectSiteSet" + currentTab)[0]);
+
     /// Render sparklines into injected divs in map
-    showSparkLines(thedatefrom, thedateto);
+    //showSparkLines(thedatefrom, thedateto);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -3624,6 +3620,8 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     var selectedIDs = GetCurrentlySelectedSites();
     if(leafletMap[currentTab] !== null)
         $(leafletMap[currentTab].getPanes().markerPane).children().remove();
+    else 
+        loadLeafletMap('theMap' + currentTab);
 
     var markers = [];
     $.each(locationdata.Locations, function (index, data) {
@@ -3750,6 +3748,16 @@ function getLeafletLocationColors(dataPoint) {
         }
 
     }
+    else if (currentTab === "Trending") {
+        if (dataPoint.data[0] === 0 && dataPoint.data[1] === 0) {
+            color = '#0E892C';
+        } else if(dataPoint.data[0] > 0){
+            color = '#FF0000';
+        } else if (dataPoint.data[1] > 0) {
+            color = '#000000'
+        }
+    }
+
     else if (currentTab === "Faults") {
             if (dataPoint.status === 0) {
                 color = '#0E892C';
@@ -3870,7 +3878,13 @@ function getLeafletLocationPopup(dataPoint) {
         popup += "</table>";
 
     }
+    else if (currentTab === "Trending") {
+            popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
+            popup += "<tr><td>Normal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
+            popup += "<tr><td>OffNormal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
+            popup += "</table>";
 
+        }
     return popup;
 }
 
@@ -3915,6 +3929,13 @@ function plotContourMap(data) {
         $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Faults</div>');
         $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Faults</div>');
     }
+    else if (currentTab === "Trending") {
+        $('#innerLegend').append('<div class="row"><i style="background: #FF0000"></i> Normal</div>');
+        $('#innerLegend').append('<div class="row"><i style="background: #000000"></i> OffNormal</div>');
+        LoadHeatmapLeaflet(data);
+
+    }
+
     else if (currentTab === "Disturbances") {
         for (var i = globalcolorsEvents.length - 1, j= 0; i >= 0; --i, ++j)
             $('#innerLegend').append('<div class="row"><i style="background: ' + globalcolorsEvents[i] + '"></i> ' + i + '</div>');
@@ -4117,11 +4138,11 @@ function reflowContents(newTab) {
 
     resizeMapAndMatrix(newTab);
 
-    var map = getMapInstance(newTab);
+    //var map = getMapInstance(newTab);
 
-    if (map != null) {
-        google.maps.event.trigger(map, 'resize');
-    }
+    //if (map != null) {
+    //    google.maps.event.trigger(map, 'resize');
+    //}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
