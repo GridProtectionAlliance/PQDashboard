@@ -4245,17 +4245,17 @@ function loadContourOverlay(contourInfo) {
 function showType(thecontrol) {
     plotContourMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 
-    var thedatasent = {
-        contourQuery: {
-            StartDate: cache_Map_Matrix_Data_Date_From,
-            EndDate: cache_Map_Matrix_Data_Date_To,
-            DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: $('#contourColorScaleSelect').val(),
-            UserName: postedUserName
-        }
-    };
+    //var thedatasent = {
+    //    contourQuery: {
+    //        StartDate: cache_Map_Matrix_Data_Date_From,
+    //        EndDate: cache_Map_Matrix_Data_Date_To,
+    //        DataType: $('#trendingDataTypeSelection').val(),
+    //        ColorScaleName: $('#contourColorScaleSelect').val(),
+    //        UserName: postedUserName
+    //    }
+    //};
         
-    loadContourLayer(thedatasent.contourQuery);
+    //loadContourLayer(thedatasent.contourQuery);
 }
 
 function showTrendingData(thecontrol) {
@@ -4529,17 +4529,17 @@ function showColorScale(thecontrol) {
     manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
     $("#mapGrid")[0].value = mapormatrix;
     selectmapgrid($("#mapGrid")[0]);
-    var thedatasent = {
-        contourQuery: {
-            StartDate: cache_Map_Matrix_Data_Date_From,
-            EndDate: cache_Map_Matrix_Data_Date_To,
-            DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: $('#contourColorScaleSelect').val(),
-            UserName: postedUserName
-        }
-    };
+    //var thedatasent = {
+    //    contourQuery: {
+    //        StartDate: cache_Map_Matrix_Data_Date_From,
+    //        EndDate: cache_Map_Matrix_Data_Date_To,
+    //        DataType: $('#trendingDataTypeSelection').val(),
+    //        ColorScaleName: $('#contourColorScaleSelect').val(),
+    //        UserName: postedUserName
+    //    }
+    //};
 
-    loadContourLayer(thedatasent.contourQuery);
+    //loadContourLayer(thedatasent.contourQuery);
 }
 
 function cancelCall(animationID) {
