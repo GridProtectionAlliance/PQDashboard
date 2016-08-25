@@ -140,6 +140,9 @@ function loadDataForDate() {
         contextfromdate = getFormattedDate(fromdate);
         contexttodate = getFormattedDate(todate);
 
+        cache_Map_Matrix_Data_Date_From = contextfromdate;
+        cache_Map_Matrix_Data_Date_To = contexttodate;
+
         if (contextfromdate == contexttodate) {
             cache_Last_Date = contexttodate;
         }
@@ -610,10 +613,7 @@ function populateTrendingDataDivWithGrid(data, disabledFields) {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
+// The following function are for making button links to another page and opening another page
 function filterMakeFaultSpecificsButton_html(id) {
     var return_html = "";
     if (id.eventtype == "Fault") {
@@ -621,8 +621,6 @@ function filterMakeFaultSpecificsButton_html(id) {
     }
     return (return_html);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function makeFaultSpecificsButton_html(id) {
     var return_html = "";
@@ -632,15 +630,11 @@ function makeFaultSpecificsButton_html(id) {
 return (return_html);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function OpenWindowToFaultSpecifics(id) {
     var datarow = id;
     var popup = window.open("FaultSpecifics.aspx?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
     return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function makeOpenSEEButton_html(id) {
     var return_html = "";
@@ -649,8 +643,6 @@ function makeOpenSEEButton_html(id) {
     return_html += '<img src="images/seeButton.png" /></button></div>';
     return (return_html);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function makeOpenSTEButton_html(id) {
     var return_html = "";
@@ -667,15 +659,11 @@ function makeOpenSTEButton_html(id) {
     return (return_html);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function OpenWindowToOpenSTE(url, id) {
     var popup = window.open(url, id + "openSTE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToOpenSEE(id) {
     var url = "openSEE.aspx?eventid=" + id;
@@ -689,8 +677,6 @@ function OpenWindowToOpenSEE(id) {
     return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function makeChannelDataQualityButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
@@ -698,8 +684,6 @@ function makeChannelDataQualityButton_html(id) {
     return_html += '<img src="images/dqDetailButton.png" /></button></div>';
     return (return_html);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function makeChannelCompletenessButton_html(id) {
     var return_html = "";
@@ -709,8 +693,6 @@ function makeChannelCompletenessButton_html(id) {
     return (return_html);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function makeMeterEventsByLineButton_html(id) {
     var return_html = "";
     return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
@@ -719,14 +701,10 @@ function makeMeterEventsByLineButton_html(id) {
     return (return_html);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function OpenWindowToMeterEventsByLine(id) {
     var popup = window.open("MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToMeterDisturbancesByLine(id) {
     var popup = window.open("MeterDisturbancesByLine.aspx?eventid=" + id, id + "MeterDisturbancesByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
@@ -734,22 +712,15 @@ function OpenWindowToMeterDisturbancesByLine(id) {
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function OpenWindowToChannelDataQuality(id) {
     var popup = window.open("ChannelDataQuality.aspx?eventid=" + id, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function OpenWindowToChannelDataCompleteness(id) {
     var popup = window.open("ChannelDataCompleteness.aspx?eventid=" + id, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getColorsForTab(thetab) {   
@@ -2925,7 +2896,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         showSiteSet($('#selectSiteSet' + currentTab)[0]);
 
     }
-    plotContourMap(locationdata);
+    plotContourMap(locationdata, thedatefrom, thedateto);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3106,14 +3077,14 @@ function getLeafletLocationPopup(dataPoint) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function plotContourMap(data) {
+function plotContourMap(data, thedatefrom, thedateto) {
     if (data.URL)
         loadContourOverlay(data);
     else if (currentTab === "TrendingData") {
         thedatasent = {
             contourQuery: {
-                StartDate: cache_Map_Matrix_Data_Date_From,
-                EndDate: cache_Map_Matrix_Data_Date_To,
+                StartDate: thedatefrom,
+                EndDate: thedateto,
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName
