@@ -1636,8 +1636,8 @@ public class mapService : WebService
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
             DateTime yesterday = DateTime.UtcNow.AddDays(-1);
-            connection.ExecuteNonQuery("DELETE FROM ContourAnimationFrame WHERE ContourAnimationID IN (SELECT ID FROM ContourAnimation WHERE CreatedOn < {0})", yesterday);
-            connection.ExecuteNonQuery("DELETE FROM ContourAnimation WHERE CreatedOn < {0}", yesterday);
+            connection.ExecuteNonQuery("DELETE FROM ContourAnimationFrame WHERE ContourAnimationID IN (SELECT ID FROM ContourAnimation WHERE AccessedOn < {0})", yesterday);
+            connection.ExecuteNonQuery("DELETE FROM ContourAnimation WHERE AccessedOn < {0}", yesterday);
         }
     }
 

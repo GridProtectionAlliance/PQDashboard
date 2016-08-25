@@ -56,10 +56,7 @@
     <script type="text/javascript" src="js/bootstrap-3.3.2.min.js"></script>
     <script type="text/javascript" src="js/bootstrap-multiselect.js"></script>
     <script type="text/javascript" src="js/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=<%= GoogleAPIKey %>&libraries=geometry,visualization&amp;"></script>
-<%--    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAH-YHxWXoGpnJY7hyElBovROW5Pf8qegw&callback=initMap" async defer></script>--%>
     <script type="text/javascript" src="./js/arcgislink.js"></script>
-    <script type="text/javascript" src="./js/CustomGoogleMapMarker.js"></script>
     <script type="text/javascript" src="./js/keydragzoom.js"></script>
     <script type="text/javascript" src="./js/jquery.multiselect.js"></script>
     <script type="text/javascript" src="./js/jquery.multiselect.filter.js"></script>
@@ -77,16 +74,9 @@
     <script src="https://d3js.org/d3-scale.v1.min.js"></script>
     <script src="https://d3js.org/d3-path.v1.min.js"></script>
     <script src="https://d3js.org/d3-shape.v1.min.js"></script>
-<%--    <script src="http://d3js.org/topojson.v1.min.js"></script>--%>
-<%--    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>--%>
-<%--    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>--%>
     <script src="./js/D3/d3.geom.contour.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="js/Leaflet/leaflet-src.js"></script>
     <script src="./js/heatmap.js"></script>
-    <script src="./js/D3/turf.custom.js"></script>
-    <script src="./js/D3/marchingsquares-isobands.js"></script>
-    <script src="./js/D3/marchingsquares-isocontours.js"></script>
     <script src="./js/leaflet-heatmap.js"></script>
   	<script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
 	<script type="text/javascript" src="./js/flot/jquery.flot.errorbars.js"></script>
@@ -357,8 +347,7 @@
                                             <option value="None">None</option>
                                         </select>
                                         <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
-                                            <option value="TrendingCounts">Event Counts</option>
-                                            <option value="THD">Animate THD</option>
+                                            <option value="TrendingCounts">Alarm Counts</option>
                                         </select>
                                     </div>
                                     <div class="overlaydate">
@@ -686,35 +675,6 @@
             </div>
         </div>
 
-        <div id="HeatmapControlsTrending">
-            <table cellspacing="0" cellpadding="0" width="300px">
-                <tr>
-                    <td colspan="2" align="center">
-                        Total Harmonic Distortion
-                    </td>
-                </tr>
-                <tr>
-                    <td width="40px" height="100%" valign="middle">
-                        <div id="actionButton" class="button_play" title="Press To Load, Play, or Stop."></div>
-                    </td>
-                    <td width="90%" height="100%">
-                        <table cellspacing="0" cellpadding="0" width="100%">
-                            <tr>
-                                <td nowrap height="50%" width="100%" align="center">
-                                    <div id="position">&nbsp;</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td nowrap height="50%" width="100%" align="center">
-                                    <div id="slider" class="slider"></div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        
 
     </body>
 </html>
