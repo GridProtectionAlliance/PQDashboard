@@ -1654,7 +1654,7 @@ public class mapService : WebService
         }
 
         HttpContext.Current.Response.ContentType = "image/png";
-        HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename=ContourFrame{0}x{1}.png", animationID, frameIndex));
+        HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("inline;filename=ContourFrame{0}x{1}.png", animationID, frameIndex));
         HttpContext.Current.Response.BinaryWrite(frameImage);
     }
 
