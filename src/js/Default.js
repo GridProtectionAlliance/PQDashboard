@@ -2906,8 +2906,8 @@ function getLeafletLocationColors(dataPoint) {
     if (currentTab === "TrendingData") {
         color = 'rgb(0,255,0)'; // green
         if (dataPoint[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
-        else if (dataPoint[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
-        else if (dataPoint[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
+        //else if (dataPoint[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
+        //else if (dataPoint[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
     }
     else if (currentTab === "Correctness" || currentTab === "Completeness") {
         var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
