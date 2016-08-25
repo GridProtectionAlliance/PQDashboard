@@ -61,18 +61,17 @@
     <script type="text/javascript" src="./js/Default.js"></script>
     <script type="text/javascript" src="./js/jstorage.js"></script> 
     <script type="text/javascript" src="./js/moment.js"></script> 
-    <script type="text/javascript" src="js/D3/d3.js" charset="utf-8"></script>
-    <script src="https://d3js.org/d3-array.v1.min.js"></script>
-    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-    <script src="https://d3js.org/d3-color.v1.min.js"></script>
-    <script src="https://d3js.org/d3-format.v1.min.js"></script>
-    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
-    <script src="https://d3js.org/d3-time.v1.min.js"></script>
-    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
-    <script src="https://d3js.org/d3-scale.v1.min.js"></script>
-    <script src="https://d3js.org/d3-path.v1.min.js"></script>
-    <script src="https://d3js.org/d3-shape.v1.min.js"></script>
-    <script src="./js/D3/d3.geom.contour.js"></script>
+    <script type="text/javascript" src="./js/D3/d3.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/D3/d3-color.v1.min.js"></script>
+    <script type="text/javascript" src="./js/D3/d3-interpolate.v1.min.js"></script>
+    <script type="text/javascript" src="./js/D3/d3-scale.v1.min.js"></script>
+    <script type="text/javascript" src="./js/D3/d3-shape.v1.min.js"></script>
+<%--    <script src="https://d3js.org/d3-array.v1.min.js"></script>--%>
+<%--    <script src="https://d3js.org/d3-collection.v1.min.js"></script>--%>
+<%--    <script src="https://d3js.org/d3-format.v1.min.js"></script>--%>
+<%--    <script src="https://d3js.org/d3-time.v1.min.js"></script>--%>
+<%--    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>--%>
+<%--    <script src="https://d3js.org/d3-path.v1.min.js"></script>--%>
     <script type="text/javascript" src="js/Leaflet/leaflet-src.js"></script>
     <script src="./js/heatmap.js"></script>
     <script src="./js/leaflet-heatmap.js"></script>
