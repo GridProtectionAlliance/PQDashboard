@@ -45,7 +45,7 @@
     <link rel="stylesheet" href="./js/PrimeUI/primeui.min.css"/>  
     <link rel="stylesheet" href="./css/jquery.multiselect.css"/>
     <link rel="stylesheet" href="./css/jquery.multiselect.filter.css"/> 
-    <link rel="stylesheet" href="./css/Default_Google.css" type="text/css" />
+    <link rel="stylesheet" href="./css/Default.css" type="text/css" />
     <link rel="stylesheet" href="./css/bootstrap-multiselect.css"/>
     <link rel="stylesheet" type="text/css" href="js/Leaflet/leaflet1.0.css"/>
 
@@ -56,11 +56,9 @@
     <script type="text/javascript" src="js/bootstrap-3.3.2.min.js"></script>
     <script type="text/javascript" src="js/bootstrap-multiselect.js"></script>
     <script type="text/javascript" src="js/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="./js/arcgislink.js"></script>
-    <script type="text/javascript" src="./js/keydragzoom.js"></script>
     <script type="text/javascript" src="./js/jquery.multiselect.js"></script>
     <script type="text/javascript" src="./js/jquery.multiselect.filter.js"></script>
-    <script type="text/javascript" src="./js/DefaultGoogle.js"></script>
+    <script type="text/javascript" src="./js/Default.js"></script>
     <script type="text/javascript" src="./js/jstorage.js"></script> 
     <script type="text/javascript" src="./js/moment.js"></script> 
     <script type="text/javascript" src="js/D3/d3.js" charset="utf-8"></script>
@@ -371,11 +369,6 @@
                     <div  id="column_5" class="column resizeable">
                         <div  class="portlet" id="Portlet1TrendingData">
                             <div  class="portlet-header"><div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
-<%--                                <select class="smallbutton" style="float:right; margin-right: 18px; height: 17px; font-size: 12px"id="trendingDataSelection" onchange="showTrendingData(this)">
-                                    <option value="Voltage">Voltage</option>
-                                    <option value="Current">Current</option>
-                                    <option value="Power">Power</option>
-                                </select>--%>
                             </div>
                             <div  id="DockOverviewTrendingData" class="portlet-content">
                                 <div  id="OverviewTrendingData" class="docklet">
@@ -388,7 +381,6 @@
                                     Trending Data Detail for
                                     <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
                                     &nbsp;(24 Hours)
-                                    <%--<div style="height: 18px; display: block; float: right; margin-right: 30px; margin-top: 5px;"><input type="image" src="./images/fileexport.png" id="excelExportTrending" title="Export To Excel"/></div>--%>
                                 </div>
                             </div>
                             <div  id="DockDetailTrendingData" class="portlet-content">
@@ -453,7 +445,6 @@
                             <div  class="portlet-header">
                                 <div  class="portlet-header-text" style="display: inline">
                                     Faults Summary for&nbsp;<div style="display: inline;" id="faultsDetailHeader">Date</div>&nbsp;(24 Hours)
-                                    <%--<div style="height: 18px; display: block; float: right; margin-right: 30px; margin-top: 5px;"><input type="image" src="./images/fileexport.png" id="excelExportFaults" title="Export To Excel"/></div>--%>
                                 </div>
                             </div>                            
                             <div  id="DockDetailFaults" class="portlet-content noselect">
