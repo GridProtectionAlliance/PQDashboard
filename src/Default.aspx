@@ -399,8 +399,8 @@
                                             <option value="RecievedData">Recieved Data</option>
                                             <option value="NoData">No Data</option>
                                             <option value="SelectedSites">Selected Sites</option>
-                                            <option value="Swells">Swells</option>
-                                            <option value="Sags">Sags</option>
+<%--                                            <option value="Swells">Swells</option>
+                                            <option value="Sags">Sags</option>--%>
                                             <option value="None">None</option>
                                         </select>
                                         <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
