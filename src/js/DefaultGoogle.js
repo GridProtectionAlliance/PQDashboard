@@ -3266,35 +3266,17 @@ function showSiteSet(thecontrol) {
     }
 
     if (mapormatrix == "Map") {
-
-        //var map = getMapInstance(currentTab);
-
         switch (thecontrol.value) {
-
             case "All":
-                //if (currentTab !== "Trending") {
-                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                        $(marker).show();
-                    });
-                //}
-                //else {
-                //    $.each(map.markers, function (key, value) {
-                //        value.show();
-                //    });
-                //}
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    $(marker).show();
+                });
                 break;
 
             case "None":
-                //if (currentTab !== "Trending") {
-                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                        $(marker).hide();
-                    });
-                //}
-                //else {
-                //    $.each(map.markers, function (key, value) {
-                //        value.hide();
-                //    });
-                //}
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    $(marker).hide();
+                });
                 break;
 
 
@@ -3323,14 +3305,6 @@ function showSiteSet(thecontrol) {
                     else
                         $(marker).hide();
                 });
-
-                //$.each(map.markers, function (key, value) {
-                //    if (value.args.marker_status > 0) {
-                //        value.show();
-                //    } else {
-                //        value.hide();
-                //    }
-                //});
                 break;
 
             case "NoDisturbances":
@@ -3340,77 +3314,36 @@ function showSiteSet(thecontrol) {
                     else
                         $(marker).hide();
                 });
-
-                //$.each(map.markers, function (key, value) {
-                //    if (value.args.marker_status == 0) {
-                //        value.show();
-                //    } else {
-                //        value.hide();
-                //    }
-                //});
                 break;
 
             case "SelectedSites":
                 var selectedIDs = GetCurrentlySelectedSites();
-                //if (currentTab !== "Trending") {
-                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                        if ($.inArray($(marker).children().attr('id'), selectedIDs) > -1)
-                            $(marker).show();
-                        else
-                            $(marker).hide();
-                    });
-                //}
-                //else {
-                //    $.each(map.markers, function (key, value) {
-                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                //            value.show();
-                //        } else {
-                //            value.hide();
-                //        }
-                //    });
-                //}
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($.inArray($(marker).children().attr('id').replace('-', '|'), selectedIDs) > -1)
+                        $(marker).show();
+                    else
+                        $(marker).hide();
+                });
                 break;
 
             case "Sags":
                 var selectedIDs = GetCurrentlySelectedSites();
-                //if (currentTab === "TrendingData") {
-                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                        if ($(marker).children().children().attr('fill') === '#996633')
-                            $(marker).show();
-                        else
-                            $(marker).hide();
-                    });
-                //}
-                //else {
-                //    $.each(map.markers, function (key, value) {
-                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                //            value.show();
-                //        } else {
-                //            value.hide();
-                //        }
-                //    });
-                //}
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') === '#996633')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
+                });
                 break;
 
             case "Swells":
                 var selectedIDs = GetCurrentlySelectedSites();
-                //if (currentTab === "TrendingData") {
-                    $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                        if ($(marker).children().children().attr('fill') === '#ff0000')
-                            $(marker).show();
-                        else
-                            $(marker).hide();
-                    });
-                //}
-                //else {
-                //    $.each(map.markers, function (key, value) {
-                //        if ($.inArray(value.args.marker_name + "|" + value.args.marker_id, selectedIDs) > -1) {
-                //            value.show();
-                //        } else {
-                //            value.hide();
-                //        }
-                //    });
-                //}
+                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
+                    if ($(marker).children().children().attr('fill') === '#ff0000')
+                        $(marker).show();
+                    else
+                        $(marker).hide();
+                });
                 break;
 
             case "RecievedData":
@@ -3620,7 +3553,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
         $.each(locationdata.Locations, function (index, data) {
-            $('#' + data.name + '-' + data.id + ' circle').css('fill', getLeafletLocationColors(data));
+            $('#' + data.name + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
             $.each(mapMarkers[currentTab], function (mmIndex, object) {
                 if(object.id === data.id)
                     object.marker.getPopup().setContent(getLeafletLocationPopup(data))
@@ -3716,8 +3649,9 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         });
 
         showSiteSet($('#selectSiteSet' + currentTab)[0]);
-        plotContourMap(locationdata);
+
     }
+    plotContourMap(locationdata);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
