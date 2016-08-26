@@ -162,7 +162,6 @@ function selectmapgrid(thecontrol) {
     if (thecontrol.selectedIndex === 1) {
         $("#theMatrix" + currentTab).show();
         $("#theMap" + currentTab).hide();
-        $("#ContoursControlsTrending").hide();
         if (cache_Map_Matrix_Data != null) {
             plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
         }
@@ -170,7 +169,7 @@ function selectmapgrid(thecontrol) {
         updateGridWithSelectedSites();
     }
      else if (thecontrol.selectedIndex === 0) {
-        $("#ContoursControlsTrending").hide();
+        //$("#ContoursControlsTrending").hide();
         $("#theMap" + currentTab).show();
         $("#theMatrix" + currentTab).hide();
         resizeMapAndMatrix(currentTab);
@@ -1360,123 +1359,8 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
     $('#' + thediv).unbind("plotclick");
     $('#' + thediv).bind("plotclick", function (event, pos, item) {
-        if (item) {
-            $('.info.contourControl.leaflet-control').remove();
-            var contourControl = L.control({ position: 'bottomleft' });
-
-            contourControl.onAdd = function (map) {
-
-                var div = L.DomUtil.create('div', 'info contourControl'),
-                    labels = [];
-                div.innerHTML =
-                    '<div id="ContoursControlsTrending">' +
-                        '<div class="row" style="width: 100%; margin: auto">' +
-                            '<div class="" style="float: left; margin-right: 4px;">' +
-                                '<table>'+
-                                    '<tr>' +
-                                        '<td colspan="1">' +
-                                            '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>'+
-                                        '</td>' +
-                                        '<td colspan="1">' +
-                                            '<select class="form-control" id="contourAnimationResolutionSelect">' +
-                                                '<option value="15">15</option>' +
-                                                '<option value="14">14</option>' +
-                                                '<option value="13">13</option>' +
-                                                '<option value="12">12</option>' +
-                                                '<option value="11">11</option>' +
-                                                '<option value="10">10</option>' +
-                                                '<option value="9">9</option>' +
-                                                '<option value="8">8</option>' +
-                                                '<option value="7">7</option>' +
-                                                '<option selected="selected" value="6">6</option>' +
-                                                '<option value="5">5</option>' +
-                                                '<option value="4">4</option>' +
-                                                '<option value="3">3</option>' +
-                                                '<option value="2">2</option>' +
-                                            '</select>' +
-                                        '</td>' +
-                                    '</tr>' +
-                                    '<tr><td colspan="2">' +
-                                        '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">'+
-                                            '<option value="60">60 min</option>' +
-                                            '<option value="30">30 min</option>' +
-                                            '<option value="20">20 min</option>' +
-                                            '<option selected="selected" value="15">15 min</option>' +
-                                            '<option value="10">10 min</option>' +
-                                            '<option value="5">5 min</option>' +
-                                            '<option value="1">1 min</option>' +
-                                        '</select>' +
-                                    '</td></tr>' +
-                                    '<tr>' +
-                                            '<td colspan="2">' +
-                                            '<div id="time-range">' +
-                                                '<div class="sliders_step1">' +
-                                                    '&nbsp;<div id="slider-range"></div> ' +
-                                                '</div>' +
-                                                '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
-                                            '</div>' +
-                                        '</td>' +
-                                    '</tr>' +
-                                    '<tr>' +
-                                        '<td colspan="2">' +
-                                            '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
-                                        '</td>' +
-                                    '</tr>' +
-                                '</table>' + 
-                            '</div>' +
-                            '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
-                                '<table style="width: 100%">' +
-                                    '<tr><td>&nbsp;</td></tr>' +
-                                    '<tr><td>&nbsp;</td></tr>' +
-                                    '<tr><td><span id="progressDate"></span></td></tr>' +
-                                    '<tr><td style="width: 100%">' +
-                                            '<progress id="contourProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
-                                    '</td></tr>'+
-                                    '<tr><td>&nbsp;</td></tr>' +
-                                    '<tr><td>&nbsp;</td></tr>' +
-                                    '<tr><td style="width: 100%; text-align: center">' +
-                                                '<div class="player text-center" id="contourPlayerButtons">' +
-                                                    '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>'  +
-                                                    '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
-                                                    '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
-                                                    '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
-                                                    '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
-                                                    '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +    
-                                                '</div>'+
-                                    '</td></tr>' +
-                                '</table>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-
-                return div;
-            };
-
-            contourControl.addTo(leafletMap[currentTab]);
-
-            contourControl.getContainer().addEventListener('mouseover', function () {
-                leafletMap[currentTab].dragging.disable();
-                leafletMap[currentTab].doubleClickZoom.disable();
-                leafletMap[currentTab].touchZoom.disable();
-                leafletMap[currentTab].scrollWheelZoom.disable();
-                leafletMap[currentTab].boxZoom.disable();
-                leafletMap[currentTab].keyboard.disable();
-
-            });
-
-            contourControl.getContainer().addEventListener('mouseout', function () {
-                leafletMap[currentTab].dragging.enable();
-                leafletMap[currentTab].doubleClickZoom.enable();
-                leafletMap[currentTab].touchZoom.enable();
-                leafletMap[currentTab].scrollWheelZoom.enable();
-                leafletMap[currentTab].boxZoom.enable();
-                leafletMap[currentTab].keyboard.enable();
-
-            });
-
-
-
-            initiateTimeRangeSlider();
+        if (item) {            
+            $('.contourControl').show();
             cache_Contour_Data = null;
             var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
@@ -3078,22 +2962,31 @@ function getLeafletLocationPopup(dataPoint) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function plotContourMap(data, thedatefrom, thedateto) {
-    if (data.URL)
-        loadContourOverlay(data);
-    else if (currentTab === "TrendingData") {
-        thedatasent = {
-            contourQuery: {
-                StartDate: thedatefrom,
-                EndDate: thedateto,
-                DataType: $('#trendingDataTypeSelection').val(),
-                ColorScaleName: $('#contourColorScaleSelect').val(),
-                UserName: postedUserName
-            }
-        };
+    $('.contourControl').hide();
 
-        loadContourLayer(thedatasent.contourQuery);
+    if (currentTab === "TrendingData") {
+
+        if (data.URL)
+            loadContourOverlay(data);
+        else {
+            thedatasent = {
+                contourQuery: {
+                    StartDate: thedatefrom,
+                    EndDate: thedateto,
+                    DataType: $('#trendingDataTypeSelection').val(),
+                    ColorScaleName: $('#contourColorScaleSelect').val(),
+                    UserName: postedUserName
+                }
+            };
+
+            loadContourLayer(thedatasent.contourQuery);
+
+        }
+        if (thedatefrom === thedateto)
+            $('.contourControl').show();
 
     }
+
     $('.info.legend.leaflet-control').remove();
     var legend = L.control({ position: 'bottomright' });
 
@@ -3180,6 +3073,8 @@ function plotContourMap(data, thedatefrom, thedateto) {
         leafletMap[currentTab].boxZoom.enable();
         leafletMap[currentTab].keyboard.enable();
     });
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3406,7 +3301,7 @@ function resizeMapAndMatrix(newTab) {
 
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
-    $("#theMap" + newTab).css("height", columnheight /*- ($('#ContoursControlsTrending').css('display') === "none" ? 0 : $('#ContoursControlsTrending').height())*/);
+    $("#theMap" + newTab).css("height", columnheight);
 
     $("#theMatrix" + newTab).css("height", columnheight);
 
@@ -4207,6 +4102,120 @@ function loadLeafletMap(theDiv) {
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             }).addTo(leafletMap[currentTab]);
 
+        var contourControl = L.control({ position: 'bottomleft' });
+
+        contourControl.onAdd = function (map) {
+
+            var div = L.DomUtil.create('div', 'info contourControl'),
+                labels = [];
+            div.innerHTML =
+                '<div id="ContoursControlsTrending">' +
+                    '<div class="row" style="width: 100%; margin: auto">' +
+                        '<div class="" style="float: left; margin-right: 4px;">' +
+                            '<table>' +
+                                '<tr>' +
+                                    '<td colspan="1">' +
+                                        '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>' +
+                                    '</td>' +
+                                    '<td colspan="1">' +
+                                        '<select class="form-control" id="contourAnimationResolutionSelect">' +
+                                            '<option value="15">15</option>' +
+                                            '<option value="14">14</option>' +
+                                            '<option value="13">13</option>' +
+                                            '<option value="12">12</option>' +
+                                            '<option value="11">11</option>' +
+                                            '<option value="10">10</option>' +
+                                            '<option value="9">9</option>' +
+                                            '<option value="8">8</option>' +
+                                            '<option value="7">7</option>' +
+                                            '<option selected="selected" value="6">6</option>' +
+                                            '<option value="5">5</option>' +
+                                            '<option value="4">4</option>' +
+                                            '<option value="3">3</option>' +
+                                            '<option value="2">2</option>' +
+                                        '</select>' +
+                                    '</td>' +
+                                '</tr>' +
+                                '<tr><td colspan="2">' +
+                                    '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">' +
+                                        '<option value="60">60 min</option>' +
+                                        '<option value="30">30 min</option>' +
+                                        '<option value="20">20 min</option>' +
+                                        '<option selected="selected" value="15">15 min</option>' +
+                                        '<option value="10">10 min</option>' +
+                                        '<option value="5">5 min</option>' +
+                                        '<option value="1">1 min</option>' +
+                                    '</select>' +
+                                '</td></tr>' +
+                                '<tr>' +
+                                        '<td colspan="2">' +
+                                        '<div id="time-range">' +
+                                            '<div class="sliders_step1">' +
+                                                '&nbsp;<div class="slider-range"></div> ' +
+                                            '</div>' +
+                                            '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
+                                        '</div>' +
+                                    '</td>' +
+                                '</tr>' +
+                                '<tr>' +
+                                    '<td colspan="2">' +
+                                        '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
+                                    '</td>' +
+                                '</tr>' +
+                            '</table>' +
+                        '</div>' +
+                        '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
+                            '<table style="width: 100%">' +
+                                '<tr><td>&nbsp;</td></tr>' +
+                                '<tr><td>&nbsp;</td></tr>' +
+                                '<tr><td><span id="progressDate"></span></td></tr>' +
+                                '<tr><td style="width: 100%">' +
+                                        '<progress id="contourProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
+                                '</td></tr>' +
+                                '<tr><td>&nbsp;</td></tr>' +
+                                '<tr><td>&nbsp;</td></tr>' +
+                                '<tr><td style="width: 100%; text-align: center">' +
+                                            '<div class="player text-center" id="contourPlayerButtons">' +
+                                                '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>' +
+                                                '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
+                                                '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
+                                                '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
+                                                '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
+                                                '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +
+                                            '</div>' +
+                                '</td></tr>' +
+                            '</table>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+
+            
+            return div;
+        };
+
+        contourControl.addTo(leafletMap[currentTab]);
+        initiateTimeRangeSlider();
+
+        $('.contourControl').hide();
+        contourControl.getContainer().addEventListener('mouseover', function () {
+            leafletMap[currentTab].dragging.disable();
+            leafletMap[currentTab].doubleClickZoom.disable();
+            leafletMap[currentTab].touchZoom.disable();
+            leafletMap[currentTab].scrollWheelZoom.disable();
+            leafletMap[currentTab].boxZoom.disable();
+            leafletMap[currentTab].keyboard.disable();
+
+        });
+
+        contourControl.getContainer().addEventListener('mouseout', function () {
+            leafletMap[currentTab].dragging.enable();
+            leafletMap[currentTab].doubleClickZoom.enable();
+            leafletMap[currentTab].touchZoom.enable();
+            leafletMap[currentTab].scrollWheelZoom.enable();
+            leafletMap[currentTab].boxZoom.enable();
+            leafletMap[currentTab].keyboard.enable();
+
+        });
     }
 }
 
@@ -4247,7 +4256,7 @@ function showType(thecontrol) {
 }
 
 function initiateTimeRangeSlider() {
-    $("#slider-range").slider({
+    $('#tabs-' + currentTab + " .slider-range").slider({
         range: true,
         min: 0,
         max: 1440,
@@ -4279,7 +4288,7 @@ function initiateTimeRangeSlider() {
 
 
 
-            $('.slider-time').html(hours1 + ':' + minutes1);
+            $('#tabs-' + currentTab + ' .slider-time').html(hours1 + ':' + minutes1);
 
             var hours2 = Math.floor(ui.values[1] / 60);
             var minutes2 = ui.values[1] - (hours2 * 60);
@@ -4303,14 +4312,14 @@ function initiateTimeRangeSlider() {
                 minutes2 = minutes2 + " AM";
             }
 
-            $('.slider-time2').html(hours2 + ':' + minutes2);
+            $('#tabs-' + currentTab + ' .slider-time2').html(hours2 + ':' + minutes2);
         }
     });
 }
 
 function loadContourAnimationData() {
-    var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('.slider-time').text() + ' UTC').toUTCString();
-    var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('.slider-time2').text() + ' UTC').toUTCString();
+    var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toUTCString();
+    var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toUTCString();
     var meters = "";
     $.each($('#siteList').multiselect("getChecked").map(function () { return this.value; }), function (index, data) {
         if (index === 0)
@@ -4389,12 +4398,12 @@ function loopForAnimation(animationData) {
 
 function runContourAnimation(contourData) {
     var d = new Date(contourData.Infos[0].Date + ' UTC');
-    if ($('#weatherCheckbox').prop('checked')) {
+    if ($('#tabs-' + currentTab + ' #weatherCheckbox').prop('checked')) {
         var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
     }
 
-    $('.contourControl').css('width', '500px');
-    $('#progressBar').show();
+    $('#tabs-' + currentTab + ' .contourControl').css('width', '500px');
+    $('#tabs-' + currentTab + ' #progressBar').show();
 
     $.each(contourData.Infos, function (_, info) {
         info.ColorDomain = contourData.ColorDomain;
@@ -4411,31 +4420,28 @@ function runContourAnimation(contourData) {
     function update() {
         var info = contourData.Infos[index];
         var progressBarIndex = Math.round(index / (contourData.Infos.length - 1) * 100);
-        //$('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
-        $('#contourProgressBar').attr('value', progressBarIndex);
-        $('#progressDate').text(contourData.Infos[index].Date);
-        //$('#progressbarLabel').html(new Date(info.Date).getUTCHours() + ':' + (new Date(info.Date).getMinutes() < 10 ? '0' : '') + new Date(info.Date).getMinutes());
+        $('#tabs-' + currentTab + ' #contourProgressBar').attr('value', progressBarIndex);
+        $('#tabs-' + currentTab + ' #progressDate').text(contourData.Infos[index].Date);
         plotContourMapLocations(info, null, null, null, null);
-        if ($('#weatherCheckbox').prop('checked')) {
+        if ($('#tabs-' + currentTab + ' #weatherCheckbox').prop('checked')) {
             d = new Date(contourData.Infos[index].Date + ' UTC');
             wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
         }
 
     }
     var interval;
-    $('#contourProgressBar').off('click');
-    $('#contourProgressBar').on('click', function (event) {
+    $('#tabs-' + currentTab + ' #contourProgressBar').off('click');
+    $('#tabs-' + currentTab + ' #contourProgressBar').on('click', function (event) {
         var progressBarindex = event.offsetX / $(this).width();
         index = Math.round((contourData.Infos.length - 1) * progressBarindex);
-        //$('#testProgressBar').attr('value', Math.round(progressBarindex*100));
         update();
     });
-    $('#button_play').off('click');
-    $('#button_play').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_play').off('click');
+    $('#tabs-' + currentTab + ' #button_play').on('click', function () {
         clearInterval(interval);
         $('#trendingDataTypeSelection').on('change', function () { clearInterval(interval) });
         $('#contourColorScaleSelect').on('change', function () { clearInterval(interval) });
-
+        $('#application-tabs a').on('click', function () { clearInterval(interval) });
 
         interval = setInterval(function () {
             index++;
@@ -4453,42 +4459,39 @@ function runContourAnimation(contourData) {
                 update();
             }
         }, 1000);
-        $('#trendingDataTypeSelection').off('change', function () { clearInterval(interval) });
-        $('#contourColorScaleSelect').off('change', function () { clearInterval(interval) });
-
     });
 
-    $('#button_stop').off('click');
-    $('#button_stop').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_stop').off('click');
+    $('#tabs-' + currentTab + ' #button_stop').on('click', function () {
         clearInterval(interval);
     });
 
-    $('#button_bw').off('click');
-    $('#button_bw').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_bw').off('click');
+    $('#tabs-' + currentTab + ' #button_bw').on('click', function () {
         if (index > 0) {
             --index;
             update();
         }
     });
 
-    $('#button_fbw').off('click');
-    $('#button_fbw').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_fbw').off('click');
+    $('#tabs-' + currentTab + ' #button_fbw').on('click', function () {
         if (index > 0) {
             index = 0;
             update();
         }
     });
 
-    $('#button_fw').off('click');
-    $('#button_fw').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_fw').off('click');
+    $('#tabs-' + currentTab + ' #button_fw').on('click', function () {
         if (index < contourData.Infos.length - 1) {
             ++index;
             update();
         }
     });
 
-    $('#button_ffw').off('click');
-    $('#button_ffw').on('click', function () {
+    $('#tabs-' + currentTab + ' #button_ffw').off('click');
+    $('#tabs-' + currentTab + ' #button_ffw').on('click', function () {
         if (index < contourData.Infos.length - 1) {
             index = contourData.Infos.length - 1;
             update();
@@ -4497,7 +4500,7 @@ function runContourAnimation(contourData) {
 }
 
 function stepSelectionChange(thecontrol) {
-    $('#slider-range').slider("option", "step", parseInt(thecontrol.value));
+    $('.slider-range').slider("option", "step", parseInt(thecontrol.value));
 }
 
 function showOverviewPage(tab) {
@@ -4527,6 +4530,9 @@ function initiateColorScale() {
 }
 
 function showColorScale(thecontrol) {
+    $('#tabs-' + currentTab + ' #progressBar').hide();
+    $('#tabs-' + currentTab + ' .contourControl').css('width', '165px');
+
     var mapormatrix = $("#mapGrid")[0].value;
 
     manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);

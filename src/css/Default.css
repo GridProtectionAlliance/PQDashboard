@@ -786,6 +786,9 @@
     height: 100%;
 }
 
+/*.contourControl {
+    display: none;
+}*/
 .contourControl table{
     width: 150px;
     font-size: 10px;
