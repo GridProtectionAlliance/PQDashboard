@@ -107,7 +107,8 @@
                 <table style="width: 100%;">
                     <tr>
                         <td width="20%" align="center" style="z-index: 999;" nowrap>
-                            <select class="smallbutton" id="Configurations" onchange="configurationapply(this);"></select>
+                            <select class="smallbutton" id="Configurations" ></select>
+                            <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())">Load</button>
                             <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);">New</button>
                             <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);">Save</button>
                             <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);">Delete</button>
@@ -143,7 +144,7 @@
             <div id="application-tabs" class="noselect" >
                 <ul>
                     <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
-                    <li id="tabsOverviewYeserday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
+                    <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
                     <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
                     <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
                     <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>

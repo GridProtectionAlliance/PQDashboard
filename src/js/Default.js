@@ -233,6 +233,10 @@ function selectsitesincharts() {
     ManageLocationClick(sitename, thesiteidlist);  
 }
 
+function selectsitesonmap() {
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
@@ -2742,8 +2746,9 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         // Hack: if displaying an overlay for animation,
         //       do not automatically fit bounds
         if (!locationdata.URL) {
-            markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker;}));
+            markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
             leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+            leafletMap[currentTab].setMaxBounds(markerGroup.getBounds());
         }
 
         var timeoutVal;
@@ -3867,7 +3872,7 @@ function loadsitedropdown() {
         close: function (event, ui) {
             showSiteSet($("#selectSiteSet" + currentTab)[0]);
             updateGridWithSelectedSites();
-            selectsitesonmap(null, "undefined");
+            selectsitesonmap();
             selectsitesincharts();
         },
         minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
@@ -3938,6 +3943,7 @@ function loadSettingsAndApply() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function buildPage() {
+
 
     $(document).bind('contextmenu', function (e) { return false; });
 
@@ -4019,8 +4025,9 @@ function buildPage() {
     }
 
     loadconfigdropdown(usersettings.lastSetting);
+    loadSettingsAndApply();
 
-    currentTab = "Overview-Today";
+    currentTab = $('#application-tabs li :visible').first().text();
 
     $("#application-tabs").tabs({
         active: getcurrentconfigsetting("CurrentTab"),
@@ -4071,14 +4078,13 @@ function buildPage() {
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
 
-        $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
+        $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
         $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
         $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
         selectmapgrid($("#mapGrid")[0]);
     }
 
-    loadSettingsAndApply();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
