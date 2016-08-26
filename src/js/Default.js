@@ -4388,10 +4388,10 @@ function loopForAnimation(animationData) {
 }
 
 function runContourAnimation(contourData) {
-    //var d = new Date(contourData.Date + ' UTC');
-    //if ($('#weatherCheckbox').prop('checked')) {
-    //    var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
-    //}
+    var d = new Date(contourData.Infos[0].Date + ' UTC');
+    if ($('#weatherCheckbox').prop('checked')) {
+        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
+    }
 
     $('.contourControl').css('width', '500px');
     $('#progressBar').show();
@@ -4416,6 +4416,11 @@ function runContourAnimation(contourData) {
         $('#progressDate').text(contourData.Infos[index].Date);
         //$('#progressbarLabel').html(new Date(info.Date).getUTCHours() + ':' + (new Date(info.Date).getMinutes() < 10 ? '0' : '') + new Date(info.Date).getMinutes());
         plotContourMapLocations(info, null, null, null, null);
+        if ($('#weatherCheckbox').prop('checked')) {
+            d = new Date(contourData.Infos[index].Date + ' UTC');
+            wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
+        }
+
     }
 
     var interval;
