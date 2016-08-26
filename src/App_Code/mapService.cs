@@ -28,6 +28,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
@@ -139,8 +140,9 @@ public class mapService : WebService
 
         public ContourQuery()
         {
-            m_startDate = new Lazy<DateTime>(() => DateTime.Parse(StartDate).ToUniversalTime());
-            m_endDate = new Lazy<DateTime>(() => DateTime.Parse(EndDate).ToUniversalTime());
+            DateTimeStyles styles = DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal;
+            m_startDate = new Lazy<DateTime>(() => DateTime.Parse(StartDate, null, styles));
+            m_endDate = new Lazy<DateTime>(() => DateTime.Parse(EndDate, null, styles));
             Resolution = -1;
             StepSize = -1;
         }
