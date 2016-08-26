@@ -1428,9 +1428,9 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
                                 '<table style="width: 100%">' +
                                     '<tr><td>&nbsp;</td></tr>' +
                                     '<tr><td>&nbsp;</td></tr>' +
-                                    '<tr><td>&nbsp;</td></tr>' +
+                                    '<tr><td><span id="progressDate"></span></td></tr>' +
                                     '<tr><td style="width: 100%">' +
-                                            '<div id="contourAnimationProgressBar" class="progressBar"><div id="contourAnimationInnerBar" class="progressInnerBar"><div id="progressbarLabel" class="progressBarLabel"></div></div></div>' +
+                                            '<progress id="contourProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
                                     '</td></tr>'+
                                     '<tr><td>&nbsp;</td></tr>' +
                                     '<tr><td>&nbsp;</td></tr>' +
@@ -4410,14 +4410,22 @@ function runContourAnimation(contourData) {
 
     function update() {
         var info = contourData.Infos[index];
-        var progressBarIndex = Math.ceil(index / (contourData.Infos.length - 1) * 100);
-        $('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
-        $('#progressbarLabel').html(new Date(info.Date).getUTCHours() + ':' + (new Date(info.Date).getMinutes() < 10 ? '0' : '') + new Date(info.Date).getMinutes());
+        var progressBarIndex = Math.round(index / (contourData.Infos.length - 1) * 100);
+        //$('#contourAnimationInnerBar').css('width', progressBarIndex + '%');
+        $('#contourProgressBar').attr('value', progressBarIndex);
+        $('#progressDate').text(contourData.Infos[index].Date);
+        //$('#progressbarLabel').html(new Date(info.Date).getUTCHours() + ':' + (new Date(info.Date).getMinutes() < 10 ? '0' : '') + new Date(info.Date).getMinutes());
         plotContourMapLocations(info, null, null, null, null);
     }
 
     var interval;
-
+    $('#contourProgressBar').off('click');
+    $('#contourProgressBar').on('click', function (event) {
+        var progressBarindex = event.offsetX / $(this).width();
+        index = Math.round((contourData.Infos.length - 1) * progressBarindex);
+        //$('#testProgressBar').attr('value', Math.round(progressBarindex*100));
+        update();
+    });
     $('#button_play').off('click');
     $('#button_play').on('click', function () {
         clearInterval(interval);

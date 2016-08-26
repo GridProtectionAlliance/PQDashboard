@@ -139,8 +139,8 @@ public class mapService : WebService
 
         public ContourQuery()
         {
-            m_startDate = new Lazy<DateTime>(() => DateTime.Parse(StartDate));
-            m_endDate = new Lazy<DateTime>(() => DateTime.Parse(EndDate));
+            m_startDate = new Lazy<DateTime>(() => DateTime.Parse(StartDate).ToUniversalTime());
+            m_endDate = new Lazy<DateTime>(() => DateTime.Parse(EndDate).ToUniversalTime());
             Resolution = -1;
             StepSize = -1;
         }
