@@ -2893,9 +2893,9 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
         });
 
-        showSiteSet($('#selectSiteSet' + currentTab)[0]);
 
     }
+    showSiteSet($('#selectSiteSet' + currentTab)[0]);
     plotContourMap(locationdata, thedatefrom, thedateto);
 };
 
@@ -4422,7 +4422,6 @@ function runContourAnimation(contourData) {
         }
 
     }
-
     var interval;
     $('#contourProgressBar').off('click');
     $('#contourProgressBar').on('click', function (event) {
@@ -4434,6 +4433,9 @@ function runContourAnimation(contourData) {
     $('#button_play').off('click');
     $('#button_play').on('click', function () {
         clearInterval(interval);
+        $('#trendingDataTypeSelection').on('change', function () { clearInterval(interval) });
+        $('#contourColorScaleSelect').on('change', function () { clearInterval(interval) });
+
 
         interval = setInterval(function () {
             index++;
@@ -4451,6 +4453,9 @@ function runContourAnimation(contourData) {
                 update();
             }
         }, 1000);
+        $('#trendingDataTypeSelection').off('change', function () { clearInterval(interval) });
+        $('#contourColorScaleSelect').off('change', function () { clearInterval(interval) });
+
     });
 
     $('#button_stop').off('click');
