@@ -4053,8 +4053,6 @@ function buildPage() {
         }
     });
 
-        
-
     datafromdate = getcurrentconfigsetting("DataFromDate");
     datatodate = getcurrentconfigsetting("DataToDate");
 
@@ -4342,7 +4340,8 @@ function loadContourAnimationData() {
             ColorScaleName: $('#contourColorScaleSelect').val(),
             UserName: postedUserName,
             StepSize: $('#contourAnimationStepSelect').val(),
-            Resolution: $('#contourAnimationResolutionSelect').val()
+            Resolution: $('#contourAnimationResolutionSelect').val(),
+            IncludeWeather: $('#weatherCheckbox:checked').length > 0
         }
     };
 
@@ -4404,9 +4403,6 @@ function loopForAnimation(animationData) {
 
 function runContourAnimation(contourData) {
     var d = new Date(contourData.Infos[0].Date + ' UTC');
-    if ($('#tabs-' + currentTab + ' #weatherCheckbox').prop('checked')) {
-        var wmsLayer = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?", { layers: "nexrad-n0r-wmst", transparent: true, format: 'image/png', time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }).addTo(leafletMap[currentTab]);
-    }
 
     $('#tabs-' + currentTab + ' .contourControl').css('width', '500px');
     $('#tabs-' + currentTab + ' #progressBar').show();
@@ -4429,11 +4425,6 @@ function runContourAnimation(contourData) {
         $('#tabs-' + currentTab + ' #contourProgressBar').attr('value', progressBarIndex);
         $('#tabs-' + currentTab + ' #progressDate').text(contourData.Infos[index].Date);
         plotContourMapLocations(info, null, null, null, null);
-        if ($('#tabs-' + currentTab + ' #weatherCheckbox').prop('checked')) {
-            d = new Date(contourData.Infos[index].Date + ' UTC');
-            wmsLayer.setParams({ time: new Date(d.setMinutes(d.getMinutes() - d.getMinutes() % 5)).toISOString() }, false);
-        }
-
     }
     var interval;
     $('#tabs-' + currentTab + ' #contourProgressBar').off('click');

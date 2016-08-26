@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -31,6 +32,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
@@ -134,6 +136,7 @@ public class mapService : WebService
         public string UserName { get; set; }
         public int Resolution { get; set; }
         public int StepSize { get; set; }
+        public bool IncludeWeather { get; set; }
 
         private Lazy<DateTime> m_startDate;
         private Lazy<DateTime> m_endDate;
@@ -1520,6 +1523,13 @@ public class mapService : WebService
         PiecewiseLinearFunction colorScale = GetColorScale(contourQuery);
         Func<double, double> colorFunc = colorScale;
 
+        // The actual startDate is the timestamp of the
+        // first frame after contourQuery.GetStartDate()
+        DateTime startDate = contourQuery.GetStartDate();
+        int stepSize = contourQuery.StepSize;
+        int startTimeOffset = (int)Math.Ceiling((startDate - startDate.Date).TotalMinutes / stepSize);
+        startDate = startDate.Date.AddMinutes(startTimeOffset * stepSize);
+
         double minLat = frames.Min(frame => frame.Min(location => location.Latitude)) - GetLatFromMiles(50.0D);
         double maxLat = frames.Min(frame => frame.Max(location => location.Latitude)) + GetLatFromMiles(50.0D);
         double minLng = frames.Min(frame => frame.Min(location => location.Longitude)) - GetLngFromMiles(50.0D, 0.0D);
@@ -1556,7 +1566,44 @@ public class mapService : WebService
         {
             List<TrendingDataLocation> frame = frames[i];
             IDWFunc idwFunction = GetIDWFunction(contourQuery, frame);
-            uint[] pixelData = new uint[width * height];
+            uint[] pixelData;
+
+            if (contourQuery.IncludeWeather)
+            {
+                // Weather data is only available in 5-minute increments
+                DateTime frameTime = startDate.AddMinutes(stepSize * i);
+                double minutes = (frameTime - frameTime.Date).TotalMinutes;
+                int weatherMinutes = (int)Math.Ceiling(minutes / 5) * 5;
+
+                NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
+                queryString["service"] = "WMS";
+                queryString["request"] = "GetMap";
+                queryString["layers"] = "nexrad-n0r-wmst";
+                queryString["format"] = "image/png";
+                queryString["transparent"] = "true";
+                queryString["version"] = "1.1.1";
+                queryString["time"] = startDate.AddMinutes(weatherMinutes).ToString("o");
+                queryString["height"] = height.ToString();
+                queryString["width"] = width.ToString();
+                queryString["srs"] = "EPSG:3857";
+
+                GSF.Drawing.Point topLeftProjected = s_crs.Projection.Project(topLeft);
+                GSF.Drawing.Point bottomRightProjected = s_crs.Projection.Project(bottomRight);
+                queryString["bbox"] = string.Join(",", topLeftProjected.X, bottomRightProjected.Y, bottomRightProjected.X, topLeftProjected.Y);
+
+                string weatherURL = "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi?" + queryString.ToString();
+
+                using (WebClient client = new WebClient())
+                using (MemoryStream stream = new MemoryStream(client.DownloadData(weatherURL)))
+                using (Bitmap bitmap = new Bitmap(stream))
+                {
+                    pixelData = bitmap.ToPixelData();
+                }
+            }
+            else
+            {
+                pixelData = new uint[width * height];
+            }
 
             if (cancellationToken.Cancelled)
                 return;
@@ -1570,6 +1617,9 @@ public class mapService : WebService
                 {
                     if (cancellationToken.Cancelled)
                         return;
+
+                    if (pixelData[y * width + x] > 0)
+                        continue;
 
                     GSF.Drawing.Point offsetPixel = new GSF.Drawing.Point(topLeftPoint.X + x, topLeftPoint.Y + y);
                     GeoCoordinate pixelCoordinate = s_crs.Translate(offsetPixel, contourQuery.Resolution);
