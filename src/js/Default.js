@@ -3316,7 +3316,14 @@ function resizeMapAndMatrix(newTab) {
         resizeDocklet($("#DockOverview" + newTab), chartheight);
         resizeDocklet($("#DockDetail" + newTab), chartheight);
     }
+    if (leafletMap[currentTab] !== null) {
+        leafletMap[currentTab].invalidateSize(true);
 
+        markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
+        leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        leafletMap[currentTab].setMaxBounds(markerGroup.getBounds());
+
+    }
     resizeMatrixCells(newTab);
 }
 
