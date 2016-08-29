@@ -142,7 +142,7 @@ function loadDataForDate() {
         cache_Map_Matrix_Data_Date_From = contextfromdate;
         cache_Map_Matrix_Data_Date_To = contexttodate;
 
-        if (contextfromdate == contexttodate) {
+        if (contextfromdate === contexttodate) {
             cache_Last_Date = contexttodate;
         }
         else {
@@ -3255,17 +3255,17 @@ function resizeDocklet( theparent , chartheight ) {
 
     firstChild.css("height", chartheight);
     if (currentTab === "TrendingData") {
-        if ($('#Overview' + currentTab).children().length > 0)
+        if ($('#Overview' + currentTab).children().length > 0 && cache_ErrorBar_Data !== null)
             buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
     }
     else {
-        if ($('#Overview' + currentTab).children().length > 0)
+        if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null)
             buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
     }
 
 
     //console.log($('#Detail' + currentTab + 'Table').children());
-    if($('#Detail' + currentTab + 'Table').children().length > 0)
+    if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
         window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, filterString);
 
         //window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
@@ -3511,6 +3511,14 @@ function configurationapply(item) {
 
     contextfromdate = getcurrentconfigsetting("ContextFromDate");
     contexttodate = getcurrentconfigsetting("ContextToDate");
+
+    if (contextfromdate === contexttodate) {
+        cache_Last_Date = contexttodate;
+    }
+    else {
+        cache_Last_Date = null;
+        cache_Table_Data = null;
+    }
 
     var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
     if (selectedsites != null) {
@@ -4026,6 +4034,8 @@ function buildPage() {
                 showOverviewPage(currentTab);
             }
             else {
+                cache_Graph_Data = null;
+                cache_Errorbar_Data = null;
                 var mapormatrix = $("#mapGrid")[0].value;
                 $('#headerStrip').show();
                 manageTabsByDate(newTab, contextfromdate, contexttodate);
@@ -4057,6 +4067,9 @@ function buildPage() {
         showOverviewPage(currentTab);
 
     } else {
+        cache_Graph_Data = null;
+        cache_Errorbar_Data = null;
+
         $('#headerStrip').show();
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
