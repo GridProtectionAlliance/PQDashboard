@@ -1756,41 +1756,17 @@ function getStatusColorForGridElement( data ) {
 
 
         case "TrendingData":
-            if ($('#trendingDataSelection').val() === "Voltage") {
-                if ($('#trendingDataTypeSelection').val() === "Average") {
-                    if (data[2] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
-                    if (data[1] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
-                    if (data[0] !== null) return ("#0E892C");
-                }
+            if ($('#trendingDataTypeSelection').val() === "Average") {
+                if (data[2] !== null) return ("#0E892C");
             }
-            else if ($('#trendingDataSelection').val() === "Current") {
-                if ($('#trendingDataTypeSelection').val() === "Average") {
-                    if (data[2] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
-                    if (data[1] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
-                    if (data[0] !== null) return ("#0E892C");
-                }
+            else if ($('#trendingDataTypeSelection').val() === "Minimum") {
+                if (data[1] !== null) return ("#0E892C");
             }
-            else if ($('#trendingDataSelection').val() === "Power") {
-                if ($('#trendingDataTypeSelection').val() === "Average") {
-                    if (data[2] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Minimum") {
-                    if (data[1] !== null) return ("#0E892C");
-                }
-                else if ($('#trendingDataTypeSelection').val() === "Maximum") {
-                    if (data[0] !== null) return ("#0E892C");
-                }
+            else if ($('#trendingDataTypeSelection').val() === "Maximum") {
+                if (data[0] !== null) return ("#0E892C");
             }
-
             break;
+
         case "Faults":
             if (data[0] == 0) 
                 return ("#0E892C");

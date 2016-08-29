@@ -109,6 +109,12 @@ public class mapService : WebService
         public double? Maximum;
         public double? Minimum;
         public double? Average;
+        public List<double?> data;
+
+        public TrendingDataLocation()
+        {
+            data = new List<double?>();
+        }
 
         public void Aggregate(double average)
         {
@@ -1046,6 +1052,9 @@ public class mapService : WebService
                     ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
                     ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
                     ourStatus.id = (int)rdr["id"];
+                    ourStatus.data.Add(ourStatus.Average);
+                    ourStatus.data.Add(ourStatus.Maximum);
+                    ourStatus.data.Add(ourStatus.Minimum);
                     locations.Add(ourStatus);
                 }
             }
