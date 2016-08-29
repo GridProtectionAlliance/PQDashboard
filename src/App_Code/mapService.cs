@@ -1558,11 +1558,15 @@ public class mapService : WebService
         int height = (int)(bottomRightPoint.Y - topLeftPoint.Y + 1);
 
         int animationID;
+        string timeZoneID = null;
 
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
             connection.ExecuteNonQuery("INSERT INTO ContourAnimation(ColorScaleName, StartTime, EndTime, StepSize) VALUES({0}, {1}, {2}, {3})", contourQuery.ColorScaleName, contourQuery.GetStartDate(), contourQuery.GetEndDate(), contourQuery.StepSize);
             animationID = connection.ExecuteScalar<int>("SELECT @@IDENTITY");
+
+            if (contourQuery.IncludeWeather)
+                timeZoneID = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'XDATimeZone'");
         }
 
         GSF.Threading.CancellationToken cancellationToken = new GSF.Threading.CancellationToken();
@@ -1579,8 +1583,12 @@ public class mapService : WebService
 
             if (contourQuery.IncludeWeather)
             {
+                TimeZoneInfo tzInfo = !string.IsNullOrEmpty(timeZoneID)
+                    ? TimeZoneInfo.FindSystemTimeZoneById(timeZoneID)
+                    : TimeZoneInfo.Local;
+
                 // Weather data is only available in 5-minute increments
-                DateTime frameTime = startDate.AddMinutes(stepSize * i);
+                DateTime frameTime = TimeZoneInfo.ConvertTimeToUtc(startDate.AddMinutes(stepSize * i), tzInfo);
                 double minutes = (frameTime - frameTime.Date).TotalMinutes;
                 int weatherMinutes = (int)Math.Ceiling(minutes / 5) * 5;
 
@@ -1591,7 +1599,7 @@ public class mapService : WebService
                 queryString["format"] = "image/png";
                 queryString["transparent"] = "true";
                 queryString["version"] = "1.1.1";
-                queryString["time"] = startDate.AddMinutes(weatherMinutes).ToString("o");
+                queryString["time"] = frameTime.Date.AddMinutes(weatherMinutes).ToString("o");
                 queryString["height"] = height.ToString();
                 queryString["width"] = width.ToString();
                 queryString["srs"] = "EPSG:3857";
