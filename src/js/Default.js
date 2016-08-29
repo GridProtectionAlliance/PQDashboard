@@ -17,9 +17,8 @@
 //  07/15/2014 - Jeff Walker
 //       Generated original version of source code.
 //  08/24/2016 - William Ernest
-//       Removed jqwidgets, highcharts and replaced with primeui, d3
+//       Removed jqwidgets, highcharts, google and replaced with primeui, d3, flot, leaflet
 //******************************************************************************************************
-//Weather Underground API Key 598829512645b690
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Global
 
@@ -3477,6 +3476,10 @@ function validatesettings(usersettings) {
             initializesettings();
             return (false);
         };
+        if (($('#application-tabs li :visible').map(function (i, a) { return $(a).text(); }).get()).indexOf(value["CurrentTab"]) < 0) {
+            initializesettings();
+            return (false);
+        }
         if (typeof (value["DataFromDate"]) == 'undefined') {
             initializesettings();
             return (false);
@@ -3537,8 +3540,8 @@ function configurationapply(item) {
 
     $('#siteList').multiselect('refresh');
     
-    if ($("#application-tabs").tabs("option", "active") !== getcurrentconfigsetting("CurrentTab"))
-        $("#application-tabs").tabs("option", "active", getcurrentconfigsetting("CurrentTab"));
+    if ($("#application-tabs").tabs("option", "active") !== ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")))
+        $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")));
     else 
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
@@ -3725,7 +3728,7 @@ function initializesettings() {
     thesetting["DataFromDate"] = "PastMonth";
     thesetting["ContextToDate"] = "Today";
     thesetting["ContextFromDate"] = "PastMonth";
-    thesetting["CurrentTab"] = "0";
+    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
     thesetting["MapGrid"] = "Grid";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "PastMonth";
@@ -3734,7 +3737,7 @@ function initializesettings() {
 
     var thesetting = {};
     thesetting["Name"] = "Last Session";
-    thesetting["CurrentTab"] = "0";
+    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
     thesetting["DataFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datafromdate));
     thesetting["DataToDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datatodate));
     thesetting["ContextFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datafromdate));
@@ -3770,7 +3773,7 @@ function createupdateconfig(configname) {
     var thesetting = {};
 
     thesetting["Name"] = configname;
-    thesetting["CurrentTab"] = $("#application-tabs").tabs("option", "active");
+    thesetting["CurrentTab"] = currentTab;
     thesetting["DataFromDate"] = $("#datePickerFrom")[0].value;
     thesetting["DataToDate"] = $("#datePickerTo")[0].value;
     thesetting["ContextFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(contextfromdate));
@@ -4016,7 +4019,7 @@ function buildPage() {
     $.ech.multiselect.prototype.options.selectedText = "# of # selected";
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
-
+    loadSettingsAndApply();
     if ($.jStorage.get("usersettings") != null) {
         usersettings = $.jStorage.get("usersettings");
         validatesettings(usersettings);
@@ -4025,7 +4028,6 @@ function buildPage() {
     }
 
     loadconfigdropdown(usersettings.lastSetting);
-    loadSettingsAndApply();
 
     currentTab = $('#application-tabs li :visible').first().text();
 
