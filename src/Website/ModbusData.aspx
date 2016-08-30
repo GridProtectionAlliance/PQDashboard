@@ -4,16 +4,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
+    <link rel="stylesheet" href="./css/ModbusData.css"/>
+
+    <script src="./js/flot/jquery.flot.js"></script>
+    <script src="./js/flot/jquery.flot.crosshair.js"></script>
+    <script src="./js/flot/jquery.flot.navigate.js"></script>
+    <script src="./js/flot/jquery.flot.resize.js"></script>
+    <script src="./js/flot/jquery.flot.selection.js"></script>
+    <script src="./js/flot/jquery.flot.time.js"></script>
+    <script src="./js/flot/jquery.flot.axislabels.js"></script>
+    
+    <script src="js/ModbusData.js"></script>
     <title></title>
 </head>
-
-<script src="./js/flot/jquery.flot.js"></script>
-<script src="./js/flot/jquery.flot.crosshair.js"></script>
-<script src="./js/flot/jquery.flot.navigate.js"></script>
-<script src="./js/flot/jquery.flot.resize.js"></script>
-<script src="./js/flot/jquery.flot.selection.js"></script>
-<script src="./js/flot/jquery.flot.time.js"></script>
-<script src="./js/flot/jquery.flot.axislabels.js"></script>
 
 <body>
     <form id="form1" runat="server">
