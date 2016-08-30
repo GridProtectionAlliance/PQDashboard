@@ -4033,6 +4033,9 @@ function buildPage() {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
             }
+            else if(newTab === "ModbusData"){
+                showModbusData();
+            }
             else {
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
@@ -4066,7 +4069,10 @@ function buildPage() {
         $('#headerStrip').hide();
         showOverviewPage(currentTab);
 
-    } else {
+    } else if (currentTab === "ModbusData") {
+        showModbusData();
+    }
+    else {
         cache_Graph_Data = null;
         cache_Errorbar_Data = null;
 
@@ -4548,5 +4554,9 @@ function cancelCall(animationID) {
         global: false,
         async: true
     });
+}
+
+function showModbusData() {
+
 }
 /// EOF
