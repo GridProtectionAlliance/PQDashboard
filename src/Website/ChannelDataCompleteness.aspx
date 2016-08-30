@@ -15,7 +15,7 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
     
-    <link rel="stylesheet" href="./js/themes/bootstrap/theme.css"/>
+    <link rel="stylesheet" href="./css/bootstrap/theme.css"/>
     <link rel="stylesheet" type="text/css" href="./css/font-awesome.css" />
     <link rel="stylesheet" href="css/bootstrap-3.3.2.min.css"/>
     <link rel="stylesheet" href="./css/themes/redmond/jquery-ui.css"/>
