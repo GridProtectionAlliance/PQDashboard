@@ -74,13 +74,13 @@ namespace PQDashboard
             CategorizedSettingsElementCollection systemSettings = ConfigurationFile.Current.Settings["systemSettings"];
             CategorizedSettingsElementCollection securityProvider = ConfigurationFile.Current.Settings["securityProvider"];
 
-            systemSettings.Add("ConnectionString", "Data Source=DBSERVERNAME; Initial Catalog=SOETools; Integrated Security=SSPI", "Configuration connection string.");
+            systemSettings.Add("ConnectionString", "Data Source=pqdashboard; Initial Catalog=PQDashboard; Integrated Security=SSPI", "Configuration connection string.");
             systemSettings.Add("DataProviderString", "AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089}; ConnectionType=System.Data.SqlClient.SqlConnection; AdapterType=System.Data.SqlClient.SqlDataAdapter", "Configuration database ADO.NET data provider assembly type creation string used");
             systemSettings.Add("CompanyName", "Grid Protection Alliance", "The name of the company who owns this instance of the openMIC.");
             systemSettings.Add("CompanyAcronym", "GPA", "The acronym representing the company who owns this instance of the openMIC.");
             systemSettings.Add("DateFormat", "MM/dd/yyyy", "The default date format to use when rendering timestamps.");
             systemSettings.Add("TimeFormat", "HH:mm.ss.fff", "The default time format to use when rendering timestamps.");
-            systemSettings.Add("DefaultSecurityRoles", "Administrator, Owner, Viewer", "The default security roles that should exist for the application.");
+            systemSettings.Add("DefaultSecurityRoles", "Administrator, Viewer, SME", "The default security roles that should exist for the application.");
             securityProvider.Add("PasswordRequirementsRegex", AdoSecurityProvider.DefaultPasswordRequirementsRegex, "Regular expression used to validate new passwords for database users.");
             securityProvider.Add("PasswordRequirementsError", AdoSecurityProvider.DefaultPasswordRequirementsError, "Error message to be displayed when new database user password fails regular expression test.");
 

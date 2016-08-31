@@ -48,9 +48,7 @@ namespace PQDashboard
         #region [ Members ]
 
         // Fields
-        private readonly DataContext m_dataContext;
         private readonly DataContext m_coreContext;
-        private readonly DataContext m_dbContext;
         private bool m_disposed;
 
         #endregion
@@ -59,9 +57,7 @@ namespace PQDashboard
 
         public DataHub()
         {
-            m_dataContext = new DataContext(exceptionHandler: MvcApplication.LogException);
             m_coreContext = new DataContext("securityProvider",exceptionHandler: MvcApplication.LogException);
-            m_dbContext = new DataContext("thirdDb", exceptionHandler: MvcApplication.LogException);
         }
 
         #endregion
@@ -89,9 +85,7 @@ namespace PQDashboard
                 {
                     if (disposing)
                     {
-                        m_dataContext?.Dispose();
                         m_coreContext?.Dispose();
-                        m_dbContext?.Dispose();
                     }
                 }
                 finally
@@ -312,21 +306,21 @@ namespace PQDashboard
         [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecordCount)]
         public int QueryValueListGroupCount(string filterText)
         {
-            return m_dataContext.Table<ValueListGroup>().QueryRecordCount();
+            return m_coreContext.Table<ValueListGroup>().QueryRecordCount();
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecords)]
         public IEnumerable<ValueListGroup> QueryValueListGroups(string sortField, bool ascending, int page, int pageSize, string filterText)
         {
-            return m_dataContext.Table<ValueListGroup>().QueryRecords(sortField, ascending, page, pageSize);
+            return m_coreContext.Table<ValueListGroup>().QueryRecords(sortField, ascending, page, pageSize);
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.DeleteRecord)]
         public void DeleteValueListGroup(int id)
         {
-            m_dataContext.Table<ValueListGroup>().DeleteRecord(id);
+            m_coreContext.Table<ValueListGroup>().DeleteRecord(id);
         }
 
         [AuthorizeHubRole("Administrator")]
@@ -341,14 +335,14 @@ namespace PQDashboard
         public void AddNewValueListGroup(ValueListGroup record)
         {
             record.CreatedOn = DateTime.UtcNow;
-            m_dataContext.Table<ValueListGroup>().AddNewRecord(record);
+            m_coreContext.Table<ValueListGroup>().AddNewRecord(record);
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.UpdateRecord)]
         public void UpdateValueListGroup(ValueListGroup record)
         {
-            m_dataContext.Table<ValueListGroup>().UpdateRecord(record);
+            m_coreContext.Table<ValueListGroup>().UpdateRecord(record);
         }
 
         #endregion
@@ -360,21 +354,21 @@ namespace PQDashboard
         [RecordOperation(typeof(ValueList), RecordOperation.QueryRecordCount)]
         public int QueryValueListCount(int parentID, string filterText)
         {
-            return m_dataContext.Table<ValueList>().QueryRecordCount(new RecordRestriction("GroupID = {0}", parentID));
+            return m_coreContext.Table<ValueList>().QueryRecordCount(new RecordRestriction("GroupID = {0}", parentID));
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.QueryRecords)]
         public IEnumerable<ValueList> QueryValueListItems(int parentID, string sortField, bool ascending, int page, int pageSize, string filterText)
         {
-            return m_dataContext.Table<ValueList>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("GroupID = {0}", parentID));
+            return m_coreContext.Table<ValueList>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("GroupID = {0}", parentID));
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.DeleteRecord)]
         public void DeleteValueList(int id)
         {
-            m_dataContext.Table<ValueList>().DeleteRecord(id);
+            m_coreContext.Table<ValueList>().DeleteRecord(id);
         }
 
         [AuthorizeHubRole("Administrator")]
@@ -389,14 +383,14 @@ namespace PQDashboard
         public void AddNewValueList(ValueList record)
         {
             record.CreatedOn = DateTime.UtcNow;
-            m_dataContext.Table<ValueList>().AddNewRecord(record);
+            m_coreContext.Table<ValueList>().AddNewRecord(record);
         }
 
         [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.UpdateRecord)]
         public void UpdateValueList(ValueList record)
         {
-            m_dataContext.Table<ValueList>().UpdateRecord(record);
+            m_coreContext.Table<ValueList>().UpdateRecord(record);
         }
 
         #endregion

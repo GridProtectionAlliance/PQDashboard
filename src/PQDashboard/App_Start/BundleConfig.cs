@@ -15,7 +15,7 @@ namespace PQDashboard
 #endif
 
             bundles.Add(new ScriptBundle("~/js.bundle/jquery").Include(
-                        $"~/Scripts/jquery-2.2.1{min}.js"));
+                        $"~/Scripts/jquery-2.2.3{min}.js"));
 
             bundles.Add(new ScriptBundle("~/js.bundle/jqueryui").Include(
                         $"~/Scripts/jquery-ui{min}.js"));

@@ -37,7 +37,7 @@ namespace PQDashboard.Controllers
     /// <summary>
     /// Represents a MVC controller for the site's main pages.
     /// </summary>
-    [AuthorizeControllerRole]
+    //[AuthorizeControllerRole]
     public class MainController : Controller
     {
         #region [ Members ]
