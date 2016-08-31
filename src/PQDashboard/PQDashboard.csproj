@@ -197,18 +197,23 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\SecurityController.cs" />
+    <Compile Include="Controllers\SettingsController.cs" />
+    <Compile Include="Controllers\SystemController.cs" />
     <Compile Include="DataHub.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\AppModel.cs" />
-    <Compile Include="Models\GlobalSettings.cs" />
-    <Compile Include="Models\Menu.cs" />
-    <Compile Include="Models\MenuItem.cs" />
-    <Compile Include="Models\Page.cs" />
-    <Compile Include="Models\Settings.cs" />
-    <Compile Include="Models\ValueList.cs" />
-    <Compile Include="Models\ValueListGroup.cs" />
+    <Compile Include="Model\AppModel.cs" />
+    <Compile Include="Model\GlobalSettings.cs" />
+    <Compile Include="Model\Menu.cs" />
+    <Compile Include="Model\MenuItem.cs" />
+    <Compile Include="Model\Page.cs" />
+    <Compile Include="Model\Settings.cs" />
+    <Compile Include="Model\ValueList.cs" />
+    <Compile Include="Model\ValueListGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
@@ -264,35 +269,31 @@
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Main\Contact.cshtml" />
+    <Content Include="Views\Main\DisplayPDF.cshtml" />
+    <Content Include="Views\Main\Documents.cshtml" />
+    <Content Include="Views\Main\Help.cshtml" />
+    <Content Include="Views\Main\Home.cshtml" />
+    <Content Include="Views\Main\PageTemplate1.cshtml" />
+    <Content Include="Views\Main\PageTemplate2.cshtml" />
+    <Content Include="Views\Security\Groups.cshtml" />
+    <Content Include="Views\Security\Users.cshtml" />
+    <Content Include="Views\Settings\Home.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\PagedViewModel.cshtml" />
+    <Content Include="Views\Shared\SecurityError.cshtml" />
+    <Content Include="Views\Shared\_ErrorLayout.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Home\About.cshtml" />
-    <Content Include="Views\Home\Contact.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Account\_ExternalLoginsListPartial.cshtml" />
-    <Content Include="Views\Account\ConfirmEmail.cshtml" />
-    <Content Include="Views\Account\ExternalLoginConfirmation.cshtml" />
-    <Content Include="Views\Account\ExternalLoginFailure.cshtml" />
-    <Content Include="Views\Account\ForgotPassword.cshtml" />
-    <Content Include="Views\Account\ForgotPasswordConfirmation.cshtml" />
-    <Content Include="Views\Account\Login.cshtml" />
-    <Content Include="Views\Account\Register.cshtml" />
-    <Content Include="Views\Account\ResetPassword.cshtml" />
-    <Content Include="Views\Account\ResetPasswordConfirmation.cshtml" />
-    <Content Include="Views\Account\SendCode.cshtml" />
-    <Content Include="Views\Account\VerifyCode.cshtml" />
-    <Content Include="Views\Manage\AddPhoneNumber.cshtml" />
-    <Content Include="Views\Manage\ChangePassword.cshtml" />
-    <Content Include="Views\Manage\Index.cshtml" />
-    <Content Include="Views\Manage\ManageLogins.cshtml" />
-    <Content Include="Views\Manage\SetPassword.cshtml" />
-    <Content Include="Views\Manage\VerifyPhoneNumber.cshtml" />
-    <Content Include="Views\Shared\Lockout.cshtml" />
-    <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\System\Home.cshtml" />
+    <Content Include="Views\System\MenuItems.cshtml" />
+    <Content Include="Views\System\Menus.cshtml" />
+    <Content Include="Views\System\Pages.cshtml" />
+    <Content Include="Views\System\ValueListGroups.cshtml" />
+    <Content Include="Views\System\ValueListItems.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
+    <Folder Include="Views\Home\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />

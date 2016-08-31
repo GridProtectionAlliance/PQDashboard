@@ -38,7 +38,7 @@ namespace PQDashboard.Model
     /// Defines a base application model with convenient global settings and functions.
     /// </summary>
     /// <remarks>
-    /// Custom view models should inherit from AppModel because the "Global" property is used by _Layout.cshtml.
+    /// Custom view Model should inherit from AppModel because the "Global" property is used by _Layout.cshtml.
     /// </remarks>
     public class AppModel : IDisposable
     {

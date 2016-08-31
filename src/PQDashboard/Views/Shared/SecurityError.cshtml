@@ -1,10 +1,14 @@
 ﻿@model System.Web.Mvc.HandleErrorInfo
 @{
     Layout = "_ErrorLayout.cshtml";
-    ViewBag.Title = "Error";
+    ViewBag.Title = "Security Error";
+
+    object value;
+    ViewData.TryGetValue("Exception", out value);
+    Exception exception = value as Exception;    
 }
 <div class="alert alert-danger fade in" role="alert">
-    <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<span>An unexpected error has occurred. Please contact the system administrator.</span>
+    <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<span>@(exception?.Message)</span>
 </div>
 @if (Model != null && HttpContext.Current.IsDebuggingEnabled)
 {

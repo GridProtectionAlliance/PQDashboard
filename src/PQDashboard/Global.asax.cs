@@ -129,6 +129,7 @@ namespace PQDashboard
             settings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
             JsonSerializer serializer = JsonSerializer.Create(settings);
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => serializer);
+
         }
 
         /// <summary>

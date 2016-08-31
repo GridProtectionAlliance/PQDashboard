@@ -2962,7 +2962,7 @@ ko.exportSymbol('bindingProvider', ko.bindingProvider);
     // contexts, use bindingContext.createChildContext or bindingContext.extend.
     ko.bindingContext = function(dataItemOrAccessor, parentContext, dataItemAlias, extendCallback) {
 
-        // The binding context object includes static properties for the current, parent, and root view models.
+        // The binding context object includes static properties for the current, parent, and root view Model.
         // If a view model is actually stored in an observable, the corresponding binding context object, and
         // any child contexts, must be updated when the view model is changed.
         function updateContext() {
@@ -3243,7 +3243,7 @@ ko.exportSymbol('bindingProvider', ko.bindingProvider);
             var bindingsUpdater = ko.dependentObservable(
                 function() {
                     bindings = sourceBindings ? sourceBindings(bindingContext, node) : getBindings.call(provider, node, bindingContext);
-                    // Register a dependency on the binding context to support observable view models.
+                    // Register a dependency on the binding context to support observable view Model.
                     if (bindings && bindingContext._subscribable)
                         bindingContext._subscribable();
                     return bindings;
@@ -3557,7 +3557,7 @@ ko.exportSymbol('bindingProvider', ko.bindingProvider);
     //    component definition objects (of the form { createViewModel: ..., template: ... })
     // Custom loaders may override either of these facilities, i.e.,
     // 1. To supply configuration objects from some other source (e.g., conventions)
-    // 2. Or, to resolve configuration objects by loading viewmodels/templates via arbitrary logic.
+    // 2. Or, to resolve configuration objects by loading viewModel/templates via arbitrary logic.
 
     var defaultConfigRegistry = {};
 
@@ -3854,7 +3854,7 @@ ko.exportSymbol('bindingProvider', ko.bindingProvider);
             return result;
         } else {
             // For consistency, absence of a "params" attribute is treated the same as the presence of
-            // any empty one. Otherwise component viewmodels need special code to check whether or not
+            // any empty one. Otherwise component viewModel need special code to check whether or not
             // 'params' or 'params.$raw' is null/undefined before reading subproperties, which is annoying.
             return { '$raw': {} };
         }
