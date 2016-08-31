@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website", "Website\", "{7505A710-AB2A-40E1-BA16-FE810C3B57FF}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "src", "Website\", "{7505A710-AB2A-40E1-BA16-FE810C3B57FF}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.6"
 		ProjectReferences = "{7f731255-fa83-4dbf-9e0f-c22ae4845e76}|openHistorian.XDALink.dll;"
@@ -27,6 +27,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Website", "Website\", "{750
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openHistorian.XDALink", "openHistorian.XDALink\openHistorian.XDALink.csproj", "{7F731255-FA83-4DBF-9E0F-C22AE4845E76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewPQDashboard", "NewPQDashboard\NewPQDashboard.csproj", "{56D93E5B-C9C4-4D78-8D62-ED0C69F315A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{7F731255-FA83-4DBF-9E0F-C22AE4845E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F731255-FA83-4DBF-9E0F-C22AE4845E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F731255-FA83-4DBF-9E0F-C22AE4845E76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56D93E5B-C9C4-4D78-8D62-ED0C69F315A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56D93E5B-C9C4-4D78-8D62-ED0C69F315A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56D93E5B-C9C4-4D78-8D62-ED0C69F315A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56D93E5B-C9C4-4D78-8D62-ED0C69F315A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
