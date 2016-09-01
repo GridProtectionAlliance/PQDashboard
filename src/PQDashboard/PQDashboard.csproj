@@ -79,6 +79,9 @@
       <HintPath>..\packages\GSF.Web.2.1.300-beta\lib\net46\GSF.Web.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Ionic.Zlib">
+      <HintPath>..\Dependencies\Ionic.Zlib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.0\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
       <Private>True</Private>
@@ -212,7 +215,9 @@
     <Content Include="App_Code\mapService.cs">
       <SubType>Component</SubType>
     </Content>
-    <Content Include="App_Code\signalService.cs" />
+    <Content Include="App_Code\signalService.cs">
+      <SubType>Component</SubType>
+    </Content>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -268,11 +273,16 @@
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Model\ValueList.cs" />
     <Compile Include="Model\ValueListGroup.cs" />
+    <Compile Include="OpenSEE.aspx.cs">
+      <DependentUpon>OpenSEE.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="OpenSTE.aspx.cs">
       <DependentUpon>OpenSTE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
   </ItemGroup>
@@ -363,6 +373,7 @@
     <Content Include="MeterDisturbancesByLine.aspx" />
     <Content Include="MeterEventsByLine.aspx" />
     <Content Include="ModbusData.aspx" />
+    <Content Include="OpenSEE.aspx" />
     <Content Include="OpenSTE.aspx" />
     <Content Include="Scripts\bootstrap-3.3.2.min.js" />
     <Content Include="Scripts\bootstrap-multiselect.js" />

@@ -22,10 +22,15 @@ public partial class EASDetails: System.Web.UI.Page
  
 
     public List<Tuple<string, string>> thedata = new List<Tuple<string, string>>();
-
+    public string TableName = "";
+    public string ServiceName = "";
     String connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
     protected void Page_Load(object sender, EventArgs e)
+    {
+    }
+
+    public  void DoStuff()
     {
 
         SqlConnection conn = null;
@@ -42,7 +47,7 @@ public partial class EASDetails: System.Web.UI.Page
 
                     conn = new SqlConnection(connectionstring);
                     conn.Open();
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM "+  Session["TableName"] + " WHERE EventID = @EventID", conn);
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM "+  TableName + " WHERE EventID = @EventID", conn);
                     cmd.Parameters.Add(new SqlParameter("@EventID", postedEventId));
 
                     cmd.CommandTimeout = 300;

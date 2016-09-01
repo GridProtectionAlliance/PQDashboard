@@ -93,7 +93,7 @@ public partial class OpenSEE : System.Web.UI.Page
 
                         JavaScriptSerializer serializer = new JavaScriptSerializer();
 
-                        postedSeriesList = serializer.Serialize(signalService.GetFlotInfo(theevent.ID));
+                        postedSeriesList = serializer.Serialize(SignalCode.GetFlotInfo(theevent.ID));
 
                         postedMeterId = theevent.MeterID.ToString();
                         postedDate = theevent.StartTime.ToShortDateString();
@@ -206,4 +206,5 @@ public partial class OpenSEE : System.Web.UI.Page
 
         return results;
     }
+
 }
