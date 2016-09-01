@@ -24,14 +24,19 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
+using System.Web.Services;
 using GSF;
 using GSF.Collections;
+using GSF.Configuration;
 using GSF.Data.Model;
 using GSF.Identity;
 using GSF.Web.Hubs;
@@ -132,6 +137,8 @@ namespace PQDashboard
         private static volatile int s_connectCount;
         private static readonly ThreadLocal<string> s_connectionID = new ThreadLocal<string>();
         private static readonly RecordOperationsCache s_recordOperationsCache;
+        private static string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+
 
         // Static Methods
 
@@ -394,6 +401,1573 @@ namespace PQDashboard
         }
 
         #endregion
+
+        //#region [ Event Service Operations ]
+
+        ///// <summary>
+        ///// getDashSettings
+        ///// </summary>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDashSettings(String userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    String thedata = "";
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectDashSettings", conn);
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (thedata);
+
+        //}
+
+
+        ///// <summary>
+        ///// getSiteChannelDataQualityDetailsByDate
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <returns></returns>
+        //public String getSiteChannelDataQualityDetailsByDate(string siteID, string targetDate)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSiteChannelDataQualityDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getSiteChannelCompletenessDetailsByDate
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <returns></returns>
+        //public String getSiteChannelCompletenessDetailsByDate(string siteID, string targetDate)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSiteChannelCompletenessDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getPQIDetailsByEventID
+        ///// </summary>
+        ///// <param name="eventID"></param>
+        ///// <returns></returns>
+        //public String getPQIDetailsByEventID(string eventID)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.GetAllImpactedComponents", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@eventID", eventID));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getSiteLinesDetailsByDate
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <returns></returns>
+        //public String getSiteLinesDetailsByDate(string siteID, string targetDate)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    SqlConnection conn2 = null;
+        //    SqlDataReader rdr2 = null;
+
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+
+        //        SqlCommand cmd = new SqlCommand("SELECT * FROM EASExtension", conn);
+        //        rdr = cmd.ExecuteReader();
+
+        //        StringBuilder QueryBuilder = new StringBuilder();
+        //        while (rdr.Read())
+        //        {
+        //            if (QueryBuilder.Length > 0)
+        //            {
+        //                QueryBuilder.Append(",");
+        //            }
+        //            QueryBuilder.Append("dbo.");
+        //            QueryBuilder.Append(rdr["HasResultFunction"]);
+        //            QueryBuilder.Append("(theeventid) AS ");
+        //            QueryBuilder.Append(rdr["ServiceName"]);
+        //        }
+        //        rdr.Dispose();
+
+        //        cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt;
+        //        if (QueryBuilder.Length > 0)
+        //        {
+        //            conn2 = new SqlConnection(connectionstring);
+        //            conn2.Open();
+
+        //            cmd = new SqlCommand("SELECT * , " + QueryBuilder + " FROM @EventIDTable", conn2);
+        //            cmd.Parameters.Add(new SqlParameter("@EventIDTable", rdr));
+        //            cmd.Parameters[0].SqlDbType = SqlDbType.Structured;
+        //            cmd.Parameters[0].TypeName = "SiteLineDetailsByDate";
+        //            rdr2 = cmd.ExecuteReader();
+
+        //            dt = new DataTable();
+        //            dt.Load(rdr2);
+
+        //        }
+        //        else
+        //        {
+        //            dt = new DataTable();
+        //            dt.Load(rdr);
+        //        }
+
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //        if (conn2 != null)
+        //        {
+        //            conn2.Close();
+        //        }
+        //        if (rdr2 != null)
+        //        {
+        //            rdr2.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+
+        ///// <summary>
+        ///// getSiteLinesDetailsByDate
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <returns></returns>
+        //public String getSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    SqlConnection conn2 = null;
+        //    SqlDataReader rdr2 = null;
+
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDisturbanceDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt;
+
+        //        dt = new DataTable();
+        //        dt.Load(rdr);
+
+
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //        if (conn2 != null)
+        //        {
+        //            conn2.Close();
+        //        }
+        //        if (rdr2 != null)
+        //        {
+        //            rdr2.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getBreakersForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getBreakersForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectBreakersForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[3];
+        //            //theset.xAxis = new string[duration];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "Normal";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "Late";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "Indeterminate";
+        //            theset.data[2].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["normal"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["late"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["indeterminate"]);
+        //                i++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getEventsForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getEventsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectEventsForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[6];
+        //            //theset.xAxis = new string[duration];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "Interruption";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "Fault";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "Sag";
+        //            theset.data[2].data = new double[duration];
+
+        //            theset.data[3] = new eventService.eventDetail();
+        //            theset.data[3].name = "Transient";
+        //            theset.data[3].data = new double[duration];
+
+        //            theset.data[4] = new eventService.eventDetail();
+        //            theset.data[4].name = "Swell";
+        //            theset.data[4].data = new double[duration];
+
+        //            theset.data[5] = new eventService.eventDetail();
+        //            theset.data[5].name = "Other";
+        //            theset.data[5].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                //thedate, thecount, thename
+        //                //DateTime thedate = (DateTime)rdr["thedate"];
+        //                //theset.xAxis[i] = thedate.ToString("d");
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["interruptions"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["faults"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["sags"]);
+        //                theset.data[3].data[i] = Convert.ToDouble(rdr["transients"]);
+        //                theset.data[4].data[i] = Convert.ToDouble(rdr["swells"]);
+        //                theset.data[5].data[i] = Convert.ToDouble(rdr["others"]);
+        //                i++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getDisturbancesForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getDisturbancesForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectDisturbancesForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[6];
+        //            //theset.xAxis = new string[duration];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "5";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "4";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "3";
+        //            theset.data[2].data = new double[duration];
+
+        //            theset.data[3] = new eventService.eventDetail();
+        //            theset.data[3].name = "2";
+        //            theset.data[3].data = new double[duration];
+
+        //            theset.data[4] = new eventService.eventDetail();
+        //            theset.data[4].name = "1";
+        //            theset.data[4].data = new double[duration];
+
+        //            theset.data[5] = new eventService.eventDetail();
+        //            theset.data[5].name = "0";
+        //            theset.data[5].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                //thedate, thecount, thename
+        //                //DateTime thedate = (DateTime)rdr["thedate"];
+        //                //theset.xAxis[i] = thedate.ToString("d");
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["5"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["4"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["3"]);
+        //                theset.data[3].data[i] = Convert.ToDouble(rdr["2"]);
+        //                theset.data[4].data[i] = Convert.ToDouble(rdr["1"]);
+        //                theset.data[5].data[i] = Convert.ToDouble(rdr["0"]);
+        //                i++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getCompletenessForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getCompletenessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+        //    int metercount = siteID.Split(',').Length - 1;
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectCompletenessForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[7];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "> 100%";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "98% - 100%";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "90% - 97%";
+        //            theset.data[2].data = new double[duration];
+
+        //            theset.data[3] = new eventService.eventDetail();
+        //            theset.data[3].name = "70% - 89%";
+        //            theset.data[3].data = new double[duration];
+
+        //            theset.data[4] = new eventService.eventDetail();
+        //            theset.data[4].name = "50% - 69%";
+        //            theset.data[4].data = new double[duration];
+
+        //            theset.data[5] = new eventService.eventDetail();
+        //            theset.data[5].name = ">0% - 49%";
+        //            theset.data[5].data = new double[duration];
+
+        //            theset.data[6] = new eventService.eventDetail();
+        //            theset.data[6].name = "0%";
+        //            theset.data[6].data = new double[duration];
+
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["First"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["Second"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["Third"]);
+        //                theset.data[3].data[i] = Convert.ToDouble(rdr["Fourth"]);
+        //                theset.data[4].data[i] = Convert.ToDouble(rdr["Fifth"]);
+        //                theset.data[5].data[i] = Convert.ToDouble(rdr["Sixth"]);
+
+        //                Double composite = theset.data[0].data[i] + theset.data[1].data[i] + theset.data[2].data[i] + theset.data[3].data[i] + theset.data[4].data[i] + theset.data[5].data[i];
+
+        //                theset.data[6].data[i] = metercount - composite;
+        //                i++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getCorrectnessForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getCorrectnessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+        //    int metercount = siteID.Split(',').Length - 1;
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectCorrectnessForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[7];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "> 100%";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "98% - 100%";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "90% - 97%";
+        //            theset.data[2].data = new double[duration];
+
+        //            theset.data[3] = new eventService.eventDetail();
+        //            theset.data[3].name = "70% - 89%";
+        //            theset.data[3].data = new double[duration];
+
+        //            theset.data[4] = new eventService.eventDetail();
+        //            theset.data[4].name = "50% - 69%";
+        //            theset.data[4].data = new double[duration];
+
+        //            theset.data[5] = new eventService.eventDetail();
+        //            theset.data[5].name = ">0% - 49%";
+        //            theset.data[5].data = new double[duration];
+
+        //            theset.data[6] = new eventService.eventDetail();
+        //            theset.data[6].name = "0%";
+        //            theset.data[6].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["First"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["Second"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["Third"]);
+        //                theset.data[3].data[i] = Convert.ToDouble(rdr["Fourth"]);
+        //                theset.data[4].data[i] = Convert.ToDouble(rdr["Fifth"]);
+        //                theset.data[5].data[i] = Convert.ToDouble(rdr["Sixth"]);
+
+        //                Double composite = theset.data[0].data[i] + theset.data[1].data[i] + theset.data[2].data[i] + theset.data[3].data[i] + theset.data[4].data[i] + theset.data[5].data[i];
+
+        //                theset.data[6].data[i] = metercount - composite;
+        //                i++;
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+
+        ///// <summary>
+        ///// getCorrectnessForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getCorrectnessForPeriod2(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectCorrectnessForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[3];
+        //            //theset.xAxis = new string[duration];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "Latched";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "Unreasonable";
+        //            theset.data[1].data = new double[duration];
+
+        //            theset.data[2] = new eventService.eventDetail();
+        //            theset.data[2].name = "Noncongruent";
+        //            theset.data[2].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                //thedate, thecount, thename
+        //                //DateTime thedate = (DateTime)rdr["thedate"];
+        //                //theset.xAxis[i] = thedate.ToString("d");
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["Latched"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["Unreasonable"]);
+        //                theset.data[2].data[i] = Convert.ToDouble(rdr["Noncongruent"]);
+        //                i++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getTrendingForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getTrendingForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectTrendingForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[2];
+        //            //theset.xAxis = new string[duration];
+
+        //            theset.data[0] = new eventService.eventDetail();
+        //            theset.data[0].name = "Alarm";
+        //            theset.data[0].data = new double[duration];
+
+        //            theset.data[1] = new eventService.eventDetail();
+        //            theset.data[1].name = "OffNormal";
+        //            theset.data[1].data = new double[duration];
+
+        //            int i = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                //thedate, thecount, thename
+        //                //DateTime thedate = (DateTime)rdr["thedate"];
+        //                //theset.xAxis[i] = thedate.ToString("d");
+        //                theset.data[0].data[i] = Convert.ToDouble(rdr["Alarm"]);
+        //                theset.data[1].data[i] = Convert.ToDouble(rdr["Offnormal"]);
+        //                i++;
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// getTrendingDataForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public List<eventService.TrendingData> getTrendingDataForPeriod(string siteID, string colorScale, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    List<eventService.TrendingData> theset = new List<eventService.TrendingData>();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectTrendingDataByChannelByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@StartDate", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EndDate", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@colorScale", colorScale));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            while (rdr.Read())
+        //            {
+        //                eventService.TrendingData td = new eventService.TrendingData();
+        //                td.Date = Convert.ToString(rdr["Date"]);
+        //                td.Maximum = Convert.ToDouble(rdr["Maximum"]);
+        //                td.Minimum = Convert.ToDouble(rdr["Minimum"]);
+        //                td.Average = Convert.ToDouble(rdr["Average"]);
+
+        //                theset.Add(td);
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+
+        ///// <summary>
+        ///// getFaultsForPeriod
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public eventService.eventSet getFaultsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+        //    eventService.eventSet theset = new eventService.eventSet();
+        //    DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+        //    DateTime thedateto = DateTime.Parse(targetDateTo);
+
+        //    int duration = thedateto.Subtract(thedatefrom).Days + 1;
+        //    List<String> powerlineclasslist = new List<string>();
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+
+        //        // Get Power Line Class Count
+        //        SqlCommand cmd2 = new SqlCommand("dbo.selectPowerLineClasses", conn);
+        //        cmd2.CommandType = CommandType.StoredProcedure;
+        //        cmd2.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd2.CommandTimeout = 300;
+        //        rdr = cmd2.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+        //            while (rdr.Read())
+        //            {
+        //                powerlineclasslist.Add(Convert.ToString(rdr["class"]));
+        //            }
+
+        //        }
+
+        //        rdr.Close();
+        //        rdr = null;
+
+        //        SqlCommand cmd = new SqlCommand("dbo.selectFaultsForMeterIDByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", thedatefrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", thedateto));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        if (rdr.HasRows)
+        //        {
+
+        //            theset.data = new eventService.eventDetail[powerlineclasslist.Count];
+        //            ////theset.xAxis = new string[duration];
+        //            int i = 0;
+
+        //            foreach (var temp in powerlineclasslist)
+        //            {
+
+        //                theset.data[i] = new eventService.eventDetail();
+        //                theset.data[i].name = temp + " kV";
+        //                theset.data[i].data = new double[duration];
+        //                i++;
+        //            }
+
+        //            int j = 0;
+
+        //            while (rdr.Read())
+        //            {
+        //                //DateTime thedate = (DateTime)rdr["thedate"];
+        //                //theset.xAxis[j] = thedate.ToString("d"); 
+
+        //                for (i = 0; i < powerlineclasslist.Count; i++)
+        //                {
+        //                    theset.data[i].data[j] = Convert.ToDouble(rdr["thecount"]);
+        //                    if (i < (powerlineclasslist.Count - 1)) rdr.Read();
+        //                }
+
+        //                j++;
+        //            }
+        //        }
+
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return (theset);
+        //}
+
+        ///// <summary>
+        ///// DataTable2JSON
+        ///// </summary>
+        ///// <param name="dt"></param>
+        ///// <returns></returns>
+        //public string DataTable2JSON(DataTable dt)
+        //{
+        //    List<Object> RowList = new List<Object>();
+        //    foreach (DataRow dr in dt.Rows)
+        //    {
+        //        Dictionary<Object, Object> ColList = new Dictionary<Object, Object>();
+        //        foreach (DataColumn dc in dt.Columns)
+        //        {
+        //            string t = (string)((string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString());
+
+        //            ColList.Add(dc.ColumnName, t);
+        //        }
+        //        RowList.Add(ColList);
+        //    }
+        //    JavaScriptSerializer js = new JavaScriptSerializer();
+        //    string JSON = js.Serialize(RowList);
+        //    return JSON;
+        //}
+
+
+        ///// <summary>
+        ///// getDetailsForSitesBreakers
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesBreakers(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesBreakersDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesEventsDateRange
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDateFrom"></param>
+        ///// <param name="targetDateTo"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesEventsDateRange(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesEventsDetailsByDateRange", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+        //        cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesEvents
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesEvents(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesEventsDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesEvents
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesDisturbances(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesDisturbancesDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesCompleteness
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesCompleteness(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesCompletenessDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesCorrectness
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesCorrectness(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesCorrectnessDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesFaults
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesFaults(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesFaultsDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesTrending
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesTrending(string siteID, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        int i = 0;
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        ///// <summary>
+        ///// getDetailsForSitesTrendingData
+        ///// </summary>
+        ///// <param name="siteID"></param>
+        ///// <param name="measurementType"></param>
+        ///// <param name="targetDate"></param>
+        ///// <param name="userName"></param>
+        ///// <returns></returns>
+        //public String getDetailsForSitesTrendingData(string siteID, string colorScale, string targetDate, string userName)
+        //{
+
+        //    String thedata = "";
+        //    SqlConnection conn = null;
+        //    SqlDataReader rdr = null;
+
+        //    try
+        //    {
+        //        conn = new SqlConnection(connectionstring);
+        //        conn.Open();
+        //        SqlCommand cmd = new SqlCommand("dbo.selectSitesTrendingDataDetailsByDate", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+        //        cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+        //        cmd.Parameters.Add(new SqlParameter("@colorScaleName", colorScale));
+        //        cmd.Parameters.Add(new SqlParameter("@username", userName));
+        //        cmd.CommandTimeout = 300;
+        //        rdr = cmd.ExecuteReader();
+        //        DataTable dt = new DataTable();
+        //        dt.Load(rdr);
+        //        thedata = DataTable2JSON(dt);
+        //        dt.Dispose();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        int i = 0;
+        //    }
+        //    finally
+        //    {
+        //        if (conn != null)
+        //        {
+        //            conn.Close();
+        //        }
+        //        if (rdr != null)
+        //        {
+        //            rdr.Close();
+        //        }
+        //    }
+
+        //    return thedata;
+        //}
+
+        //#endregion
+
+        #region [ Map Service Operations ]
+
+        #endregion
+
+        #region [ Signal Service Operations ]
+
+        #endregion
+
 
         #region [ Miscellaneous Hub Operations ]
 

@@ -57,9 +57,15 @@
       <HintPath>..\packages\ExpressionEvaluator.2.0.4.0\lib\net40\ExpressionEvaluator.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.1.300.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.1.300-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="FaultData">
+      <HintPath>..\Dependencies\FaultData.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.Core, Version=2.1.313.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.1.313-beta\lib\net46\GSF.Core.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="GSF.Geo">
+      <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
     <Reference Include="GSF.Security, Version=2.1.300.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Security.2.1.300-beta\lib\net46\GSF.Security.dll</HintPath>
@@ -117,6 +123,9 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Linq">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http">
@@ -137,6 +146,9 @@
     </Reference>
     <Reference Include="System.Net.Http.WebRequest">
       <HintPath>..\packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Caching">
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
@@ -194,17 +206,59 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Code\eventService.cs">
+      <SubType>Component</SubType>
+    </Content>
+    <Content Include="App_Code\mapService.cs">
+      <SubType>Component</SubType>
+    </Content>
+    <Content Include="App_Code\signalService.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="ChannelDataCompleteness.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ChannelDataQuality.aspx.cs">
+      <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\SecurityController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Controllers\SystemController.cs" />
     <Compile Include="DataHub.cs" />
+    <Compile Include="EASServiceTemplate.aspx.cs">
+      <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FaultLocation.aspx.cs">
+      <DependentUpon>FaultLocation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FaultSpecifics.aspx.cs">
+      <DependentUpon>FaultSpecifics.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="ICFService.aspx.cs">
+      <DependentUpon>ICFService.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MeterDisturbancesByLine.aspx.cs">
+      <DependentUpon>MeterDisturbancesByLine.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MeterEventsByLine.aspx.cs">
+      <DependentUpon>MeterEventsByLine.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ModbusData.aspx.cs">
+      <DependentUpon>ModbusData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
@@ -214,24 +268,104 @@
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Model\ValueList.cs" />
     <Compile Include="Model\ValueListGroup.cs" />
+    <Compile Include="OpenSTE.aspx.cs">
+      <DependentUpon>OpenSTE.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ChannelDataQuality.aspx" />
+    <Content Include="Content\bootstrap-3.3.2.min.css" />
+    <Content Include="Content\bootstrap-example.css" />
+    <Content Include="Content\bootstrap-multiselect.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Default.css" />
+    <Content Include="Content\DefaultOther.css" />
+    <Content Include="Content\FaultLocation.css" />
+    <Content Include="Content\FaultSpecifics.css" />
+    <Content Include="Content\font-awesome.css" />
+    <Content Include="Content\font-awesome.min.css" />
+    <Content Include="Content\ICFDetails.css" />
+    <Content Include="Content\jquery.multiselect.css" />
+    <Content Include="Content\jquery.multiselect.filter.css" />
+    <Content Include="Content\MeterEventsByLine.css" />
+    <Content Include="Content\ModbusData.css" />
+    <Content Include="Content\OpenSEE.css" />
+    <Content Include="Content\OpenSEEStack.css" />
+    <Content Include="Content\OpenSTE.css" />
+    <Content Include="Content\prettify.css" />
+    <Content Include="Content\primeui-all.css" />
+    <Content Include="Content\primeui-all.min.css" />
+    <Content Include="Content\primeui-ng-all.css" />
+    <Content Include="Content\primeui-ng-all.min.css" />
+    <Content Include="Content\primeui.css" />
+    <Content Include="Content\primeui.min.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="CSAService.aspx" />
+    <Content Include="EASServiceTemplate.aspx" />
+    <Content Include="eventService.asmx" />
+    <Content Include="FaultLocation.aspx" />
+    <Content Include="FaultSpecifics.aspx" />
     <Content Include="favicon.ico" />
+    <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="ICFService.aspx" />
+    <Content Include="Images\ajax-loader-map.gif" />
+    <Content Include="Images\ajax-loader.gif" />
+    <Content Include="Images\companylogo.jpg" />
+    <Content Include="Images\companylogo2.jpg" />
+    <Content Include="Images\CSAService.png" />
+    <Content Include="Images\dcDetailButton.png" />
+    <Content Include="Images\dqDetailButton.png" />
+    <Content Include="Images\eas.ico" />
+    <Content Include="Images\EASService.png" />
+    <Content Include="Images\EPRI%28c%29.jpg" />
+    <Content Include="Images\eventDetailButton.png" />
+    <Content Include="Images\faultDetailButton.png" />
+    <Content Include="Images\gpa-lock.png" />
+    <Content Include="Images\GPA-Logo---30-pix%28on-white%29.png" />
+    <Content Include="Images\GPA-Logo.png" />
+    <Content Include="Images\gpa-smalllock.png" />
+    <Content Include="Images\GPALogoT.png" />
+    <Content Include="Images\ICFService.png" />
+    <Content Include="Images\loading.gif" />
+    <Content Include="Images\loadingbar.gif" />
+    <Content Include="Images\map-loading.gif" />
+    <Content Include="Images\openSEE-Screen-Header%28on-white%29.png" />
+    <Content Include="Images\openSEEDate.png" />
+    <Content Include="Images\openSEELogo.png" />
+    <Content Include="Images\openSEET.png" />
+    <Content Include="Images\openSTE.png" />
+    <Content Include="Images\password-meter.png" />
+    <Content Include="Images\PQ-Dashboard.jpg" />
+    <Content Include="Images\PQ-Dashboard.png" />
     <Content Include="Images\PQDashboard.png" />
+    <Content Include="Images\pqiButton.png" />
+    <Content Include="Images\rating.png" />
+    <Content Include="Images\RGB-master-epriweb.jpg" />
+    <Content Include="Images\seeButton.png" />
+    <Content Include="Images\steButton.png" />
+    <Content Include="Images\todaymockup.png" />
+    <Content Include="Images\TVAcompanylogo.jpg" />
+    <Content Include="Images\yesterdaymockup.png" />
+    <Content Include="mapService.asmx" />
+    <Content Include="MeterDisturbancesByLine.aspx" />
+    <Content Include="MeterEventsByLine.aspx" />
+    <Content Include="ModbusData.aspx" />
+    <Content Include="OpenSTE.aspx" />
+    <Content Include="Scripts\bootstrap-3.3.2.min.js" />
+    <Content Include="Scripts\bootstrap-multiselect.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="packages.config" />
@@ -239,29 +373,60 @@
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="fonts\fontawesome-webfont.eot" />
+    <Content Include="fonts\fontawesome-webfont.ttf" />
+    <Content Include="fonts\fontawesome-webfont.woff" />
+    <Content Include="fonts\fontawesome-webfont.woff2" />
+    <Content Include="fonts\FontAwesome.otf" />
     <None Include="Scripts\jquery-2.2.3.intellisense.js" />
+    <Content Include="Scripts\ChannelDataCompleteness.js" />
+    <Content Include="Scripts\ChannelDataQuality.js" />
+    <Content Include="Scripts\CustomGoogleMapMarker.js" />
+    <Content Include="Scripts\Default.js" />
+    <Content Include="Scripts\heatmap.js" />
+    <Content Include="Scripts\jquery-2.1.1.js" />
+    <Content Include="Scripts\jquery-2.1.3.min.js" />
     <Content Include="Scripts\jquery-2.2.3.js" />
     <Content Include="Scripts\jquery-2.2.3.min.js" />
+    <Content Include="Scripts\jquery-ui.js" />
+    <Content Include="Scripts\jquery.blockUI.js" />
+    <Content Include="Scripts\jquery.multiselect.filter.js" />
+    <Content Include="Scripts\jquery.multiselect.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.sparkline.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\jstorage.js" />
+    <Content Include="Scripts\keydragzoom.js" />
     <Content Include="Scripts\knockout-3.4.0.debug.js" />
     <Content Include="Scripts\knockout-3.4.0.js" />
     <Content Include="Scripts\knockout.mapping-latest.debug.js" />
     <Content Include="Scripts\knockout.mapping-latest.js" />
     <Content Include="Scripts\knockout.validation.js" />
     <Content Include="Scripts\knockout.validation.min.js" />
+    <Content Include="Scripts\leaflet-heatmap.js" />
+    <Content Include="Scripts\MeterDisturbancesByLine.js" />
+    <Content Include="Scripts\MeterEventsByLine.js" />
+    <Content Include="Scripts\ModbusData.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\moment.js" />
+    <Content Include="Scripts\OpenLayersDraggable.js" />
+    <Content Include="Scripts\OpenSEE.js" />
+    <Content Include="Scripts\OpenSTE.js" />
+    <Content Include="Scripts\PQIByEvent.js" />
+    <Content Include="Scripts\prettify.js" />
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.matchmedia.addListener.js" />
     <Content Include="Scripts\respond.matchmedia.addListener.min.js" />
     <Content Include="Scripts\respond.min.js" />
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\Site.js" />
+    <Content Include="signalService.asmx" />
+    <Content Include="ChannelDataCompleteness.aspx" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -295,12 +460,26 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Content\bootstrap\" />
+    <Folder Include="Content\graphics\" />
+    <Folder Include="Content\themes\" />
+    <Folder Include="Images\playericons\" />
+    <Folder Include="Scripts\D3\" />
+    <Folder Include="Scripts\flot\" />
+    <Folder Include="Scripts\Leaflet\" />
+    <Folder Include="Scripts\PrimeUI\" />
     <Folder Include="Views\Home\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />
     <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Scripts\knockout.validation.min.js.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\openHistorianXDALink\openHistorian.XDALink.csproj">
+      <Project>{7f731255-fa83-4dbf-9e0f-c22ae4845e76}</Project>
+      <Name>openHistorian.XDALink</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

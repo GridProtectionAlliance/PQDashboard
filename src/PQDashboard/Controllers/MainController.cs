@@ -24,7 +24,9 @@
 
 using System;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using System.Web.WebPages;
 using GSF.Data.Model;
@@ -93,6 +95,33 @@ namespace PQDashboard.Controllers
         public ActionResult Home()
         {
             m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
+            String sessionID = Session.SessionID;
+            try
+            {
+
+                //ViewBag.username = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+
+                //ViewBag.username = HttpContext.Current.User.Identity.Name;
+
+                //ViewBag.username = Request.ServerVariables.Get("AUTH_USER");
+
+                ViewBag.username = "External";
+
+                if (ViewBag.username == "")
+                {
+                    ViewBag.username = "External";
+                }
+
+                ViewBag.username = Regex.Replace(ViewBag.username, ".*\\\\(.*)", "$1", RegexOptions.None);
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.username = "";
+            }
+
+
             return View();
         }
 
