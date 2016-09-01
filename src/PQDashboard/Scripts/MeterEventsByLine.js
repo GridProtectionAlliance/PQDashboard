@@ -42,10 +42,6 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
                 columns: [
-                    //{ field: 'thesite', headerText: 'thesite', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'themeterid', headerText: 'MID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'thelineid', headerText: 'LID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
-                    //{ field: 'theeventid', headerText: 'EID', headerStyle: 'visibility: hidden; width: 0', bodyStyle: 'visibility: hidden; width: 0; height: 20px' },
                     { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true },
                     { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
                     { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
@@ -83,11 +79,6 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
                             return html;
                         }
                     }
-                    //{ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                    //{ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
-                    //{ field: 'EASService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.EASService, 'EASDetails.aspx', 'images/eas.ico', 'Launch EAS Details Page', 300, 200) } },
-                    //{ field: 'ICFService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.ICFService, 'ICFDetails.aspx', 'images/ICFService.png', 'Launch ICF Details Page', 300, 200) } },
-                    //{ field: 'CSAService', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeEASDetailsButton_html(row, row.CSAService, 'CSADetails.aspx', 'images/CSAService.png', 'Launch CSA Details Page', 300, 450) } },
                 ],
                 datasource: $.parseJSON(data.d)
             });
