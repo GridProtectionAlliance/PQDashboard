@@ -499,6 +499,7 @@
     <Folder Include="Content\graphics\" />
     <Folder Include="Content\themes\" />
     <Folder Include="Images\playericons\" />
+    <Folder Include="Images\StatusLights\" />
     <Folder Include="Scripts\D3\" />
     <Folder Include="Scripts\flot\" />
     <Folder Include="Scripts\Leaflet\" />

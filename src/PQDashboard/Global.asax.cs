@@ -36,6 +36,7 @@ using GSF.Configuration;
 using GSF.Data;
 using GSF.Identity;
 using GSF.Security;
+using GSF.Web.Embedded;
 using GSF.Web.Hubs;
 using GSF.Web.Model;
 using Microsoft.AspNet.SignalR;
@@ -67,6 +68,10 @@ namespace PQDashboard
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            // Add additional virtual path provider to allow access to embedded resources
+            EmbeddedResourceProvider.Register();
+
 
             GlobalSettings global = DefaultModel.Global;
 
