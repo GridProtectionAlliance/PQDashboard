@@ -55,7 +55,7 @@ var cache_Table_Data = null;
 var cache_Contour_Data = null;
 var brush = null;
 var cache_Last_Date = null;
-var leafletMap = {Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
+var leafletMap = {'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
 var contourOverlay = null;
@@ -4557,6 +4557,12 @@ function cancelCall(animationID) {
 }
 
 function showModbusData() {
+    $('#tabs-modbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top - 25);
+    $('#modbusFrame').attr({
+        "src": "Main/GraphMeasurements",
+        'width': '100%',
+        'height': $(window).height() - $('#tabs-' + currentTab).offset().top - 25
+    });
 
 }
 /// EOF

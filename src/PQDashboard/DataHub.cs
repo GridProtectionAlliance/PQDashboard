@@ -55,6 +55,8 @@ namespace PQDashboard
         // Fields
         private readonly DataContext m_coreContext;
         private bool m_disposed;
+        private readonly DataSubscriptionOperations m_dataSubscriptionOperations;
+
 
         #endregion
 
@@ -63,6 +65,8 @@ namespace PQDashboard
         public DataHub()
         {
             m_coreContext = new DataContext("securityProvider",exceptionHandler: MvcApplication.LogException);
+            m_dataSubscriptionOperations = new DataSubscriptionOperations(this, MvcApplication.LogStatusMessage, MvcApplication.LogException);
+
         }
 
         #endregion
@@ -401,6 +405,69 @@ namespace PQDashboard
         }
 
         #endregion
+
+        #region [ Data Subscription Operations ]
+
+        // These functions are dependent on subscriptions to data where each client connection can customize the subscriptions, so an instance
+        // of the DataHubSubscriptionClient is created per SignalR DataHub client connection to manage the subscription life-cycles.
+
+        public IEnumerable<MeasurementValue> GetMeasurements()
+        {
+            return m_dataSubscriptionOperations.GetMeasurements();
+        }
+
+        public IEnumerable<DeviceDetail> GetDeviceDetails()
+        {
+            return m_dataSubscriptionOperations.GetDeviceDetails();
+        }
+
+        public IEnumerable<MeasurementDetail> GetMeasurementDetails()
+        {
+            return m_dataSubscriptionOperations.GetMeasurementDetails();
+        }
+
+        public IEnumerable<PhasorDetail> GetPhasorDetails()
+        {
+            return m_dataSubscriptionOperations.GetPhasorDetails();
+        }
+
+        public IEnumerable<SchemaVersion> GetSchemaVersion()
+        {
+            return m_dataSubscriptionOperations.GetSchemaVersion();
+        }
+
+        public IEnumerable<MeasurementValue> GetStats()
+        {
+            return m_dataSubscriptionOperations.GetStats();
+        }
+
+        public IEnumerable<StatusLight> GetLights()
+        {
+            return m_dataSubscriptionOperations.GetLights();
+        }
+
+        public void InitializeSubscriptions()
+        {
+            m_dataSubscriptionOperations.InitializeSubscriptions();
+        }
+
+        public void TerminateSubscriptions()
+        {
+            m_dataSubscriptionOperations.TerminateSubscriptions();
+        }
+
+        public void UpdateFilters(string filterExpression)
+        {
+            m_dataSubscriptionOperations.UpdateFilters(filterExpression);
+        }
+
+        public void StatSubscribe(string filterExpression)
+        {
+            m_dataSubscriptionOperations.StatSubscribe(filterExpression);
+        }
+
+        #endregion
+
 
         #region [ Misc Hub Operations]
 

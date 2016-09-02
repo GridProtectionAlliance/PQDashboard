@@ -60,23 +60,35 @@
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.1.313.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.1.313-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="GSF.Communication, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Communication.2.1.314-beta\lib\net46\GSF.Communication.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GSF.Core, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.1.314-beta\lib\net46\GSF.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Security, Version=2.1.300.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Security.2.1.300-beta\lib\net46\GSF.Security.dll</HintPath>
+    <Reference Include="GSF.Security, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Security.2.1.314-beta\lib\net46\GSF.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.ServiceModel, Version=2.1.300.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceModel.2.1.300-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+    <Reference Include="GSF.ServiceModel, Version=2.1.312.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceModel.2.1.312-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.Web, Version=2.1.300.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Web.2.1.300-beta\lib\net46\GSF.Web.dll</HintPath>
+    <Reference Include="GSF.ServiceProcess, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceProcess.2.1.314-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GSF.TimeSeries, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.TimeSeries.2.1.314-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GSF.Web, Version=2.1.312.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Web.2.1.312-beta\lib\net46\GSF.Web.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Ionic.Zlib">
@@ -234,6 +246,8 @@
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Controllers\SystemController.cs" />
     <Compile Include="DataHub.cs" />
+    <Compile Include="DataSubscriptionHubClient.cs" />
+    <Compile Include="DataSubscriptionOperations.cs" />
     <Compile Include="EASServiceTemplate.aspx.cs">
       <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -266,11 +280,17 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Model\AppModel.cs" />
+    <Compile Include="Model\DeviceDetail.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
+    <Compile Include="Model\MeasurementDetail.cs" />
+    <Compile Include="Model\MeasurementValue.cs" />
     <Compile Include="Model\Menu.cs" />
     <Compile Include="Model\MenuItem.cs" />
     <Compile Include="Model\Page.cs" />
+    <Compile Include="Model\PhasorDetail.cs" />
+    <Compile Include="Model\SchemaVersion.cs" />
     <Compile Include="Model\Settings.cs" />
+    <Compile Include="Model\StatusLight.cs" />
     <Compile Include="Model\ValueList.cs" />
     <Compile Include="Model\ValueListGroup.cs" />
     <Compile Include="OpenSEE.aspx.cs">
@@ -318,6 +338,9 @@
     <Content Include="Content\primeui.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="CSAService.aspx" />
+    <Content Include="Data\PostgreSQL\GSFSchema.sql" />
+    <Content Include="Data\PostgreSQL\InitialDataSet.sql" />
+    <Content Include="Data\PostgreSQL\SampleDataSet.sql" />
     <Content Include="EASServiceTemplate.aspx" />
     <Content Include="eventService.asmx" />
     <Content Include="FaultLocation.aspx" />
@@ -468,6 +491,7 @@
     <Content Include="Views\System\Pages.cshtml" />
     <Content Include="Views\System\ValueListGroups.cshtml" />
     <Content Include="Views\System\ValueListItems.cshtml" />
+    <Content Include="Views\Main\GraphMeasurements.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

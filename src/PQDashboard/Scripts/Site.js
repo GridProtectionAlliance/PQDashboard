@@ -30,17 +30,17 @@ var securityHub, securityHubClient;
 var hubIsConnecting = false;
 var hubIsConnected = false;
 
-function hideSideBar() {
-    $("#pageWrapper").removeClass("toggled");
-}
+//function hideSideBar() {
+//    $("#pageWrapper").removeClass("toggled");
+//}
 
-function showSideBar() {
-    $("#pageWrapper").addClass("toggled");
-}
+//function showSideBar() {
+//    $("#pageWrapper").addClass("toggled");
+//}
 
-function toggleSideBar() {
-    $("#pageWrapper").toggleClass("toggled");
-}
+//function toggleSideBar() {
+//    $("#pageWrapper").toggleClass("toggled");
+//}
 
 function hideErrorMessage() {
     const wasVisible = $("#error-msg-block").is(":visible");

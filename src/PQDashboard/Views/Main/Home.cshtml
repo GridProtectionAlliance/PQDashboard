@@ -166,7 +166,7 @@
                 
                 <div  id="tabs-Overview-Today">
                     <img class="overviewImg" src="~/Images/todaymockup.png"/>
-<%--                    <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
+                        <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
                         <div style="text-align: center; color: white"><h3>PQ Overview for <span id="overviewDate"></span></h3></div>
                         <div style="height: 1px; width: 80%; display: inline-block; background-color: #66ffe0"></div>
                         <div id="elementContainer" >
@@ -177,15 +177,17 @@
                             <div id="voltageDisturbances"></div>
                             <div id="faults"></div>
                         </div>
-                    </div>--%>
+                    </div>
                 </div>
 
                 <div  id="tabs-Overview-Yesterday">
                     <img class="overviewImg" src="~/Images/yesterdaymockup.png"/>
-<%--                    <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
-                        <div style="text-align: center; color: white"><h3>PQ Overview for <span id="overviewDate"></span></h3></div>
+                    <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
+                        <div style="text-align: center; color: white">
+                            <h3>PQ Overview for <span id="overviewDate"></span></h3>
+                        </div>
                         <div style="height: 1px; width: 80%; display: inline-block; background-color: #66ffe0"></div>
-                        <div id="elementContainer" >
+                        <div id="elementContainer">
                             <div id="meters"></div>
                             <div id="alarms"></div>
                             <div id="offnormal"></div>
@@ -193,11 +195,12 @@
                             <div id="voltageDisturbances"></div>
                             <div id="faults"></div>
                         </div>
-                    </div>--%>
+                    </div>
                 </div>
-                
-                <div  id="tabs-ModbusData">
-                </div>
+
+            <div id="tabs-ModbusData">
+                <iframe id="modbusFrame"></iframe>
+            </div>
 
                 <div  id="tabs-Events">
                     <div  id="column_1" class="column resizeable">

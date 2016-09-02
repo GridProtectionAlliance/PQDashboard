@@ -131,6 +131,12 @@ namespace PQDashboard.Controllers
             return View();
         }
 
+        public ActionResult GraphMeasurements()
+        {
+            m_appModel.ConfigureView(Url.RequestContext, "GraphMeasurements", ViewBag);
+            return View();
+        }
+
         public ActionResult Contact()
         {
             m_appModel.ConfigureView(Url.RequestContext, "Contact", ViewBag);
