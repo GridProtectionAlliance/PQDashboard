@@ -153,7 +153,6 @@
                     <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
                     <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
                     <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
-                    <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
                 </ul>
                 
                 <div  id="tabs-Overview-Today">
@@ -186,9 +185,6 @@
                             <div id="faults"></div>
                         </div>
                     </div>--%>
-                </div>
-                
-                <div  id="tabs-ModbusData">
                 </div>
 
                 <div  id="tabs-Events">
