@@ -482,6 +482,8 @@
                 return 0;
             });
             $.each(deviceData, function (key, dd) {
+                if (dd.Enabled === false) return;
+                if (dd.ParentAcronym === "") dd.ParentAcronym = "Others";
                 if (parentDevice.indexOf(dd.ParentAcronym) == -1) {
                     parentDevice.push(dd.ParentAcronym);
                     $('#devicelistinner').append('<div class="panel-heading"><img id="img' + dd.ParentAcronym + '" src="@Url.Content("~/Images/StatusLights/Small/greylight.png")" style ="padding-left: 6px" /><button class="btn btn-link btn-sm" style="font-size: x-small;" data-toggle="collapse" data-parent="#devicelist" data-target="#dd' + dd.ParentAcronym + '">' + dd.ParentAcronym + '</button><button id="btn' + dd.ParentAcronym + '" class="btn btn-xs badge pull-right" style="font-size: xx-small; margin: 5px 15px 0 0">Stats</button><div id="dd' + dd.ParentAcronym + '" class="panel-collapse collapse in"><div class="panel-body"><ul class="list-group nowrap" id="parent' + dd.ParentAcronym + '"></ul></div></div></div>');

@@ -4557,11 +4557,11 @@ function cancelCall(animationID) {
 }
 
 function showModbusData() {
-    $('#tabs-modbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top - 25);
+    $('#tabs-modbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
     $('#modbusFrame').attr({
         "src": "Main/GraphMeasurements",
         'width': '100%',
-        'height': $(window).height() - $('#tabs-' + currentTab).offset().top - 25
+        'height': $(window).height() - $('#tabs-' + currentTab).offset().top
     });
 
 }
