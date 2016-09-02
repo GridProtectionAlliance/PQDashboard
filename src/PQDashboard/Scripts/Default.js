@@ -1460,7 +1460,7 @@ function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
             heatmap_Cache_Date_From = datefrom;
             heatmap_Cache_Date_To = dateto;
             heatmapCache = data.d;
-            var map = getMapInstance(currentTab);
+            //var map = getMapInstance(currentTab);
             LoadHeatmapLeaflet(data.d);
 
         },
@@ -1495,7 +1495,7 @@ function getEventsHeatmapSags(currentTab, datefrom, dateto) {
             heatmap_Cache_Date_From = datefrom;
             heatmap_Cache_Date_To = dateto;
             heatmapCache = data.d;
-            var map = getMapInstance(currentTab);
+            //var map = getMapInstance(currentTab);
             LoadHeatmapLeaflet(data.d);
 
         },
@@ -3281,6 +3281,9 @@ function resizeMapAndMatrix(newTab) {
 
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
+    $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
+    $('#tabs-HistorianData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
+
     $("#theMap" + newTab).css("height", columnheight);
 
     $("#theMatrix" + newTab).css("height", columnheight);
@@ -4036,6 +4039,9 @@ function buildPage() {
             else if(newTab === "ModbusData"){
                 showModbusData();
             }
+            else if (newTab === "HistorianData") {
+                showHistorianData();
+            }
             else {
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
@@ -4071,6 +4077,9 @@ function buildPage() {
 
     } else if (currentTab === "ModbusData") {
         showModbusData();
+    }
+    else if (currentTab === "HistorianData") {
+        showHistorianData();
     }
     else {
         cache_Graph_Data = null;
@@ -4557,12 +4566,34 @@ function cancelCall(animationID) {
 }
 
 function showModbusData() {
-    $('#tabs-modbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
+    $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
     $('#modbusFrame').attr({
         "src": "Main/GraphMeasurements",
         'width': '100%',
         'height': $(window).height() - $('#tabs-' + currentTab).offset().top
     });
 
+    $(window).resize(function () {
+        $('#modbusFrame').attr({
+            'height': $(window).height() - $('#tabs-' + currentTab).offset().top
+        });
+    });
+
+
+}
+
+function showHistorianData() {
+    $('#tabs-HistorianData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
+    $('#historianFrame').attr({
+        "src": 'http://'+historianConnection,
+        'width': '100%',
+        'height': $(window).height() - $('#tabs-' + currentTab).offset().top
+    });
+
+    $(window).resize(function () {
+        $('#historianFrame').attr({
+            'height': $(window).height() - $('#tabs-' + currentTab).offset().top
+        });
+    });
 }
 /// EOF

@@ -1,12 +1,12 @@
-﻿@*******************************************************************************************************
+﻿@**//******************************************************************************************************
 //  _Layout.cshtml - Gbtc
 //
 //  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
-//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
-//  file except in compliance with the License. You may obtain a copy of the License at:
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+//  not use this file except in compliance with the License. You may obtain a copy of the License at:
 //
 //      http://opensource.org/licenses/MIT
 //
@@ -16,10 +16,11 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  02/17/2016 - J. Ritchie Carroll
+//  09/02/2016 - Billy Ernest
 //       Generated original version of source code.
 //
-//*****************************************************************************************************@
+//******************************************************************************************************@
+
 @using System.Linq
 @using GSF
 @using GSF.Data.Model
@@ -28,77 +29,27 @@
 @using Page = PQDashboard.Model.Page
 @model AppModel
 @{
+
+    #if DEBUG
+        const string min = "";
+    #else
+        const string min = ".min";
+    #endif
+
     DataContext dataContext = Model.DataContext;
+    DataContext securityDataContext = Model.SecurityDataContext;
+
     Dictionary<string, string> layoutSettings = Model.Global.LayoutSettings;
     string copyrightText, copyrightUrl, setting;
     Page page = ViewBag.Page;
 
-    bool showCopyright = (layoutSettings.TryGetValue("showCopyright", out setting) && setting.ParseBoolean());
 
-    if (!layoutSettings.TryGetValue("copyrightText", out copyrightText)) {
-        copyrightText = "Copyright © 2016, Grid Protection Alliance";
-    }
+    List<Menu> menuFields = securityDataContext.Table<Menu>().QueryRecords().ToList();
+    List<MenuItem> menuItems = securityDataContext.Table<MenuItem>().QueryRecords().ToList();
+    List<Page> pages = securityDataContext.Table<Page>().QueryRecords().ToList();
 
-    if (!layoutSettings.TryGetValue("copyrightUrl", out copyrightUrl)) {
-        copyrightUrl = "~/Main/Contact";
-    }
-
-    // Look for overridden menuImagePath from page's server configuration settings, otherwise use page default
-    string menuImagePath = Model.GetPageSetting(ViewBag, layoutSettings, "menuImagePath", "~/Images/Menu/");
-    menuImagePath = Url.Content(menuImagePath).EnsureEnd('/');
-
-    List<MenuItem> menuItems;
-    int menuID = page?.MenuID ?? 0;
-
-    if (menuID == 100)
-    {
-        // Hide menu when menu ID is 100 - this currently means Null, or no menu
-        ViewBag.PageHasMenu = false;
-        menuItems = new List<MenuItem>();
-    }
-    else
-    {
-        // Load menu items for this page from database table
-        menuItems = dataContext.Table<MenuItem>().QueryRecords("SortOrder", new RecordRestriction("(MenuID = 0 OR MenuID = {0}) AND Enabled <> 0", menuID)).ToList();
-        List<MenuItem> unavailableMenuItems = new List<MenuItem>();
-
-        foreach (MenuItem menuItem in menuItems)
-        {
-            // If no menu link was provided, check for page table reference
-            if (string.IsNullOrWhiteSpace(menuItem.Link) && menuItem.PageID > 0)
-            {
-                // Look-up associated page form menu item
-                Page menuPage = dataContext.Table<Page>().LoadRecord(menuItem.PageID);
-
-                // Check if menu item is enabled, page location is specified and that user has rights to page
-                if (menuPage != null && menuPage.Enabled && !string.IsNullOrWhiteSpace(menuPage.PageLocation) &&
-                    !dataContext.UserIsInRole(menuPage.ExcludedRoles) && dataContext.UserIsInRole(menuPage.IncludedRoles.ToNonNullNorWhiteSpace("*")))
-                {
-                    // Update menu item link
-                    menuItem.Link = menuPage.PageLocation;
-                }
-                else
-                {
-                    // Menu item is unavailable to user
-                    unavailableMenuItems.Add(menuItem);
-                }
-            }
-        }
-
-        // Remove menu items that are not available to user
-        foreach (MenuItem menuItem in unavailableMenuItems)
-        {
-            menuItems.Remove(menuItem);
-        }
-    }
-
-    // Define ViewBag.CustomTitle in page code for custom page titles
     string pageTitle = ViewBag.CustomTitle ?? ViewBag.Title;
 
-    // Add ViewBag.PageHasMenu = false to page code to disable side-bar menu on page
-    bool pageHasMenu = ViewBag.PageHasMenu ?? true;
-
-    int lastMenuID = 0;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -111,126 +62,211 @@
     <meta name="application-name" content="@Model.Global.ApplicationName" />
     <meta name="description" content="@Model.Global.ApplicationDescription" />
     <meta name="keywords" content="@Model.Global.ApplicationKeywords" />
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet">
-    <link href="@Url.Content(Model.Global.BootstrapTheme)" rel="stylesheet">
-    @if (Model.Global.BootstrapTheme.EndsWith("bootstrap.min.css")) {
-    <link href="~/Content/bootstrap-theme.min.css" rel="stylesheet">
-    }
-    @Styles.Render("~/css.bundle/bootstrap")
-    @Styles.Render("~/css.bundle/jqueryui")
-    @Styles.Render("~/css.bundle/primeui")
-    @Styles.Render("~/css.bundle/site")
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link href="Content/bootstrap@(min).css" rel="stylesheet">
+    <link href="@Model.Global.BootstrapTheme" rel="stylesheet">
+    <link href="Content/bootstrap-datepicker3@(min).css" rel="stylesheet">
+    <link href="Content/jquery-ui@(min).css" rel="stylesheet">
+    <link href="Content/primeui-theme.css" rel="stylesheet">
+    <link href="Content/font-awesome@(min).css" rel="stylesheet">
+    <link href="Content/primeui@(min).css" rel="stylesheet">
+    <link href="Content/Site.css" rel="stylesheet">
     @RenderSection("StyleSheets", false)
+    <style>
+        @@media (max-width: 995px) {
+            .navbar-header {
+                float: none;
+            }
+
+            .navbar-left, .navbar-right {
+                float: none !important;
+            }
+
+            .navbar-toggle {
+                display: block;
+            }
+
+            .navbar-collapse {
+                border-top: 1px solid transparent;
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+
+            .navbar-fixed-top {
+                top: 0;
+                border-width: 0 0 1px;
+            }
+
+            .navbar-collapse.collapse {
+                display: none !important;
+            }
+
+            .navbar-nav {
+                float: none !important;
+                margin-top: 7.5px;
+            }
+
+                .navbar-nav > li {
+                    float: none;
+                }
+
+                    .navbar-nav > li > a {
+                        padding-top: 10px;
+                        padding-bottom: 10px;
+                    }
+
+            .collapse.in {
+                display: block !important;
+            }
+        }
+    </style>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="~/Images/Icons/apple-touch-icon-57x57.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="~/Images/Icons/apple-touch-icon-114x114.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="~/Images/Icons/apple-touch-icon-72x72.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="~/Images/Icons/apple-touch-icon-144x144.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="~/Images/Icons/apple-touch-icon-60x60.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="~/Images/Icons/apple-touch-icon-120x120.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="~/Images/Icons/apple-touch-icon-76x76.png" />
-    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="~/Images/Icons/apple-touch-icon-152x152.png" />
-    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-196x196.png" sizes="196x196" />
-    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-16x16.png" sizes="16x16" />
-    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-128.png" sizes="128x128" />
-    <link rel="shortcut icon" href="~/Images/Icons/favicon.ico" />
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="Images/Icons/apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="Images/Icons/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="Images/Icons/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="Images/Icons/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="Images/Icons/apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="Images/Icons/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="Images/Icons/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="Images/Icons/apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="Images/Icons/favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="Images/Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="Images/Icons/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="Images/Icons/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="Images/Icons/favicon-128.png" sizes="128x128" />
+    <link rel="shortcut icon" href="Images/Icons/favicon.ico" />
     <meta name="msapplication-TileColor" content="#AABBAA" />
-    <meta name="msapplication-TileImage" content="~/Images/Icons/mstile-144x144.png" />
-    <meta name="msapplication-square70x70logo" content="~/Images/Icons/mstile-70x70.png" />
-    <meta name="msapplication-square150x150logo" content="~/Images/Icons/mstile-150x150.png" />
-    <meta name="msapplication-wide310x150logo" content="~/Images/Icons/mstile-310x150.png" />
-    <meta name="msapplication-square310x310logo" content="~/Images/Icons/mstile-310x310.png" />
-    @Scripts.Render("~/js.bundle/modernizr")
+    <meta name="msapplication-TileImage" content="Images/Icons/mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="Images/Icons/mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="Images/Icons/mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="Images/Icons/mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="Images/Icons/mstile-310x310.png" />
+    <script src="Scripts/modernizr-2.8.3.js"></script>
     <script>
         const DateFormat = "@Model.Global.DateFormat";
         const TimeFormat = "@Model.Global.TimeFormat";
         const DateTimeFormat = "@Model.Global.DateTimeFormat";
     </script>
-    
 </head>
-<body>
-    <!-- #pageWrapper -->
-    <div id="pageWrapper"@Html.Raw(pageHasMenu ? "" : " class=\"toggled\"")>
-        @if (pageHasMenu) {
-            <!-- #sidebarWrapper -->
-            <button type="button" class="btn btn-link btn-sm" id="toggleMenuButton" title="Toggle Menu"><span class="glyphicon glyphicon-expand" id="toggleMenuIcon"></span></button>
-            <div id="sidebarWrapper">
-                <ul class="sidebar-nav" style="padding-bottom: 30px">
-                    <li class="sidebar-brand" title="@Model.Global.ApplicationDescription">
-                        <a href="/" class="navbar-brand" style="margin-top: -5px"><img class="pull-left" style="padding: 12px 10px 10px 20px" alt="@Model.Global.ApplicationName" src="~/Images/@(Model.Global.ApplicationName).png"></a>
-                    </li>
-                    @foreach (MenuItem menuItem in menuItems)
-                    {
-                        if (menuItem.PageID == 0 || string.IsNullOrWhiteSpace(menuItem.Link)) {
-                            if (lastMenuID != 0) {
-                                <li><img src="@($"{menuImagePath}{menuItem.Image}")" alt="@menuItem.ImageAlt">@Html.Raw(menuItem.Text)</li>
+<body role="document">
+    @if (ViewBag.ShowMenu ?? true)
+    {
+        <div class="navbar navbar-inverse navbar-fixed-top" id="menuBar">
+            <div class="container">
+                <div class="navbar-header">
+                    <img class="pull-left" style="padding: 10px" alt="@Model.Global.ApplicationName" src="Images/@(Model.Global.ApplicationName).png">
+                    <a href="Index.cshtml" class="navbar-brand" style="font-size: larger; color: white" data-toggle="tooltip" data-placement="bottom" title="@Model.Global.ApplicationDescription">@Model.Global.ApplicationName</a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        @{
+                            foreach (Menu menu in menuFields)
+                            {
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@menu.Name <span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+
+                                        @foreach (MenuItem menuItem in menuItems)
+                                        {
+                                            <li><a href="@Url.Content(menuItem.Link)">Trend / Export Archived Data</a></li>
+                                        }
+                                    </ul>
+                                </li>
                             }
                         }
-                        else {
-                            <li><a href="@Html.Raw(Url.Content(menuItem.Link))"><img src="@($"{menuImagePath}{menuItem.Image}")" alt="@menuItem.ImageAlt">@Html.Raw(menuItem.Text)</a></li>
-                        }
-
-                        lastMenuID = menuItem.PageID;
-                    }
-                </ul>
-                <footer id="footer">
-                    @if (showCopyright) {
-                        <p><a class="custom-text" href="@Url.Content(copyrightUrl)">@copyrightText</a></p>
-                    }
-                </footer>
-            </div>
-            <!-- /#sidebarWrapper -->
-        }
-        else {
-            <div id="sidebarWrapper" style="display: none"></div>
-        }
-        <!--#pageContentWrapper -->
-        <div class="container theme-showcase" role="main" id="pageContentWrapper">
-            <div class="page-header" id="pageHeader">
-                <span class="glyphicon glyphicon-refresh pre-cache"></span>
-                <span class="glyphicon glyphicon-info-sign pre-cache"></span>
-                <span class="glyphicon glyphicon-exclamation-sign pre-cache"></span>
-                <div class="alert alert-info fade in" role="alert" id="info-msg-block" style="display: none">
-                    <a href="#" class="close" aria-label="close" id="dismissInfoMsg">&times;</a>
-                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>&nbsp;
-                    <span class="sr-only">Info</span>
-                    <span id="info-msg-text"></span>
+                        <li @Html.Raw(pageTitle == "Home" ? "class=\"active\"" : "")><a href="Index.cshtml">Home</a></li>
+                        <li @Html.Raw(pageTitle == "Devices" ? "class=\"active\"" : "")><a href="Devices.cshtml">Devices</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Monitoring <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="TrendMeasurements.cshtml">Trend / Export Archived Data</a></li>
+                                <li><a href="GraphMeasurements.cshtml">Real-time Measurements</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="RemoteConsole.cshtml">Remote Service Console</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Meta-data <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="Companies.cshtml">Companies</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="Vendors.cshtml">Vendors</a></li>
+                                <li><a href="VendorDevices.cshtml">Vendor Devices</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="Users.cshtml">Users</a></li>
+                                <li><a href="Groups.cshtml">Groups</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="SelectTheme.cshtml">Select Theme</a></li>
+                            </ul>
+                        </li>
+                        <li @Html.Raw(pageTitle == "Help" ? "class=\"active\"" : "")><a href="Help.cshtml">Help</a></li>
+                    </ul>
+                    <p class="nav navbar-text navbar-right">
+                        <button type="button" class="btn btn-sm btn-info disabled">Log Out</button>
+                        <a href="https://www.gridprotectionalliance.org/" target="_blank" style="padding-left: 10px">
+                            <img alt="Grid Protection Alliance" src="Images/gpa-smalllock.png">
+                        </a>
+                    </p>
                 </div>
-                <div class="alert alert-danger fade in" role="alert" id="error-msg-block" style="display: none">
-                    <a href="#" class="close" aria-label="close" id="dismissErrorMsg">&times;</a>
-                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>&nbsp;
-                    <span class="sr-only">Error</span>
-                    <span id="error-msg-text"></span>
-                </div>
-                <h3>
-                    @pageTitle <small class="pull-right" id="titleText" style="margin-top: 8px"></small>
-                </h3>
             </div>
-            <!-- Page Body for @(Request?.Url?.AbsolutePath) -->
-            @RenderBody()
-
+        </div><!--/.navbar -->
+    }
+    else {
+        <div id="menuBar"></div>
+    }
+    <div class="container theme-showcase" role="main" id="bodyContainer">
+        <div class="page-header" id="pageHeader">
+            <span class="glyphicon glyphicon-refresh pre-cache"></span>
+            <span class="glyphicon glyphicon-info-sign pre-cache"></span>
+            <span class="glyphicon glyphicon-exclamation-sign pre-cache"></span>
+            <div class="alert alert-info fade in" role="alert" id="info-msg-block" style="display: none">
+                <a href="#" class="close" aria-label="close" id="dismissInfoMsg">&times;</a>
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>&nbsp;
+                <span class="sr-only">Info</span>
+                <span id="info-msg-text"></span>
+            </div>
+            <div class="alert alert-danger fade in" role="alert" id="error-msg-block" style="display: none">
+                <a href="#" class="close" aria-label="close" id="dismissErrorMsg">&times;</a>
+                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>&nbsp;
+                <span class="sr-only">Error</span>
+                <span id="error-msg-text"></span>
+            </div>
+            <h3>
+                @pageTitle <small class="pull-right" id="titleText" style="margin-top: 8px"></small>
+            </h3>
         </div>
-        <!--/#pageContentWrapper -->
-    </div>
-    <!-- /#pageWrapper -->
-    @Scripts.Render("~/js.bundle/jquery")
-    @Scripts.Render("~/js.bundle/jqueryui")
-    @Scripts.Render("~/js.bundle/bootstrap")
-    @Scripts.Render("~/js.bundle/signalR")
-    @Scripts.Render("~/js.bundle/gsfwebclient")
-    @*ReSharper disable once Html.PathError*@ 
-    <script src="@Url.Content("~/signalr/hubs")"></script>
-    @Scripts.Render("~/js.bundle/primeui")
-    @Scripts.Render("~/js.bundle/site")
-    @Html.Raw(ViewBag.PageControlScripts?.ToString())
+        <!-- Page Body for @ViewBag.Request.RequestUri.AbsolutePath -->
+        @RenderBody()
+
+    </div><!--/.container -->
+    <script src="Scripts/jquery-2.2.1@(min).js"></script>
+    <script src="Scripts/jquery-ui@(min).js"></script>
+    <script src="Scripts/bootstrap@(min).js"></script>
+    <script src="Scripts/ie10-viewport-bug-workaround.js"></script>
+    <script src="Scripts/respond@(min).js"></script>
+    <script src="Scripts/bootstrap-datepicker@(min).js"></script>
+    <script src="Scripts/bootstrap-toolkit@(min).js"></script>
+    <script src="Scripts/jquery.signalR-2.2.0@(min).js"></script>
+    <script src="@("@GSF/Web/Model/Scripts/gsf.web.client.js")"></script>
+    <script src="signalr/hubs"></script>
+    <script src="Scripts/plugins-all.js"></script>
+    <script src="Scripts/primeui@(min).js"></script>
+    <script src="Scripts/Site.js"></script>
+    @Html.Raw(ViewBag.PageControlScripts.ToString())
     @RenderSection("Scripts", false)
 </body>
 </html>

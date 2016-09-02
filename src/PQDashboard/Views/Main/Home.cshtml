@@ -21,13 +21,22 @@
     //
     //*****************************************************************************************************@
 @using GSF
+@using GSF.Data
+@using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
 @model AppModel
 @{
     Layout = "";
     DataContext dataContext = Model.DataContext;
+    int index = 0;
+    string historianConnection = "";
 
+    using(AdoDataConnection conn = new AdoDataConnection("securityProvider"))
+    {
+        index = conn.ExecuteScalar<int>("Select ID FROM ValueListGroup WHERE Name = 'ModbusSubscriptions'");
+        historianConnection = Url.Content((conn.ExecuteScalar<string>("Select Text  FROM ValueList WHERE GroupID = {0} AND IsDefault = 1", index).Split('=')[1].Split(':')[0] + ":8180"));
+    }
 
 }
 <!DOCTYPE html>
@@ -89,7 +98,9 @@
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
    	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
-
+    <script>
+        var historianConnection = '@historianConnection';
+    </script>
   
 </head>
     
@@ -162,6 +173,7 @@
                     <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
                     <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
                     <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
+                    <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
                 </ul>
                 
                 <div  id="tabs-Overview-Today">
@@ -202,7 +214,11 @@
                 <iframe id="modbusFrame"></iframe>
             </div>
 
-                <div  id="tabs-Events">
+            <div id="tabs-HistorianData">
+                <iframe id="historianFrame"></iframe>
+            </div>
+
+            <div  id="tabs-Events">
                     <div  id="column_1" class="column resizeable">
                         <div  class="portlet" id="Portlet1Events">
                             <div  class="portlet-header"><div class="portlet-header-text" style="display: inline">Events Overview (For Date Range)</div></div>
