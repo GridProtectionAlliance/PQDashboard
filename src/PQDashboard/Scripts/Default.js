@@ -4568,7 +4568,8 @@ function cancelCall(animationID) {
 function showModbusData() {
     $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
     $('#modbusFrame').attr({
-        "src": "Main/GraphMeasurements",
+        //"src": "Main/GraphMeasurements",
+        "src": historianConnection + '/GraphMeasurements.cshtml?ShowMenu=false',
         'width': '100%',
         'height': $(window).height() - $('#tabs-' + currentTab).offset().top
     });
@@ -4585,7 +4586,7 @@ function showModbusData() {
 function showHistorianData() {
     $('#tabs-HistorianData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
     $('#historianFrame').attr({
-        "src": 'http://'+historianConnection,
+        "src": historianConnection + '/TrendMeasurements.cshtml?ShowMenu=false',
         'width': '100%',
         'height': $(window).height() - $('#tabs-' + currentTab).offset().top
     });

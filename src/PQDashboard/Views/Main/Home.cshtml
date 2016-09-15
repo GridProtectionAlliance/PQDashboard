@@ -34,8 +34,8 @@
 
     using(AdoDataConnection conn = new AdoDataConnection("securityProvider"))
     {
-        index = conn.ExecuteScalar<int>("Select ID FROM ValueListGroup WHERE Name = 'ModbusSubscriptions'");
-        historianConnection = Url.Content((conn.ExecuteScalar<string>("Select Text  FROM ValueList WHERE GroupID = {0} AND IsDefault = 1", index).Split('=')[1].Split(':')[0] + ":8180"));
+        index = conn.ExecuteScalar<int>("Select ID FROM ValueListGroup WHERE Name = 'HistorianSubscriptions'");
+        historianConnection = Url.Content(conn.ExecuteScalar<string>("Select Text  FROM ValueList WHERE GroupID = {0} AND IsDefault = 1", index));
     }
 
 }
