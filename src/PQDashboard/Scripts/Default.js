@@ -1349,7 +1349,9 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
     $('#' + thediv).bind("plothover", function (event, pos, item) {
         if (item) {
             var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
-            var html = '<div>' + time + '</div>';
+            var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
+
+            var html = '<div>' + thedate + '</div>';
             html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? parseFloat(item.datapoint[1]).toFixed(3) : (item.datapoint[1] - item.datapoint[2]).toFixed(3) + ' - ' + (item.datapoint[1] + item.datapoint[3]).toFixed(3)) + '</span></div>';
             $("#tooltip").html(html)
                 .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid ' + item.series.color })
