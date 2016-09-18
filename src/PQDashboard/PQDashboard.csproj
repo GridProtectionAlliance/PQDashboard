@@ -233,8 +233,10 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Content Include="ChannelDataCompleteness.aspx" />
     <Content Include="ChannelDataCompleteness.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>ChannelDataCompleteness.aspx</DependentUpon>
     </Content>
     <Content Include="ChannelDataQuality.aspx.cs">
       <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
@@ -1245,7 +1247,6 @@
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\Site.js" />
     <Content Include="signalService.asmx" />
-    <Content Include="ChannelDataCompleteness.aspx" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

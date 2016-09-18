@@ -24,7 +24,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -44,7 +43,6 @@ using GSF.Configuration;
 using GSF.Data;
 using GSF.Drawing;
 using GSF.Geo;
-using GSF.IO;
 using GSF.NumericalAnalysis.Interpolation;
 using GSF.Threading;
 using openHistorian.XDALink;
@@ -136,6 +134,7 @@ public class mapService : WebService
     public class ContourQuery
     {
         public string ColorScaleName { get; set; }
+        public string Meters { get; set; }
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public string DataType { get; set; }
@@ -1090,7 +1089,7 @@ public class mapService : WebService
         };
     }
 
-    [WebMethod(EnableSession = true)]
+    [WebMethod]
     public void getContourTile()
     {
         ContourQuery contourQuery = new ContourQuery()
@@ -1099,7 +1098,8 @@ public class mapService : WebService
             EndDate = HttpContext.Current.Request.QueryString["EndDate"],
             ColorScaleName = HttpContext.Current.Request.QueryString["ColorScaleName"],
             DataType = HttpContext.Current.Request.QueryString["DataType"],
-            UserName = HttpContext.Current.Request.QueryString["Username"]
+            UserName = HttpContext.Current.Request.QueryString["Username"],
+            Meters = HttpContext.Current.Request.QueryString["Meters"]
         };
 
         ContourTileData contourTileData = GetContourTileData(contourQuery);
@@ -1310,6 +1310,24 @@ public class mapService : WebService
             }
         }
 
+        if (!string.IsNullOrEmpty(contourQuery.Meters))
+        {
+            const int byteSize = 8;
+
+            // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
+            string padding = "A==".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+            string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
+            byte[] meterSelections = Convert.FromBase64String(base64);
+
+            // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
+            // In order to properly interpret the bytes, we must first order the data by meter ID to determine the location of
+            // each meter's bitflag. Then we can filter out the unwanted data from the original list of meters
+            locations = locations
+                .OrderBy(location => location.id)
+                .Where((location, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) > 0)
+                .ToList();
+        }
+
         return locations;
     }
 
@@ -1335,12 +1353,34 @@ public class mapService : WebService
                 "    Channel ON " +
                 "        Channel.MeterID = Meter.ID AND " +
                 "        Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1}) " +
-                "WHERE " +
-                "    Meter.ID IN (SELECT * FROM authMeters({0}))";
+                "WHERE Meter.ID IN (SELECT * FROM authMeters({0}))";
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
             historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+        }
+
+        if (!string.IsNullOrEmpty(contourQuery.Meters))
+        {
+            const int byteSize = 8;
+
+            // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
+            string padding = "A==".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+            string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
+            byte[] meterSelections = Convert.FromBase64String(base64);
+
+            // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
+            // In order to properly interpret the bytes, we must first group and order the data by meter ID to determine the location
+            // of each meter's bitflag. Then we can filter out the unwanted data from the original table of IDs
+            idTable.Select()
+                .Select((Row, Index) => new { Row, Index })
+                .GroupBy(obj => obj.Row.ConvertField<int>("MeterID"))
+                .OrderBy(grouping => grouping.Key)
+                .Where((grouping, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) == 0)
+                .SelectMany(grouping => grouping)
+                .OrderByDescending(obj => obj.Index)
+                .ToList()
+                .ForEach(obj => idTable.Rows.RemoveAt(obj.Index));
         }
 
         List<DataRow> meterRows = idTable
@@ -1710,7 +1750,7 @@ public class mapService : WebService
         }
     }
 
-    [WebMethod(EnableSession = true)]
+    [WebMethod]
     public void getContourAnimationFrame()
     {
         int animationID = Convert.ToInt32(HttpContext.Current.Request.QueryString["animation"]);
