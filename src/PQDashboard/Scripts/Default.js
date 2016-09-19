@@ -2414,6 +2414,18 @@ function showSiteSet(thecontrol) {
 
                 break;
 
+            case "RecievedData":
+                $.each(gridchildren.children, function (key, value) {
+                    if ($(value).css('background-color') != "rgb(0, 0, 0)") {
+                        $(value).show();
+                    }
+                    else {
+                        $(value).hide();
+                    }
+                });
+
+                break;
+
             case "NoDisturbances":
                 $.each(gridchildren.children, function (key, value) {
                     if ($(value).data("gridstatus") != "0") {
@@ -2425,6 +2437,20 @@ function showSiteSet(thecontrol) {
                 });
 
                 break;
+
+            case "NoData":
+                $.each(gridchildren.children, function (key, value) {
+                    if ($(value).css('background-color') != "rgb(0, 0, 0)") {
+                        $(value).hide();
+                    }
+                    else {
+                        $(value).show();
+                    }
+                });
+
+                break;
+
+
 
 
             case "SelectedSites":
