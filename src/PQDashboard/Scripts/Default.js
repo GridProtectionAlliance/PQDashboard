@@ -22,6 +22,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Global
 
+var base64Map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 
 var globalcolorsBreakers = ['#90ed7d', '#434348', '#ff0000'];
 var globalcolorsTrending = ['#434348', '#ff0000'];
@@ -2979,6 +2980,7 @@ function plotContourMap(data, thedatefrom, thedateto) {
         else {
             thedatasent = {
                 contourQuery: {
+                    Meters: getBase64MeterSelection(),
                     StartDate: thedatefrom,
                     EndDate: thedateto,
                     DataType: $('#trendingDataTypeSelection').val(),
@@ -4279,7 +4281,7 @@ function loadContourLayer(contourQuery) {
     if (contourLayer)
         contourLayer.setUrl(tileURL);
     else
-        contourLayer = L.tileLayer(tileURL).addTo(leafletMap[currentTab]);
+        contourLayer = L.tileLayer(tileURL, { m: getBase64MeterSelection() }).addTo(leafletMap[currentTab]);
 }
 
 function loadContourOverlay(contourInfo) {
@@ -4375,6 +4377,7 @@ function loadContourAnimationData() {
 
     var thedatasent = {
         contourQuery: {
+            Meters: getBase64MeterSelection(),
             StartDate: dateFrom,
             EndDate: dateTo,
             DataType: $('#trendingDataTypeSelection').val(),
@@ -4625,4 +4628,29 @@ function showHistorianData() {
         });
     });
 }
+
+function getBase64MeterSelection() {
+    var meterSelections = $('#siteList').multiselect('widget').find('input:checkbox').sort(function (a, b) {
+        return Number(a.value) - Number(b.value);
+    }).map(function () {
+        return $(this).is(':checked');
+    }).get();
+
+    var base64Selections = '';
+
+    for (var i = 0; i < meterSelections.length; i += 6) {
+        var mapIndex =
+            (meterSelections[i + 0] ? 32 : 0) +
+            (meterSelections[i + 1] ? 16 : 0) +
+            (meterSelections[i + 2] ?  8 : 0) +
+            (meterSelections[i + 3] ?  4 : 0) +
+            (meterSelections[i + 4] ?  2 : 0) +
+            (meterSelections[i + 5] ?  1 : 0);
+
+        base64Selections += base64Map[mapIndex];
+    }
+
+    return base64Selections;
+}
+
 /// EOF
