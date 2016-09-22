@@ -2752,7 +2752,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         if (!locationdata.URL) {
             markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
             leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-            leafletMap[currentTab].setMaxBounds(markerGroup.getBounds());
+            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180,-270), L.latLng(180,270)));
         }
 
         var timeoutVal;
@@ -3330,7 +3330,7 @@ function resizeMapAndMatrix(newTab) {
 
         markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
         leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-        leafletMap[currentTab].setMaxBounds(markerGroup.getBounds());
+        //leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -200), L.latLng(180, 200)));
 
     }
     resizeMatrixCells(newTab);
