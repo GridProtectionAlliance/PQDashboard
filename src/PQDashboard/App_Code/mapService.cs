@@ -1545,6 +1545,17 @@ public class mapService : WebService
                 valueList.Add(obj.Value.GetValueOrDefault());
             });
 
+        if (valueList.Count == 0)
+        {
+            xList.Add(0.0D);
+            yList.Add(0.0D);
+
+            using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+            {
+                valueList.Add(connection.ExecuteScalar<double>("SELECT NominalValue FROM ContourColorScale WHERE Name = {0}", contourQuery.ColorScaleName));
+            }
+        }
+
         return new InverseDistanceWeightingFunction()
             .SetXCoordinates(xList.ToArray())
             .SetYCoordinates(yList.ToArray())
