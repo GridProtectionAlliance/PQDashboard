@@ -20,30 +20,25 @@
     //       Generated original version of source code.
     //
     //*****************************************************************************************************@
-@using GSF
 @using GSF.Data
-@using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
 @model AppModel
 @{
     Layout = "";
     DataContext dataContext = Model.DataContext;
-    int index = 0;
     string historianConnection = "";
 
-    using(AdoDataConnection conn = new AdoDataConnection("securityProvider"))
+    using(AdoDataConnection conn = new AdoDataConnection("systemSettings"))
     {
-        index = conn.ExecuteScalar<int>("Select ID FROM ValueListGroup WHERE Name = 'HistorianSubscriptions'");
-        historianConnection = Url.Content(conn.ExecuteScalar<string>("Select Text  FROM ValueList WHERE GroupID = {0} AND IsDefault = 1", index));
+        historianConnection = Url.Content(conn.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'"));
     }
-
 }
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title>Open Dashboard v1.00 :: @ViewBag.username></title>
+    <title>Open Dashboard v1.00 :: @ViewBag.username</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta charset="utf-8"/>
     <meta http-equiv="cache-control" content="max-age=0" />
@@ -101,7 +96,7 @@
 
     <body onunload="createupdateconfig(null);" >
     
-        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedUserName">@ViewBag.username</div>
+        <div style="visibility:hidden; width: 0px; height: 0px;" id="postedUserName">@ViewBag.usersid</div>
 
         <div id="draggable" class="ui-widget-content" ></div>
         <div style="width: 100%; height: 36px;" >

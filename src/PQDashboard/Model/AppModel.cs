@@ -259,62 +259,7 @@ namespace PQDashboard.Model
         // Handles querying page details from Page table
         private void ConfigureView(string pageName, dynamic viewBag)
         {
-            int pageID = SecurityDataContext.Connection.ExecuteScalar<int?>("SELECT ID FROM Page WHERE Name={0} AND Enabled <> 0", pageName ?? "") ?? 0;
-            Page page = SecurityDataContext.Table<Page>().LoadRecord(pageID);
-            Dictionary<string, string> pageSettings = (page?.ServerConfiguration ?? "").ParseKeyValuePairs();
-            string pageImagePath = Path.ToAbsolute(GetPageSetting(viewBag, "pageImagePath").Replace("{pageName}", pageName ?? ""));
-            pageImagePath = pageImagePath.EnsureEnd('/');
-
-            viewBag.Page = page;
-            viewBag.PageID = pageID;
             viewBag.PageName = pageName;
-            viewBag.PageImagePath = pageImagePath;
-            viewBag.PageSettings = pageSettings;
-            viewBag.Title = page?.Title ?? (pageName == null ? "<pageName is undefined>" : $"<Page record for \"{pageName}\" does not exist>");
-        }
-
-        /// <summary>
-        /// Gets overridden value from page settings dictionary (i.e., server configuration) if it exists, otherwise gets page default.
-        /// </summary>
-        /// <param name="viewBag">Page view bag.</param>
-        /// <param name="key">Key name.</param>
-        /// <param name="defaultValue">Default value.</param>
-        /// <returns>Setting from page's server configuration if found, otherwise the default setting.</returns>
-        public string GetPageSetting(dynamic viewBag, string key, string defaultValue = null)
-        {
-            return GetPageSetting(viewBag, Global.PageDefaults, key, defaultValue);
-        }
-
-        /// <summary>
-        /// Gets overridden value from page settings dictionary (i.e., server configuration) if it exists, otherwise gets page default.
-        /// </summary>
-        /// <param name="viewBag">Page view bag.</param>
-        /// <param name="globalSettings">Global settings dictionary.</param>
-        /// <param name="key">Key name.</param>
-        /// <param name="defaultValue">Default value.</param>
-        /// <returns>Setting from page's server configuration if found, otherwise the default setting.</returns>
-        public string GetPageSetting(dynamic viewBag, Dictionary<string, string> globalSettings, string key, string defaultValue = null)
-        {
-            return GetPageSetting(viewBag.PageSettings as Dictionary<string, string>, globalSettings, key, defaultValue);
-        }
-
-        /// <summary>
-        /// Gets overridden value from page settings dictionary (i.e., server configuration) if it exists, otherwise gets page default.
-        /// </summary>
-        /// <param name="pageSettings">Page settings dictionary.</param>
-        /// <param name="globalSettings">Global settings dictionary.</param>
-        /// <param name="key">Key name.</param>
-        /// <param name="defaultValue">Default value.</param>
-        /// <returns>Setting from page's server configuration if found, otherwise the default setting.</returns>
-        public string GetPageSetting(Dictionary<string, string> pageSettings, Dictionary<string, string> globalSettings, string key, string defaultValue = null)
-        {
-            string value = defaultValue;
-
-            if (!(pageSettings?.TryGetValue(key, out value) ?? false))
-                if (!(globalSettings?.TryGetValue(key, out value) ?? false) || string.IsNullOrEmpty(value))
-                    value = defaultValue;
-
-            return value;
         }
 
         #endregion

@@ -23,19 +23,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Web.Services;
 using GSF;
-using GSF.Collections;
 using GSF.Configuration;
 using GSF.Data.Model;
 using GSF.Identity;
@@ -47,7 +38,6 @@ using PQDashboard.Model;
 
 namespace PQDashboard
 {
-    [AuthorizeHubRole]
     public class DataHub : Hub, IRecordOperationsHub
     {
         #region [ Members ]
@@ -165,35 +155,30 @@ namespace PQDashboard
 
         #region [ Page Table Operations ]
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.QueryRecordCount)]
         public int QueryPageCount(string filterText)
         {
             return m_coreContext.Table<Page>().QueryRecordCount();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.QueryRecords)]
         public IEnumerable<Page> QueryPages(string sortField, bool ascending, int page, int pageSize, string filterText)
         {
             return m_coreContext.Table<Page>().QueryRecords(sortField, ascending, page, pageSize);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.DeleteRecord)]
         public void DeletePage(int id)
         {
             m_coreContext.Table<Page>().DeleteRecord(id);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.CreateNewRecord)]
         public Page NewPage()
         {
             return new Page();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.AddNewRecord)]
         public void AddNewPage(Page record)
         {
@@ -201,7 +186,6 @@ namespace PQDashboard
             m_coreContext.Table<Page>().AddNewRecord(record);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Page), RecordOperation.UpdateRecord)]
         public void UpdatePage(Page record)
         {
@@ -212,35 +196,30 @@ namespace PQDashboard
 
         #region [ Menu Table Operations ]
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.QueryRecordCount)]
         public int QueryMenuCount(string filterText)
         {
             return m_coreContext.Table<Menu>().QueryRecordCount();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.QueryRecords)]
         public IEnumerable<Menu> QueryMenus(string sortField, bool ascending, int page, int pageSize, string filterText)
         {
             return m_coreContext.Table<Menu>().QueryRecords(sortField, ascending, page, pageSize);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.DeleteRecord)]
         public void DeleteMenu(int id)
         {
             m_coreContext.Table<Menu>().DeleteRecord(id);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.CreateNewRecord)]
         public Menu NewMenu()
         {
             return new Menu();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.AddNewRecord)]
         public void AddNewMenu(Menu record)
         {
@@ -248,7 +227,6 @@ namespace PQDashboard
             m_coreContext.Table<Menu>().AddNewRecord(record);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(Menu), RecordOperation.UpdateRecord)]
         public void UpdateMenu(Menu record)
         {
@@ -259,35 +237,30 @@ namespace PQDashboard
 
         #region [ MenuItem Table Operations ]
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.QueryRecordCount)]
         public int QueryMenuItemCount(int parentID, string filterText)
         {
             return m_coreContext.Table<MenuItem>().QueryRecordCount(new RecordRestriction("MenuID = {0}", parentID));
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.QueryRecords)]
         public IEnumerable<MenuItem> QueryMenuItems(int parentID, string sortField, bool ascending, int page, int pageSize, string filterText)
         {
             return m_coreContext.Table<MenuItem>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("MenuID = {0}", parentID));
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.DeleteRecord)]
         public void DeleteMenuItem(int id)
         {
             m_coreContext.Table<MenuItem>().DeleteRecord(id);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.CreateNewRecord)]
         public MenuItem NewMenuItem()
         {
             return new MenuItem();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.AddNewRecord)]
         public void AddNewMenuItem(MenuItem record)
         {
@@ -298,7 +271,6 @@ namespace PQDashboard
             m_coreContext.Table<MenuItem>().AddNewRecord(record);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(MenuItem), RecordOperation.UpdateRecord)]
         public void UpdateMenuItem(MenuItem record)
         {
@@ -313,35 +285,30 @@ namespace PQDashboard
 
         #region [ ValueListGroup Table Operations ]
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecordCount)]
         public int QueryValueListGroupCount(string filterText)
         {
             return m_coreContext.Table<ValueListGroup>().QueryRecordCount();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecords)]
         public IEnumerable<ValueListGroup> QueryValueListGroups(string sortField, bool ascending, int page, int pageSize, string filterText)
         {
             return m_coreContext.Table<ValueListGroup>().QueryRecords(sortField, ascending, page, pageSize);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.DeleteRecord)]
         public void DeleteValueListGroup(int id)
         {
             m_coreContext.Table<ValueListGroup>().DeleteRecord(id);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.CreateNewRecord)]
         public ValueListGroup NewValueListGroup()
         {
             return new ValueListGroup();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.AddNewRecord)]
         public void AddNewValueListGroup(ValueListGroup record)
         {
@@ -349,7 +316,6 @@ namespace PQDashboard
             m_coreContext.Table<ValueListGroup>().AddNewRecord(record);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueListGroup), RecordOperation.UpdateRecord)]
         public void UpdateValueListGroup(ValueListGroup record)
         {
@@ -361,35 +327,30 @@ namespace PQDashboard
         #region [ ValueList Table Operations ]
 
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.QueryRecordCount)]
         public int QueryValueListCount(int parentID, string filterText)
         {
             return m_coreContext.Table<ValueList>().QueryRecordCount(new RecordRestriction("GroupID = {0}", parentID));
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.QueryRecords)]
         public IEnumerable<ValueList> QueryValueListItems(int parentID, string sortField, bool ascending, int page, int pageSize, string filterText)
         {
             return m_coreContext.Table<ValueList>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("GroupID = {0}", parentID));
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.DeleteRecord)]
         public void DeleteValueList(int id)
         {
             m_coreContext.Table<ValueList>().DeleteRecord(id);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.CreateNewRecord)]
         public ValueList NewValueList()
         {
             return new ValueList();
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.AddNewRecord)]
         public void AddNewValueList(ValueList record)
         {
@@ -397,7 +358,6 @@ namespace PQDashboard
             m_coreContext.Table<ValueList>().AddNewRecord(record);
         }
 
-        [AuthorizeHubRole("Administrator")]
         [RecordOperation(typeof(ValueList), RecordOperation.UpdateRecord)]
         public void UpdateValueList(ValueList record)
         {
@@ -469,22 +429,7 @@ namespace PQDashboard
         #endregion
 
 
-        #region [ Misc Hub Operations]
-
-        /// <summary>
-        /// Gets page setting for specified page.
-        /// </summary>
-        /// <param name="pageID">ID of page record.</param>
-        /// <param name="key">Setting key name.</param>
-        /// <param name="defaultValue">Setting default value.</param>
-        /// <returns>Page setting for specified page.</returns>
-        public string GetPageSetting(int pageID, string key, string defaultValue)
-        {
-            Page page = m_coreContext.Table<Page>().LoadRecord(pageID);
-            Dictionary<string, string> pageSettings = (page?.ServerConfiguration ?? "").ParseKeyValuePairs();
-            AppModel model = MvcApplication.DefaultModel;
-            return model.GetPageSetting(pageSettings, model.Global.PageDefaults, key, defaultValue);
-        }
+        #region [ Misc Hub Operations ]
 
         /// <summary>
         /// Gets the absolute path for a virtual path, e.g., ~/Images/Menu

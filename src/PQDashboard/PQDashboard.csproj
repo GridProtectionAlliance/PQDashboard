@@ -20,7 +20,7 @@
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
-    <IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
@@ -1261,8 +1261,6 @@
     <Content Include="Views\Main\Documents.cshtml" />
     <Content Include="Views\Main\Help.cshtml" />
     <Content Include="Views\Main\Home.cshtml" />
-    <Content Include="Views\Main\PageTemplate1.cshtml" />
-    <Content Include="Views\Main\PageTemplate2.cshtml" />
     <Content Include="Views\Security\Groups.cshtml" />
     <Content Include="Views\Security\Users.cshtml" />
     <Content Include="Views\Settings\Home.cshtml" />

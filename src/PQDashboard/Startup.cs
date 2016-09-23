@@ -34,7 +34,7 @@ namespace PQDashboard
         public void Configuration(IAppBuilder app)
         {
             // Load security hub in application domain before establishing SignalR hub configuration
-            GlobalHost.DependencyResolver.Register(typeof(SecurityHub), () => new SecurityHub(new DataContext("securityProvider", exceptionHandler: MvcApplication.LogException), MvcApplication.LogStatusMessage, MvcApplication.LogException));
+            //GlobalHost.DependencyResolver.Register(typeof(SecurityHub), () => new SecurityHub(new DataContext("securityProvider", exceptionHandler: MvcApplication.LogException), MvcApplication.LogStatusMessage, MvcApplication.LogException));
 
             HubConfiguration hubConfig = new HubConfiguration();
 #if DEBUG

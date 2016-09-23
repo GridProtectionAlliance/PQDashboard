@@ -21,12 +21,8 @@
 //
 //******************************************************************************************************@
 
-@using System.Linq
-@using GSF
-@using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
-@using Page = PQDashboard.Model.Page
 @model AppModel
 @{
 
@@ -38,18 +34,7 @@
 
     DataContext dataContext = Model.DataContext;
     DataContext securityDataContext = Model.SecurityDataContext;
-
-    Dictionary<string, string> layoutSettings = Model.Global.LayoutSettings;
-    string copyrightText, copyrightUrl, setting;
-    Page page = ViewBag.Page;
-
-
-    List<Menu> menuFields = securityDataContext.Table<Menu>().QueryRecords().ToList();
-    List<MenuItem> menuItems = securityDataContext.Table<MenuItem>().QueryRecords().ToList();
-    List<Page> pages = securityDataContext.Table<Page>().QueryRecords().ToList();
-
     string pageTitle = ViewBag.CustomTitle ?? ViewBag.Title;
-
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -169,21 +154,6 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        @{
-                            foreach (Menu menu in menuFields)
-                            {
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@menu.Name <span class="caret"></span></a>
-                                    <ul class="dropdown-menu">
-
-                                        @foreach (MenuItem menuItem in menuItems)
-                                        {
-                                            <li><a href="@Url.Content(menuItem.Link)">Trend / Export Archived Data</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                        }
                         <li @Html.Raw(pageTitle == "Home" ? "class=\"active\"" : "")><a href="Index.cshtml">Home</a></li>
                         <li @Html.Raw(pageTitle == "Devices" ? "class=\"active\"" : "")><a href="Devices.cshtml">Devices</a></li>
                         <li class="dropdown">

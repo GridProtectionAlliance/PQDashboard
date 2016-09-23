@@ -92,11 +92,5 @@ namespace PQDashboard.Model
             get;
             set;
         }
-
-        public readonly Dictionary<string, string> ApplicationSettings = new Dictionary<string, string>();
-
-        public readonly Dictionary<string, string> LayoutSettings = new Dictionary<string, string>();
-
-        public readonly Dictionary<string, string> PageDefaults = new Dictionary<string, string>();
     }
 }

@@ -77,7 +77,6 @@ namespace PQDashboard
 
             // Make sure SOETools specific default config file service settings exist
             CategorizedSettingsElementCollection systemSettings = ConfigurationFile.Current.Settings["systemSettings"];
-            CategorizedSettingsElementCollection securityProvider = ConfigurationFile.Current.Settings["securityProvider"];
 
             systemSettings.Add("ConnectionString", "Data Source=pqdashboard; Initial Catalog=PQDashboard; Integrated Security=SSPI", "Configuration connection string.");
             systemSettings.Add("DataProviderString", "AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089}; ConnectionType=System.Data.SqlClient.SqlConnection; AdapterType=System.Data.SqlClient.SqlDataAdapter", "Configuration database ADO.NET data provider assembly type creation string used");
@@ -85,9 +84,6 @@ namespace PQDashboard
             systemSettings.Add("CompanyAcronym", "GPA", "The acronym representing the company who owns this instance of the PQDashboard.");
             systemSettings.Add("DateFormat", "MM/dd/yyyy", "The default date format to use when rendering timestamps.");
             systemSettings.Add("TimeFormat", "HH:mm.ss.fff", "The default time format to use when rendering timestamps.");
-            systemSettings.Add("DefaultSecurityRoles", "Administrator, Viewer, SME", "The default security roles that should exist for the application.");
-            securityProvider.Add("PasswordRequirementsRegex", AdoSecurityProvider.DefaultPasswordRequirementsRegex, "Regular expression used to validate new passwords for database users.");
-            securityProvider.Add("PasswordRequirementsError", AdoSecurityProvider.DefaultPasswordRequirementsError, "Error message to be displayed when new database user password fails regular expression test.");
 
             // Load default configuration file based model settings
             global.CompanyName = systemSettings["CompanyName"].Value;
@@ -95,37 +91,6 @@ namespace PQDashboard
             global.DateFormat = systemSettings["DateFormat"].Value;
             global.TimeFormat = systemSettings["TimeFormat"].Value;
             global.DateTimeFormat = $"{global.DateFormat} {global.TimeFormat}";
-            global.PasswordRequirementsRegex = securityProvider["PasswordRequirementsRegex"].Value;
-            global.PasswordRequirementsError = securityProvider["PasswordRequirementsError"].Value;
-
-            // Load database driven model settings
-            using (DataContext dataContext = new DataContext("securityProvider", exceptionHandler: LogException))
-            {
-                // Validate default security roles exist
-                ValidateSecurityRoles(dataContext.Connection, systemSettings["DefaultSecurityRoles"].Value);
-
-                // Validate users and groups exist in the database as SIDs
-                ValidateAccountsAndGroups(dataContext.Connection);
-
-                // Load global web settings
-                Dictionary<string, string> appSetting = dataContext.LoadDatabaseSettings("app.setting");
-                global.ApplicationName = appSetting["applicationName"];
-                global.ApplicationDescription = appSetting["applicationDescription"];
-                global.ApplicationKeywords = appSetting["applicationKeywords"];
-                global.BootstrapTheme = appSetting["bootstrapTheme"];
-
-                // Cache application settings
-                foreach (KeyValuePair<string, string> item in appSetting)
-                    global.ApplicationSettings.Add(item.Key, item.Value);
-
-                // Cache default page settings
-                foreach (KeyValuePair<string, string> item in dataContext.LoadDatabaseSettings("page.default"))
-                    global.PageDefaults.Add(item.Key, item.Value);
-
-                // Cache layout settings
-                foreach (KeyValuePair<string, string> item in dataContext.LoadDatabaseSettings("layout.setting"))
-                    global.LayoutSettings.Add(item.Key, item.Value);
-            }
 
             // Modify the JSON serializer to serialize dates as UTC -
             // otherwise, timezone will not be appended to date strings
@@ -191,114 +156,5 @@ namespace PQDashboard
 #endif
             }, DataHub.CurrentConnectionID);
         }
-
-        /// <summary>
-        /// Validates security roles for all defined nodes.
-        /// </summary>
-        /// <param name="database">Data connection to use for database operations.</param>
-        /// <param name="defaultSecurityRoles">Default security roles that should exist.</param>        
-        private static void ValidateSecurityRoles(AdoDataConnection database, string defaultSecurityRoles)
-        {
-            // Queries
-            const string RoleCountFormat = "SELECT COUNT(*) FROM ApplicationRole WHERE NodeID = {0} AND Name = {1}";
-
-            if (string.IsNullOrEmpty(defaultSecurityRoles))
-                defaultSecurityRoles = "Administrator, Owner, Viewer";
-
-            string[] roles = defaultSecurityRoles.Split(',').Select(role => role.Trim()).Where(role => !string.IsNullOrEmpty(role)).ToArray();
-
-            // For each Node in new database make sure all roles exist
-            DataTable dataTable = database.RetrieveData("SELECT ID FROM Node");
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                Guid nodeID = row.ConvertField<Guid>("ID");
-
-                foreach (string role in roles)
-                    if ((database.ExecuteScalar<int?>(RoleCountFormat, database.Guid(nodeID), role) ?? 0) == 0)
-                        AddRolesForNode(database, nodeID, role);
-            }
-        }
-
-        /// <summary>
-        /// Adds role for newly added node, e.g., Administrator, Editor, Viewer.
-        /// </summary>
-        /// <param name="database">Data connection to use for database operations.</param>
-        /// <param name="nodeID">Node ID to which roles are being assigned.</param>
-        /// <param name="roleName">Name of role to be added.</param>
-        private static void AddRolesForNode(AdoDataConnection database, Guid nodeID, string roleName)
-        {
-            // Queries
-            const string InsertRoleFormat = "INSERT INTO ApplicationRole(Name, Description, NodeID, UpdatedBy, CreatedBy) VALUES('{0}', '{0} Role', {{0}}, {{1}}, {{2}})";
-
-            string currentUserSID = UserInfo.UserNameToSID(UserInfo.CurrentUserID);
-            database.ExecuteNonQuery(string.Format(InsertRoleFormat, roleName), database.Guid(nodeID), currentUserSID, currentUserSID);
-        }
-
-        /// <summary>
-        /// Validate accounts and groups to ensure that account names and group names are converted to SIDs.
-        /// </summary>
-        /// <param name="database">Data connection to use for database operations.</param>
-        private static void ValidateAccountsAndGroups(AdoDataConnection database)
-        {
-            const string SelectUserAccountQuery = "SELECT ID, Name, UseADAuthentication FROM UserAccount";
-            const string SelectSecurityGroupQuery = "SELECT ID, Name FROM SecurityGroup";
-            const string UpdateUserAccountFormat = "UPDATE UserAccount SET Name = '{0}' WHERE ID = '{1}'";
-            const string UpdateSecurityGroupFormat = "UPDATE SecurityGroup SET Name = '{0}' WHERE ID = '{1}'";
-
-            string id;
-            string sid;
-            string accountName;
-            Dictionary<string, string> updateMap;
-
-            updateMap = new Dictionary<string, string>();
-
-            // Find user accounts that need to be updated
-            using (IDataReader userAccountReader = database.Connection.ExecuteReader(SelectUserAccountQuery))
-            {
-                while (userAccountReader.Read())
-                {
-                    id = userAccountReader["ID"].ToNonNullString();
-                    accountName = userAccountReader["Name"].ToNonNullString();
-
-                    if (userAccountReader["UseADAuthentication"].ToNonNullString().ParseBoolean())
-                    {
-                        sid = UserInfo.UserNameToSID(accountName);
-
-                        if (!ReferenceEquals(accountName, sid) && UserInfo.IsUserSID(sid))
-                            updateMap.Add(id, sid);
-                    }
-                }
-            }
-
-            // Update user accounts
-            foreach (KeyValuePair<string, string> pair in updateMap)
-                database.Connection.ExecuteNonQuery(string.Format(UpdateUserAccountFormat, pair.Value, pair.Key));
-
-            updateMap.Clear();
-
-            // Find security groups that need to be updated
-            using (IDataReader securityGroupReader = database.Connection.ExecuteReader(SelectSecurityGroupQuery))
-            {
-                while (securityGroupReader.Read())
-                {
-                    id = securityGroupReader["ID"].ToNonNullString();
-                    accountName = securityGroupReader["Name"].ToNonNullString();
-
-                    if (accountName.Contains('\\'))
-                    {
-                        sid = UserInfo.GroupNameToSID(accountName);
-
-                        if (!ReferenceEquals(accountName, sid) && UserInfo.IsGroupSID(sid))
-                            updateMap.Add(id, sid);
-                    }
-                }
-            }
-
-            // Update security groups
-            foreach (KeyValuePair<string, string> pair in updateMap)
-                database.Connection.ExecuteNonQuery(string.Format(UpdateSecurityGroupFormat, pair.Value, pair.Key));
-        }
     }
-
 }
