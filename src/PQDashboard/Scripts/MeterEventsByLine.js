@@ -36,7 +36,14 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID,
         dataType: 'json',
         cache: true,
         success: function (data) {
-            json = $.parseJSON(data.d)
+            json = $.parseJSON(data.d);
+
+            $.each(json, function (_, obj) {
+                obj.thelinename = Number(obj.thelinename);
+                obj.voltage = Number(obj.voltage);
+                obj.thecurrentdistance = Number(obj.thecurrentdistance);
+            });
+
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',

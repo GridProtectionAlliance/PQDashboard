@@ -312,6 +312,7 @@ function populateFaultsDivWithGrid(data, disabledFields) {
         filteredData = data;
     }
 
+    fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -386,16 +387,17 @@ function populateCorrectnessDivWithGrid(data, disabledFields) {
         filteredData = data;
     }
 
+    fixNumbers(data, ['Latched', 'Unreasonable', 'Noncongruent', 'Correctness']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
         columns: [
             { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-            { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
-            { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
-            { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
-            { field: 'Correctness', headerText: 'Correctness', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Correctness).toFixed(0) + '%'; } },
+            { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return row.Latched.toFixed(0) + '%'; } },
+            { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Unreasonable.toFixed(0) + '%'; } },
+            { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Noncongruent.toFixed(0) + '%'; } },
+            { field: 'Correctness', headerText: 'Correctness', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Correctness.toFixed(0) + '%'; } },
             { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
         ],
         datasource: filteredData
@@ -458,6 +460,7 @@ function populateCompletenessDivWithGrid(data, disabledFields) {
         filteredData = data;
     }
 
+    fixNumbers(data, ['Expected', 'Received', 'Duplicate', 'Completeness']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -465,9 +468,9 @@ function populateCompletenessDivWithGrid(data, disabledFields) {
         columns: [
             { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
             { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Received).toFixed(0) + '%'; } },
-            { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Duplicate).toFixed(0) + '%'; } },
-            { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Completeness).toFixed(0) + '%'; } },
+            { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Received.toFixed(0) + '%'; } },
+            { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Duplicate.toFixed(0) + '%'; } },
+            { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Completeness.toFixed(0) + '%'; } },
             { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
         ],
         datasource: filteredData
@@ -480,6 +483,8 @@ function populateEventsDivWithGrid(data, disabledFields) {
         $('#Detail' + currentTab + 'Table').remove();
         $(parent).append('<div id="Detail'+ currentTab +'Table"></div>');
     }
+
+    fixNumbers(data, ['interruptions', 'faults', 'sags', 'swells', 'others']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -503,6 +508,8 @@ function populateDisturbancesDivWithGrid(data, disabledFields) {
         $('#Detail' + currentTab + 'Table').remove();
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
+
+    fixNumbers(data, ['5', '4', '3', '2', '1', '0']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -537,6 +544,8 @@ function populateBreakersDivWithGrid(data, disabledFields) {
     } else {
         filteredData = data;
     }
+
+    fixNumbers(data, ['timing', 'speed']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -573,6 +582,8 @@ function populateTrendingDivWithGrid(data, disabledFields) {
         filteredData = data;
     }
 
+    fixNumbers(data, ['HarmonicGroup', 'eventcount']);
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -598,6 +609,8 @@ function populateTrendingDataDivWithGrid(data, disabledFields) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
+    fixNumbers(data, ['Minimum', 'Maximum', 'Average']);
+
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
         scrollHeight: '100%',
@@ -611,6 +624,14 @@ function populateTrendingDataDivWithGrid(data, disabledFields) {
             { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); }}
         ],
         datasource: data
+    });
+}
+
+function fixNumbers(data, numFields) {
+    $.each(data, function (_, obj) {
+        $.each(numFields, function (_, field) {
+            obj[field] = Number(obj[field]);
+        });
     });
 }
 
