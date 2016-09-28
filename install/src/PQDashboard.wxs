@@ -116,7 +116,7 @@
     <Fragment>
         <DirectoryRef Id="PQDASHFOLDER">
             <Component Id="PQDashboardConnectionString" Guid="{0369FEA2-33FF-4D99-8835-494B080FDAFB}" KeyPath="yes">
-                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/connectionStrings/add[\[]@name='EPRIConnectionString'[\]]/@connectionString" Value="[DASHBOARDCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
+                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[DASHBOARDCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
             </Component>
             
             <Component Id="InstallPQDashboardSite" Guid="{C73A8977-9C77-41A4-9656-38E0934CC5B4}" KeyPath="yes">
