@@ -52,7 +52,7 @@
         <Property Id="DATAPROVIDERSTRING" Value="AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089};; ConnectionType=System.Data.SqlClient.SqlConnection;; AdapterType=System.Data.SqlClient.SqlDataAdapter" />
         <SetProperty Id="DATABASENAME" Value="openXDA" After="LaunchConditions" Sequence="first" />
         <SetProperty Id="SCRIPTPATH" Value="[INSTALLFOLDER]\openXDA.sql" After="LaunchConditions" Sequence="execute" />
-        <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard" Before="CreateShortcuts" Sequence="execute" />
+        <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard/" Before="CreateShortcuts" Sequence="execute" />
         <WixVariable Id="WixUIBannerBmp" Value="src\PQ Dashboard SetupLogo.bmp" />
         <WixVariable Id="WixUIDialogBmp" Value="src\InstallWelcome.bmp" />
         <WixVariable Id="WixUILicenseRtf" Value="src\INSTALL_LICENSE.rtf" />
