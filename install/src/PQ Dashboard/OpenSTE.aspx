@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="OpenSTE, App_Web_i30b5ybd" %>
+<%@ page language="C#" autoeventwireup="true" inherits="OpenSTE, App_Web_4wvx3gnq" %>
 
 <!DOCTYPE html>
 
@@ -8,90 +8,34 @@
     
     <title>OpenSTE System Trending Explorer</title>
     
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <meta charset="utf-8">
-    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta charset="utf-8"/>    
     <meta http-equiv="cache-control" content="max-age=0" />
-
     <meta http-equiv="cache-control" content="no-cache" />
-
     <meta http-equiv="expires" content="0" />
-
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-
     <meta http-equiv="pragma" content="no-cache" />
     
-    <link rel="stylesheet" href="./css/themes/redmond/jquery-ui.css">  
+    <link rel="stylesheet" href="./Content/bootstrap-3.3.2.min.css"/> 
+    <link rel="stylesheet" href="./Content/themes/redmond/jquery-ui.css"/>  
+    <link rel="stylesheet" href="./Content/jquery.multiselect.css"/>
+    <link rel="stylesheet" href="./Content/jquery.multiselect.filter.css"/> 
 
-    <link rel="stylesheet" href="./js/jqwidgets/styles/jqx.base.css" type="text/css" />
+
+    <script type="text/javascript" src="./Scripts/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery-ui.js"></script>    
+    <script type="text/javascript" src="./Scripts/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery.multiselect.js"></script>    
+    <script type="text/javascript" src="./Scripts/jquery.multiselect.filter.js"></script>
+   	<script type="text/javascript" src="./Scripts/flot/jquery.flot.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.errorbars.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.navigate.js"></script>
+  	<script type="text/javascript" src="./Scripts/flot/jquery.flot.resize.js"></script>
+  	<script type="text/javascript" src="./Scripts/flot/jquery.flot.time.js"></script>
+   	<script type="text/javascript" src="./Scripts/flot/jquery.flot.selection.js"></script>
+    <script type="text/javascript" src="./Scripts/OpenSTE.js"></script>
     
-    <link rel="stylesheet" href="./js/jqwidgets/styles/jqx.ui-redmond.css" type="text/css" />
-    
-    <link rel="stylesheet" href="./css/jquery.multiselect.css">
-
-    <link rel="stylesheet" href="./css/jquery.multiselect.filter.css"> 
-
-    <script type="text/javascript" src="./js/jquery-2.1.1.js"></script>
-
-    <script type="text/javascript" src="./js/jquery-ui.js"></script>
-    
-    <script type="text/javascript" src="./js/jquery.blockUI.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxcore.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxdata.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxbuttons.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxscrollbar.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxmenu.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxlistbox.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxdropdownlist.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.selection.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.columnsresize.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.filter.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.sort.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.pager.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.grouping.js"></script> 
-    
-    <script type="text/javascript" src="./js/jqwidgets/jqxdata.export.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.export.js"></script>
-
-    <script type="text/javascript" src="./js/highcharts.js"></script>
-    
-    <script type="text/javascript" src="./js/highcharts-more.js"></script>
-
-    <!--<script type="text/javascript" src="./js/modules/no-data-to-display.js"></script>-->
-
-    <script type="text/javascript" src="js/HighchartsYAxisZeroAlign.js"></script>
-
-    <script type="text/javascript" src="./js/modules/exporting.js"></script>
-
-    <script type="text/javascript" src="./js/modules/data.js"></script>
-
-    <script type="text/javascript" src="./js/modules/drilldown.js"></script>
-    
-    <script type="text/javascript" src="./js/jquery.multiselect.js"></script>
-    
-    <script type="text/javascript" src="./js/jquery.multiselect.filter.js"></script>
-
-    <script type="text/javascript" src="./js/OpenSTE.js?ver=<%=DateTime.Now.Ticks.ToString()%>"></script>
-    
-    <link rel="stylesheet" href="./css/OpenSTE.css" type="text/css" />
-
+    <link rel="stylesheet" href="./Content/OpenSTE.css" type="text/css" />
 </head>
     <body>
 
@@ -115,33 +59,21 @@
             </table>
         </div>
         
-            <div unselectable="on" class="DockWaveformHeader"><center>
-
-                <table unselectable="on" width="80%">
-                    <tr>
-                        <td>
-                            <select id="MeasurementType"></select>
-                        </td>
-                        <td>
-                            <select id="MeasurementCharacteristic"></select>
-                        </td>
-                        <td>
-                            <select id="Phase"></select>
-                        </td>
-                        <td width="0" style="visibility: hidden">
-                            <select id="Period" style="visibility: hidden">
-                                <option value="Day">Day</option>
-                                <option value="Week">Week</option>
-                                <option value="Month">Month</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>  
-                </center>
+            <div class="DockWaveformHeader">
+                <h4 style="text-align: center" id="chartTitle"></h4>
             </div>
-
-        <div id="DockWaveformTrending">
-            <div id="WaveformTrending">
+        
+        <div class="row" id="DockWaveformTrending">
+            <div class="row" style="height: 100%">
+                <div class="col-md-1" style="height: 100%">
+                    <div id="ChartYAxis"><span>Trend Magnitude</span></div>
+                </div>
+                <div class="col-md-9" style="height: 95%">
+                    <div id="WaveformTrending"></div>
+                </div>
+                <div class="col-md-2" style="height: 100%">
+                    <div id="legend"></div>
+                </div>
             </div>
         </div>
     </body>

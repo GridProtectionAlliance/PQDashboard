@@ -1,0 +1,149 @@
+﻿@*******************************************************************************************************
+//  Help.cshtml - Gbtc
+//
+//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  03/14/2016 - Russell Robertson
+//       Generated original version of source code.
+//
+//*****************************************************************************************************@
+@using PQDashboard.Model
+@model AppModel
+@section StyleSheets{
+    <style>
+        img.image-wrap {
+            float: left;
+            margin: 0 15px 5px 0;
+            vertical-align: central;
+        }
+
+        p.image-wrap {
+            text-align: justify;
+        }
+
+        ul.image-wrap {
+            list-style-position: inside;
+        }
+
+        div {
+            margin-top: 0em;
+            margin-bottom: 1em;
+        }
+
+    </style>
+}
+<table class="table table-striped">
+
+    <colgroup>
+        <col class="col-md-12">
+    </colgroup>
+
+    <tbody>
+        <tr>
+            <td>Step&nbsp;&nbsp;&nbsp;Description</td>
+        </tr>
+        <tr>
+            <td>
+                <img src="~/Images/ProcessSteps/Small/1settings.png" class="image-wrap"/>
+                <p class="image-wrap">
+                    <div>
+                        By clicking on "settings" in the main menu, those with authorization can update the following lists:
+                    </div>
+                    <ul class="image-wrap small">
+                        <li>
+                            The <b>Business Unit</b> List - Business units represent the logical grouping of editors into an approval authority or plan "owner" (BU Coordinator).
+                            Both a primary and alternate Business Unit approval authority can be designated for each BU.
+                            System Administrators can create as many business units as necessary to manage the BU Coordinator to editor accountability relationships.
+                        </li>
+                        <li>
+                            The <b>Plan BU Editors</b> - Users that have the "editor" role are further restricted to editing the plans within their BU. Currently editors can only belong to one BU.
+                        </li>
+                    </ul>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <img src="~/Images/ProcessSteps/Small/2addPlan.png" class="image-wrap" />
+                <p class="image-wrap">
+                    <div>Editors can use "Add Plan" menu item to add plans manually. These plans will not be linked to the openSPM application - but can be used to track and manage other activities.</div>
+
+                    <div>
+                        Plans that have been created automatically by openSPM can be viewed by clicking on the "openPlans" menu item. New plans have a status "Pending". (Other plan states are Started, Completed, Suspended and Closed.
+                        Plans that are not closed are listed on the "open plans" list.)
+                    </div>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <img src="~/Images/ProcessSteps/Small/3startTracking.png" class="image-wrap" />
+                <p class="image-wrap">
+                    <div>From the "Open Plans" list, clicking on the start tracking button:</div>
+                    <ul class="image-wrap small">
+                        <li>Checks that a plan has at least one action. </li>
+                        <li>Sends an email to the plan owner (the BU Coordinator) that a plan is available for approval.</li>
+                    </ul>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <img src="~/Images/ProcessSteps/Small/4updateActions.png" class="image-wrap" />
+                <p class="image-wrap">
+                    Editors have the ability to edit plans within their BU from the "Open Plans" list. Any change to a substantive item (addition or removal of an action item, change of action item description, or change in action item schedule start or stop date) requires the plan to be re-approved by
+                    the plan owner (BU Coordinator). Status fields (actual start dates, completion dates, updates to plan prose) can be updated by plan editors without the need for approval of these changes.
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <img src="~/Images/ProcessSteps/Small/5closePlan.png" class="image-wrap" />
+                <p class="image-wrap">
+                    After the last action item has been completed, the plan status changes to "Completed". The plan status must be changed to "Closed" by the Owner for the plan to be removed from the open plan list.
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <p><a id="Definitions"></a>Definitions:</p>
+                <p><b>Business Unit</b> (BU) - An virtual organizational entity comprised that has a coordinator (the approval authority) and SMEs (the technical experts) that have responsibility for CCA.</p>
+                <p><b>Plan</b> - xx. </p>
+                <p><b>Action Item</b> - xx</p>
+            </td>
+
+        </tr>
+      
+        <tr>
+            <td>
+                <p><a id="Roles"></a>User Roles:</p>       
+                <p><b>System Administrator</b> (Admin) - Information Technology personnel authorized to establish users and roles and set implementation specific configuration parameters (e.g., data base location).  Admins have unrestricted access to all pages in the PQDashboard System.</p>
+                <p><b>Plan Owner</b> (Owner) - The individual that is the approval authority for the plan. </p>
+                <p><b>Plan Editor</b> (Editor) - The individuals responsible for editing plan status and creating new items.  </p>
+                <p><b>Viewer</b> - Those authenticated to the domain can view the status of active patches but cannot make any changes within the system. </p>
+            </td>
+
+        </tr>
+        <tr style="height: 150px; border: none">
+            <td>&nbsp;</td>
+        </tr>
+    </tbody>
+</table>

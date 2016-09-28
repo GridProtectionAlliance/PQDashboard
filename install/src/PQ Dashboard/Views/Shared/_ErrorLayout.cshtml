@@ -1,0 +1,104 @@
+﻿@*******************************************************************************************************
+//  _ErrorLayout.cshtml - Gbtc
+//
+//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  02/23/2016 - J. Ritchie Carroll
+//       Generated original version of source code.
+//
+//*****************************************************************************************************@
+@using PQDashboard.Model
+@{
+    AppModel defaultModel = MvcApplication.DefaultModel;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @* The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags *@
+    <title>@defaultModel.Global.ApplicationName - @ViewBag.Title</title>
+    <meta name="application-name" content="@defaultModel.Global.ApplicationName" />
+    <meta name="description" content="@defaultModel.Global.ApplicationDescription" />
+    <meta name="keywords" content="@defaultModel.Global.ApplicationKeywords" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link href="@defaultModel.Global.BootstrapTheme" rel="stylesheet">
+    @if (defaultModel.Global.BootstrapTheme.EndsWith("bootstrap.min.css")) {
+    <link href="~/Content/bootstrap-theme.min.css" rel="stylesheet">
+    }
+    @Styles.Render("~/css.bundle/bootstrap")
+    @Styles.Render("~/css.bundle/site")
+    @RenderSection("StyleSheets", false)
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="~/Images/Icons/apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="~/Images/Icons/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="~/Images/Icons/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="~/Images/Icons/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="~/Images/Icons/apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="~/Images/Icons/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="~/Images/Icons/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="~/Images/Icons/apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="~/Images/Icons/favicon-128.png" sizes="128x128" />
+    <link rel="shortcut icon" href="~/Images/Icons/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#AABBAA" />
+    <meta name="msapplication-TileImage" content="~/Images/Icons/mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="~/Images/Icons/mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="~/Images/Icons/mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="~/Images/Icons/mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="~/Images/Icons/mstile-310x310.png" />
+    @Scripts.Render("~/js.bundle/modernizr")
+</head>
+<body>
+    <!-- #pageWrapper -->
+    <div id="pageWrapper">
+        <!-- #sidebarWrapper -->        
+        <div id="sidebarWrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand" title="@defaultModel.Global.ApplicationDescription">
+                    <a href="/" class="navbar-brand" style="margin-top: -5px"><img class="pull-left" style="padding: 12px 10px 10px 20px" alt="@defaultModel.Global.ApplicationName" src="~/Images/@(defaultModel.Global.ApplicationName).png"></a>
+                </li>
+            </ul>
+        </div>
+        <!-- /#sidebarWrapper -->
+        <!--#pageContentWrapper -->
+        <div class="container theme-showcase" role="main" id="pageContentWrapper">
+            <div class="page-header" id="pageHeader">
+                <h2 class="text-danger">
+                    @ViewBag.Title
+                </h2>
+            </div>
+            @* ReSharper disable once PossibleNullReferenceException *@
+            <!-- Page Body for @Request.Url.AbsolutePath -->
+            @RenderBody()
+
+        </div>
+        <!--/#pageContentWrapper -->
+    </div>
+    <!-- /#pageWrapper -->
+    @Scripts.Render("~/js.bundle/jquery")
+    @Scripts.Render("~/js.bundle/bootstrap")
+</body>
+</html>

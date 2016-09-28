@@ -23,7 +23,7 @@
 //******************************************************************************************************
 -->
 
-<%@ page language="C#" autoeventwireup="true" inherits="OpenSEE, App_Web_ys03zavf" %>
+<%@ page language="C#" autoeventwireup="true" inherits="OpenSEE, App_Web_4wvx3gnq" %>
 
 <!DOCTYPE html>
 
@@ -40,28 +40,28 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
 
-    <link rel="shortcut icon" type="image/ico" href="./images/openSEE.ico" />
-    <link rel="stylesheet" href="./css/themes/redmond/jquery-ui.css" />
-    <link rel="stylesheet" href="./css/jquery.multiselect.css" />
-    <link rel="stylesheet" href="./css/jquery.multiselect.filter.css" />
-    <link rel="stylesheet" href="./css/OpenSEE.css" type="text/css" />
-    <link rel="stylesheet" href="./js/PrimeUI/Font-Awesome/css/font-awesome.min.css"/>
-    <link rel="stylesheet" href="./js/PrimeUI/primeui.min.css" />
+    <link rel="shortcut icon" type="image/ico" href="./Images/openSEELogo.png" />
+    <link rel="stylesheet" href="./Content/themes/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="./Content/jquery.multiselect.css" />
+    <link rel="stylesheet" href="./Content/jquery.multiselect.filter.css" />
+    <link rel="stylesheet" href="./Content/OpenSEE.css" type="text/css" />
+    <link rel="stylesheet" href="./Scripts/PrimeUI/Font-Awesome/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="./Scripts/PrimeUI/primeui.min.css" />
 
-    <script type="text/javascript" src="./js/jquery-2.1.1.js"></script>
-    <script type="text/javascript" src="./js/jquery-ui.js"></script>
-    <script type="text/javascript" src="./js/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="./js/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="./js/jquery.multiselect.js"></script>
-    <script type="text/javascript" src="./js/jquery.multiselect.filter.js"></script>
-    <script type="text/javascript" src="./js/flot/jquery.flot.js"></script>
-	<script type="text/javascript" src="./js/flot/jquery.flot.crosshair.js"></script>
-	<script type="text/javascript" src="./js/flot/jquery.flot.navigate.js"></script>
-	<script type="text/javascript" src="./js/flot/jquery.flot.resize.js"></script>
-	<script type="text/javascript" src="./js/flot/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="./js/flot/jquery.flot.time.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery-ui.js"></script>
+    <script type="text/javascript" src="./Scripts/PrimeUI/primeui.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery.multiselect.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery.multiselect.filter.js"></script>
+    <script type="text/javascript" src="./Scripts/flot/jquery.flot.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.crosshair.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.navigate.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.resize.js"></script>
+	<script type="text/javascript" src="./Scripts/flot/jquery.flot.selection.js"></script>
+    <script type="text/javascript" src="./Scripts/flot/jquery.flot.time.js"></script>
     <script type="text/javascript">var SeriesList = <%=postedSeriesList %>;</script>
-    <script type="text/javascript" src="./js/OpenSEE.js?ver=<%=DateTime.Now.Ticks.ToString()%>"></script>
+    <script type="text/javascript" src="./Scripts/OpenSEE.js?ver=<%=DateTime.Now.Ticks.ToString()%>"></script>
 
 </head>
     <body>
