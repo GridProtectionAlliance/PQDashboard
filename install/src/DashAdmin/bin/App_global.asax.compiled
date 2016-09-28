@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<preserve resultType="8" virtualPath="/DashAdminSite/global.asax" hash="ffffffffb5f30141" filehash="ffffc9638bf987e4" flags="150000" assembly="App_global.asax" type="ASP.global_asax">
-    <filedeps>
-        <filedep name="/DashAdminSite/global.asax" />
-    </filedeps>
-</preserve>
