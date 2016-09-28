@@ -394,7 +394,6 @@
     <Content Include="eventService.asmx" />
     <Content Include="FaultLocation.aspx" />
     <Content Include="FaultSpecifics.aspx" />
-    <Content Include="favicon.ico" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -447,6 +446,7 @@
     <Content Include="ModbusData.aspx" />
     <Content Include="OpenSEE.aspx" />
     <Content Include="OpenSTE.aspx" />
+    <Content Include="favicon.ico" />
     <Content Include="Scripts\bootstrap-3.3.2.min.js" />
     <Content Include="Scripts\bootstrap-multiselect.js" />
     <Content Include="Scripts\bootstrap.js" />
