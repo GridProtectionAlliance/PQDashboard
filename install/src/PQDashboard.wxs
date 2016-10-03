@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
-    <Product Id="{C3A8577C-F2DC-485D-8F71-D445971940A5}" Name="PQ Dashboard" Language="1033" Version="1.0.3.1" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
+    <Product Id="{C3A8577C-F2DC-485D-8F71-D445971940A5}" Name="PQ Dashboard" Language="1033" Version="1.0.4.0" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
         <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <MediaTemplate EmbedCab="yes" />
-        
-        <PropertyRef Id="NETFRAMEWORK45"/>
-        <Condition Message='This setup requires Microsoft .NET Framework 4.5 or greater - this will need to be installed before installation can continue.'>
-            <![CDATA[Installed OR NETFRAMEWORK45]]>
+
+        <PropertyRef Id="WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED"/>
+        <Condition Message='This setup requires Microsoft .NET Framework 4.6 or greater - this will need to be installed before installation can continue.'>
+            <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED]]>
         </Condition>
 
         <Feature Id="AllSites" Title="All Websites" Level="1" Display="expand" Description="All websites in the PQ Dashboard installation.">
