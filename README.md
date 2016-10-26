@@ -15,49 +15,14 @@ Open PQ Dashboard provides visual displays to quickly convey the status and loca
 
 # Documentation and Support
 
-* The PQ Dashboard's manual can be found [here](https://github.com/GridProtectionAlliance/PQDashboard/tree/master/src/Documentation/Open%20PQ%20Dashboard%20v1.0%20Manual.pdf)
+* Instructions for using PQ Dashboard can be found in the [wiki](../../wiki).
+* Check out the [GPA wiki](https://gridprotectionalliance.org/wiki/doku.php?id=pqdashboard:overview) for more information about all our products.
 * Get in contact with our development team on our [discussion board](http://discussions.gridprotectionalliance.org/c/gpa-products/pqdashboard).
-* Check out the [wiki](https://gridprotectionalliance.org/wiki/doku.php?id=pqdashboard:overview).
+
 
 # Deployment
 
-1. Make sure your system meets all the [requirements](#requirements) below.
-* [Download](#downloads) a version below.
-* Unzip if necessary.
-* Run "PQDashboard.msi".
-* Follow the wizard.
-* Enjoy.
-
-## Requirements
-### Operating System
-* 64-bit Windows 7 or Windows Server 2008 R2 (or newer).
-
-### Minimum Hardware
-* 2.0 GHz CPU.
-* 2.0 GB RAM.
-* 50 GB of available disk space for installation and testing. Operational disk space requirements will be proportional to the volume of input data.
-
-### Software
-* [openXDA](https://github.com/GridProtectionAlliance/openXDA).
-* .NET 3.5 SP1 (required by SQL Server 2012).
-* .NET 4.6.
-* SQL Server 2012 with management tools.
-  * Free Express version is fine, but has a 10GB limit.
-  * Mixed mode authentication must be enable on the SQL Server.
-* IIS web server.
-  * ASP.NET 4.6.
-  * Windows Authentication.
-* Highcharts v4.0.4.
-* jQWidgets 3.6.0 or newer.
-* [openHistorian 2.0](https://github.com/GridProtectionAlliance/openHistorian).
-* Compatible browsers:
-  * Internet Explorer 11.
-  * Google Chrome.
-  * Mozilla Firefox.
-
-## Downloads
-* Version 1.0 of the Open PQ Dashboard is available on SourceForge as [*EPRI Open PQ Dashboard*](https://sourceforge.net/projects/epriopenpqdashboard/).
-* For later releases check the [releases](https://github.com/GridProtectionAlliance/PQDashboard/releases) page.
+Instructions for deploying PQ Dashboard can be found in the [wiki](../../wiki)
 
 # Contributing
 If you would like to contribute please:
