@@ -16,7 +16,7 @@ Open PQ Dashboard provides visual displays to quickly convey the status and loca
 # Documentation and Support
 
 * Instructions for using PQ Dashboard can be found in the [wiki](../../wiki).
-* Check out the [GPA wiki](https://gridprotectionalliance.org/wiki/doku.php?id=pqdashboard:overview) for more information about all our products.
+* Check out the [GPA wiki](https://gridprotectionalliance.org/wiki/doku.php?id=pqdashboard:overview) for more information about all products.
 * Get in contact with our development team on our [discussion board](http://discussions.gridprotectionalliance.org/c/gpa-products/pqdashboard).
 
 
