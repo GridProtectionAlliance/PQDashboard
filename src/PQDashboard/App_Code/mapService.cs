@@ -1673,17 +1673,17 @@ public class mapService : WebService
                 pixelData = new uint[width * height];
             }
 
-            if (cancellationToken.Cancelled)
+            if (cancellationToken.IsCancelled)
                 return;
 
             for (int x = 0; x < width; x++)
             {
-                if (cancellationToken.Cancelled)
+                if (cancellationToken.IsCancelled)
                     return;
 
                 for (int y = 0; y < height; y++)
                 {
-                    if (cancellationToken.Cancelled)
+                    if (cancellationToken.IsCancelled)
                         return;
 
                     if (pixelData[y * width + x] > 0)
@@ -1696,7 +1696,7 @@ public class mapService : WebService
                 }
             }
 
-            if (cancellationToken.Cancelled)
+            if (cancellationToken.IsCancelled)
                 return;
 
             using (Bitmap bitmap = BitmapExtensions.FromPixelData(width, pixelData))
@@ -1721,7 +1721,7 @@ public class mapService : WebService
             s_cancellationTokens.TryRemove(animationID, out token);
             s_progressCounters.TryRemove(animationID, out counter);
 
-            if (cancellationToken.Cancelled)
+            if (cancellationToken.IsCancelled)
             {
                 using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
                 {

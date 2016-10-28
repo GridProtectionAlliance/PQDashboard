@@ -38,7 +38,7 @@ using PQDashboard.Model;
 
 namespace PQDashboard
 {
-    public class DataHub : Hub, IRecordOperationsHub
+    public class DataHub : RecordOperationsHub<DataHub>
     {
         #region [ Members ]
 

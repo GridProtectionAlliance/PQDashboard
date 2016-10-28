@@ -33,6 +33,10 @@ using System.Text;
 using System.Web.Services;
 using System.Web.Script.Serialization;
 using GSF.Configuration;
+using GSF.Data;
+using GSF.Collections;
+using openHistorian.XDALink;
+
 
 /// <summary>
 /// Summary description for MapService
@@ -44,7 +48,7 @@ using GSF.Configuration;
 [System.Web.Script.Services.ScriptService]
 public class eventService : System.Web.Services.WebService {
 
-    String connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+    private string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
     public class eventSet
     {
@@ -1890,12 +1894,19 @@ public class eventService : System.Web.Services.WebService {
 
     public class TrendingDataSet
     {
-        public TrendingDataPoint[] ChannelData;
-        public TrendingAlarmLimit[] AlarmLimits;
-        public TrendingAlarmLimit[] OffNormalLimits;
+        public List<eventService.TrendingDataDatum> ChannelData;
+        public List<TrendingAlarmLimit> AlarmLimits;
+        public List<TrendingAlarmLimit> OffNormalLimits;
+
+        public TrendingDataSet()
+        {
+            ChannelData = new List<eventService.TrendingDataDatum>();
+            AlarmLimits = new List<TrendingAlarmLimit>();
+            OffNormalLimits = new List<TrendingAlarmLimit>();
+        }
     }
 
-    public class TrendingDataPoint
+    public class TrendingDataDatum
     {
         public double Time;
         public double Maximum;
@@ -1920,57 +1931,136 @@ public class eventService : System.Web.Services.WebService {
     [WebMethod]
     public TrendingDataSet getTrendsforChannelIDDate(string ChannelID, string targetDate)
     {
-        DateTime epoch = new DateTime(1970, 1, 1);
-        string theSproc = "dbo.selectTrendingDataByChannelIDDate2";
-        DataSet dataSet = new DataSet();
+        //DateTime epoch = new DateTime(1970, 1, 1);
+        //string theSproc = "dbo.selectTrendingDataByChannelIDDate2";
+        //DataSet dataSet = new DataSet();
+        //TrendingDataSet trendingDataSet = new TrendingDataSet();
+
+        //using (SqlConnection connection = new SqlConnection(connectionstring))
+        //using (SqlCommand command = connection.CreateCommand())
+        //using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+        //{
+        //    command.CommandText = theSproc;
+        //    command.CommandType = CommandType.StoredProcedure;
+        //    command.Parameters.AddWithValue("@EventDate", targetDate);
+        //    command.Parameters.AddWithValue("@ChannelID", ChannelID);
+        //    command.CommandTimeout = 300;
+
+        //    connection.Open();
+        //    adapter.Fill(dataSet);
+
+        //    trendingDataSet.ChannelData = dataSet.Tables[0].Rows
+        //        .Cast<DataRow>()
+        //        .Select(row => new TrendingDataPoint()
+        //        {
+        //            Time = row.Field<DateTime>("thedate").Subtract(epoch).TotalMilliseconds,
+        //            Maximum = row.Field<double>("themaximum"),
+        //            Minimum = row.Field<double>("theminimum"),
+        //            Average = row.Field<double>("theaverage")
+        //        })
+        //        .ToArray();
+
+        //    trendingDataSet.AlarmLimits = dataSet.Tables[1].Rows
+        //        .Cast<DataRow>()
+        //        .Select(row => new TrendingAlarmLimit()
+        //        {
+        //            TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
+        //            TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
+        //            High = row.Field<double?>("alarmlimithigh"),
+        //            Low = row.Field<double?>("alarmlimitlow")
+        //        })
+        //        .ToArray();
+
+        //    trendingDataSet.OffNormalLimits = dataSet.Tables[2].Rows
+        //        .Cast<DataRow>()
+        //        .Select(row => new TrendingAlarmLimit()
+        //        {
+        //            TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
+        //            TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
+        //            High = row.Field<double?>("offlimithigh"),
+        //            Low = row.Field<double?>("offlimitlow")
+        //        })
+        //        .ToArray();
+        //}
+        string historianServer;
+        string historianInstance;
+        IEnumerable<int> channelIDs = new List<int>() { Convert.ToInt32(ChannelID) };
+        DateTime startDate = Convert.ToDateTime(targetDate);
+        DateTime endDate = startDate.AddDays(1);
         TrendingDataSet trendingDataSet = new TrendingDataSet();
+        DateTime epoch = new DateTime(1970, 1, 1);
 
-        using (SqlConnection connection = new SqlConnection(connectionstring))
-        using (SqlCommand command = connection.CreateCommand())
-        using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+        using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
-            command.CommandText = theSproc;
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("@EventDate", targetDate);
-            command.Parameters.AddWithValue("@ChannelID", ChannelID);
-            command.CommandTimeout = 300;
+            historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
+            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
 
-            connection.Open();
-            adapter.Fill(dataSet);
-
-            trendingDataSet.ChannelData = dataSet.Tables[0].Rows
-                .Cast<DataRow>()
-                .Select(row => new TrendingDataPoint()
+            using (Historian historian = new Historian(historianServer, historianInstance))
+            {
+                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIDs, startDate, endDate))
                 {
-                    Time = row.Field<DateTime>("thedate").Subtract(epoch).TotalMilliseconds,
-                    Maximum = row.Field<double>("themaximum"),
-                    Minimum = row.Field<double>("theminimum"),
-                    Average = row.Field<double>("theaverage")
-                })
-                .ToArray();
+                    if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
+                    {
+                        trendingDataSet.ChannelData.Add(new TrendingDataDatum());
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
+                    }
 
-            trendingDataSet.AlarmLimits = dataSet.Tables[1].Rows
-                .Cast<DataRow>()
-                .Select(row => new TrendingAlarmLimit()
-                {
-                    TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
-                    TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
-                    High = row.Field<double?>("alarmlimithigh"),
-                    Low = row.Field<double?>("alarmlimitlow")
-                })
-                .ToArray();
+                    if (point.SeriesID.ToString() == "Average")
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Average = point.Value;
+                    else if (point.SeriesID.ToString() == "Minimum")
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Minimum = point.Value;
+                    else if (point.SeriesID.ToString() == "Maximum")
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Maximum = point.Value;
 
-            trendingDataSet.OffNormalLimits = dataSet.Tables[2].Rows
-                .Cast<DataRow>()
-                .Select(row => new TrendingAlarmLimit()
-                {
-                    TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds,
-                    TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds,
-                    High = row.Field<double?>("offlimithigh"),
-                    Low = row.Field<double?>("offlimitlow")
-                })
-                .ToArray();
+                }
+            }
+            IEnumerable<DataRow> table = Enumerable.Empty<DataRow>();
+
+            table = connection.RetrieveData(" Select {0} AS thedatefrom, " +
+                                                        "        DATEADD(DAY, 1, {0}) AS thedateto, " +
+                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.High * PerUnitValue ELSE AlarmRangeLimit.High END AS alarmlimithigh," +
+                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.Low * PerUnitValue ELSE AlarmRangeLimit.Low END AS alarmlimitlow " +
+                                                        " FROM   AlarmRangeLimit JOIN " +
+                                                        "        Channel ON AlarmRangeLimit.ChannelID = Channel.ID " +
+                                                        "WHERE   AlarmRangeLimit.AlarmTypeID = (SELECT ID FROM AlarmType where Name = 'Alarm') AND " +
+                                                        "        AlarmRangeLimit.ChannelID = {1}", startDate, Convert.ToInt32(ChannelID)).Select();
+
+            foreach (DataRow row in table)
+            {
+                trendingDataSet.AlarmLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("alarmlimithigh"), Low = row.Field<double?>("alarmlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
+            }
+
+            table = Enumerable.Empty<DataRow>();
+
+            table = connection.RetrieveData(" DECLARE @dayOfWeek INT = DATEPART(DW, {0}) - 1 " +
+                                                        " DECLARE @hourOfWeek INT = @dayOfWeek * 24 " +
+                                                        " ; WITH HourlyIndex AS" +
+                                                        " ( " +
+                                                        "   SELECT @hourOfWeek AS HourOfWeek " +
+                                                        "   UNION ALL " +
+                                                        "   SELECT HourOfWeek + 1 " +
+                                                        "   FROM HourlyIndex" +
+                                                        "   WHERE (HourOfWeek + 1) < @hourOfWeek + 24" +
+                                                        " ) " +
+                                                        " SELECT " +
+                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek, {0}) AS thedatefrom, " +
+                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek + 1, {0}) AS thedateto, " +
+                                                        "        HourOfWeekLimit.High AS offlimithigh, " +
+                                                        "        HourOfWeekLimit.Low AS offlimitlow " +
+                                                        " FROM " +
+                                                        "        HourlyIndex LEFT OUTER JOIN " +
+                                                        "        HourOfWeekLimit ON HourOfWeekLimit.HourOfWeek = HourlyIndex.HourOfWeek " +
+                                                        " WHERE " +
+                                                        "        HourOfWeekLimit.ChannelID IS NULL OR " +
+                                                        "        HourOfWeekLimit.ChannelID = {1} ", startDate, Convert.ToInt32(ChannelID)).Select();
+
+            foreach (DataRow row in table)
+            {
+                trendingDataSet.OffNormalLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("offlimithigh"), Low = row.Field<double?>("offlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
+            }
+
         }
+
 
         return trendingDataSet;
     }

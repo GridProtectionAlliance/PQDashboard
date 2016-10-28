@@ -60,35 +60,35 @@
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Communication, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Communication.2.1.314-beta\lib\net46\GSF.Communication.dll</HintPath>
+    <Reference Include="GSF.Communication, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Communication.2.1.356-beta\lib\net46\GSF.Communication.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.1.314-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="GSF.Core, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.1.356-beta\lib\net46\GSF.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Security, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Security.2.1.314-beta\lib\net46\GSF.Security.dll</HintPath>
+    <Reference Include="GSF.Security, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Security.2.1.356-beta\lib\net46\GSF.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.ServiceModel, Version=2.1.312.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceModel.2.1.312-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+    <Reference Include="GSF.ServiceModel, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceModel.2.1.356-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.ServiceProcess, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceProcess.2.1.314-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+    <Reference Include="GSF.ServiceProcess, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceProcess.2.1.356-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.TimeSeries, Version=2.1.314.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.TimeSeries.2.1.314-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+    <Reference Include="GSF.TimeSeries, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.TimeSeries.2.1.356-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.Web, Version=2.1.312.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Web.2.1.312-beta\lib\net46\GSF.Web.dll</HintPath>
+    <Reference Include="GSF.Web, Version=2.1.356.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Web.2.1.356-beta\lib\net46\GSF.Web.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Ionic.Zlib">
@@ -126,6 +126,10 @@
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="openHistorian.XDALink, Version=1.5.2.48, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Dependencies\openHistorian.XDALink.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -297,6 +301,9 @@
     <Content Include="Content\themes\redmond\jquery-ui.css" />
     <Content Include="Content\themes\redmond\jquery-ui.min.css" />
     <Content Include="Content\themes\redmond\theme.css" />
+    <Content Include="Data\PostgreSQL\GSFSchema.sql" />
+    <Content Include="Data\PostgreSQL\InitialDataSet.sql" />
+    <Content Include="Data\PostgreSQL\SampleDataSet.sql" />
     <Content Include="EASServiceTemplate.aspx.cs">
       <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -387,9 +394,6 @@
     <Content Include="Content\primeui.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="CSAService.aspx" />
-    <Content Include="Data\PostgreSQL\GSFSchema.sql" />
-    <Content Include="Data\PostgreSQL\InitialDataSet.sql" />
-    <Content Include="Data\PostgreSQL\SampleDataSet.sql" />
     <Content Include="EASServiceTemplate.aspx" />
     <Content Include="eventService.asmx" />
     <Content Include="FaultLocation.aspx" />
@@ -462,6 +466,7 @@
     <Content Include="fonts\fontawesome-webfont.woff2" />
     <Content Include="fonts\FontAwesome.otf" />
     <Content Include="Content\graphics\outlines\Outlines.psd" />
+    <None Include="Properties\PublishProfiles\desktop.pubxml" />
     <None Include="Properties\PublishProfiles\dev.pubxml" />
     <Content Include="Scripts\D3\LICENSE" />
     <Content Include="Scripts\flot\API.md" />
@@ -1287,12 +1292,6 @@
     <None Include="Project_Readme.html" />
     <Content Include="Scripts\jquery-2.2.3.min.map" />
     <Content Include="Scripts\knockout.validation.min.js.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\openHistorianXDALink\openHistorian.XDALink.csproj">
-      <Project>{7f731255-fa83-4dbf-9e0f-c22ae4845e76}</Project>
-      <Name>openHistorian.XDALink</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
