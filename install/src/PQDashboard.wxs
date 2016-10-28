@@ -255,8 +255,7 @@
                 </Control>
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
                 <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
-                    <Publish Event="NewDialog" Value="DependenciesDialog"><![CDATA[&PQDashboardFeature=3]]></Publish>
-                    <Publish Event="NewDialog" Value="CustomizeDlg"><![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
+                    <Publish Event="NewDialog" Value="CustomizeDlg">1</Publish>
                 </Control>
                 <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
                     <!-- Set up the authentication part of the connection string based on user input. -->
