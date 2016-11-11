@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_lje43zjn" %>
+<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_yuiv3e0e" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 <% ServiceName = "EAS Details"; 
@@ -11,6 +11,7 @@
     <title><%=ServiceName%></title>
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
 	<link rel="stylesheet" href="~/Content/FaultSpecifics.css" type="text/css" />
 	
 	</head>

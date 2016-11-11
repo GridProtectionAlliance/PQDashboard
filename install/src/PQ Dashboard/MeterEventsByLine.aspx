@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="MeterEventsByLine, App_Web_4wvx3gnq" %>
+<%@ page language="C#" autoeventwireup="true" inherits="MeterEventsByLine, App_Web_yxb3jofv" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>
@@ -15,6 +15,7 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
     
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
     <link rel="stylesheet" href="~/Content/bootstrap/theme.css"/>
     <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
     <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css"/>
