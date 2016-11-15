@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="ICFDetails, App_Web_4wvx3gnq" %>
+<%@ page language="C#" autoeventwireup="true" inherits="ICFDetails, App_Web_yuiv3e0e" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
@@ -9,6 +9,7 @@
     <title>ICF Details</title>
     
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
 	<link rel="stylesheet" href="./css/FaultSpecifics.css" type="text/css" />
 	
 	</head>
