@@ -823,29 +823,33 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
         dataType: 'json',
         cache: true,
         success: function (data) {
-            data.d.data.reverse();
-            var graphData = [];
-            for (var i = 0; i < data.d.data[0].data.length; ++i) {
-                var obj = {};
-                var total = 0;
-                obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
-                data.d.data.forEach(function (d, j) {
-                    obj[d.name] = d.data[i];
-                    total += d.data[i];
-                    obj[d.name + 'Disabled'] = false;
-                });
-                obj["Total"] = total;
-                graphData.push(obj);
+            if (data.d.data !== null) {
+                data.d.data.reverse();
+                var graphData = [];
+                for (var i = 0; i < data.d.data[0].data.length; ++i) {
+                    var obj = {};
+                    var total = 0;
+                    obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
+                    data.d.data.forEach(function (d, j) {
+                        obj[d.name] = d.data[i];
+                        total += d.data[i];
+                        obj[d.name + 'Disabled'] = false;
+                    });
+                    obj["Total"] = total;
+                    graphData.push(obj);
 
+                }
+
+                cache_Graph_Data = graphData;
+
+                if (thediv === "Overview") {
+
+                } else if (thediv === "TrendingData") {
+
+                } else
+                    buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
             }
-            cache_Graph_Data = graphData;
-
-            if (thediv === "Overview") {
-
-            } else if (thediv === "TrendingData") {
-
-            }else
-                buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);           
+            
         },
         failure: function (msg) {
             alert(msg);
@@ -2772,7 +2776,8 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         //       do not automatically fit bounds
         if (!locationdata.URL) {
             markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
-            leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+            if(markerGroup.getBounds().isValid())
+                leafletMap[currentTab].fitBounds(markerGroup.getBounds());
             leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180,-270), L.latLng(180,270)));
         }
 
@@ -3350,7 +3355,8 @@ function resizeMapAndMatrix(newTab) {
         leafletMap[currentTab].invalidateSize(true);
 
         markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
-        leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        if (markerGroup.getBounds().isValid())
+            leafletMap[currentTab].fitBounds(markerGroup.getBounds());
         //leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -200), L.latLng(180, 200)));
 
     }
