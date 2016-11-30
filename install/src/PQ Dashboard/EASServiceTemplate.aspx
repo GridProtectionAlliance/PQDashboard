@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_qhird4jb" %>
+<%@ page language="C#" autoeventwireup="true" inherits="EASDetails, App_Web_4tjevcxo" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 <% ServiceName = "EAS Details"; 
