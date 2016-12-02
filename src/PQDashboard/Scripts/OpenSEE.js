@@ -375,6 +375,8 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                 order += 20;
             else if (series.MeasurementCharacteristic == "FaultDistance")
                 order += 30;
+            else if (series.MeasurementCharacteristic == "Frequency")
+                order += 40;
 
             if (series.Phase == "AN")
                 order += 0;
@@ -495,6 +497,10 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     series.flotSeries.label += " Amplitude";
                 else if (series.MeasurementCharacteristic == "WaveError")
                     series.flotSeries.label += " Error";
+                else if (series.MeasurementCharacteristic == "Frequency")
+                    series.flotSeries.label = "Frequency";
+                else if (series.Phase == "Unknown")
+                    series.flotSeries.label = series.ChannelName;
                 else
                     series.visible = true;
 
