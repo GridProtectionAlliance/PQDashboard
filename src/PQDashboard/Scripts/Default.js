@@ -245,7 +245,7 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
 
     $.ajax({
         type: "POST",
-        url: window.location.href +'/mapService.asmx/getMeterIDsForArea',
+        url: homePath +'/mapService.asmx/getMeterIDsForArea',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -274,7 +274,7 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
 
     $.ajax({
         type: "POST",
-        url: window.location.href +'/eventService.asmx/' + thedatasource,
+        url: homePath +'/eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -656,7 +656,7 @@ return (return_html);
 
 function OpenWindowToFaultSpecifics(id) {
     var datarow = id;
-    var popup = window.open("FaultSpecifics.aspx?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "FaultSpecifics.aspx?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -684,7 +684,7 @@ function makeOpenSTEButton_html(id) {
 }
 
 function OpenWindowToOpenSTE(url, id) {
-    var popup = window.open(url, id + "openSTE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + url, id + "openSTE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -697,7 +697,7 @@ function OpenWindowToOpenSEE(id) {
     else
         url += "&faultcurves=1";
 
-    var popup = window.open(url, id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + url, id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -726,23 +726,23 @@ function makeMeterEventsByLineButton_html(id) {
 }
 
 function OpenWindowToMeterEventsByLine(id) {
-    var popup = window.open("MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
 function OpenWindowToMeterDisturbancesByLine(id) {
-    var popup = window.open("MeterDisturbancesByLine.aspx?eventid=" + id, id + "MeterDisturbancesByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "MeterDisturbancesByLine.aspx?eventid=" + id, id + "MeterDisturbancesByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
 
 function OpenWindowToChannelDataQuality(id) {
-    var popup = window.open("ChannelDataQuality.aspx?eventid=" + id, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "ChannelDataQuality.aspx?eventid=" + id, id + "ChannelDataQuality", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
 function OpenWindowToChannelDataCompleteness(id) {
-    var popup = window.open("ChannelDataCompleteness.aspx?eventid=" + id, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "ChannelDataCompleteness.aspx?eventid=" + id, id + "ChannelDataCompleteness", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
     return false;
 }
 
@@ -817,7 +817,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
     $.ajax({
         type: "POST",
-        url: window.location.href +'/eventService.asmx/' + thedatasource,
+        url: homePath +'/eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -1264,7 +1264,7 @@ function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, t
                 "'}";
     $.ajax({
         type: "POST",
-        url: window.location.href +'/eventService.asmx/' + thedatasource,
+        url: homePath +'/eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -1468,7 +1468,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
 function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = window.location.href + "/mapService.asmx/getLocationsHeatmapSwell";
+    var url = homePath + "/mapService.asmx/getLocationsHeatmapSwell";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1503,7 +1503,7 @@ function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
 
 function getEventsHeatmapSags(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = window.location.href + "/mapService.asmx/getLocationsHeatmapSags";
+    var url = homePath + "/mapService.asmx/getLocationsHeatmapSags";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1538,7 +1538,7 @@ function getEventsHeatmapSags(currentTab, datefrom, dateto) {
 
 function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = window.location.href + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1569,7 +1569,7 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
-    var url = window.location.href + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     //console.log(thedatasent);
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1596,7 +1596,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = window.location.href + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
     heatmapCache = null;
@@ -1621,7 +1621,7 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var url = window.location.href + "/mapService.asmx/getLocations" + currentTab;
+    var url = homePath + "/mapService.asmx/getLocations" + currentTab;
     var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
 
     if (currentTab !== "TrendingData") {
@@ -3867,7 +3867,7 @@ function getMeters() {
 
     $.ajax({
         type: "POST",
-        url: window.location.href + '/mapService.asmx/getMeters',
+        url: homePath + '/mapService.asmx/getMeters',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -3954,7 +3954,7 @@ function loadsitedropdown() {
 function loadSettingsAndApply() {
 
     var thedatasent = "{'userName':'" + postedUserName + "'}";
-    var url = window.location.href + "/eventService.asmx/getDashSettings";
+    var url = homePath + "/eventService.asmx/getDashSettings";
 
     $.ajax({
         type: "POST",
@@ -4294,7 +4294,7 @@ function loadLeafletMap(theDiv) {
 }
 
 function loadContourLayer(contourQuery) {
-    var tileURL = window.location.href + '/mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+    var tileURL = homePath + '/mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
 
     $.each(contourQuery, function (key, value) {
         tileURL += '&' + key + '=' + encodeURIComponent(value);
@@ -4420,7 +4420,7 @@ function loadContourAnimationData() {
 
     $.ajax({
         type: "POST",
-        url: window.location.href + '/mapService.asmx/getContourAnimations',
+        url: homePath + '/mapService.asmx/getContourAnimations',
         data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -4448,7 +4448,7 @@ function loopForAnimation(animationData) {
 
     $.ajax({
         type: "POST",
-        url: window.location.href + '/mapService.asmx/GetProgress',
+        url: homePath + '/mapService.asmx/GetProgress',
         data: JSON.stringify(message),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -4581,7 +4581,7 @@ function showOverviewPage(tab) {
 function initiateColorScale() {
     $.ajax({
         type: "POST",
-        url: window.location.href + '/mapService.asmx/getColorScales',
+        url: homePath + '/mapService.asmx/getColorScales',
         contentType: "application/json; charset=utf-8",
         cache: true,
         success: function (data) {
@@ -4614,7 +4614,7 @@ function cancelCall(animationID) {
     $.ajax({
         type: "POST",
         data: { 'taskID': animationID },
-        url: window.location.href + '/mapService.asmx/CancelCall',
+        url: homePath + '/mapService.asmx/CancelCall',
         failure: function (msg) {
             alert(msg);
         },
