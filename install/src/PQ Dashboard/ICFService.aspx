@@ -1,4 +1,4 @@
-<%@ page language="C#" autoeventwireup="true" inherits="ICFDetails, App_Web_4tjevcxo" %>
+<%@ page language="C#" autoeventwireup="true" inherits="ICFDetails, App_Web_lsnpvlg0" %>
 <%@ Import Namespace="System.Activities.Statements" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
