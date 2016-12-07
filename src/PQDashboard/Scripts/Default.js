@@ -245,7 +245,7 @@ function populateLocationDropdownWithSelection( ax, ay, bx, by ) {
 
     $.ajax({
         type: "POST",
-        url: homePath +'/mapService.asmx/getMeterIDsForArea',
+        url: homePath +'mapService.asmx/getMeterIDsForArea',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -274,7 +274,7 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
 
     $.ajax({
         type: "POST",
-        url: homePath +'/eventService.asmx/' + thedatasource,
+        url: homePath +'eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -484,7 +484,25 @@ function populateEventsDivWithGrid(data, disabledFields) {
         $(parent).append('<div id="Detail'+ currentTab +'Table"></div>');
     }
 
-    fixNumbers(data, ['interruptions', 'faults', 'sags', 'swells', 'others']);
+    var filteredData = [];
+    if (disabledFields !== null) {
+        $.each(data, function (i, d) {
+            var otherFields = ["theeventid" , "themeterid", "thesite", undefined, "others"];
+
+            var sum = 0;
+            for (var key in d) {
+                if(disabledFields.indexOf(key) == -1 && otherFields.indexOf(key) == -1)
+                    sum += parseInt(d[key]);
+            }
+            if (sum > 0)
+                filteredData.push(d);
+        });
+    } else {
+        filteredData = data;
+    }
+
+
+    fixNumbers(filteredData, ['interruptions', 'faults', 'sags', 'swells', 'others']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
         scrollable: true,
@@ -817,7 +835,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
     $.ajax({
         type: "POST",
-        url: homePath +'/eventService.asmx/' + thedatasource,
+        url: homePath +'eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -1264,7 +1282,7 @@ function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, t
                 "'}";
     $.ajax({
         type: "POST",
-        url: homePath +'/eventService.asmx/' + thedatasource,
+        url: homePath +'eventService.asmx/' + thedatasource,
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -1468,7 +1486,7 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
 function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = homePath + "/mapService.asmx/getLocationsHeatmapSwell";
+    var url = homePath + "mapService.asmx/getLocationsHeatmapSwell";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1503,7 +1521,7 @@ function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
 
 function getEventsHeatmapSags(currentTab, datefrom, dateto) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = homePath + "/mapService.asmx/getLocationsHeatmapSags";
+    var url = homePath + "mapService.asmx/getLocationsHeatmapSags";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1538,7 +1556,7 @@ function getEventsHeatmapSags(currentTab, datefrom, dateto) {
 
 function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
 
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1569,7 +1587,7 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
-    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     //console.log(thedatasent);
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
@@ -1596,7 +1614,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = homePath + "/mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
+    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     heatmap_Cache_Date_From = null;
     heatmap_Cache_Date_To = null;
     heatmapCache = null;
@@ -1621,7 +1639,7 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var url = homePath + "/mapService.asmx/getLocations" + currentTab;
+    var url = homePath + "mapService.asmx/getLocations" + currentTab;
     var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
 
     if (currentTab !== "TrendingData") {
@@ -2715,7 +2733,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
         $.each(locationdata.Locations, function (index, data) {
-            $('#' + data.name.replace(/\(|\)|\/|\'|\./g, "") + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
+            $('#' + data.name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
             $.each(mapMarkers[currentTab], function (mmIndex, object) {
                 if(object.id === data.id)
                     object.marker.getPopup().setContent(getLeafletLocationPopup(data))
@@ -2728,7 +2746,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         $.each(locationdata.Locations, function (index, data) {
             var color = getLeafletLocationColors(data);
 
-            var html = '<svg height="12" width="12" id="' + data.name.replace(/\(|\)|\/|\'|\./g, "") + '-' + data.id + '">' +
+            var html = '<svg height="12" width="12" id="' + data.name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.id + '">' +
                             '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
                        '</svg>';
 
@@ -3867,7 +3885,7 @@ function getMeters() {
 
     $.ajax({
         type: "POST",
-        url: homePath + '/mapService.asmx/getMeters',
+        url: homePath + 'mapService.asmx/getMeters',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -3954,7 +3972,7 @@ function loadsitedropdown() {
 function loadSettingsAndApply() {
 
     var thedatasent = "{'userName':'" + postedUserName + "'}";
-    var url = homePath + "/eventService.asmx/getDashSettings";
+    var url = homePath + "eventService.asmx/getDashSettings";
 
     $.ajax({
         type: "POST",
@@ -4294,7 +4312,7 @@ function loadLeafletMap(theDiv) {
 }
 
 function loadContourLayer(contourQuery) {
-    var tileURL = homePath + '/mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
+    var tileURL = homePath + 'mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
 
     $.each(contourQuery, function (key, value) {
         tileURL += '&' + key + '=' + encodeURIComponent(value);
@@ -4420,7 +4438,7 @@ function loadContourAnimationData() {
 
     $.ajax({
         type: "POST",
-        url: homePath + '/mapService.asmx/getContourAnimations',
+        url: homePath + 'mapService.asmx/getContourAnimations',
         data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -4448,7 +4466,7 @@ function loopForAnimation(animationData) {
 
     $.ajax({
         type: "POST",
-        url: homePath + '/mapService.asmx/GetProgress',
+        url: homePath + 'mapService.asmx/GetProgress',
         data: JSON.stringify(message),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
@@ -4581,7 +4599,7 @@ function showOverviewPage(tab) {
 function initiateColorScale() {
     $.ajax({
         type: "POST",
-        url: homePath + '/mapService.asmx/getColorScales',
+        url: homePath + 'mapService.asmx/getColorScales',
         contentType: "application/json; charset=utf-8",
         cache: true,
         success: function (data) {
@@ -4614,7 +4632,7 @@ function cancelCall(animationID) {
     $.ajax({
         type: "POST",
         data: { 'taskID': animationID },
-        url: homePath + '/mapService.asmx/CancelCall',
+        url: homePath + 'mapService.asmx/CancelCall',
         failure: function (msg) {
             alert(msg);
         },
