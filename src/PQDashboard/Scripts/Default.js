@@ -1554,7 +1554,7 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
         dataType: 'json',
         cache: true,
         success: function (data) {
-            var map = getMapInstance(currentTab);
+            //var map = getMapInstance(currentTab);
             LoadHeatmapLeaflet(data.d);
 
         },
@@ -2715,7 +2715,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
         $.each(locationdata.Locations, function (index, data) {
-            $('#' + data.name + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
+            $('#' + data.name.replace(/\(|\)|\/|\'|\./g, "") + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
             $.each(mapMarkers[currentTab], function (mmIndex, object) {
                 if(object.id === data.id)
                     object.marker.getPopup().setContent(getLeafletLocationPopup(data))
@@ -2728,7 +2728,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
         $.each(locationdata.Locations, function (index, data) {
             var color = getLeafletLocationColors(data);
 
-            var html = '<svg height="12" width="12" id="' + data.name + '-' + data.id + '">' +
+            var html = '<svg height="12" width="12" id="' + data.name.replace(/\(|\)|\/|\'|\./g, "") + '-' + data.id + '">' +
                             '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
                        '</svg>';
 
