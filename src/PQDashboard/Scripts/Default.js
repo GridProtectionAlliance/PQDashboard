@@ -488,10 +488,10 @@ function populateEventsDivWithGrid(data, disabledFields) {
     if (disabledFields !== null) {
         $.each(data, function (i, d) {
             var otherFields = ["theeventid" , "themeterid", "thesite", undefined, "others"];
-
+            var fixedDisabledFields = disabledFields.map(x => x.toLowerCase() + 's');
             var sum = 0;
             for (var key in d) {
-                if(disabledFields.indexOf(key) == -1 && otherFields.indexOf(key) == -1)
+                if (fixedDisabledFields.indexOf(key) == -1 && otherFields.indexOf(key) == -1)
                     sum += parseInt(d[key]);
             }
             if (sum > 0)
@@ -515,7 +515,7 @@ function populateEventsDivWithGrid(data, disabledFields) {
             { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), sortable: true },
             { field: 'others', headerText: 'Others', headerStyle: 'width:  10%; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), sortable: true }
         ],
-        datasource: data
+        datasource: filteredData
     });
 
 }
