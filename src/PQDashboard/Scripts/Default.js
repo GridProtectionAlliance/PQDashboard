@@ -54,6 +54,7 @@ var cache_Graph_Data = null;
 var cache_ErrorBar_data = null;
 var cache_Table_Data = null;
 var cache_Contour_Data = null;
+var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
 var leafletMap = {'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
@@ -149,6 +150,7 @@ function loadDataForDate() {
         else {
             cache_Last_Date = null;
             cache_Table_Data = null;
+            cache_Sparkline_Data = null;
         }
 
         setMapHeaderDate(contextfromdate, contexttodate);
@@ -1136,6 +1138,8 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
 
         var disabledLegendFields = [];
+        if(currentTab === "Events")
+            cache_Graph_Data[0]['OtherDisabled'] = true;
 
         legend.append("rect")
             .attr("x", width + -65)
@@ -1159,7 +1163,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                     disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
 
-                toggleSeries(d, chartData, $(this).css('fill') === 'rgb(128, 128, 128)');
+                toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
 
                 if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab ==='Trending')) {
@@ -1175,8 +1179,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("width", 40)
             .attr("dy", ".35em")
             .style("text-anchor", "start")
-            .text(function (d) { return d; });
+            .text(function (d) {
+                return d;
+            });
 
+        if (currentTab === "Events")
+            toggleSeries("Other", true);
     }
 
     //called when selection is chosen on overview map
@@ -1211,7 +1219,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
 
     //Toggles a certain series.
-    function toggleSeries(seriesName, data, isDisabling) {
+    function toggleSeries(seriesName, isDisabling) {
 
         var newData = deepCopy(cache_Graph_Data);
 
@@ -2004,51 +2012,35 @@ function populateGridSparklineCorrectness(data, siteID, siteName, makespark) {
     }
 
     if (!makespark) return;
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: parseInt($(matrixItemID).height() * .4),
+        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
+        siteid: siteName,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: colorMap,
 
-    //var sparklinedraw = function (height, barWidth) {
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
 
-        $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-            type: 'bar',
-            height: '10px',
-            barWidth: '3px',
-            siteid: siteName,
-            //datadate: thedate,
-            borderWidth: 0,
-            nullColor: '#f5f5f5',
-            zeroColor: '#f5f5f5',
-            borderColor: '#f5f5f5',
-            colorMap: colorMap,
-
-            tooltipFormatter: function (sp, options, fields) {
-                var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-                switch (fields[0].offset) {
-                    case 0:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
-                        break;
-                    case 1:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
-                        break;
-                    case 2:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
-                        break;
-                }
-
-                return (returnvalue);
+            switch (fields[0].offset) {
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
+                    break;
             }
-        });
-    //}
 
-    //var sparkResize;
-
-    //$(document).on('matrixResize', function (e) {
-    //    clearTimeout(sparkResize);
-
-    //    sparkResize = setTimeout(function () { sparklinedraw($('.sparkbox').height(), $('.sparkbox').width() / 10); }, 500);
-    //});
-
-    //sparklinedraw($('.sparkbox').height() - 1, $('.sparkbox').width() / 10);
-
+            return (returnvalue);
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2078,50 +2070,35 @@ function populateGridSparklineCompleteness(data, siteID, siteName, makespark) {
     }
 
     if (!makespark) return;
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: parseInt($(matrixItemID).height() * .4),
+        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
+        siteid: siteName,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: colorMap,
 
-    //var sparklinedraw = function (height, barWidth) {
-        $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-            type: 'bar',
-            height: '10px',
-            barWidth: '3px',
-            siteid: siteName,
-            //datadate: thedate,
-            borderWidth: 0,
-            nullColor: '#f5f5f5',
-            zeroColor: '#f5f5f5',
-            borderColor: '#f5f5f5',
-            colorMap: colorMap,
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
 
-            tooltipFormatter: function (sp, options, fields) {
-                var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-                switch (fields[0].offset) {
-                    case 0:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
-                        break;
-                    case 1:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
-                        break;
-                    case 2:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
-                        break;
-                }
-
-                return (returnvalue);
+            switch (fields[0].offset) {
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
+                    break;
             }
-        });
-    //}
 
-    //var sparkResize;
-
-    //$(document).on('matrixResize', function (e) {
-    //    clearTimeout(sparkResize);
-
-    //    sparkResize = setTimeout(function () { sparklinedraw($('.sparkbox').height(), $('.sparkbox').width() / 10); }, 500);
-    //});
-
-    //sparklinedraw($('.sparkbox').height() - 1, $('.sparkbox').width() / 10);
-
+            return (returnvalue);
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2152,73 +2129,58 @@ function populateGridSparklineEvents(data, siteID, siteName) {
             var thetitle = "";
             thetitle += "<table>";
             thetitle += "<tr><td colspan=2 align='center'>" + siteName + "</td></tr>";
-            thetitle += "<tr><td>Interruptions</td><td align='right'>" + data[0] + "</td></tr>";
-            thetitle += "<tr><td>Faults</td><td align='right'>" + data[1] + "</td></tr>";
-            thetitle += "<tr><td>Sags</td><td align='right'>" + data[2] + "</td></tr>";
-            thetitle += "<tr><td>Transients</td><td align='right'>" + data[3] + "</td></tr>";
-            thetitle += "<tr><td>Swells</td><td align='right'>" + data[4] + "</td></tr>";
-            thetitle += "<tr><td>Others</td><td align='right'>" + data[5] + "</td></tr>";
+            thetitle += "<tr><td>Interruptions</td><td align='right'>" + data[5] + "</td></tr>";
+            thetitle += "<tr><td>Faults</td><td align='right'>" + data[4] + "</td></tr>";
+            thetitle += "<tr><td>Sags</td><td align='right'>" + data[3] + "</td></tr>";
+            thetitle += "<tr><td>Transients</td><td align='right'>" + data[2] + "</td></tr>";
+            thetitle += "<tr><td>Swells</td><td align='right'>" + data[1] + "</td></tr>";
+            thetitle += "<tr><td>Others</td><td align='right'>" + data[0] + "</td></tr>";
             thetitle += "</table>";
             return (thetitle);
         }
     });
 
-    //$(matrixItemID)[0].title = thetitle;
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: parseInt($(matrixItemID).height() * .4),
+        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
+        siteid: siteName,
+        //datadate: thedate,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: [globalcolorsEvents[5], globalcolorsEvents[4], globalcolorsEvents[3], globalcolorsEvents[2], globalcolorsEvents[1], globalcolorsEvents[0]],
 
-    //$(matrixItemID)[0].title = siteName + "\nInterruptions: " + data[0] + "\nFaults: " + data[1] + "\nSags: " + data[2] + "\nTransients: " + data[3] + "\nSwells: " + data[4] + "\nOthers: " + data[5];
-    //var sparklinedraw = function (height, barWidth) {
-        $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-            type: 'bar',
-            height: '10px',
-            barWidth: '3px',
-            siteid: siteName,
-            //datadate: thedate,
-            borderWidth: 0,
-            nullColor: '#f5f5f5',
-            zeroColor: '#f5f5f5',
-            borderColor: '#f5f5f5',
-            colorMap: globalcolorsEvents,
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
 
-            tooltipFormatter: function (sp, options, fields) {
-                var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
+            switch (fields[0].offset) {
 
-                switch (fields[0].offset) {
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Interruptions: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Faults: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Sags: ' + fields[0].value + '</div>';
+                    break;
+                case 3:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Transients: ' + fields[0].value + '</div>';
+                    break;
+                case 4:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Swells: ' + fields[0].value + '</div>';
+                    break;
+                case 5:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Others: ' + fields[0].value + '</div>';
+                    break;
 
-                    case 0:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Interruptions: ' + fields[0].value + '</div>';
-                        break;
-                    case 1:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Faults: ' + fields[0].value + '</div>';
-                        break;
-                    case 2:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Sags: ' + fields[0].value + '</div>';
-                        break;
-                    case 3:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Transients: ' + fields[0].value + '</div>';
-                        break;
-                    case 4:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Swells: ' + fields[0].value + '</div>';
-                        break;
-                    case 5:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Others: ' + fields[0].value + '</div>';
-                        break;
-
-                }
-
-                return (returnvalue);
             }
-        });
-    //}
 
-    //var sparkResize;
-
-    //$(document).on('matrixResize', function (e) {
-    //    clearTimeout(sparkResize);
-
-    //    sparkResize = setTimeout(function () { sparklinedraw($('.sparkbox').height(), $('.sparkbox').width()/10); }, 500);
-    //});
-
-    //sparklinedraw($('.sparkbox').height() - 1, $('.sparkbox').width() / 10);
+            return (returnvalue);
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2260,64 +2222,47 @@ function populateGridSparklineDisturbances(data, siteID, siteName) {
         }
     });
 
-    //$(matrixItemID)[0].title = thetitle;
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: parseInt($(matrixItemID).height() * .4),
+        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
+        siteid: siteName,
+        //datadate: thedate,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: globalcolorsEvents,
 
-    //$(matrixItemID)[0].title = siteName + "\nInterruptions: " + data[0] + "\nFaults: " + data[1] + "\nSags: " + data[2] + "\nTransients: " + data[3] + "\nSwells: " + data[4] + "\nOthers: " + data[5];
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
 
-    //var sparklinedraw = function (height, barWidth) {
+            switch (fields[0].offset) {
 
-        $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-            type: 'bar',
-            height: '10px',
-            barWidth: '3px',
-            siteid: siteName,
-            //datadate: thedate,
-            borderWidth: 0,
-            nullColor: '#f5f5f5',
-            zeroColor: '#f5f5f5',
-            borderColor: '#f5f5f5',
-            colorMap: globalcolorsEvents,
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 5: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 4: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 3: ' + fields[0].value + '</div>';
+                    break;
+                case 3:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 2: ' + fields[0].value + '</div>';
+                    break;
+                case 4:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 1: ' + fields[0].value + '</div>';
+                    break;
+                case 5:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 0: ' + fields[0].value + '</div>';
+                    break;
 
-            tooltipFormatter: function (sp, options, fields) {
-                var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-                switch (fields[0].offset) {
-
-                    case 0:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 5: ' + fields[0].value + '</div>';
-                        break;
-                    case 1:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 4: ' + fields[0].value + '</div>';
-                        break;
-                    case 2:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 3: ' + fields[0].value + '</div>';
-                        break;
-                    case 3:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 2: ' + fields[0].value + '</div>';
-                        break;
-                    case 4:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 1: ' + fields[0].value + '</div>';
-                        break;
-                    case 5:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 0: ' + fields[0].value + '</div>';
-                        break;
-
-                }
-
-                return (returnvalue);
             }
-        });
-    //}
-    //var sparkResize;
 
-    //$(document).on('matrixResize', function (e) {
-    //    clearTimeout(sparkResize);
-
-    //    sparkResize = setTimeout(function () { sparklinedraw($('.sparkbox').height(), $('.sparkbox').width() / 10); }, 500);
-    //});
-
-    //sparklinedraw($('.sparkbox').height() - 1, $('.sparkbox').width() / 10);
-
+            return (returnvalue);
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2328,7 +2273,7 @@ function populateGridSparklineBreakers(data, siteID, siteName) {
 
     var colorMap = [];
 
-    sparkvalues = [data[0], data[1], data[2]];
+    sparkvalues = [data[2], data[1], data[0]];
 
     colorMap = globalcolors; //['#FF0000', '#CC6600', '#FF8800'];
 
@@ -2338,50 +2283,35 @@ function populateGridSparklineBreakers(data, siteID, siteName) {
 
     $(matrixItemID)[0].title = siteName + "\nNormal: " + data[0] + "\nLate: " + data[1] + "\nIndeterminate: " + data[2];
 
-    //var sparklinedraw = function (height, barWidth) {
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+        type: 'bar',
+        height: parseInt($(matrixItemID).height() * .4),
+        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
+        siteid: siteName,
+        borderWidth: 0,
+        nullColor: '#f5f5f5',
+        zeroColor: '#f5f5f5',
+        borderColor: '#f5f5f5',
+        colorMap: colorMap,
 
-        $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-            type: 'bar',
-            height: '10px',
-            barWidth: '3px',
-            siteid: siteName,
-            //datadate: thedate,
-            borderWidth: 0,
-            nullColor: '#f5f5f5',
-            zeroColor: '#f5f5f5',
-            borderColor: '#f5f5f5',
-            colorMap: colorMap,
+        tooltipFormatter: function (sp, options, fields) {
+            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
 
-            tooltipFormatter: function (sp, options, fields) {
-                var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
+            switch (fields[0].offset) {
 
-                switch (fields[0].offset) {
-
-                    case 0:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Normal: ' + fields[0].value + '</div>';
-                        break;
-                    case 1:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Late: ' + fields[0].value + '</div>';
-                        break;
-                    case 2:
-                        returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Indeterminate: ' + fields[0].value + '</div>';
-                        break;
-                }
-                return (returnvalue);
+                case 0:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Normal: ' + fields[0].value + '</div>';
+                    break;
+                case 1:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Late: ' + fields[0].value + '</div>';
+                    break;
+                case 2:
+                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Indeterminate: ' + fields[0].value + '</div>';
+                    break;
             }
-        });
-    //}
-
-    //var sparkResize;
-
-    //$(document).on('matrixResize', function (e) {
-    //    clearTimeout(sparkResize);
-
-    //    sparkResize = setTimeout(function () { sparklinedraw($('.sparkbox').height(), $('.sparkbox').width() / 10); }, 500);
-    //});
-
-    //sparklinedraw($('.sparkbox').height() - 1, $('.sparkbox').width() / 10);
-
+            return (returnvalue);
+        }
+    });
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2707,17 +2637,17 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 
         item.data('gridstatus', value.status);
         item.data('siteid', value.name + "|" + value.id);
-        //item.status = value.status;
         $("#theMatrix" + newTab).append(item);
 
     });
 
     /// Set Matrix Cell size
+    cache_Sparkline_Data = locationdata.d.Locations;
     resizeMatrixCells(newTab);
 
-    $.each(locationdata.d.Locations, (function (key, value) {
-        populateGridMatrix(value.data, value.id, value.name);
-    }));
+    //$.each(locationdata.d.Locations, (function (key, value) {
+    //    populateGridMatrix(value.data, value.id, value.name);
+    //}));
 
     showSiteSet($("#selectSiteSet" + currentTab)[0]);
 };
@@ -3423,7 +3353,11 @@ function resizeMatrixCells(newTab) {
         $.event.trigger({ type: 'matrixResize', message: 'Matrix Resize', time: new Date() });
 
     }
-
+    if (cache_Sparkline_Data !== null) {
+          $.each(cache_Sparkline_Data, (function (key, value) {
+              populateGridMatrix(value.data, value.id, value.name);
+           }));
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -4120,6 +4054,7 @@ function buildPage() {
             else {
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
+                cache_Sparkline_Data = null;
                 var mapormatrix = $("#mapGrid")[0].value;
                 $('#headerStrip').show();
                 manageTabsByDate(newTab, contextfromdate, contexttodate);
@@ -4159,7 +4094,7 @@ function buildPage() {
     else {
         cache_Graph_Data = null;
         cache_Errorbar_Data = null;
-
+        cache_Sparkline_Data = null;
         $('#headerStrip').show();
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
