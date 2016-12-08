@@ -464,23 +464,23 @@ public class mapService : WebService
                 ourStatus.status = (int)rdr["Event_Count"];
                 ourStatus.id = (int)rdr["id"];
 
-                IDictionary<string, int> dict = new Dictionary<string, int>();
-                dict["Interruption"] = 1;
-                dict["Fault"] = 1;
-                dict["Sag"] = 1;
-                dict["Transient"] = 1;
-                dict["Swell"] = 1;
-                dict["Other"] = 1;
+                IDictionary < string, string> dict = new Dictionary<string, string>();
+                dict["Interruption"] = "#C00000";
+                dict["Fault"] = "#FF2800";
+                dict["Sag"] = "#FF9600";
+                dict["Transient"] = "#FFFF00";
+                dict["Swell"] = "#00FFF4";
+                dict["Other"] = "#0000FF";
 
 
-                string   severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
+                string severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
                 string[] codes = severityFilter.Split(',');
                 int sum = 0;
                 foreach (string s in codes)
                 {
                     if (s != "")
                     {
-                        sum += (int)rdr[s] * dict[s];
+                        sum += (int)rdr[s];
                         ourStatus.data.Add((int)rdr[s]);
                     }
                 }

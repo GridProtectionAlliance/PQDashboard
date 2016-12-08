@@ -63,7 +63,16 @@ var contourLayer = null;
 var contourOverlay = null;
 var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: []};
 var currentTab = null;
-
+var disabledList = {
+    Events: { "Interruption": false, "Fault": false, "Sag": false, "Transient": false, "Swell": false, "Other": true },
+    Disturbances: {"5": false, "4": false, "3": false, "2": false, "1": false, "0": false},
+    Trending: { "Alarm": false, "OffNormal": false},
+    TrendingData: {},
+    Faults: { "500 kV": false, "300 kV": false, "230 kV": false, "135 kV": false, "115 kV": false, "69 kV": false, "46 kV": false, "0 kV": false},
+    Breakers: {"Normal" : false, "Late": false, "Indeterminate": false},
+    Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": true},
+    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": true }
+};
 var calendardatesEvents = [];
 var calendartipsEvents = [];
 
@@ -648,11 +657,13 @@ function populateTrendingDataDivWithGrid(data, disabledFields) {
 }
 
 function fixNumbers(data, numFields) {
-    $.each(data, function (_, obj) {
-        $.each(numFields, function (_, field) {
-            obj[field] = Number(obj[field]);
+    if (data != null) {
+        $.each(data, function (_, obj) {
+            $.each(numFields, function (_, field) {
+                obj[field] = Number(obj[field]);
+            });
         });
-    });
+    }
 }
 
 
@@ -953,7 +964,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
     $.each(chartData, function (i, d) {
         $.each(tempKeys, function (j, k) {
-            if (chartData[i][k + 'Disabled'] === true)
+            if (disabledList[currentTab][k] === true)
                 chartData[i][k] = 0;
 
         });
@@ -1146,17 +1157,16 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("width", 18)
             .attr("height", 18)
             .style("fill", function (d, i, e) {
-                if (cache_Graph_Data[0][d + 'Disabled']) {
-                    disabledLegendFields.push(d);
+                if (disabledList[currentTab][d]) {
                     return '#808080';
                 }
                 return color(d);
             })
             .style("cursor", "pointer")
             .on("click", function (d, i) {
-                if ($(this).css('fill') !== 'rgb(128, 128, 128)') {
+                disabledList[currentTab][d] = !disabledList[currentTab][d];
+                if (disabledList[currentTab][d]) {
                     $(this).css('fill', 'rgb(128, 128, 128)');
-                    disabledLegendFields.push(d);
                 }
                 else {
                     $(this).css('fill', color(d));
@@ -1164,10 +1174,11 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 }
 
                 toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
-                window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, disabledLegendFields);
-
-                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab ==='Trending')) {
-                    var legendFields = color.domain().slice().filter(function (a) { return disabledLegendFields.indexOf(a) < 0 });
+                window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, $.map(disabledList[currentTab], function (data, key) { if (data) return key }));
+                resizeMatrixCells(currentTab);
+                showSiteSet($("#selectSiteSet" + currentTab)[0]);
+                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
+                    var legendFields = color.domain().slice().filter(function (a) { return $.map(disabledList[currentTab], function (data, key) { if (data) return key }).indexOf(a) < 0 });
                     showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
                 }
 
@@ -1201,7 +1212,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         $.each(newData, function (i, d) {
             $.each(tempKeys, function (j, k) {
-                if (newData[i][k + 'Disabled'] === true)
+                if (disabledList[currentTab][k] === true)
                     newData[i][k] = 0;
 
             });
@@ -1709,34 +1720,36 @@ function getStatusColorForGridElement( data ) {
         case "Events":
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0)
                 return ("#0E892C");
-            if (data[0] > 0)  // Interruptions
+            if (data[0] > 0 && !disabledList[currentTab]["Interruption"])  // Interruptions
                 return (globalcolorsEvents[5]);
-            if (data[1] > 0)  // Faults
+            if (data[1] > 0 && !disabledList[currentTab]["Fault"])  // Faults
                 return (globalcolorsEvents[4]);
-            if (data[2] > 0)  // Sags
+            if (data[2] > 0 && !disabledList[currentTab]["Sag"])  // Sags
                 return (globalcolorsEvents[3]);
-            if (data[3] > 0)  // Transients
+            if (data[3] > 0 && !disabledList[currentTab]["Transient"])  // Transients
                 return (globalcolorsEvents[2]);
-            if (data[4] > 0)  // Swells
+            if (data[4] > 0 && !disabledList[currentTab]["Swell"])  // Swells
                 return (globalcolorsEvents[1]);
-            if (data[5] > 0)  // Others
+            if (data[5] > 0 && !disabledList[currentTab]["Other"])   // Others
                 return (globalcolorsEvents[0]);
+            else return ("#0E892C");
             break;
         case "Disturbances":
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) 
                 return ("#0E892C");
-            if (data[0] > 0)  // 5
+            if (data[5] > 0 && !disabledList[currentTab]["5"])  // 5
                 return (globalcolorsEvents[5]);
-            if (data[1] > 0)  // 4
+            if (data[4] > 0 && !disabledList[currentTab]["4"])  // 4
                 return (globalcolorsEvents[4]);
-            if (data[2] > 0)  // 3
+            if (data[3] > 0 && !disabledList[currentTab]["3"])  // 3
                 return (globalcolorsEvents[3]);
-            if (data[3] > 0)  // 2
+            if (data[2] > 0 && !disabledList[currentTab]["2"])  // 2
                 return (globalcolorsEvents[2]);
-            if (data[4] > 0)  // 1
+            if (data[1] > 0 && !disabledList[currentTab]["1"])  // 1
                 return (globalcolorsEvents[1]);
-            if (data[5] > 0)  // 0
+            if (data[0] > 0 && !disabledList[currentTab]["0"])  // 0
                 return (globalcolorsEvents[0]);
+            else return ("#0E892C");
             break;
         case "Completeness":
             //[0]ExpectedPoints
@@ -1752,20 +1765,20 @@ function getStatusColorForGridElement( data ) {
                 return ("#CCCCCC");
 
             var percentage = Math.floor(((data[1] + data[2] + data[3] +data[4]) / data[0]) * 100);
-            if (percentage > 100) 
+            if (percentage > 100 && !disabledList[currentTab]["> 100%"])
                 return (globalcolorsDQ[6]);
-            if (percentage >= 98) 
+            if (percentage >= 98 && !disabledList[currentTab]["98% - 100%"])
                 return (globalcolorsDQ[5]);
-            if (percentage >= 90) 
+            if (percentage >= 90 && !disabledList[currentTab]["90% - 97%"])
                 return (globalcolorsDQ[4]);
-            if (percentage >= 70) 
+            if (percentage >= 70 && !disabledList[currentTab]["70% - 89%"])
                 return (globalcolorsDQ[3]);
-            if (percentage >= 50) 
+            if (percentage >= 50 && !disabledList[currentTab]["50% - 69%"])
                 return (globalcolorsDQ[2]);
-            if (percentage > 0) 
+            if (percentage > 0 && !disabledList[currentTab][">0% - 49%"])
                 return (globalcolorsDQ[1]);
+            if (!disabledList[currentTab]["0%"]) return (globalcolorsDQ[0]);
             return (globalcolorsDQ[0]);
-
             break;
 
         case "Correctness":
@@ -1781,18 +1794,19 @@ function getStatusColorForGridElement( data ) {
                 return ("#CCCCCC");
 
             var percentage = Math.floor((data[1]/(data[1] + data[2] + data[3] + data[4])) * 100);
-            if (percentage > 100) 
+            if (percentage > 100 && !disabledList[currentTab]["> 100%"])
                 return (globalcolorsDQ[6]);
-            if (percentage >= 98) 
+            if (percentage >= 98 && !disabledList[currentTab]["98% - 100%"])
                 return (globalcolorsDQ[5]);
-            if (percentage >= 90) 
+            if (percentage >= 90 && !disabledList[currentTab]["90% - 97%"])
                 return (globalcolorsDQ[4]);
-            if (percentage >= 70) 
+            if (percentage >= 70 && !disabledList[currentTab]["70% - 89%"])
                 return (globalcolorsDQ[3]);
-            if (percentage >= 50) 
+            if (percentage >= 50 && !disabledList[currentTab]["50% - 69%"])
                 return (globalcolorsDQ[2]);
-            if (percentage > 0) 
+            if (percentage > 0 && !disabledList[currentTab][">0% - 49%"])
                 return (globalcolorsDQ[1]);
+            if (!disabledList[currentTab]["0%"]) return (globalcolorsDQ[0]);
             return (globalcolorsDQ[0]);
             break;
 
@@ -1802,10 +1816,11 @@ function getStatusColorForGridElement( data ) {
                 return ("#339933");
             else if (data[1] > 0 && data[0] > 0) 
                 return ("#FF7700");
-            else if (data[0] > 0 && data[1] == 0) 
+            else if (data[0] > 0 && data[1] == 0 && !disabledList[currentTab]["Alarm"])
                 return ("#FF0000");
-            else if (data[1] > 0 && data[0] == 0) 
+            else if (data[1] > 0 && data[0] == 0 && !disabledList[currentTab]["OffNormal"])
                 return ("#FFCC00");
+            else return ("#339933");
             break;
 
 
@@ -1832,15 +1847,15 @@ function getStatusColorForGridElement( data ) {
         case "Breakers":
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 ) 
                 return ("#0E892C");
-            if (data[0] > 0)  // Normal
+            if (data[0] > 0 && !disabledList[currentTab]["Normal"])  // Normal
                 return (globalcolors[0]);
 
-            if (data[1] > 0)  // Late
+            if (data[1] > 0 && !disabledList[currentTab]["Late"])  // Late
                 return (globalcolors[1]);
 
-            if (data[2] > 0)  // Indeterminate
+            if (data[2] > 0 && !disabledList[currentTab]["Indeterminate"])  // Indeterminate
                 return (globalcolors[2]);
-
+            else return ("#0E892C");
             break;
 
         default:
@@ -2105,7 +2120,13 @@ function populateGridSparklineCompleteness(data, siteID, siteName, makespark) {
 
 function populateGridSparklineEvents(data, siteID, siteName) {
 
-    var sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
+     var sparkValues = { "Interruption": { data: data[0], color: globalcolorsEvents[5] }, "Fault": { data: data[1], color: globalcolorsEvents[4] }, "Sag": { data: data[2], color: globalcolorsEvents[3] }, "Transient": { data: data[3], color: globalcolorsEvents[2] }, "Swell": { data: data[4], color: globalcolorsEvents[1] }, "Other": { data: data[5], color: globalcolorsEvents[0] } };
+     var numbers = [];
+     var colors = [];
+     $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }), function (index, field) {
+            numbers.push(sparkValues[field].data);
+            colors.push(sparkValues[field].color);
+     });
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
@@ -2140,7 +2161,7 @@ function populateGridSparklineEvents(data, siteID, siteName) {
         }
     });
 
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(numbers, {
         type: 'bar',
         height: parseInt($(matrixItemID).height() * .4),
         barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
@@ -2150,7 +2171,7 @@ function populateGridSparklineEvents(data, siteID, siteName) {
         nullColor: '#f5f5f5',
         zeroColor: '#f5f5f5',
         borderColor: '#f5f5f5',
-        colorMap: [globalcolorsEvents[5], globalcolorsEvents[4], globalcolorsEvents[3], globalcolorsEvents[2], globalcolorsEvents[1], globalcolorsEvents[0]],
+        colorMap: colors,
 
         tooltipFormatter: function (sp, options, fields) {
             var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
@@ -2186,8 +2207,13 @@ function populateGridSparklineEvents(data, siteID, siteName) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateGridSparklineDisturbances(data, siteID, siteName) {
-
-    var sparkvalues = [data[0], data[1], data[2], data[3], data[4], data[5]];
+    var sparkValues = { "5": { data: data[5], color: globalcolorsEvents[5] }, "4": { data: data[4], color: globalcolorsEvents[4] }, "3": { data: data[3], color: globalcolorsEvents[3] }, "2": { data: data[2], color: globalcolorsEvents[2] }, "1": { data: data[1], color: globalcolorsEvents[1] }, "0": { data: data[0], color: globalcolorsEvents[0] } };
+    var numbers = [];
+    var colors = [];
+    $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }).sort(function (a, b) { return b - a;}), function (index, field) {
+            numbers.push(sparkValues[field].data);
+            colors.push(sparkValues[field].color);
+    });
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
@@ -2222,7 +2248,7 @@ function populateGridSparklineDisturbances(data, siteID, siteName) {
         }
     });
 
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(numbers, {
         type: 'bar',
         height: parseInt($(matrixItemID).height() * .4),
         barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
@@ -2232,7 +2258,7 @@ function populateGridSparklineDisturbances(data, siteID, siteName) {
         nullColor: '#f5f5f5',
         zeroColor: '#f5f5f5',
         borderColor: '#f5f5f5',
-        colorMap: globalcolorsEvents,
+        colorMap: colors,
 
         tooltipFormatter: function (sp, options, fields) {
             var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
@@ -2269,13 +2295,14 @@ function populateGridSparklineDisturbances(data, siteID, siteName) {
 
 function populateGridSparklineBreakers(data, siteID, siteName) {
 
-    var sparkvalues = [];
-
-    var colorMap = [];
-
-    sparkvalues = [data[2], data[1], data[0]];
-
-    colorMap = globalcolors; //['#FF0000', '#CC6600', '#FF8800'];
+    var sparkValues = { "Indeterminate": { data: data[2], color: globalcolors[0] }, "Late": { data: data[1], color: globalcolors[1] }, "Normal": { data: data[2], color: globalcolors[2] } };
+    var numbers = [];
+    var colors = [];
+    $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }).sort(function (a, b) { return b - a; }), function (index, field) {
+        numbers.push(sparkValues[field].data);
+        colors.push(sparkValues[field].color);
+    });
+    var  colorMap = globalcolors; //['#FF0000', '#CC6600', '#FF8800'];
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
@@ -2352,7 +2379,7 @@ function showSiteSet(thecontrol) {
 
             case "Events":
                 $.each(gridchildren.children, function (key, value) {
-                    if ( $(value).data("gridstatus") != "0")
+                    if ($(value).css('background-color') != "rgb(14, 137, 44)" && $(value).css('background-color') != "#0E892C")
                     {
                         $(value).show();
                     }
@@ -2366,7 +2393,7 @@ function showSiteSet(thecontrol) {
 
             case "NoEvents":
                 $.each(gridchildren.children, function (key, value) {
-                    if ($(value).data("gridstatus") != "0") {
+                    if ($(value).css('background-color') != "rgb(14, 137, 44)" && $(value).css('background-color') != "#0E892C") {
                         $(value).hide();
                     }
                     else {
@@ -2643,7 +2670,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 
     /// Set Matrix Cell size
     cache_Sparkline_Data = locationdata.d.Locations;
-    resizeMatrixCells(newTab);
+    //resizeMatrixCells(newTab);
 
     //$.each(locationdata.d.Locations, (function (key, value) {
     //    populateGridMatrix(value.data, value.id, value.name);
@@ -3193,11 +3220,12 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     currentTab = theNewTab;
 
-    reflowContents(theNewTab);
-    
+    //reflowContents(theNewTab);
+    resizeMapAndMatrix(theNewTab);
     selectsitesincharts();
 
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
+    resizeMapAndMatrix(theNewTab);
 }
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
