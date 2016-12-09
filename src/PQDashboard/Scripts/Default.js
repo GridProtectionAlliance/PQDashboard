@@ -301,7 +301,7 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
                 if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
                     filterString.push($(d).children('text').text());
             });
-            window["populate" + currentTab + "DivWithGrid"](json, filterString);
+            window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, filterString);
         }
     });
 }
@@ -496,10 +496,10 @@ function populateEventsDivWithGrid(data, disabledFields) {
     }
 
     var filteredData = [];
-    if (disabledFields !== null) {
+    if (data !== null && disabledFields !== null) {
         $.each(data, function (i, d) {
             var otherFields = ["theeventid" , "themeterid", "thesite", undefined, "others"];
-            var fixedDisabledFields = disabledFields.map(x => x.toLowerCase() + 's');
+            var fixedDisabledFields = disabledFields.map(function(x) { return x.toLowerCase() + 's'});
             var sum = 0;
             for (var key in d) {
                 if (fixedDisabledFields.indexOf(key) == -1 && otherFields.indexOf(key) == -1)
