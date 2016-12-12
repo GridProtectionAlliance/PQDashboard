@@ -189,7 +189,7 @@
                     <!-- Set up connection strings for connecting to server and database. -->
                     <Publish Property="SERVERCONNECTIONSTRING" Value="Data Source=[SERVERNAME];;[AUTHSTRING]">1</Publish>
                     <Publish Property="DBCONNECTIONSTRING" Value="Data Source=[SERVERNAME];;Initial Catalog=[DATABASENAME];;[AUTHSTRING]">1</Publish>
-                    <Publish Property="DASHBOARDCONNECTIONSTRING" Value="Data Source=[SERVERNAME];Initial Catalog=[DATABASENAME];User Id=[DASHBOARDLOGIN];Password=[DASHBOARDPASSWORD]">WINDOWSAUTH</Publish>
+                    <Publish Property="DASHBOARDCONNECTIONSTRING" Value="Data Source=[SERVERNAME];Initial Catalog=[DATABASENAME];User Id=[DASHBOARDDBLOGIN];Password=[DASHBOARDDBPASSWORD]">WINDOWSAUTH</Publish>
                     <Publish Property="DASHBOARDCONNECTIONSTRING" Value="Data Source=[SERVERNAME];Initial Catalog=[DATABASENAME];User Id=[DBUSERNAME];Password=[DBPASSWORD]">NOT WINDOWSAUTH</Publish>
                     
                     <!-- Determine whether we can connect to the database server. -->
