@@ -12,6 +12,8 @@ using System.Web.UI.WebControls;
 using FaultData.Database;
 using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
+using GSF.Configuration;
+
 
 public partial class PQIByEvent : System.Web.UI.Page
 {
@@ -20,7 +22,7 @@ public partial class PQIByEvent : System.Web.UI.Page
     public String postedMeterName = "";
     public String postedEventId = "";
 
-    String connectionstring = ConfigurationManager.ConnectionStrings["EPRIConnectionString"].ConnectionString;
+    String connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
     protected void Page_Load(object sender, EventArgs e)
     {

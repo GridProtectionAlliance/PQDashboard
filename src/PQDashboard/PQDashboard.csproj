@@ -357,13 +357,10 @@
       <DependentUpon>OpenSTE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Compile Include="PQIByEvent.aspx.cs">
+    <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="PQIByEvent.aspx.designer.cs">
-      <DependentUpon>PQIByEvent.aspx</DependentUpon>
-    </Compile>
+    </Content>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />

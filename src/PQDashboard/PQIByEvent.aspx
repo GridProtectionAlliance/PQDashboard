@@ -21,55 +21,19 @@
 
     <meta http-equiv="pragma" content="no-cache" />
 
-    <link rel="stylesheet" href="./css/themes/redmond/jquery-ui.css">  
-
-    <link rel="stylesheet" href="./js/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <link rel="stylesheet" href="./Content/MeterEventsByLine.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/bootstrap/theme.css"/>
+    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css"/>
+    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css"/>  
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>  
     
-    <link rel="stylesheet" href="./js/jqwidgets/styles/jqx.ui-redmond.css" type="text/css" />
-    
-    <link rel="stylesheet" href="./css/MeterEventsByLine.css" type="text/css" />
-
-    <script type="text/javascript" src="./js/jquery-2.1.1.js"></script>
-
-    <script type="text/javascript" src="./js/jquery-ui.js"></script>
-    
-    <script type="text/javascript" src="./js/jquery.blockUI.js"></script>
-    
-    <script type="text/javascript" src="./js/jqwidgets/jqxcore.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxdata.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxbuttons.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxscrollbar.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxmenu.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxlistbox.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxdropdownlist.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.selection.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.columnsresize.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.filter.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.sort.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.pager.js"></script> 
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.grouping.js"></script> 
-    
-    <script type="text/javascript" src="./js/jqwidgets/jqxdata.export.js"></script>
-
-    <script type="text/javascript" src="./js/jqwidgets/jqxgrid.export.js"></script>
-    
-    <script type="text/javascript" src="./js/jqwidgets/jqxtooltip.js"></script>
-    
-    <script type="text/javascript" src="./js/PQIByEvent.js?ver=<%=DateTime.Now.Ticks.ToString()%>"></script>
+    <script type="text/javascript" src="./Scripts/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery-ui.js"></script>    
+    <script type="text/javascript" src="./Scripts/jquery.blockUI.js"></script> 
+    <script type="text/javascript" src="./Scripts/bootstrap-3.3.2.min.js"></script>
+    <script type="text/javascript" src="./Scripts/PrimeUI/primeui.js"></script>
+    <script type="text/javascript" src="./Scripts/PQIByEvent.js"></script>
 
 	</head>
 	
