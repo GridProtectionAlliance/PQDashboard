@@ -357,6 +357,13 @@
       <DependentUpon>OpenSTE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="PQIByEvent.aspx.cs">
+      <DependentUpon>PQIByEvent.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="PQIByEvent.aspx.designer.cs">
+      <DependentUpon>PQIByEvent.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
@@ -451,6 +458,7 @@
     <Content Include="OpenSEE.aspx" />
     <Content Include="OpenSTE.aspx" />
     <Content Include="favicon.ico" />
+    <Content Include="PQIByEvent.aspx" />
     <Content Include="Scripts\bootstrap-3.3.2.min.js" />
     <Content Include="Scripts\bootstrap-multiselect.js" />
     <Content Include="Scripts\bootstrap.js" />
