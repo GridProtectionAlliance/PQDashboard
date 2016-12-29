@@ -55,6 +55,8 @@ public partial class OpenSEE : System.Web.UI.Page
     public string postedShowBreakerDigitals = "";
 
     public int[] postedAdjacentEventIds = { 0, 0 };
+    public int[] postedAdjacentNonmeterEventIds =  { -1, -1 };
+
     public string postedURLQueryString = "";
 
     public string postedErrorMessage = "";
@@ -78,7 +80,6 @@ public partial class OpenSEE : System.Web.UI.Page
                     .Select(key => "&" + HttpUtility.UrlEncode(key) + "=" + HttpUtility.UrlEncode(Request.QueryString[key])));
 
                 postedEventId = Request["eventId"];
-
                 using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(connectionString))
                 {
                     try

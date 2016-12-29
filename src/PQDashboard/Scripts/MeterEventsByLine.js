@@ -149,7 +149,7 @@ function makePQIButton_html(id) {
 }
 
 function OpenWindowToOpenSEE(id) {
-    var popup = window.open("openSEE.aspx?eventid=" + id + "&faultcurves=1", id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open("/Main/OpenSEE?eventid=" + id + "&faultcurves=1", id + "openSEE");
     return false;
 }
 

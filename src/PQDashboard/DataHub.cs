@@ -379,6 +379,14 @@ namespace PQDashboard
         #region [ Event Tab Operations]
         #endregion
 
+        #region [OpenSEE Operations]
+        public List<SignalCode.FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
+        {
+            SignalCode sc = new SignalCode();
+            return sc.GetFlotData(eventID, seriesIndexes);
+        }
+        #endregion
+
         #region [ Data Subscription Operations ]
 
         // These functions are dependent on subscriptions to data where each client connection can customize the subscriptions, so an instance

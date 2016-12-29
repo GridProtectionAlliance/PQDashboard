@@ -79,7 +79,7 @@ function makeOpenSEEButton_html(id) {
     var return_html = "";
     //return_html += '<div style="cursor: pointer;">';
     return_html += '<button onClick="OpenWindowToOpenSEE(' + args + ');" title="Launch OpenSEE Waveform Viewer">';
-    return_html += '<img src="images/seeButton.png" /></button>';
+    return_html += '<img src="~/Images/seeButton.png" /></button>';
     //return_html += '</div>';
     return (return_html);
 }
@@ -93,7 +93,7 @@ function OpenWindowToOpenSEE(id, highlightStart, highlightEnd) {
     };
 
     if (!childWindows[title] || childWindows[title].closed)
-        childWindows[title] = window.open("openSEE.aspx?eventid=" + id + "&faultcurves=1", id + "openSEE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+        childWindows[title] = window.open("/Main/OpenSEE?eventid=" + id + "&faultcurves=1", id + "openSEE");
     else
         childWindows[title].UpdateMarkings();
 

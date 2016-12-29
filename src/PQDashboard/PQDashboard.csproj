@@ -337,6 +337,7 @@
     </Content>
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
+    <Compile Include="Model\Event.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
     <Compile Include="Model\MeasurementDetail.cs" />
     <Compile Include="Model\MeasurementValue.cs" />
@@ -651,6 +652,7 @@
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
     <Content Include="Scripts\OpenSEE.js" />
+    <Content Include="Scripts\OpenSEEOld.js" />
     <Content Include="Scripts\OpenSTE.js" />
     <Content Include="Scripts\PQIByEvent.js" />
     <Content Include="Scripts\prettify.js" />
@@ -1290,6 +1292,8 @@
     <Content Include="Views\System\ValueListGroups.cshtml" />
     <Content Include="Views\System\ValueListItems.cshtml" />
     <Content Include="Views\Main\GraphMeasurements.cshtml" />
+    <Content Include="Views\Main\OpenSEE.cshtml" />
+    <Content Include="Views\Main\OpenSTE.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
