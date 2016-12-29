@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using FaultData.Database;
 using GSF;
 using GSF.Configuration;
 using GSF.Data.Model;
@@ -366,6 +367,18 @@ namespace PQDashboard
 
         #endregion
 
+        #region [ Page Load Operations]
+
+        public IEnumerable<MeterID> GetMeters(int meterGroup)
+        {
+            return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
+        }
+
+        #endregion
+
+        #region [ Event Tab Operations]
+        #endregion
+
         #region [ Data Subscription Operations ]
 
         // These functions are dependent on subscriptions to data where each client connection can customize the subscriptions, so an instance
@@ -427,7 +440,6 @@ namespace PQDashboard
         }
 
         #endregion
-
 
         #region [ Misc Hub Operations ]
 

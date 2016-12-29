@@ -342,6 +342,9 @@
     <Compile Include="Model\MeasurementValue.cs" />
     <Compile Include="Model\Menu.cs" />
     <Compile Include="Model\MenuItem.cs" />
+    <Compile Include="Model\MeterGroup.cs" />
+    <Compile Include="Model\MeterID.cs" />
+    <Compile Include="Model\MeterLocationsEventView.cs" />
     <Compile Include="Model\Page.cs" />
     <Compile Include="Model\PhasorDetail.cs" />
     <Compile Include="Model\SchemaVersion.cs" />

@@ -1574,7 +1574,13 @@ function getEventsHeatmapSags(currentTab, datefrom, dateto) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
+    var thedatasent = {
+        targetDateFrom: datefrom,
+        targetDateTo: dateto,
+        meterGroup: $('#meterGroupSelect').val(),
+        severityFilter: severities.toString()
+    };
+    //var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
     var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
 
     heatmap_Cache_Date_From = null;
@@ -1586,7 +1592,7 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
         dateto: dateto,
         type: "POST",
         url: url,
-        data: thedatasent,
+        data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
@@ -1605,6 +1611,13 @@ function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
+    var thedatasent = {
+        targetDateFrom: datefrom,
+        targetDateTo: dateto,
+        meterGroup: $('#meterGroupSelect').val(),
+        severityFilter: severities.toString()
+    };
+
     var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
     var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
     //console.log(thedatasent);
@@ -1617,7 +1630,7 @@ function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) 
         dateto: dateto,
         type: "POST",
         url: url,
-        data: thedatasent,
+        data: JSON.stringify(thedatasent),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
@@ -1659,13 +1672,17 @@ function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
     var url = homePath + "mapService.asmx/getLocations" + currentTab;
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "'" + (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") + " , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'" + (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
+    var thedatasent = "{'targetDateFrom':'" + datefrom + "'" +
+        (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") +
+        " , 'targetDateTo':'" + dateto +
+        "' , 'meterGroup':" + $('#meterGroupSelect').val() + "" +
+        (currentTab === "TrendingData" ? ", 'dataType': '" + $('#trendingDataTypeSelection').val() + "'" : "") + "}";
 
     if (currentTab !== "TrendingData") {
         thedatasent = {
             targetDateFrom: datefrom,
             targetDateTo: dateto,
-            userName: postedUserName
+            meterGroup: $('#meterGroupSelect').val()
         };
     } else {
         thedatasent = {
@@ -1674,7 +1691,8 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 EndDate: dateto,
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
-                UserName: postedUserName
+                UserName: postedUserName,
+                meterGroup: $('#meterGroupSelect').val()
             }
         };
         
@@ -2310,7 +2328,7 @@ function populateGridSparklineBreakers(data, siteID, siteName) {
 
     $(matrixItemID)[0].title = siteName + "\nNormal: " + data[0] + "\nLate: " + data[1] + "\nIndeterminate: " + data[2];
 
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkValues, {
         type: 'bar',
         height: parseInt($(matrixItemID).height() * .4),
         barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
@@ -3841,25 +3859,14 @@ function showContent() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMeters() {
-
-    var thedatasent = "{'userName':'" + postedUserName + "'}";
-
-    $.ajax({
-        type: "POST",
-        url: homePath + 'mapService.asmx/getMeters',
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            cache_Meters = data.d;
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: false
-    });
+function getMeters(meterGroup) {
+    dataHub.getMeters(meterGroup).done(function (data) {
+        cache_Meters = data;
+        updateMeterselect();
+        $(window).trigger("meterSelectUpdated");
+    }).fail(function (msg) {
+        alert(msg);
+    })
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3872,6 +3879,50 @@ function selectStaticPeriod(thecontrol) {
         $("#datePickerFrom").datepicker("setDate", new Date(substituteToken(thecontrol.value)));
         loadDataForDate();
     }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function selectMeterGroup(thecontrol) {
+    mg = thecontrol.value;
+    $('#siteList').children().remove();
+    $('#siteList').multiselect('refresh');
+    getMeters(mg);
+
+    var newTab = currentTab;
+    if (newTab.indexOf("Overview") > -1) {
+        $('#headerStrip').hide();
+        showOverviewPage(currentTab);
+    }
+    else if (newTab === "ModbusData") {
+        showModbusData();
+    }
+    else if (newTab === "HistorianData") {
+        showHistorianData();
+    }
+    else {
+        cache_Graph_Data = null;
+        cache_Errorbar_Data = null;
+        cache_Sparkline_Data = null;
+        var mapormatrix = $("#mapGrid")[0].value;
+        $(window).one("meterSelectUpdated", function () {
+            manageTabsByDate(newTab, contextfromdate, contexttodate);
+            $("#mapGrid")[0].value = mapormatrix;
+            selectmapgrid($("#mapGrid")[0]);
+        });
+
+    }
+
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function updateMeterselect() {
+    $.each(cache_Meters, function (key, value) {
+        SelectAdd("siteList", value.ID, value.Name, "selected");
+    });
+    $('#siteList').multiselect('refresh');
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3895,7 +3946,9 @@ $(document).ready(function () {
     });
 
 
-    showContent();
+    $(window).on('hubConnected', function () {
+        showContent();
+    })
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3912,9 +3965,6 @@ function loadsitedropdown() {
         minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
     }).multiselectfilter();
 
-    $.each(cache_Meters, function (key, value) {
-        SelectAdd("siteList", value.id, value.name, "selected");
-    });
 
     var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
     if (selectedsites != null) {
@@ -4102,7 +4152,7 @@ function buildPage() {
     contexttodate = getcurrentconfigsetting("ContextToDate");
 
     initializeDatePickers(datafromdate, datatodate);
-    getMeters();
+    getMeters(mg);
     loadsitedropdown();
     initiateTimeRangeSlider();
     initiateColorScale();

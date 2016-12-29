@@ -26,6 +26,7 @@ using System;
 using System.Web.Mvc;
 using GSF.Identity;
 using GSF.Web.Model;
+using GSF.Web.Security;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers

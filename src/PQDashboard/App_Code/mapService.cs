@@ -142,7 +142,7 @@ public class mapService : WebService
         public int Resolution { get; set; }
         public int StepSize { get; set; }
         public bool IncludeWeather { get; set; }
-
+        public int MeterGroup { get; set; }
         private Lazy<DateTime> m_startDate;
         private Lazy<DateTime> m_endDate;
 
@@ -434,7 +434,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod (EnableSession = true)]
-    public LocationStatusList getLocationsEvents(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsEvents(string targetDateFrom, string targetDateTo, int meterGroup)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -449,7 +449,7 @@ public class mapService : WebService
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -514,7 +514,7 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsEventsHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
+    public LocationStatusList getLocationsEventsHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -530,7 +530,7 @@ public class mapService : WebService
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -595,7 +595,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsDisturbances(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsDisturbances(string targetDateFrom, string targetDateTo, int meterGroup)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -612,7 +612,7 @@ public class mapService : WebService
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -663,7 +663,7 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter )
+    public LocationStatusList getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter )
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -678,7 +678,7 @@ public class mapService : WebService
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -729,7 +729,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsCorrectness(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsCorrectness(string targetDateFrom, string targetDateTo, int meterGroup)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -743,7 +743,7 @@ public class mapService : WebService
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsCorrectness", conn);
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -790,7 +790,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsCompleteness(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsCompleteness(string targetDateFrom, string targetDateTo, int meterGroup)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -804,7 +804,7 @@ public class mapService : WebService
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsCompleteness", conn);
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -850,7 +850,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public LocationStatusList getLocationsFaults(string targetDateFrom, string targetDateTo, string userName )
+    public LocationStatusList getLocationsFaults(string targetDateFrom, string targetDateTo, int meterGroup )
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -866,7 +866,7 @@ public class mapService : WebService
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsFaults", conn);
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -958,7 +958,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public LocationStatusList getLocationsTrending(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsTrending(string targetDateFrom, string targetDateTo, int meterGroup)
     {
 
         SqlConnection conn = null;
@@ -972,7 +972,7 @@ public class mapService : WebService
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrending", conn);
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -1034,7 +1034,7 @@ public class mapService : WebService
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            cmd.Parameters.Add(new SqlParameter("@username", contourQuery.UserName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", contourQuery.MeterGroup));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
@@ -1161,7 +1161,7 @@ public class mapService : WebService
     /// <param name="severityFilter"></param>
     /// <returns></returns>
     [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsTrendingHeatmapCounts(string targetDateFrom, string targetDateTo, string userName, string severityFilter)
+    public LocationStatusList getLocationsTrendingHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -1176,7 +1176,7 @@ public class mapService : WebService
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -1230,7 +1230,7 @@ public class mapService : WebService
     /// <param name="userName"></param>
     /// <returns></returns>
     [WebMethod]
-    public LocationStatusList getLocationsBreakers(string targetDateFrom, string targetDateTo, string userName)
+    public LocationStatusList getLocationsBreakers(string targetDateFrom, string targetDateTo, int meterGroup)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -1245,7 +1245,7 @@ public class mapService : WebService
             SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsBreakers", conn);
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
             rdr = cmd.ExecuteReader();
@@ -1288,7 +1288,7 @@ public class mapService : WebService
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            cmd.Parameters.Add(new SqlParameter("@username", contourQuery.UserName));
+            cmd.Parameters.Add(new SqlParameter("@meterGroup", contourQuery.MeterGroup));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
