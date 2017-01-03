@@ -29,6 +29,11 @@ namespace PQDashboard.Model
         public Guid UpdatedBy { get; set; }
     }
 
+    [TableName("Event")]
+    public class EventIDs
+    {
+        public int ID { get; set; }
+    }
     [TableName("EventView")]
     public class EventForDate: EventView { }
 

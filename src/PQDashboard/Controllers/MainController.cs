@@ -146,7 +146,7 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE()
         {
-            m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
+            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
             return View();
         }
 

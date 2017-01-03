@@ -106,17 +106,6 @@
         postedEventName = theEvent.EventTypeName;
 
         IDataReader rdr = null;
-        List<Event> events = dataContext.Table<Event>().QueryRecords("StartTime").ToList();
-        int index = events.FindIndex(x => x.ID == theEvent.ID);
-        if(index > 1 && index < events.Count)
-        {
-            postedAdjacentNonmeterEventIds[0] = events[index - 1].ID;
-        }
-        if (index > 0 && index < events.Count - 1 )
-        {
-            postedAdjacentNonmeterEventIds[1] = events[index + 1].ID;
-        }
-
 
 
         try
@@ -147,6 +136,46 @@
                     postedAdjacentEventIds[1] = rdr.GetInt32(1);
                 }
             }
+        }
+        finally
+        {
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+        }
+
+        try
+        {
+            IDbCommand cmd = dataContext.Connection.Connection.CreateCommand();
+            cmd = dataContext.Connection.Connection.CreateCommand();
+            cmd.CommandText = "GetPreviousAndNextEventIdsNonMeter";
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@EventID", eventID));
+            cmd.CommandTimeout = 300;
+
+            rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                if (rdr.IsDBNull(0))
+                {
+                    postedAdjacentNonmeterEventIds[0] = -1;
+                }
+                else
+                {
+                    postedAdjacentNonmeterEventIds[0] = rdr.GetInt32(0);
+                }
+                if (rdr.IsDBNull(1))
+                {
+                    postedAdjacentNonmeterEventIds[1] = -1;
+                }
+                else
+                {
+                    postedAdjacentNonmeterEventIds[1] = rdr.GetInt32(1);
+                }
+            }
+
+
         }
         finally
         {
