@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -372,6 +373,20 @@ namespace PQDashboard
         public IEnumerable<MeterID> GetMeters(int meterGroup)
         {
             return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
+        }
+
+        public IEnumerable<DashSettings> GetTabSettings(string userName)
+        {
+            List<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords().ToList();
+
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            foreach (UserDashSettings setting in userDashSettings)
+            {
+                dashSettings.Find(x => x.Value == setting.Value).Enabled = setting.Enabled;
+            }
+
+            return dashSettings;
         }
 
         #endregion

@@ -336,6 +336,7 @@
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Compile Include="Model\AppModel.cs" />
+    <Compile Include="Model\DashSettings.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
     <Compile Include="Model\Event.cs" />
     <Compile Include="Model\GlobalSettings.cs" />

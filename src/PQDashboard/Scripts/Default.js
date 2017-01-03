@@ -3982,45 +3982,32 @@ function loadsitedropdown() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function loadSettingsAndApply() {
+    dataHub.getTabSettings(postedUserName).done(function (data) {
+        var settings = eval(data);
+        // Turn Off Features
 
-    var thedatasent = "{'userName':'" + postedUserName + "'}";
-    var url = homePath + "eventService.asmx/getDashSettings";
+        applicationsettings = settings;
 
-    $.ajax({
-        type: "POST",
-        url: url,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-
-            var settings = eval(data.d);
-            // Turn Off Features
-
-            applicationsettings = settings;
-
-            $.each(settings, (function (key, value) {
-                if (value.Name == "DashTab") {
-                    if (value.Enabled == 'True') {
-                        $(value.Value).show();
-                    } else {
-                        $(value.Value).hide();
-                    }
+        $.each(settings, (function (key, value) {
+            if (value.Name == "DashTab") {
+                if (value.Enabled == true) {
+                    $(value.Value).show();
+                } else {
+                    $(value.Value).hide();
                 }
+            }
 
 
-                if (value.Name == "DashImage") {
+            if (value.Name == "DashImage") {
 
-                }
+            }
 
-            }));
+        }));
 
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: false
+        $(window).trigger("settingsLoaded");
+
+    }).fail(function (msg) {
+        alert(msg);
     });
 }
   
@@ -4028,6 +4015,7 @@ function loadSettingsAndApply() {
 
 function buildPage() {
 
+    loadSettingsAndApply();
 
     $(document).bind('contextmenu', function (e) { return false; });
 
@@ -4100,7 +4088,6 @@ function buildPage() {
     $.ech.multiselect.prototype.options.selectedText = "# of # selected";
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
-    loadSettingsAndApply();
     if ($.jStorage.get("usersettings") != null) {
         usersettings = $.jStorage.get("usersettings");
         validatesettings(usersettings);
@@ -4110,80 +4097,84 @@ function buildPage() {
 
     loadconfigdropdown(usersettings.lastSetting);
 
-    currentTab = $('#application-tabs li :visible').first().text();
+    $(window).one("settingsLoaded", function () {
 
-    $("#application-tabs").tabs({
-        active: getcurrentconfigsetting("CurrentTab"),
-        heightStyle: "100%",
-        widthStyle: "99%",
+        currentTab = $('#application-tabs li :visible').first().text();
 
-        activate: function (event, ui) {
-            var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
-            if (newTab.indexOf("Overview") > -1) {
-                $('#headerStrip').hide();
-                showOverviewPage(currentTab);
-            }
-            else if(newTab === "ModbusData"){
-                showModbusData();
-            }
-            else if (newTab === "HistorianData") {
-                showHistorianData();
-            }
-            else {
-                cache_Graph_Data = null;
-                cache_Errorbar_Data = null;
-                cache_Sparkline_Data = null;
-                var mapormatrix = $("#mapGrid")[0].value;
-                $('#headerStrip').show();
-                manageTabsByDate(newTab, contextfromdate, contexttodate);
-                $("#mapGrid")[0].value = mapormatrix;
-                selectmapgrid($("#mapGrid")[0]);
+        $("#application-tabs").tabs({
+            active: getcurrentconfigsetting("CurrentTab"),
+            heightStyle: "100%",
+            widthStyle: "99%",
+
+            activate: function (event, ui) {
+                var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
+                if (newTab.indexOf("Overview") > -1) {
+                    $('#headerStrip').hide();
+                    showOverviewPage(currentTab);
+                }
+                else if (newTab === "ModbusData") {
+                    showModbusData();
+                }
+                else if (newTab === "HistorianData") {
+                    showHistorianData();
+                }
+                else {
+                    cache_Graph_Data = null;
+                    cache_Errorbar_Data = null;
+                    cache_Sparkline_Data = null;
+                    var mapormatrix = $("#mapGrid")[0].value;
+                    $('#headerStrip').show();
+                    manageTabsByDate(newTab, contextfromdate, contexttodate);
+                    $("#mapGrid")[0].value = mapormatrix;
+                    selectmapgrid($("#mapGrid")[0]);
+
+                }
+
 
             }
+        });
 
-            
+        datafromdate = getcurrentconfigsetting("DataFromDate");
+        datatodate = getcurrentconfigsetting("DataToDate");
+
+        contextfromdate = getcurrentconfigsetting("ContextFromDate");
+        contexttodate = getcurrentconfigsetting("ContextToDate");
+
+        initializeDatePickers(datafromdate, datatodate);
+        getMeters(mg);
+        loadsitedropdown();
+        initiateTimeRangeSlider();
+        initiateColorScale();
+
+
+        resizeMapAndMatrix(currentTab);
+        if (currentTab.indexOf("Overview") > -1) {
+            $('#headerStrip').hide();
+            showOverviewPage(currentTab);
+
+        } else if (currentTab === "ModbusData") {
+            showModbusData();
         }
+        else if (currentTab === "HistorianData") {
+            showHistorianData();
+        }
+        else {
+            cache_Graph_Data = null;
+            cache_Errorbar_Data = null;
+            cache_Sparkline_Data = null;
+            $('#headerStrip').show();
+            manageTabsByDate(currentTab, contextfromdate, contexttodate);
+
+
+            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
+            $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
+            $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+
+            selectmapgrid($("#mapGrid")[0]);
+        }
+
+
     });
-
-    datafromdate = getcurrentconfigsetting("DataFromDate");
-    datatodate = getcurrentconfigsetting("DataToDate");
-
-    contextfromdate = getcurrentconfigsetting("ContextFromDate");
-    contexttodate = getcurrentconfigsetting("ContextToDate");
-
-    initializeDatePickers(datafromdate, datatodate);
-    getMeters(mg);
-    loadsitedropdown();
-    initiateTimeRangeSlider();
-    initiateColorScale();
-
-
-    resizeMapAndMatrix(currentTab);
-    if (currentTab.indexOf("Overview") > -1) {
-        $('#headerStrip').hide();
-        showOverviewPage(currentTab);
-
-    } else if (currentTab === "ModbusData") {
-        showModbusData();
-    }
-    else if (currentTab === "HistorianData") {
-        showHistorianData();
-    }
-    else {
-        cache_Graph_Data = null;
-        cache_Errorbar_Data = null;
-        cache_Sparkline_Data = null;
-        $('#headerStrip').show();
-        manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
-
-        $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-        $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
-        $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-        selectmapgrid($("#mapGrid")[0]);
-    }
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
