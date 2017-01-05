@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -391,7 +392,173 @@ namespace PQDashboard
 
         #endregion
 
-        #region [ Event Tab Operations]
+        #region [ Graph Data Operations]
+        public class EventSet
+        {
+            public DateTime StartDate;
+            public DateTime EndDate;
+            public class EventDetail
+            {
+                public string Name;
+                public List<Tuple<DateTime, int>> Data;
+                public string Color;
+                public EventDetail()
+                {
+                    Data = new List<Tuple<DateTime, int>>();
+                } 
+            }
+            public List<EventDetail> Types; 
+
+            public EventSet()
+            {
+                Types = new List<EventDetail>();
+            }
+        }
+
+        public EventSet GetEventsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectEventsForMeterIDbyDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "Interruption";
+                    eventSet.Types[0].Color = "#C00000";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "Fault";
+                    eventSet.Types[1].Color = "#FF2800";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "Sag";
+                    eventSet.Types[2].Color = "#FF9600";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[3].Name = "Transient";
+                    eventSet.Types[3].Color = "#FFFF00";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[4].Name = "Swell";
+                    eventSet.Types[4].Color = "#00FFF4";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[5].Name = "Other";
+                    eventSet.Types[5].Color = "#0000FF";
+
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["interruptions"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["faults"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["sags"])));
+                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["transients"])));
+                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["swells"])));
+                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["others"])));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public EventSet GetDisturbancesForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectDisturbancesForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "5";
+                    eventSet.Types[0].Color = "#C00000";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "4";
+                    eventSet.Types[1].Color = "#FF2800";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "3";
+                    eventSet.Types[2].Color = "#FF9600";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[3].Name = "2";
+                    eventSet.Types[3].Color = "#FFFF00";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[4].Name = "1";
+                    eventSet.Types[4].Color = "#00FFF4";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[5].Name = "0";
+                    eventSet.Types[5].Color = "#0000FF";
+
+
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["5"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["4"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["3"])));
+                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["2"])));
+                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["1"])));
+                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["0"])));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+
         #endregion
 
         #region [OpenSEE Operations]

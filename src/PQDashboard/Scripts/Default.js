@@ -31,6 +31,22 @@ var globalcolors = ['#90ed7d', '#434348', '#ff0000', '#f7a35c', '#8085e9', '#f15
 var globalcolorsFaults = [ '#2b908f', '#e4d354', '#f15c80', '#8085e9', '#f7a35c', '#90ed7d', '#434348', '#ff0000'];
 //var globalcolorsEvents = ['#C00000', '#FF2800', '#FF9600', '#FFFF00', '#00FFF4', '#0000FF'];
 var globalcolorsEvents = ['#0000FF', '#00FFF4', '#FFFF00', '#FF9600', '#FF2800', '#C00000'];
+
+var d3Colors = {
+    Interruption: '#C00000',
+    Fault: '#FF2800',
+    Sag: '#FF9600',
+    Transient: '#FFFF00',
+    Swell: '#00FFF4',
+    Other: '#0000FF',
+    5: '#C00000',
+    4: '#FF2800',
+    3: '#FF9600',
+    2: '#FFFF00',
+    1: '#00FFF4',
+    0: '#0000FF'
+}
+
 //var globalcolorsDQ = ['#00FFF4', '#00C80E', '#FFFF00', '#FF9600', '#FF2800', '#FF0EF0', '#0000FF'];
 var globalcolorsDQ = ['#0000FF', '#FF0EF0', '#FF2800', '#FF9600', '#FFFF00', '#00C80E', '#00FFF4'];
 
@@ -844,32 +860,90 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
     var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
 
 
-    var thedatasent = "";
-    thedatasent = "{'siteID':'" + siteID + "', 'targetDateFrom':'" + thedatefrom + "', 'targetDateTo':'" + thedateto + "' , 'userName':'" + postedUserName + "'}";
-    $.ajax({
-        type: "POST",
-        url: homePath +'eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            if (data.d.data !== null) {
-                data.d.data.reverse();
-                var graphData = [];
-                for (var i = 0; i < data.d.data[0].data.length; ++i) {
+    var thedatasent = 
+        { 
+            siteID: siteID, 
+            targetDateFrom: thedatefrom , 
+            targetDateTo: thedateto, 
+            userName: postedUserName
+        };
+    if (currentTab !== 'Events' && currentTab !== 'Disturbances') {
+        $.ajax({
+            type: "POST",
+            url: homePath + 'eventService.asmx/' + thedatasource,
+            data: JSON.stringify(thedatasent),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            success: function (data) {
+                if (data.d.data !== null) {
+                    data.d.data.reverse();
+                    var graphData = { graphData: [], keys: [], colors: [] };
+                    for (var i = 0; i < data.d.data[0].data.length; ++i) {
+                        var obj = {};
+                        var total = 0;
+                        obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
+                        data.d.data.forEach(function (d, j) {
+                            obj[d.name] = d.data[i];
+                            total += d.data[i];
+                            obj[d.name + 'Disabled'] = false;
+                        });
+                        obj["Total"] = total;
+                        graphData.graphData.push(obj);
+
+                    }
+
+                    cache_Graph_Data = graphData;
+
+                    if (thediv === "Overview") {
+
+                    } else if (thediv === "TrendingData") {
+
+                    } else
+                        buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
+                }
+
+            },
+            failure: function (msg) {
+                alert(msg);
+            },
+            async: true
+        });
+
+    }
+    else {
+        window['dataHub'][thedatasource](siteID, thedatefrom, thedateto, postedUserName).done(function (data) {
+            var dateDiff = (new Date(thedateto).getTime() - new Date(thedatefrom).getTime()) / 1000 / 60 / 60 / 24;
+            if (data !== null) {
+
+                var graphData = { graphData: [], keys: [], colors: []};
+                for (var i = 0, j = 0; i < dateDiff; ++i) {
                     var obj = {};
                     var total = 0;
-                    obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
-                    data.d.data.forEach(function (d, j) {
-                        obj[d.name] = d.data[i];
-                        total += d.data[i];
-                        obj[d.name + 'Disabled'] = false;
-                    });
+                    obj["Date"] = Date.parse(data.StartDate) + i * 24 * 60 * 60 * 1000;
+                    if (data.Types[0].Data[j] !== undefined && obj["Date"] == Date.parse(data.Types[0].Data[j].Item1)) {
+                        data.Types.forEach(function (d) {
+                            obj[d.Name] = d.Data[j].Item2;
+                            total += d.Data[j].Item2;
+                            obj[d.Name + 'Disabled'] = false;
+                        });
+                        ++j;
+                    } else {
+                        data.Types.forEach(function (d) {
+                            obj[d.Name] = 0;
+                            total += 0;
+                            obj[d.Name + 'Disabled'] = false;
+                        });
+                    }
                     obj["Total"] = total;
-                    graphData.push(obj);
+                    graphData.graphData.push(obj);
 
                 }
+                data.Types.forEach(function (d) {
+                    graphData.keys.push(d.Name);
+                    graphData.colors.push(d.Color);
+                });
+
 
                 cache_Graph_Data = graphData;
 
@@ -880,14 +954,9 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                 } else
                     buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
             }
-            
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
 
+        });
+    }
 }
 
 function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
@@ -909,7 +978,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
 
     // D3
-    var chartData = deepCopy(data);
+    var chartData = deepCopy(data.graphData);
 
     //container sizing variables
     var margin = { top: 20, right: 125, bottom: 100, left: 60 },
@@ -924,7 +993,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
     var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
     var yOverview = d3.scale.linear().range([heightOverview, 0]);
-    var color = d3.scale.ordinal().range(getColorsForTab(currentTab));
+    var color = d3.scale.ordinal().range(data.colors.reverse()).domain(data.keys.reverse());
 
     var xAxis = d3.svg.axis().scale(x).orient("bottom");
     var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2d"));
@@ -947,7 +1016,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
      brush.x(xOverview).on("brush", brushed);
     y.domain([0, d3.max(chartData, function (d) { return d.Total; })]);
     yOverview.domain(y.domain());
-    color.domain(d3.keys(chartData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
+    //color.domain(d3.keys(chartData[0]).reverse().filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
 
     var numSamples = chartData[0].length;
     var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
@@ -1150,7 +1219,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         var disabledLegendFields = [];
         if(currentTab === "Events")
-            cache_Graph_Data[0]['OtherDisabled'] = true;
+            cache_Graph_Data.graphData[0]['OtherDisabled'] = true;
 
         legend.append("rect")
             .attr("x", width + -65)
@@ -1207,7 +1276,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
 
-        var newData = deepCopy(cache_Graph_Data);
+        var newData = deepCopy(cache_Graph_Data.graphData);
         var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
 
         $.each(newData, function (i, d) {
@@ -1232,12 +1301,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     //Toggles a certain series.
     function toggleSeries(seriesName, isDisabling) {
 
-        var newData = deepCopy(cache_Graph_Data);
+        var newData = deepCopy(cache_Graph_Data.graphData);
 
         var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
         $.each(newData, function (i, d) {
 
-            cache_Graph_Data[i][seriesName + 'Disabled'] = isDisabling;
+            cache_Graph_Data.graphData[i][seriesName + 'Disabled'] = isDisabling;
             newData[i][seriesName + 'Disabled'] = isDisabling;
             $.each(tempKeys, function (j, k) {
                 if (newData[i][k + 'Disabled'] === true)
@@ -4159,11 +4228,11 @@ function buildPage() {
             showHistorianData();
         }
         else {
-            cache_Graph_Data = null;
-            cache_Errorbar_Data = null;
-            cache_Sparkline_Data = null;
-            $('#headerStrip').show();
-            manageTabsByDate(currentTab, contextfromdate, contexttodate);
+            //cache_Graph_Data = null;
+            //cache_Errorbar_Data = null;
+            //cache_Sparkline_Data = null;
+            //$('#headerStrip').show();
+            //manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
 
             $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
