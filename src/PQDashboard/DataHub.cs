@@ -415,6 +415,14 @@ namespace PQDashboard
             }
         }
 
+        public class TrendingData
+        {
+            public string Date;
+            public double Minimum;
+            public double Maximum;
+            public double Average;
+        }
+
         public EventSet GetEventsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
         {
             EventSet eventSet = new EventSet();
@@ -558,6 +566,414 @@ namespace PQDashboard
             return eventSet;
         }
 
+        public EventSet GetTrendingForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectTrendingForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "Alarm";
+                    eventSet.Types[0].Color = "#FF0000";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "Offnormal";
+                    eventSet.Types[1].Color = "#434348";
+
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["alarm"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["offnormal"])));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public EventSet GetFaultsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectFaultsForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "500 kV";
+                    eventSet.Types[0].Color = "#ff0000";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "300 kV";
+                    eventSet.Types[1].Color = "#434348";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "230 kV";
+                    eventSet.Types[2].Color = "#90ed7d";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[3].Name = "135 kV";
+                    eventSet.Types[3].Color = "#f7a35c";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[4].Name = "115 kV";
+                    eventSet.Types[4].Color = "#8085e9";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[5].Name = "69 kV";
+                    eventSet.Types[5].Color = "#f15c80";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[6].Name = "46 kV";
+                    eventSet.Types[6].Color = "#e4d354";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[7].Name = "0 kV";
+                    eventSet.Types[7].Color = "#2b908f";
+
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["500"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["300"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["230"])));
+                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["135"])));
+                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["115"])));
+                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["69"])));
+                        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["46"])));
+                        eventSet.Types[7].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["0"])));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public EventSet GetBreakersForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectBreakersForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "Normal";
+                    eventSet.Types[0].Color = "#ff0000";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "Late";
+                    eventSet.Types[1].Color = "#434348";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "Indeterminate";
+                    eventSet.Types[2].Color = "#90ed7d";
+
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["normal"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["late"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["indeterminate"])));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public EventSet GetCompletenessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectCompletenessForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "> 100%";
+                    eventSet.Types[0].Color = "#00FFF4";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "98% - 100%";
+                    eventSet.Types[1].Color = "#00C80E";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "90% - 97%";
+                    eventSet.Types[2].Color = "#FFFF00";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[3].Name = "70% - 89%";
+                    eventSet.Types[3].Color = "#FF9600";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[4].Name = "50% - 69%";
+                    eventSet.Types[4].Color = "#FF2800";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[5].Name = ">0% - 49%";
+                    eventSet.Types[5].Color = "#FF0EF0";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[6].Name = "0%";
+                    eventSet.Types[6].Color = "#0000FF";
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["First"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Second"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Third"])));
+                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fourth"])));
+                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fifth"])));
+                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Sixth"])));
+
+                        Double composite = eventSet.Types[0].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[1].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[2].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[3].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[4].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[5].Data[eventSet.Types[0].Data.Count - 1].Item2;
+                        int metercount = siteID.Split(',').Length - 1;
+
+                        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(metercount - composite)));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public EventSet GetCorrectnessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        {
+            EventSet eventSet = new EventSet();
+            eventSet.StartDate = DateTime.Parse(targetDateFrom);
+            eventSet.EndDate = DateTime.Parse(targetDateTo);
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectCorrectnessForMeterIDByDateRange";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@EventDateFrom";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EventDateTo";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[0].Name = "> 100%";
+                    eventSet.Types[0].Color = "#00FFF4";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[1].Name = "98% - 100%";
+                    eventSet.Types[1].Color = "#00C80E";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[2].Name = "90% - 97%";
+                    eventSet.Types[2].Color = "#FFFF00";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[3].Name = "70% - 89%";
+                    eventSet.Types[3].Color = "#FF9600";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[4].Name = "50% - 69%";
+                    eventSet.Types[4].Color = "#FF2800";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[5].Name = ">0% - 49%";
+                    eventSet.Types[5].Color = "#FF0EF0";
+                    eventSet.Types.Add(new EventSet.EventDetail());
+                    eventSet.Types[6].Name = "0%";
+                    eventSet.Types[6].Color = "#0000FF";
+                    while (rdr.Read())
+                    {
+                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["First"])));
+                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Second"])));
+                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Third"])));
+                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fourth"])));
+                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fifth"])));
+                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Sixth"])));
+
+                        Double composite = eventSet.Types[0].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[1].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[2].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[3].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[4].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[5].Data[eventSet.Types[0].Data.Count - 1].Item2;
+                        int metercount = siteID.Split(',').Length - 1;
+
+                        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(metercount - composite)));
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+            return eventSet;
+        }
+
+        public List<TrendingData> GetTrendingDataForPeriod(string siteID, string colorScale, string targetDateFrom, string targetDateTo, string userName)
+        {
+            List<TrendingData> eventSet = new List<TrendingData>();
+            DateTime thedatefrom = DateTime.Parse(targetDateFrom);
+            DateTime thedateto = DateTime.Parse(targetDateTo);
+
+            int duration = thedateto.Subtract(thedatefrom).Days + 1;
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectTrendingDataByChannelByDate";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@StartDate";
+                param1.Value = targetDateFrom;
+                IDbDataParameter param2 = sc.CreateParameter();
+                param2.ParameterName = "@EndDate";
+                param2.Value = targetDateTo;
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@MeterID";
+                param3.Value = siteID;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+                IDbDataParameter param5 = sc.CreateParameter();
+                param5.ParameterName = "@colorScale";
+                param5.Value = colorScale;
+    
+
+                sc.Parameters.Add(param1);
+                sc.Parameters.Add(param2);
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+                sc.Parameters.Add(param5);
+
+                IDataReader rdr = sc.ExecuteReader();
+                try
+                {
+                    while (rdr.Read())
+                    {
+                        TrendingData td = new TrendingData();
+                        td.Date = Convert.ToString(rdr["Date"]);
+                        td.Maximum = Convert.ToDouble(rdr["Maximum"]);
+                        td.Minimum = Convert.ToDouble(rdr["Minimum"]);
+                        td.Average = Convert.ToDouble(rdr["Average"]);
+
+                        eventSet.Add(td);
+                    }
+                }
+                finally
+                {
+                    if (!rdr.IsClosed)
+                    {
+                        rdr.Close();
+                    }
+                }
+            }
+
+            return (eventSet);
+        }
 
         #endregion
 

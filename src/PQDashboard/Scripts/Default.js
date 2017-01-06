@@ -846,117 +846,51 @@ function getFormattedDate(date) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
-    var thestartdateX = new Date(thedatefrom);
-    thestartdateX.setHours(0, 0, 0, 0);
+    window['dataHub'][thedatasource](siteID, thedatefrom, thedateto, postedUserName).done(function (data) {
+        var dateDiff = (new Date(thedateto).getTime() - new Date(thedatefrom).getTime()) / 1000 / 60 / 60 / 24;
+        if (data !== null) {
 
-    var contextfromdateX = new Date(contextfromdate);
-    contextfromdateX.setHours(0, 0, 0, 0);
+            var graphData = { graphData: [], keys: [], colors: [] };
 
-    var contexttodateX = new Date(contexttodate);
-    contexttodateX.setHours(0, 0, 0, 0);
-
-    var thestartdate = new Date(Date.UTC(thestartdateX.getUTCFullYear(), thestartdateX.getUTCMonth(), thestartdateX.getUTCDate(), 0, 0, 0)).getTime();
-    var contextfromdateUTC = new Date(Date.UTC(contextfromdateX.getUTCFullYear(), contextfromdateX.getUTCMonth(), contextfromdateX.getUTCDate(), 0, 0, 0)).getTime();
-    var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
-
-
-    var thedatasent = 
-        { 
-            siteID: siteID, 
-            targetDateFrom: thedatefrom , 
-            targetDateTo: thedateto, 
-            userName: postedUserName
-        };
-    if (currentTab !== 'Events' && currentTab !== 'Disturbances') {
-        $.ajax({
-            type: "POST",
-            url: homePath + 'eventService.asmx/' + thedatasource,
-            data: JSON.stringify(thedatasent),
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json',
-            cache: true,
-            success: function (data) {
-                if (data.d.data !== null) {
-                    data.d.data.reverse();
-                    var graphData = { graphData: [], keys: [], colors: [] };
-                    for (var i = 0; i < data.d.data[0].data.length; ++i) {
-                        var obj = {};
-                        var total = 0;
-                        obj["Date"] = new Date(thedatefrom).setDate(new Date(thedatefrom).getDate() + i);
-                        data.d.data.forEach(function (d, j) {
-                            obj[d.name] = d.data[i];
-                            total += d.data[i];
-                            obj[d.name + 'Disabled'] = false;
-                        });
-                        obj["Total"] = total;
-                        graphData.graphData.push(obj);
-
-                    }
-
-                    cache_Graph_Data = graphData;
-
-                    if (thediv === "Overview") {
-
-                    } else if (thediv === "TrendingData") {
-
-                    } else
-                        buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
+            for (var i = 0, j = 0; i < dateDiff; ++i) {
+                var obj = {};
+                var total = 0;
+                obj["Date"] = Date.parse(data.StartDate) + i * 24 * 60 * 60 * 1000;
+                if (data.Types[0].Data[j] !== undefined && obj["Date"] == Date.parse(data.Types[0].Data[j].Item1)) {
+                    data.Types.forEach(function (d) {
+                        obj[d.Name] = d.Data[j].Item2;
+                        total += d.Data[j].Item2;
+                    });
+                    ++j;
+                } else {
+                    data.Types.forEach(function (d) {
+                        obj[d.Name] = 0;
+                        total += 0;
+                    });
                 }
+                obj["Total"] = total;
+                graphData.graphData.push(obj);
 
-            },
-            failure: function (msg) {
-                alert(msg);
-            },
-            async: true
-        });
-
-    }
-    else {
-        window['dataHub'][thedatasource](siteID, thedatefrom, thedateto, postedUserName).done(function (data) {
-            var dateDiff = (new Date(thedateto).getTime() - new Date(thedatefrom).getTime()) / 1000 / 60 / 60 / 24;
-            if (data !== null) {
-
-                var graphData = { graphData: [], keys: [], colors: []};
-                for (var i = 0, j = 0; i < dateDiff; ++i) {
-                    var obj = {};
-                    var total = 0;
-                    obj["Date"] = Date.parse(data.StartDate) + i * 24 * 60 * 60 * 1000;
-                    if (data.Types[0].Data[j] !== undefined && obj["Date"] == Date.parse(data.Types[0].Data[j].Item1)) {
-                        data.Types.forEach(function (d) {
-                            obj[d.Name] = d.Data[j].Item2;
-                            total += d.Data[j].Item2;
-                            obj[d.Name + 'Disabled'] = false;
-                        });
-                        ++j;
-                    } else {
-                        data.Types.forEach(function (d) {
-                            obj[d.Name] = 0;
-                            total += 0;
-                            obj[d.Name + 'Disabled'] = false;
-                        });
-                    }
-                    obj["Total"] = total;
-                    graphData.graphData.push(obj);
-
-                }
-                data.Types.forEach(function (d) {
-                    graphData.keys.push(d.Name);
-                    graphData.colors.push(d.Color);
-                });
-
-
-                cache_Graph_Data = graphData;
-
-                if (thediv === "Overview") {
-
-                } else if (thediv === "TrendingData") {
-
-                } else
-                    buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
             }
 
-        });
-    }
+     
+            data.Types.forEach(function (d) {
+                graphData.keys.push(d.Name);
+                graphData.colors.push(d.Color);
+            });
+
+
+            cache_Graph_Data = graphData;
+
+            if (thediv === "Overview") {
+
+            } else if (thediv === "TrendingData") {
+
+            } else
+                buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
+        }
+    });
+    
 }
 
 function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
@@ -1016,20 +950,19 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
      brush.x(xOverview).on("brush", brushed);
     y.domain([0, d3.max(chartData, function (d) { return d.Total; })]);
     yOverview.domain(y.domain());
-    //color.domain(d3.keys(chartData[0]).reverse().filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }));
 
     var numSamples = chartData[0].length;
     var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
     var layerClass = function (d) { return "layer " + seriesClass(d.key); };
 
     var stack = d3.stack()
-        .keys(d3.keys(chartData[0]).filter(function (key) { return key !== "Date" && key !== "Total" && key.indexOf('Disabled') < 0 }))
+        .keys(data.keys)
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
 
     var series = null;
 
-    var tempKeys = d3.keys(chartData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+    var tempKeys = data.keys;
 
     $.each(chartData, function (i, d) {
         $.each(tempKeys, function (j, k) {
@@ -1219,7 +1152,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         var disabledLegendFields = [];
         if(currentTab === "Events")
-            cache_Graph_Data.graphData[0]['OtherDisabled'] = true;
+            disabledList[currentTab]["Other"] = true;
 
         legend.append("rect")
             .attr("x", width + -65)
@@ -1277,7 +1210,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         main.selectAll("g").remove();
 
         var newData = deepCopy(cache_Graph_Data.graphData);
-        var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
+        var tempKeys = cache_Graph_Data.keys;
 
         $.each(newData, function (i, d) {
             $.each(tempKeys, function (j, k) {
@@ -1303,13 +1236,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
         var newData = deepCopy(cache_Graph_Data.graphData);
 
-        var tempKeys = d3.keys(newData[0]).filter(function (key) { return key !== 'Total' && key !== 'Date' && key.indexOf('Disabled') < 0 });
-        $.each(newData, function (i, d) {
+        var tempKeys = cache_Graph_Data.keys;
+        disabledList[currentTab][seriesName] = isDisabling;
 
-            cache_Graph_Data.graphData[i][seriesName + 'Disabled'] = isDisabling;
-            newData[i][seriesName + 'Disabled'] = isDisabling;
+        $.each(newData, function (i, d) {
             $.each(tempKeys, function (j, k) {
-                if (newData[i][k + 'Disabled'] === true)
+                if (disabledList[currentTab][k] === true)
                     newData[i][k] = 0;
 
             });
@@ -1347,47 +1279,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
-    var thestartdateX = new Date(thedatefrom);
-    thestartdateX.setHours(0, 0, 0, 0);
-
-    var contextfromdateX = new Date(contextfromdate);
-    contextfromdateX.setHours(0, 0, 0, 0);
-
-    var contexttodateX = new Date(contexttodate);
-    contexttodateX.setHours(0, 0, 0, 0);
-
-    var thestartdate = new Date(Date.UTC(thestartdateX.getUTCFullYear(), thestartdateX.getUTCMonth(), thestartdateX.getUTCDate(), 0, 0, 0)).getTime();
-    var contextfromdateUTC = new Date(Date.UTC(contextfromdateX.getUTCFullYear(), contextfromdateX.getUTCMonth(), contextfromdateX.getUTCDate(), 0, 0, 0)).getTime();
-    var contexttodateUTC = new Date(Date.UTC(contexttodateX.getUTCFullYear(), contexttodateX.getUTCMonth(), contexttodateX.getUTCDate(), 0, 0, 0)).getTime();
-
-
-    var thedatasent = "";
-    thedatasent = "{'siteID':'" + siteID +
-                "', 'colorScale':'" + $('#contourColorScaleSelect').val() +
-                "', 'targetDateFrom':'" + thedatefrom +
-                "', 'targetDateTo':'" + thedateto +
-                "', 'userName':'" + postedUserName +
-                "'}";
-    $.ajax({
-        type: "POST",
-        url: homePath +'eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-
-            cache_ErrorBar_Data = data.d;
-
-            buildErrorBarChart(data.d, thediv, siteName, siteID, thedatefrom, thedateto);
-
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
+    dataHub.getTrendingDataForPeriod(siteID, $('#contourColorScaleSelect').val(), thedatefrom, thedateto, postedUserName).done(function (data) {
+        cache_ErrorBar_Data = data;
+        buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto);
+    }).fail(function (msg) {
+        alert(msg);
     });
-
 }
 
 function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
