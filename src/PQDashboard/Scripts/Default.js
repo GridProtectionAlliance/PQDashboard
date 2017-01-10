@@ -1151,8 +1151,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
 
         var disabledLegendFields = [];
-        if(currentTab === "Events")
-            disabledList[currentTab]["Other"] = true;
 
         legend.append("rect")
             .attr("x", width + -65)
@@ -1194,10 +1192,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .style("text-anchor", "start")
             .text(function (d) {
                 return d;
-            });
+        });
 
-        if (currentTab === "Events")
-            toggleSeries("Other", true);
+        $.each(Object.keys(disabledList[currentTab]), function (i, field) {
+            if(disabledList[currentTab][field])
+                toggleSeries(field, true);
+        });
     }
 
     //called when selection is chosen on overview map
