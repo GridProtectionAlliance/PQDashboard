@@ -327,10 +327,6 @@
       <DependentUpon>ICFService.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Content Include="MeterDisturbancesByLine.aspx.cs">
-      <DependentUpon>MeterDisturbancesByLine.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\DashSettings.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
@@ -451,7 +447,6 @@
     <Content Include="Images\TVAcompanylogo.jpg" />
     <Content Include="Images\yesterdaymockup.png" />
     <Content Include="mapService.asmx" />
-    <Content Include="MeterDisturbancesByLine.aspx" />
     <Content Include="OpenSEE.aspx" />
     <Content Include="OpenSTE.aspx" />
     <Content Include="favicon.ico" />
@@ -641,7 +636,6 @@
     <Content Include="Scripts\Leaflet\leaflet.js" />
     <Content Include="Scripts\Leaflet\leaflet1.0.css" />
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
-    <Content Include="Scripts\MeterDisturbancesByLine.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
@@ -1289,6 +1283,7 @@
     <Content Include="Views\Main\OpenSEE.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
     <Content Include="Views\Main\MeterEventsByLine.cshtml" />
+    <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

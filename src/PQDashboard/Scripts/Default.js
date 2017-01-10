@@ -778,7 +778,7 @@ function OpenWindowToMeterEventsByLine(id) {
 }
 
 function OpenWindowToMeterDisturbancesByLine(id) {
-    var popup = window.open(homePath + "MeterDisturbancesByLine.aspx?eventid=" + id, id + "MeterDisturbancesByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "Main/MeterDisturbancesByLine?eventid=" + id, id + "MeterDisturbancesByLine");
     return false;
 }
 

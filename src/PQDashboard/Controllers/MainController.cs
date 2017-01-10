@@ -150,6 +150,13 @@ namespace PQDashboard.Controllers
             return View();
         }
 
+        public ActionResult MeterDisturbancesByLine()
+        {
+            m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
+            return View();
+        }
+
+
         #endregion
     }
 }

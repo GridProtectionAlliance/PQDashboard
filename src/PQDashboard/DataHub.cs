@@ -1084,24 +1084,26 @@ namespace PQDashboard
         /// <param name="targetDate"></param>
         /// <returns></returns>
         [WebMethod]
-        public String getSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
+        public string GetSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
         {
 
-            String thedata = "";
+            string thedata = "";
+            string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
             SqlConnection conn = null;
             SqlDataReader rdr = null;
             SqlConnection conn2 = null;
             SqlDataReader rdr2 = null;
 
+            DateTime date = DateTime.Parse(targetDate);
 
             try
             {
-                conn = new SqlConnection(connectionstring);
+                conn = new SqlConnection(connectionString);
                 conn.Open();
 
                 SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDisturbanceDetailsByDate", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@EventDate", date.Date));
                 cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
                 cmd.CommandTimeout = 300;
 

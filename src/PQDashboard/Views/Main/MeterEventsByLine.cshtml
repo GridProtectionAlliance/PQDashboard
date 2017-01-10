@@ -146,7 +146,7 @@
 
                             $.each(key, function (i, k) {
                                 if (row[k] !== '0')
-                                    html += makeEASDetailsButton_html(row, row[k], k + '.aspx', 'images/' + k + '.png', 'Launch ' + k + ' Page', 300, 450);
+                                    html += makeEASDetailsButton_html(row, row[k], k + '.aspx', '~/Images/' + k + '.png', 'Launch ' + k + ' Page', 300, 450);
                             });
 
                             return html;
@@ -168,7 +168,7 @@
 
             //return_html += '<div style="cursor: pointer;">';
             return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'" + "," + width + "," + height + ');"  title="' + title + '">';
-            return_html += '<img src="' + imagepath + '" /></button>';
+            return_html += '<img src="' +imagepath + '" /></button>';
             //return_html += '</div>';
         }
         return (return_html);
