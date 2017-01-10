@@ -74,7 +74,7 @@
     int[] postedAdjacentEventIds = new int[] { -1, -1 };
     int[] postedAdjacentNonmeterEventIds = new int[] {-1,-1};
     string postedURLQueryString = string.Concat(parameters.AllKeys
-        .Where(key => !key.Equals("ID", StringComparison.OrdinalIgnoreCase))
+        .Where(key => !key.Equals("eventid", StringComparison.OrdinalIgnoreCase))
         .Select(key => "&" + HttpUtility.UrlEncode(key) + "=" + HttpUtility.UrlEncode(parameters[key])));
 
     string postedSeriesList = "";
@@ -337,12 +337,12 @@
             <tr>
                 @if (postedAdjacentNonmeterEventIds[0] != -1)
                 {
-                    <td><a href="?ID=@(postedAdjacentNonmeterEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (time)</a></td>
+                    <td><a href="?eventid=@Html.Raw(postedAdjacentNonmeterEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (time)</a></td>
                 }
 
                 @if (postedAdjacentEventIds[0] != -1)
                 {
-                    <td><a href="?ID=@(postedAdjacentEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (meter)</a></td>
+                    <td><a href="?eventid=@(postedAdjacentEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (meter)</a></td>
                 }
                 <td><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom"/></td>
                 <td><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints"/></td>
@@ -352,11 +352,11 @@
                 <td><input class="smallbutton" type="button" value="Fault Details" onclick="showdetails(this);" id="showdetails"/></td>
                 @if (postedAdjacentEventIds[1] != -1)
                 {
-                    <td><a href="?ID=@(postedAdjacentEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (meter)</a></td>
+                    <td><a href="?eventid=@(postedAdjacentEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (meter)</a></td>
                 }
                 @if (postedAdjacentNonmeterEventIds[1] != -1)
                 {
-                    <td><a href="?ID=@(postedAdjacentNonmeterEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (time)</a></td>
+                    <td><a href="?eventid=@(postedAdjacentNonmeterEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (time)</a></td>
                 }
 
             </tr>
