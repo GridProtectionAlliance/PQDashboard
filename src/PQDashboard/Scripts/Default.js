@@ -737,7 +737,7 @@ function OpenWindowToOpenSTE(url, id) {
 
 
 function OpenWindowToOpenSEE(id) {
-    var url = "/Main/OpenSEE?eventid=" + id;
+    var url = homepath + "/Main/OpenSEE?eventid=" + id;
 
     if (currentTab === "Breakers")
         url += "&breakerdigitals=1";
@@ -773,7 +773,7 @@ function makeMeterEventsByLineButton_html(id) {
 }
 
 function OpenWindowToMeterEventsByLine(id) {
-    var popup = window.open(homePath + "MeterEventsByLine.aspx?eventid=" + id, id + "MeterEventsByLine", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(homePath + "Main/MeterEventsByLine?eventid=" + id, id + "MeterEventsByLine");
     return false;
 }
 

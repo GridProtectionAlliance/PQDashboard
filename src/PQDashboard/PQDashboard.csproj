@@ -139,6 +139,10 @@
       <HintPath>..\packages\RazorEngine.3.7.7\lib\net45\RazorEngine.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="RouteDebugger, Version=2.1.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\routedebugger.2.1.5\lib\net40\RouteDebugger.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -327,14 +331,6 @@
       <DependentUpon>MeterDisturbancesByLine.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Content Include="MeterEventsByLine.aspx.cs">
-      <DependentUpon>MeterEventsByLine.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
-    <Content Include="ModbusData.aspx.cs">
-      <DependentUpon>ModbusData.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\DashSettings.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
@@ -344,6 +340,7 @@
     <Compile Include="Model\MeasurementValue.cs" />
     <Compile Include="Model\Menu.cs" />
     <Compile Include="Model\MenuItem.cs" />
+    <Compile Include="Model\Meter.cs" />
     <Compile Include="Model\MeterGroup.cs" />
     <Compile Include="Model\MeterID.cs" />
     <Compile Include="Model\MeterLocationsEventView.cs" />
@@ -455,8 +452,6 @@
     <Content Include="Images\yesterdaymockup.png" />
     <Content Include="mapService.asmx" />
     <Content Include="MeterDisturbancesByLine.aspx" />
-    <Content Include="MeterEventsByLine.aspx" />
-    <Content Include="ModbusData.aspx" />
     <Content Include="OpenSEE.aspx" />
     <Content Include="OpenSTE.aspx" />
     <Content Include="favicon.ico" />
@@ -647,8 +642,6 @@
     <Content Include="Scripts\Leaflet\leaflet1.0.css" />
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
     <Content Include="Scripts\MeterDisturbancesByLine.js" />
-    <Content Include="Scripts\MeterEventsByLine.js" />
-    <Content Include="Scripts\ModbusData.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
@@ -1295,6 +1288,7 @@
     <Content Include="Views\Main\GraphMeasurements.cshtml" />
     <Content Include="Views\Main\OpenSEE.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
+    <Content Include="Views\Main\MeterEventsByLine.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

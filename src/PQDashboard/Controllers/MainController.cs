@@ -138,15 +138,15 @@ namespace PQDashboard.Controllers
             return View();
         }
 
-        public ActionResult PageTemplate1()
-        {
-            m_appModel.ConfigureView(Url.RequestContext, "PageTemplate1", ViewBag);
-            return View();
-        }
-
         public ActionResult OpenSEE()
         {
             //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
+            return View();
+        }
+
+        public ActionResult MeterEventsByLine()
+        {
+            m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
             return View();
         }
 

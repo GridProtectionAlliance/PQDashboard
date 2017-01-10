@@ -24,10 +24,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
+using System.Web.Services;
 using FaultData.Database;
 using GSF;
 using GSF.Configuration;
@@ -977,6 +981,165 @@ namespace PQDashboard
 
         #endregion
 
+        #region [ Table Data ]
+
+        /// <summary>
+        /// getSiteLinesDetailsByDate
+        /// </summary>
+        /// <param name="siteID"></param>
+        /// <param name="targetDate"></param>
+        /// <returns></returns>
+        public string GetSiteLinesDetailsByDate(string siteID, string targetDate)
+        {
+            string thedata = "";
+            string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            SqlConnection conn2 = null;
+            SqlDataReader rdr2 = null;
+
+
+            try
+            {
+                conn = new SqlConnection(connectionString);
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand("SELECT * FROM EASExtension", conn);
+                rdr = cmd.ExecuteReader();
+
+                StringBuilder QueryBuilder = new StringBuilder();
+                while (rdr.Read())
+                {
+                    if (QueryBuilder.Length > 0)
+                    {
+                        QueryBuilder.Append(",");
+                    }
+                    QueryBuilder.Append("dbo.");
+                    QueryBuilder.Append(rdr["HasResultFunction"]);
+                    QueryBuilder.Append("(theeventid) AS ");
+                    QueryBuilder.Append(rdr["ServiceName"]);
+                }
+                rdr.Dispose();
+
+                cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+                cmd.CommandTimeout = 300;
+
+                rdr = cmd.ExecuteReader();
+                DataTable dt;
+                if (QueryBuilder.Length > 0)
+                {
+                    conn2 = new SqlConnection(connectionstring);
+                    conn2.Open();
+
+                    cmd = new SqlCommand("SELECT * , " + QueryBuilder + " FROM @EventIDTable", conn2);
+                    cmd.Parameters.Add(new SqlParameter("@EventIDTable", rdr));
+                    cmd.Parameters[0].SqlDbType = SqlDbType.Structured;
+                    cmd.Parameters[0].TypeName = "SiteLineDetailsByDate";
+                    rdr2 = cmd.ExecuteReader();
+
+                    dt = new DataTable();
+                    dt.Load(rdr2);
+
+                }
+                else
+                {
+                    dt = new DataTable();
+                    dt.Load(rdr);
+                }
+
+                thedata = DataTable2JSON(dt);
+                dt.Dispose();
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (conn2 != null)
+                {
+                    conn2.Close();
+                }
+                if (rdr2 != null)
+                {
+                    rdr2.Close();
+                }
+            }
+
+            return thedata;
+        }
+
+
+        /// <summary>
+        /// getSiteLinesDetailsByDate
+        /// </summary>
+        /// <param name="siteID"></param>
+        /// <param name="targetDate"></param>
+        /// <returns></returns>
+        [WebMethod]
+        public String getSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
+        {
+
+            String thedata = "";
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            SqlConnection conn2 = null;
+            SqlDataReader rdr2 = null;
+
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDisturbanceDetailsByDate", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+                cmd.CommandTimeout = 300;
+
+                rdr = cmd.ExecuteReader();
+                DataTable dt;
+
+                dt = new DataTable();
+                dt.Load(rdr);
+
+
+                thedata = DataTable2JSON(dt);
+                dt.Dispose();
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (conn2 != null)
+                {
+                    conn2.Close();
+                }
+                if (rdr2 != null)
+                {
+                    rdr2.Close();
+                }
+            }
+
+            return thedata;
+        }
+
+        #endregion
+
         #region [OpenSEE Operations]
         public List<SignalCode.FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
         {
@@ -1072,6 +1235,31 @@ namespace PQDashboard
             AuthorizationCache.UserIDs.TryGetValue(UserInfo.CurrentUserID, out userID);
             return userID;
         }
+
+        /// <summary>
+        /// DataTable2JSON
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public string DataTable2JSON(DataTable dt)
+        {
+            List<Object> RowList = new List<Object>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                Dictionary<Object, Object> ColList = new Dictionary<Object, Object>();
+                foreach (DataColumn dc in dt.Columns)
+                {
+                    string t = (string)((string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString());
+
+                    ColList.Add(dc.ColumnName, t);
+                }
+                RowList.Add(ColList);
+            }
+            JavaScriptSerializer js = new JavaScriptSerializer();
+            string JSON = js.Serialize(RowList);
+            return JSON;
+        }
+
 
         #endregion
     }
