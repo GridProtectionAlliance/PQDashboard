@@ -317,12 +317,12 @@ function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
                 if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
                     filterString.push($(d).children('text').text());
             });
-            window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, filterString);
+            window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
         }
     });
 }
 
-function populateFaultsDivWithGrid(data, disabledFields) {
+function populateFaultsDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -330,14 +330,13 @@ function populateFaultsDivWithGrid(data, disabledFields) {
     }
 
     var filteredData = [];
-    if (disabledFields !== null) {
-        $.each(data, function (i, d) {
-            if(disabledFields.indexOf(d.voltage + ' kV') < 0)
-                filteredData.push(d);
-        });
-    } else {
-        filteredData = data;
-    }
+    if (data == null) data = [];
+
+    $.each(data, function (i, d) {
+        if(!disabledList[currentTab][d.voltage + ' kV'])
+            filteredData.push(d);
+    });
+
 
     fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
@@ -358,7 +357,7 @@ function populateFaultsDivWithGrid(data, disabledFields) {
     });
 }
 
-function populateCorrectnessDivWithGrid(data, disabledFields) {
+function populateCorrectnessDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -369,7 +368,7 @@ function populateCorrectnessDivWithGrid(data, disabledFields) {
     if (disabledFields !== null) {
         $.each(data, function (i, d) {
             var flag = false;
-            $.each(disabledFields, function (j, e) {
+            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
                 switch (e) {
                     case '> 100%':
                         if (parseFloat(d.Correctness) > 100)
@@ -431,7 +430,7 @@ function populateCorrectnessDivWithGrid(data, disabledFields) {
     });
 }
 
-function populateCompletenessDivWithGrid(data, disabledFields) {
+function populateCompletenessDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -442,7 +441,7 @@ function populateCompletenessDivWithGrid(data, disabledFields) {
     if (disabledFields !== null) {
         $.each(data, function (i, d) {
             var flag = false;
-            $.each(disabledFields, function (j, e) {
+            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
                 switch (e) {
                     case '> 100%':
                         if (d.Completeness > 100)
@@ -504,7 +503,7 @@ function populateCompletenessDivWithGrid(data, disabledFields) {
     });
 }
 
-function populateEventsDivWithGrid(data, disabledFields) {
+function populateEventsDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -512,22 +511,21 @@ function populateEventsDivWithGrid(data, disabledFields) {
     }
 
     var filteredData = [];
-    if (data !== null && disabledFields !== null) {
-        $.each(data, function (i, d) {
-            var otherFields = ["theeventid" , "themeterid", "thesite", undefined, "others"];
-            var fixedDisabledFields = disabledFields.map(function(x) { return x.toLowerCase() + 's'});
-            var sum = 0;
-            for (var key in d) {
-                if (fixedDisabledFields.indexOf(key) == -1 && otherFields.indexOf(key) == -1)
-                    sum += parseInt(d[key]);
-            }
-            if (sum > 0)
-                filteredData.push(d);
-        });
-    } else {
-        filteredData = data;
-    }
+    if (data == null) data = [];
 
+    $.each(data, function (i, d) {
+        var sum = 0;
+        d["transients"] = 0;
+        $.each(Object.keys(disabledList[currentTab]), function (index, key) {
+            if (!disabledList[currentTab][key]) {
+                sum += parseInt(d[key.toLowerCase() + 's']);
+            }
+        });
+
+        if (sum > 0)
+            filteredData.push(d);
+
+    });
 
     fixNumbers(filteredData, ['interruptions', 'faults', 'sags', 'swells', 'others']);
 
@@ -547,7 +545,7 @@ function populateEventsDivWithGrid(data, disabledFields) {
 
 }
 
-function populateDisturbancesDivWithGrid(data, disabledFields) {
+function populateDisturbancesDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -572,7 +570,7 @@ function populateDisturbancesDivWithGrid(data, disabledFields) {
     });
 }
 
-function populateBreakersDivWithGrid(data, disabledFields) {
+function populateBreakersDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -583,7 +581,7 @@ function populateBreakersDivWithGrid(data, disabledFields) {
     var filteredData = [];
     if (disabledFields !== null) {
         $.each(data, function (i, d) {
-            if (disabledFields.indexOf(d.operationtype) < 0)
+            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.operationtype) < 0)
                 filteredData.push(d);
         });
     } else {
@@ -610,7 +608,7 @@ function populateBreakersDivWithGrid(data, disabledFields) {
 
 }
 
-function populateTrendingDivWithGrid(data, disabledFields) {
+function populateTrendingDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -620,7 +618,7 @@ function populateTrendingDivWithGrid(data, disabledFields) {
     var filteredData = [];
     if (disabledFields !== null) {
         $.each(data, function (i, d) {
-            if (disabledFields.indexOf(d.eventtype) < 0)
+            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.eventtype) < 0)
                 filteredData.push(d);
         });
     } else {
@@ -647,7 +645,7 @@ function populateTrendingDivWithGrid(data, disabledFields) {
 
 }
 
-function populateTrendingDataDivWithGrid(data, disabledFields) {
+function populateTrendingDataDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -1174,7 +1172,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 }
 
                 toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
-                window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, $.map(disabledList[currentTab], function (data, key) { if (data) return key }));
+                window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
                 resizeMatrixCells(currentTab);
                 showSiteSet($("#selectSiteSet" + currentTab)[0]);
                 if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
@@ -3256,15 +3254,6 @@ function resizeDocklet( theparent , chartheight ) {
         });
     }
 
-    var filterString = [];
-    var leg = d3.selectAll('.legend');
-
-    $.each(leg[0], function (i, d) {
-        if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
-            filterString.push($(d).children('text').text());
-    });
-
-
     theparent.css("height", chartheight);
 
     var firstChild = $("#" + theparent[0].firstElementChild.id);
@@ -3282,10 +3271,7 @@ function resizeDocklet( theparent , chartheight ) {
 
     //console.log($('#Detail' + currentTab + 'Table').children());
     if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
-        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data, filterString);
-
-        //window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
-    
+        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3942,8 +3928,6 @@ function loadsitedropdown() {
     }
 
     $('#siteList').multiselect('refresh');
-
-    //$('#selectHeatmapDisturbances').multiselect();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -4063,42 +4047,44 @@ function buildPage() {
 
     loadconfigdropdown(usersettings.lastSetting);
 
+    $("#application-tabs").tabs({
+        heightStyle: "100%",
+        widthStyle: "99%",
+
+        activate: function (event, ui) {
+            var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
+            if (newTab.indexOf("Overview") > -1) {
+                $('#headerStrip').hide();
+                showOverviewPage(currentTab);
+            }
+            else if (newTab === "ModbusData") {
+                showModbusData();
+            }
+            else if (newTab === "HistorianData") {
+                showHistorianData();
+            }
+            else {
+                cache_Graph_Data = null;
+                cache_Errorbar_Data = null;
+                cache_Sparkline_Data = null;
+                var mapormatrix = $("#mapGrid")[0].value;
+                $('#headerStrip').show();
+                manageTabsByDate(newTab, contextfromdate, contexttodate);
+                $("#mapGrid")[0].value = mapormatrix;
+                selectmapgrid($("#mapGrid")[0]);
+
+            }
+
+
+        }
+    });
+
+    loadsitedropdown();
+
     $(window).one("settingsLoaded", function () {
 
         currentTab = $('#application-tabs li :visible').first().text();
 
-        $("#application-tabs").tabs({
-            active: getcurrentconfigsetting("CurrentTab"),
-            heightStyle: "100%",
-            widthStyle: "99%",
-
-            activate: function (event, ui) {
-                var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
-                if (newTab.indexOf("Overview") > -1) {
-                    $('#headerStrip').hide();
-                    showOverviewPage(currentTab);
-                }
-                else if (newTab === "ModbusData") {
-                    showModbusData();
-                }
-                else if (newTab === "HistorianData") {
-                    showHistorianData();
-                }
-                else {
-                    cache_Graph_Data = null;
-                    cache_Errorbar_Data = null;
-                    cache_Sparkline_Data = null;
-                    var mapormatrix = $("#mapGrid")[0].value;
-                    $('#headerStrip').show();
-                    manageTabsByDate(newTab, contextfromdate, contexttodate);
-                    $("#mapGrid")[0].value = mapormatrix;
-                    selectmapgrid($("#mapGrid")[0]);
-
-                }
-
-
-            }
-        });
 
         datafromdate = getcurrentconfigsetting("DataFromDate");
         datatodate = getcurrentconfigsetting("DataToDate");
@@ -4108,36 +4094,32 @@ function buildPage() {
 
         initializeDatePickers(datafromdate, datatodate);
         getMeters(mg);
-        loadsitedropdown();
-        initiateTimeRangeSlider();
-        initiateColorScale();
+        $(window).one("meterSelectUpdated", function () {
+            initiateTimeRangeSlider();
+            initiateColorScale();
 
 
-        resizeMapAndMatrix(currentTab);
-        if (currentTab.indexOf("Overview") > -1) {
-            $('#headerStrip').hide();
-            showOverviewPage(currentTab);
+            resizeMapAndMatrix(currentTab);
+            if (currentTab.indexOf("Overview") > -1) {
+                $('#headerStrip').hide();
+                showOverviewPage(currentTab);
 
-        } else if (currentTab === "ModbusData") {
-            showModbusData();
-        }
-        else if (currentTab === "HistorianData") {
-            showHistorianData();
-        }
-        else {
-            //cache_Graph_Data = null;
-            //cache_Errorbar_Data = null;
-            //cache_Sparkline_Data = null;
-            //$('#headerStrip').show();
-            //manageTabsByDate(currentTab, contextfromdate, contexttodate);
+            } else if (currentTab === "ModbusData") {
+                showModbusData();
+            }
+            else if (currentTab === "HistorianData") {
+                showHistorianData();
+            }
+            else {
+                $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
+                $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
+                $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+
+                selectmapgrid($("#mapGrid")[0]);
+            }
 
 
-            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-            $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
-            $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-            selectmapgrid($("#mapGrid")[0]);
-        }
+        });
 
 
     });
