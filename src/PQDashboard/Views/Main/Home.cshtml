@@ -34,12 +34,8 @@
     ViewBag.DefaultMeterGroup = meterGroups.First();
 }
 <!DOCTYPE html>
-<script>
-    var mg = @ViewBag.DefaultMeterGroup.ID;
-</script>
-
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
+<head>
     <title>Open PQ Dashboard :: @ViewBag.username</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta charset="utf-8"/>
@@ -91,8 +87,10 @@
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
    	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
     <script>
+        var mg = @ViewBag.DefaultMeterGroup.ID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var historianConnection = '@historianConnection';
+    
     </script>
   
 </head>

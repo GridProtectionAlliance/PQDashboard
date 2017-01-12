@@ -533,12 +533,12 @@ function populateEventsDivWithGrid(data) {
         scrollable: true,
         scrollHeight: '100%',
         columns: [
-            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
-            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%; ' + (disabledFields !== null && disabledFields.indexOf('Interruption') >= 0 ? 'display: none' : '' ), bodyStyle: 'width: 12%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Interruption') >= 0 ? 'display: none': ''), sortable: true },
-            { field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Fault') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Fault') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Sag') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Sag') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Swell') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: 'others', headerText: 'Others', headerStyle: 'width:  10%; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), bodyStyle: 'width:  10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('Other') >= 0 ? 'display: none' : ''), sortable: true }
+            { field: 'thesite',       headerText: 'Name',          headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
+            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['Interruption'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['Interruption']      ? 'display: none' : ''), sortable: true },
+            { field: 'faults',        headerText: 'Faults',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Fault']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Fault']             ? 'display: none' : ''), sortable: true },
+            { field: 'sags',          headerText: 'Sags',          headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Sag']          ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Sag']               ? 'display: none' : ''), sortable: true },
+            { field: 'swells',        headerText: 'Swells',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Swell']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Swell']             ? 'display: none' : ''), sortable: true },
+            { field: 'others',        headerText: 'Others',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Other']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Other']             ? 'display: none' : ''), sortable: true }
         ],
         datasource: filteredData
     });
@@ -559,12 +559,12 @@ function populateDisturbancesDivWithGrid(data) {
         scrollHeight: '100%',
         columns: [
             { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
-            { field: '5', headerText: '5', headerStyle: 'width: 12%; ' + (disabledFields !== null && disabledFields.indexOf('5') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('5') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: '4', headerText: '4', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('4') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('4') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: '3', headerText: '3', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('3') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('3') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: '2', headerText: '2', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('2') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('2') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('1') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('1') >= 0 ? 'display: none' : ''), sortable: true },
-            { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledFields !== null && disabledFields.indexOf('0') >= 0 ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledFields !== null && disabledFields.indexOf('0') >= 0 ? 'display: none' : ''), sortable: true },
+            { field: '5', headerText: '5', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), sortable: true },
+            { field: '4', headerText: '4', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), sortable: true },
+            { field: '3', headerText: '3', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), sortable: true },
+            { field: '2', headerText: '2', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), sortable: true },
+            { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), sortable: true },
+            { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), sortable: true },
         ],
         datasource: data
     });
@@ -1168,9 +1168,8 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 }
                 else {
                     $(this).css('fill', color(d));
-                    disabledLegendFields = disabledLegendFields.filter(function (word) { return word !== d });
                 }
-
+                configurationsupdate(null);
                 toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
                 resizeMatrixCells(currentTab);
@@ -3459,6 +3458,12 @@ function validatesettings(usersettings) {
         return (false);
     }
 
+    if (typeof (usersettings["disabledList"]) == 'undefined') {
+        initializesettings();
+        return (false);
+    };
+
+
     $.each(usersettings.uisettings, function(key, value) {
 
         if (typeof (value["Name"]) == 'undefined') {
@@ -3502,6 +3507,7 @@ function validatesettings(usersettings) {
             initializesettings();
             return (false);
         };
+
     });
 }
 
@@ -3512,7 +3518,7 @@ function configurationapply(item) {
     var currentconfigname = $("#Configurations :selected").text();
 
     usersettings["lastSetting"] = currentconfigname;
-
+    $.jStorage.deleteKey("usersettings");
     $.jStorage.set("usersettings", usersettings);
 
     $("#datePickerFrom").datepicker("setDate", new Date(getcurrentconfigsetting("DataFromDate")));
@@ -3521,7 +3527,7 @@ function configurationapply(item) {
 
     contextfromdate = getcurrentconfigsetting("ContextFromDate");
     contexttodate = getcurrentconfigsetting("ContextToDate");
-
+    disabledList = usersettings["disabledList"];
     if (contextfromdate === contexttodate) {
         cache_Last_Date = contexttodate;
     }
@@ -3579,6 +3585,7 @@ function deleteconfirmation(item) {
 
                             usersettings.uisettings.remove(key, key);
                             usersettings["lastSetting"] = "Default";
+                            $.jStorage.deleteKey("usersettings");
                             $.jStorage.set("usersettings", usersettings);
                             loadconfigdropdown("Default");
                             configurationapply(item);
@@ -3723,6 +3730,7 @@ function initializesettings() {
     usersettings.uisettings.length = 0;
 
     usersettings["javascriptversion"] = javascriptversion;
+    usersettings["disabledList"] = disabledList;
 
     thesetting["Name"] = "Default";
     thesetting["DataToDate"] = "Today";
@@ -3733,6 +3741,7 @@ function initializesettings() {
     thesetting["MapGrid"] = "Grid";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "PastMonth";
+
 
     usersettings["uisettings"].push(thesetting);
 
@@ -3746,11 +3755,10 @@ function initializesettings() {
     thesetting["MapGrid"] = "Map";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "Custom";
-
     usersettings["lastSetting"] = "Default";
     usersettings["uisettings"].push(thesetting);
 
-    $.jStorage.set("usersettings", null);
+    $.jStorage.deleteKey("usersettings");
     $.jStorage.set("usersettings", usersettings);
 }
 
@@ -3796,6 +3804,7 @@ function createupdateconfig(configname) {
     }
 
     usersettings["lastSetting"] = "Default";
+    $.jStorage.deleteKey("usersettings");
     $.jStorage.set("usersettings", usersettings);
 }
 
@@ -4038,8 +4047,10 @@ function buildPage() {
     $.ech.multiselect.prototype.options.selectedText = "# of # selected";
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
+
     if ($.jStorage.get("usersettings") != null) {
         usersettings = $.jStorage.get("usersettings");
+        disabledList = usersettings["disabledList"];
         validatesettings(usersettings);
     } else {
         initializesettings();
