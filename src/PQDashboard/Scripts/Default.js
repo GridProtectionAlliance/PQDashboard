@@ -4050,12 +4050,12 @@ function buildPage() {
 
     if ($.jStorage.get("usersettings") != null) {
         usersettings = $.jStorage.get("usersettings");
-        disabledList = usersettings["disabledList"];
         validatesettings(usersettings);
     } else {
         initializesettings();
     }
 
+    disabledList = usersettings["disabledList"];
     loadconfigdropdown(usersettings.lastSetting);
 
     $("#application-tabs").tabs({
