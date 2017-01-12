@@ -552,6 +552,22 @@ function populateDisturbancesDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
+    var filteredData = [];
+    if (data == null) data = [];
+
+    $.each(data, function (i, d) {
+        var sum = 0;
+        $.each(Object.keys(disabledList[currentTab]), function (index, key) {
+            if (!disabledList[currentTab][key]) {
+                sum += parseInt(d[key]);
+            }
+        });
+
+        if (sum > 0)
+            filteredData.push(d);
+
+    });
+
     fixNumbers(data, ['5', '4', '3', '2', '1', '0']);
 
     $('#Detail' + currentTab + "Table").puidatatable({
@@ -566,7 +582,7 @@ function populateDisturbancesDivWithGrid(data) {
             { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), sortable: true },
             { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), sortable: true },
         ],
-        datasource: data
+        datasource: filteredData
     });
 }
 
@@ -579,14 +595,11 @@ function populateBreakersDivWithGrid(data) {
 
 
     var filteredData = [];
-    if (disabledFields !== null) {
-        $.each(data, function (i, d) {
-            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.operationtype) < 0)
-                filteredData.push(d);
-        });
-    } else {
-        filteredData = data;
-    }
+    $.each(data, function (i, d) {
+        if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.operationtype) < 0)
+            filteredData.push(d);
+    });
+
 
     fixNumbers(data, ['timing', 'speed']);
 
@@ -616,14 +629,11 @@ function populateTrendingDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (disabledFields !== null) {
-        $.each(data, function (i, d) {
-            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.eventtype) < 0)
-                filteredData.push(d);
-        });
-    } else {
-        filteredData = data;
-    }
+    $.each(data, function (i, d) {
+        if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.eventtype) < 0)
+            filteredData.push(d);
+    });
+
 
     fixNumbers(data, ['HarmonicGroup', 'eventcount']);
 
@@ -860,12 +870,13 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                         total += d.Data[j].Item2;
                     });
                     ++j;
-                } else {
-                    data.Types.forEach(function (d) {
-                        obj[d.Name] = 0;
-                        total += 0;
-                    });
                 }
+                //else {
+                //    data.Types.forEach(function (d) {
+                //        obj[d.Name] = 0;
+                //        total += 0;
+                //    });
+                //}
                 obj["Total"] = total;
                 graphData.graphData.push(obj);
 
