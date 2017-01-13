@@ -755,15 +755,14 @@
 
     function makeOpenSTEButton_html(id) {
         var return_html = "";
-        var url = "@Html.Raw(Url.Content("~/Main/openSTE"))?channelid="
-            + encodeURIComponent(id.channelid)
+        var url = "'@Html.Raw(Url.Content("~/Main/openSTE"))?channelid=" + encodeURIComponent(id.channelid)
             + "&date=" + encodeURIComponent(id.date)
             + "&meterid=" + encodeURIComponent(id.meterid)
             + "&measurementtype=" + encodeURIComponent(id.measurementtype)
             + "&characteristic=" + encodeURIComponent(id.characteristic)
             + "&phasename=" + encodeURIComponent(id.phasename) + "'";
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToOpenSTE( ' + url + ',' + id.channelid + ' )" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
+        return_html += '<button onclick="OpenWindowToOpenSTE( ' + url + ',' + id.channelid + ' )" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
         return_html += '<img src="@Html.Raw(Url.Content("~/Images/steButton.png"))" /></button></div>';
         return (return_html);
     }

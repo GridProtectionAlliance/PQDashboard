@@ -365,53 +365,50 @@ function populateCorrectnessDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (disabledFields !== null) {
-        $.each(data, function (i, d) {
-            var flag = false;
-            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
-                switch (e) {
-                    case '> 100%':
-                        if (parseFloat(d.Correctness) > 100)
-                            flag = true;
-                        break;
+    $.each(data, function (i, d) {
+        var flag = false;
+        $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
+            switch (e) {
+                case '> 100%':
+                    if (parseFloat(d.Correctness) > 100)
+                        flag = true;
+                    break;
 
-                    case '98% - 100%':
-                        if (parseFloat(d.Correctness) >= 98 && parseFloat(d.Correctness) <= 100)
-                            flag = true;
-                        break;
+                case '98% - 100%':
+                    if (parseFloat(d.Correctness) >= 98 && parseFloat(d.Correctness) <= 100)
+                        flag = true;
+                    break;
 
-                    case '90% - 97%':
-                        if (parseFloat(d.Correctness) >= 90 && parseFloat(d.Correctness) < 98)
-                            flag = true;
-                        break;
+                case '90% - 97%':
+                    if (parseFloat(d.Correctness) >= 90 && parseFloat(d.Correctness) < 98)
+                        flag = true;
+                    break;
 
-                    case '70% - 89%':
-                        if (parseFloat(d.Correctness) >= 70 && parseFloat(d.Correctness) < 90)
-                            flag = true;
-                        break;
+                case '70% - 89%':
+                    if (parseFloat(d.Correctness) >= 70 && parseFloat(d.Correctness) < 90)
+                        flag = true;
+                    break;
 
-                    case '50% - 69%':
-                        if (parseFloat(d.Correctness) >= 50 && parseFloat(d.Correctness) < 70)
-                            flag = true;
-                        break;
+                case '50% - 69%':
+                    if (parseFloat(d.Correctness) >= 50 && parseFloat(d.Correctness) < 70)
+                        flag = true;
+                    break;
 
-                    case '>0% - 49%':
-                        if (parseFloat(d.Correctness) > 0 && parseFloat(d.Correctness) < 50)
-                            flag = true;
-                        break;
+                case '>0% - 49%':
+                    if (parseFloat(d.Correctness) > 0 && parseFloat(d.Correctness) < 50)
+                        flag = true;
+                    break;
 
-                    case '0%':
-                        if (parseFloat(d.Correctness) == 0)
-                            flag = true;
-                        break;
-                }
-            });
-            if (!flag)
-                filteredData.push(d);
+                case '0%':
+                    if (parseFloat(d.Correctness) == 0)
+                        flag = true;
+                    break;
+            }
         });
-    } else {
-        filteredData = data;
-    }
+        if (!flag)
+            filteredData.push(d);
+    });
+
 
     fixNumbers(data, ['Latched', 'Unreasonable', 'Noncongruent', 'Correctness']);
 
@@ -438,53 +435,50 @@ function populateCompletenessDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (disabledFields !== null) {
-        $.each(data, function (i, d) {
-            var flag = false;
-            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
-                switch (e) {
-                    case '> 100%':
-                        if (d.Completeness > 100)
-                            flag = true;
-                        break;
+    $.each(data, function (i, d) {
+        var flag = false;
+        $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
+            switch (e) {
+                case '> 100%':
+                    if (d.Completeness > 100)
+                        flag = true;
+                    break;
 
-                    case '98% - 100%':
-                        if (d.Completeness >= 98 && d.Completeness <= 100)
-                            flag = true;
-                        break;
+                case '98% - 100%':
+                    if (d.Completeness >= 98 && d.Completeness <= 100)
+                        flag = true;
+                    break;
 
-                    case '90% - 97%':
-                        if (d.Completeness >= 90 && d.Completeness < 98)
-                            flag = true;
-                        break;
+                case '90% - 97%':
+                    if (d.Completeness >= 90 && d.Completeness < 98)
+                        flag = true;
+                    break;
 
-                    case '70% - 89%':
-                        if (d.Completeness >= 70 && d.Completeness < 90)
-                            flag = true;
-                        break;
+                case '70% - 89%':
+                    if (d.Completeness >= 70 && d.Completeness < 90)
+                        flag = true;
+                    break;
 
-                    case '50% - 69%':
-                        if (d.Completeness >= 50 && d.Completeness < 70)
-                            flag = true;
-                        break;
+                case '50% - 69%':
+                    if (d.Completeness >= 50 && d.Completeness < 70)
+                        flag = true;
+                    break;
 
-                    case '>0% - 49%':
-                        if (d.Completeness > 0 && d.Completeness < 50)
-                            flag = true;
-                        break;
+                case '>0% - 49%':
+                    if (d.Completeness > 0 && d.Completeness < 50)
+                        flag = true;
+                    break;
 
-                    case '0%':
-                        if (d.Completeness == 0)
-                            flag = true;
-                        break;
-                }
-            });
-            if (!flag)
-                filteredData.push(d);
+                case '0%':
+                    if (d.Completeness == 0)
+                        flag = true;
+                    break;
+            }
         });
-    } else {
-        filteredData = data;
-    }
+        if (!flag)
+            filteredData.push(d);
+    });
+
 
     fixNumbers(data, ['Expected', 'Received', 'Duplicate', 'Completeness']);
 
@@ -759,15 +753,9 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
                         total += d.Data[j].Item2;
                     });
                     ++j;
+                    obj["Total"] = total;
+                    graphData.graphData.push(obj);
                 }
-                //else {
-                //    data.Types.forEach(function (d) {
-                //        obj[d.Name] = 0;
-                //        total += 0;
-                //    });
-                //}
-                obj["Total"] = total;
-                graphData.graphData.push(obj);
 
             }
 
@@ -849,7 +837,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     y.domain([0, d3.max(chartData, function (d) { return d.Total; })]);
     yOverview.domain(y.domain());
 
-    var numSamples = chartData[0].length;
     var seriesClass = function (seriesName) { return "series-" + seriesName.toLowerCase(); };
     var layerClass = function (d) { return "layer " + seriesClass(d.key); };
 
@@ -882,7 +869,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         series = stack(chartData);
     }
     var overviewSeries = stack(chartData);
-    var keys = d3.keys(series).filter(function (a) { return a !== "Values"; }).reverse();
     
     buildMainGraph(series);
     buildOverviewGraph(overviewSeries);
@@ -1099,10 +1085,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
     //called when selection is chosen on overview map
     function brushed() {
-        if (brush.empty())
-            return;
-
-
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
 
@@ -1117,8 +1099,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             });
 
         });
+        var stackedData;
 
-        var stackedData = stack(newData.filter(function (d) {
+        if (brush.empty())
+            stackedData = stack(newData);
+        else
+            stackedData = stack(newData.filter(function (d) {
             return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
         }));
 
