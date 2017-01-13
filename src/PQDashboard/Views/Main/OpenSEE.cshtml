@@ -55,22 +55,6 @@
     string postedShowFaultCurves = parameters["faultcurves"] ?? "";
     string postedShowBreakerDigitals = parameters["breakerdigitals"] ?? "";
 
-    //if (parameters.ContainsKey("ID"))
-    //{
-    //    eventID = parameters["ID"];
-    //}
-
-    //if (parameters.ContainsKey("faultcurves"))
-    //{
-    //    postedShowFaultCurves = parameters["faultcurves"];
-    //}
-    //if (parameters.ContainsKey("breakerdigitals"))
-    //{
-    //    postedShowBreakerDigitals = parameters["breakerdigitals"];
-    //}
-
-
-
     int[] postedAdjacentEventIds = new int[] { -1, -1 };
     int[] postedAdjacentNonmeterEventIds = new int[] {-1,-1};
     string postedURLQueryString = string.Concat(parameters.AllKeys

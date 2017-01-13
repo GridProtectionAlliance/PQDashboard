@@ -146,6 +146,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Linq">
       <Private>True</Private>
     </Reference>
@@ -345,6 +346,7 @@
     <Compile Include="Model\SchemaVersion.cs" />
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Model\StatusLight.cs" />
+    <Compile Include="Model\TrendingData.cs" />
     <Compile Include="Model\ValueList.cs" />
     <Compile Include="Model\ValueListGroup.cs" />
     <Content Include="OpenSEE.aspx.cs">

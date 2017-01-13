@@ -28,6 +28,7 @@
 @using System.Data;
 @using GSF.Data
 @using System.Collections.Generic;
+@using System.Collections.Specialized
 @using System.Data.SqlClient
 @using System.Globalization
 @using System.Linq
@@ -41,46 +42,21 @@
 @using FaultData.Database.MeterDataTableAdapters;
 @using GSF.Web.Model
 @using Newtonsoft.Json
-@inherits TemplateBase<PQDashboard.Model.AppModel>
 
 @{
-    HttpRequestMessage request = ViewBag.Request;
-    Dictionary<string, string> parameters = request.QueryParameters();
+    Layout = "";
+    NameValueCollection parameters = Request.QueryString;
 
-    string postedmeterid = "";
-    string postedchannelid = "";
-    string posteddate = "";
-    string postedmeasurementtype = "";
-    string postedcharacteristic = "";
-    string postedphasename = "";
-    if (parameters.ContainsKey("ChannelID"))
-    {
-        postedchannelid = parameters["ChannelID"];
-    }
 
-    if (parameters.ContainsKey("date"))
-    {
-        posteddate = parameters["date"];
-    }
-    if (parameters.ContainsKey("MeterID"))
-    {
-        postedmeterid = parameters["MeterID"];
-    }
-    if (parameters.ContainsKey("MeasurementType"))
-    {
-        postedmeasurementtype = parameters["MeasurementType"];
-    }
-    if (parameters.ContainsKey("Characteristic"))
-    {
-        postedcharacteristic = parameters["Characteristic"];
-    }
-    if (parameters.ContainsKey("PhaseName"))
-    {
-        postedphasename = parameters["PhaseName"];
-    }
+    int postedmeterid = int.Parse(parameters["meterid"] ?? "-1");
+    int postedchannelid = int.Parse(parameters["channelid"] ?? "-1");
+    DateTime posteddate = DateTime.Parse(parameters["date"] ?? "");
+    string postedmeasurementtype = parameters["measurementtype"] ?? "";
+    string postedcharacteristic = parameters["characteristic"] ?? "";
+    string postedphasename = parameters["phasename"] ?? "";
 
-    string postedlinename = Model.DataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", Convert.ToInt32(postedchannelid));
-    string postedmetername = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", Convert.ToInt32(postedmeterid));
+    string postedlinename = Model.DataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", postedchannelid);
+    string postedmetername = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", postedmeterid);
 
 
 }
@@ -101,49 +77,34 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
 
-    <link rel="stylesheet" href="./Content/bootstrap.min.css" />
-    <link rel="stylesheet" href="./Content/themes/redmond/jquery-ui.css" />
-    <link rel="stylesheet" href="./Content/jquery.multiselect.css" />
-    <link rel="stylesheet" href="./Content/jquery.multiselect.filter.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Content/jquery.multiselect.css" />
+    <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css" />
+    <link rel="stylesheet" href="~/Content/OpenSTE.css" type="text/css" />
 
-
-    <script type="text/javascript" src="./Scripts/jquery-2.2.1.js"></script>
-    <script type="text/javascript" src="./Scripts/jquery-ui.js"></script>
-    <script type="text/javascript" src="./Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="./Scripts/jquery.multiselect.js"></script>
-    <script type="text/javascript" src="./Scripts/jquery.multiselect.filter.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.errorbars.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.navigate.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.resize.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.time.js"></script>
-    <script type="text/javascript" src="./Scripts/flot/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="./Scripts/OpenSTE.js"></script>
-    <script type="text/javascript" src="./Scripts/jquery.signalR-2.2.0.js"></script>
-    <script type="text/javascript" src="/signalr/hubs"></script>
-    <script type="text/javascript" src="./Scripts/Site.js"></script>
-
-
-    <link rel="stylesheet" href="./Content/OpenSTE.css" type="text/css" />
+    <script type="text/javascript" src="~/Scripts/jquery-2.2.3.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.multiselect.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.multiselect.filter.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.errorbars.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.navigate.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script type="text/javascript" src="~/signalr/hubs"></script>
+    <script type="text/javascript" src="~/Scripts/Site.js"></script>
 </head>
 <body>
-
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedchannelid">@postedchannelid </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="posteddate">@posteddate </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedmeterid">@postedmeterid </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedmeasurementtype">@postedmeasurementtype </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedcharacteristic">@postedcharacteristic </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedphasename">@postedphasename </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedmetername">@postedmetername </div>
-    <div style="visibility:hidden; width: 0px; height: 0px;" id="postedlinename">@postedlinename </div>
-
-
     <div style="width: 100%; height: 32px;">
         <table width="100%">
             <tr>
-                <td width="33%" align="left"><img src="images/GPA-Logo---30-pix(on-white).png" /></td>
-                <td width="33%" align="center"><img src="images/openSTE.png" /></td>
-                <td width="33%" align="right" valign="top" nowrap><img src="images/GPA-Logo.png" /></td>
+                <td width="33%" align="left"><img src="@Html.Raw(Url.Content("~/Images/GPA-Logo---30-pix(on-white).png"))" /></td>
+                <td width="33%" align="center"><img src="@Html.Raw(Url.Content("~/Images/openSTE.png"))" /></td>
+                <td width="33%" align="right" valign="top" nowrap><img src="@Html.Raw(Url.Content("~/Images/GPA-Logo.png"))" /></td>
             </tr>
         </table>
     </div>
@@ -152,18 +113,410 @@
         <h4 style="text-align: center" id="chartTitle"></h4>
     </div>
 
-    <div class="row" id="DockWaveformTrending">
-        <div class="row" style="height: 100%">
-            <div class="col-md-1" style="height: 100%">
-                <div id="ChartYAxis"><span>Trend Magnitude</span></div>
-            </div>
-            <div class="col-md-9" style="height: 95%">
-                <div id="WaveformTrending"></div>
-            </div>
-            <div class="col-md-2" style="height: 100%">
-                <div id="legend"></div>
-            </div>
+<div class="row" id="DockWaveformTrending">
+    <div class="row" style="height: 100%">
+        <div class="col-md-1" style="height: 100%">
+            <div id="ChartYAxis"><span>Trend Magnitude</span></div>
+        </div>
+        <div class="col-md-9" style="height: 95%">
+            <div id="WaveformTrending"></div>
+        </div>
+        <div class="col-md-2" style="height: 100%">
+            <div id="legend"></div>
         </div>
     </div>
+</div>
+<script>
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    // Global
+
+    var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0000'];
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    function buildPage() {
+
+        $.blockUI({ css: { border: '0px' } });
+
+        $(document).ajaxStart(function () {
+            $.blockUI({
+                message: '<div class="wait_container"><img alt="" src="@Html.Raw(Url.Content("~/Images/ajax-loader.gif"))" /><br><div class="wait">Please Wait. Loading...</div></div>'
+            });
+        });
+
+        $(document).ajaxStop(function () {
+            $.unblockUI();
+        });
+
+        $(window).on('resize', function () {
+            resizecontents();
+        });
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    function resizecontents() {
+        var columnheight = $(window).height() - 110;
+        resizeDocklet($("#DockWaveformTrending"), columnheight);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    function resizeDocklet(theparent, chartheight) {
+        theparent.css("height", chartheight);
+        var Child = $("#WaveformTrending");
+        Child.css("height", chartheight);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    $(document).ready(function () {
+
+        postedchannelid = '@postedchannelid.ToString()';
+        posteddate = '@posteddate.ToString()';
+        postedmeterid = '@postedmeterid.ToString()';
+        postedmeasurementtype = '@postedmeasurementtype';
+        postedcharacteristic = '@postedcharacteristic';
+        postedphasename = '@postedphasename';
+        postedmetername = '@postedmetername';
+        postedlinename = '@postedlinename';
+
+        buildPage();
+
+        // Lets build a label for this chart
+        var label = "";
+        label += postedmetername + " - ";
+        label += postedlinename + " - ";
+        label += postedmeasurementtype + " - ";
+        label += postedcharacteristic + " - ";
+        label += postedphasename + " - ";
+        label += posteddate;
+        label += " for a Day";
+
+        $("#chartTitle").text(label);
+        $(window).one('hubConnected', function () {
+            populateDivWithLineChartByChannelID("getTrendsforChannelIDDate", "WaveformTrending", postedchannelid, posteddate, label);
+        });
+        resizecontents();
+    });
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    function populateDivWithLineChartByChannelID(thedatasource, thediv, thechannelid, thedate, label) {
+        dataHub.getTrendsForChannelIDDate(thechannelid, thedate).done(function (data) {
+            function drawCap(ctx, x, y, radius) {
+                ctx.beginPath();
+                ctx.lineTo(x + radius, y);
+                ctx.lineTo(x - radius, y);
+                ctx.stroke();
+            }
+
+            if (data == null)
+                return;
+
+            var dataPoints = {
+                show: true,
+                radius: 2
+            }
+
+            var errorBars = {
+                show: false,
+                errorbars: "y",
+                lineWidth: 0.5,
+                radius: 0.5,
+                yerr: { show: true, asymmetric: true, upperCap: drawCap, lowerCap: drawCap, shadowSize: 0, radius: 3 }
+            }
+
+            var graphData = [
+                { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit High', visible: true, type: 'lines' },
+                { color: "orange", lines: dataPoints, data: [], label: 'Off Normal High', visible: true, type: 'lines' },
+                { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Max' },
+                { color: "#90ed7d", points: dataPoints, data: [], label: 'Average', visible: true, type: 'points' },
+                { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Min' },
+                { color: "orange", lines: dataPoints, data: [], label: 'Off Normal Low', visible: true, type: 'lines' },
+                { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit Low', visible: true, type: 'lines' },
+                { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar' }
+            ];
+
+            $.each(data.ChannelData, function (_, point) {
+                var mid = (point.Maximum + point.Minimum) / 2;
+                graphData[2].data.push([point.Time, point.Maximum]);
+                graphData[3].data.push([point.Time, point.Average]);
+                graphData[4].data.push([point.Time, point.Minimum]);
+                graphData[7].data.push([point.Time, mid, mid - point.Minimum, point.Maximum - mid]);
+            });
+
+            $.each(data.AlarmLimits, function (_, limit) {
+                if (limit.High !== null) {
+                    graphData[0].data.push([limit.TimeStart, limit.High]);
+                    graphData[0].data.push([limit.TimeEnd, limit.High]);
+                }
+
+                if (limit.Low !== null) {
+                    graphData[6].data.push([limit.TimeStart, limit.Low]);
+                    graphData[6].data.push([limit.TimeEnd, limit.Low]);
+                }
+            });
+
+            $.each(data.OffNormalLimits, function (key, limit) {
+                var nextKey = key + 1;
+                var hasNextKey = nextKey < data.OffNormalLimits.length;
+
+                if (limit.High !== null) {
+                    graphData[1].data.push([limit.TimeStart, limit.High]);
+                    graphData[1].data.push([limit.TimeEnd, limit.High]);
+                } else if (hasNextKey && data.OffNormalLimits[nextKey].High !== null) {
+                    if (graphData[1].data.length > 0)
+                        graphData[1].data.push(null);
+                }
+
+                if (limit.Low !== null) {
+                    graphData[5].data.push([limit.TimeStart, limit.Low]);
+                    graphData[5].data.push([limit.TimeEnd, limit.Low]);
+                } else if (hasNextKey && data.OffNormalLimits[nextKey].Low !== null) {
+                    if (graphData[5].data.length > 0)
+                        graphData[5].data.push(null);
+                }
+            });
+
+            //Set mins and maxes
+            var xMin = new Date(thedate + ' UTC').getTime();
+            var xMax = xMin + (24 * 60 * 60 * 1000);
+
+            //initiate plot
+            var plot = $.plot($("#WaveformTrending"), graphData, {
+                legend: {
+                    show: false
+                },
+                series: {
+                    lines: {
+                        show: false
+                    }
+                },
+                xaxis: {
+                    mode: "time",
+                    zoomRange: [60000 * 15, xMax],
+                    panRange: [xMin, xMax],
+                },
+                yaxis: {
+                    zoomRange: false /*[0.5, yMax+1]*/,
+                    //panRange: [yMin-1,yMax+1],
+                },
+                zoom: {
+                    interactive: true
+                },
+                pan: {
+                    interactive: false
+                },
+                grid: {
+                    hoverable: true
+                },
+                selection: { mode: "x" }
+            });
+
+            $("<div id='tooltip'></div>").css({
+                position: "absolute",
+                display: "none",
+                border: "1px solid #fdd",
+                padding: "2px",
+                "background-color": "#fee",
+                opacity: 0.80
+            }).appendTo("body");
+
+            $("#WaveformTrending").bind("plothover", function (event, pos, item) {
+                if (!item) {
+                    $.each([graphData[0], graphData[6]], function (_, alarmSeries) {
+                        if (alarmSeries.visible && alarmSeries.data.length > 0) {
+                            var alarmLimit = alarmSeries.data[0];
+                            var alarmLimitOffset = plot.p2c({ x: pos.x, y: alarmLimit[1] });
+                            var plotOffset = plot.offset();
+                            var alarmPageX = alarmLimitOffset.left + plotOffset.left;
+                            var alarmPageY = alarmLimitOffset.top + plotOffset.top;
+
+                            if (Math.abs(alarmPageY - pos.pageY) < 10) {
+                                item = {
+                                    series: alarmSeries,
+                                    datapoint: [pos.x, alarmLimit[1]],
+                                    pageX: alarmPageX,
+                                    pageY: alarmPageY
+                                };
+                            }
+                        }
+                    });
+                }
+
+                if (item) {
+                    var time = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%l:%M:%S %P");
+                    var html = '<div>' + time + '</div>';
+                    html += '<div>' + item.series.label + ': <span style="font-weight:bold">' + (item.series.label !== 'Range' ? item.datapoint[1] : item.datapoint[1] - item.datapoint[2] + ' - ' + (item.datapoint[1] + item.datapoint[3])) + '</span></div>';
+                    $("#tooltip").html(html)
+                        .css({ top: item.pageY + -50, left: item.pageX - 100, border: '1px solid ' + item.series.color })
+                        .fadeIn(200);
+                } else {
+                    $("#tooltip").hide();
+                }
+
+            });
+
+            $("#WaveformTrending").bind("plotselected", function (event, ranges) {
+                var xAxis = plot.getXAxes();
+
+                $.each(xAxis, function (_, axis) {
+                    var opts = axis.options;
+                    opts.min = ranges.xaxis.from;
+                    opts.max = ranges.xaxis.to;
+                });
+
+                scaleYAxis(plot, ranges.xaxis.from, ranges.xaxis.to);
+                plot.clearSelection();
+            });
+
+            $('#WaveformTrending').bind("plotzoom", function (event, stuff) {
+                scaleYAxis(plot);
+                plot.clearSelection();
+            });
+
+            initLegend(plot);
+            scaleYAxis(plot);
+
+            $.unblockUI();
+
+        }).fail(function (msg) {
+            alert(msg);
+        });
+    }
+
+    function initLegend(plot) {
+        var graphData = plot.getData();
+        var table = $('<table>');
+
+        $("#legend").append(table);
+
+        table.css({
+            "width": "100%",
+            "font-size": "smaller",
+            "font-weight": "bold"
+        });
+
+        $.each(graphData, function (_, series) {
+            if (series.visible !== false) {
+                var row = $('<tr>');
+                var checkbox = $('<input type="checkbox">');
+                var borderDiv = $('<div>');
+                var colorDiv = $('<div>');
+                var labelSpan = $('<span>');
+                var color;
+
+                if (series.visible)
+                    color = series.color;
+                else
+                    color = "#CCC";
+
+                table.append(
+                    row.append(
+                        $('<td class="legendCheckbox" title="Show/hide in tooltip">').append(
+                            checkbox),
+                        $('<td class="legendColorBox" title="Show/hide in chart">').append(
+                            borderDiv.append(colorDiv)),
+                        $('<td class="legendLabel">').append(
+                            labelSpan.append(series.label))));
+
+                checkbox.prop("checked", series.checked);
+
+                borderDiv.css({
+                    "border": "1px solid #CCC",
+                    "padding": "1px"
+                });
+
+                colorDiv.css({
+                    "width": "4px",
+                    "height": "0",
+                    "border": "5px solid " + color,
+                    "overflow": "hidden"
+                });
+
+                labelSpan.prop("title", series.label);
+                labelSpan.css("color", series.color);
+
+                checkbox.click(function () {
+                    series.checked = !series.checked;
+
+                });
+
+                row.children().slice(1).click(function () {
+                    series.visible = !series.visible;
+
+                    //updatePlotData(graphData);
+                    //alignAxes();
+
+                    if (series.visible)
+                        colorDiv.css("border", "5px solid " + series.color);
+                    else
+                        colorDiv.css("border", "5px solid #CCC");
+
+                    if (series.type === 'lines')
+                        series.lines.show = series.visible;
+                    else if (series.type === 'points')
+                        series.points.show = series.visible;
+                    else if (series.type === 'errorbar') {
+                        series.points.yerr.show = series.visible;
+                        graphData[2].points.show = series.visible;
+                        graphData[4].points.show = series.visible;
+                    }
+
+                    plot.setData(graphData);
+                    scaleYAxis(plot);
+                });
+            }
+        });
+
+        $(".legendCheckbox").hide();
+    }
+
+    function scaleYAxis(plot, xMin, xMax) {
+        var data = plot.getData();
+        var yMin = null, yMax = null;
+
+        $.each(plot.getXAxes(), function (_, xAxis) {
+            if (!xMin)
+                xMin = xAxis.min;
+
+            if (!xMax)
+                xMax = xAxis.max;
+        });
+
+        $.each(data, function (i, d) {
+            if (d.visible === true) {
+                var isAlarmData = (i == 0) || (i == 6);
+
+                $.each(d.data, function (j, e) {
+                    if (isAlarmData || (e[0] >= xMin && e[0] <= xMax)) {
+                        var eMin = (d.label !== "Range") ? e[1] : e[1] - e[2];
+                        var eMax = (d.label !== "Range") ? e[1] : e[1] + e[3];
+
+                        if (yMin == null || yMin > eMin)
+                            yMin = eMin;
+                        if (yMax == null || yMax < eMax)
+                            yMax = eMax;
+                    }
+                });
+            }
+        });
+
+        $.each(plot.getYAxes(), function (_, axis) {
+            var opts = axis.options;
+            var pad = (yMax - yMin) * 0.1;
+            opts.min = yMin - pad;
+            opts.max = yMax + pad;
+        });
+
+        plot.setupGrid();
+        plot.draw();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /// EOF
+</script>
 </body>
 </html>

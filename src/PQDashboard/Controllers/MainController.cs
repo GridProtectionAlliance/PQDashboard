@@ -144,6 +144,12 @@ namespace PQDashboard.Controllers
             return View();
         }
 
+        public ActionResult OpenSTE()
+        {
+            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
+            return View();
+        }
+
         public ActionResult MeterEventsByLine()
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
