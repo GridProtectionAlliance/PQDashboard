@@ -726,10 +726,10 @@ function getColorsForTab(thetab) {
 
 function getFormattedDate(date) {
     var newdate = new Date(date);
-    var year = newdate.getFullYear();
-    var month = (1 + newdate.getMonth()).toString();
+    var year = newdate.getUTCFullYear();
+    var month = (1 + newdate.getUTCMonth()).toString();
     month = month.length > 1 ? month : '0' + month;
-    var day = newdate.getDate().toString();
+    var day = newdate.getUTCDate().toString();
     day = day.length > 1 ? day : '0' + day;
     return month + '/' + day + '/' + year;
 }
@@ -738,28 +738,26 @@ function getFormattedDate(date) {
 
 function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
     window['dataHub'][thedatasource](siteID, thedatefrom, thedateto, postedUserName).done(function (data) {
-        var dateDiff = (new Date(thedateto).getTime() - new Date(thedatefrom).getTime()) / 1000 / 60 / 60 / 24;
+        var dateDiff = (Date.parse(data.EndDate) - Date.parse(data.StartDate)) / 1000 / 60 / 60 / 24;
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
 
-            for (var i = 0, j = 0; i < dateDiff; ++i) {
+            var dates = $.map(data.Types[0].Data, function (d) { return d.Item1 });
+
+            $.each(dates, function (i, date) {
                 var obj = {};
                 var total = 0;
-                obj["Date"] = Date.parse(data.StartDate) + i * 24 * 60 * 60 * 1000;
-                if (data.Types[0].Data[j] !== undefined && obj["Date"] == Date.parse(data.Types[0].Data[j].Item1)) {
-                    data.Types.forEach(function (d) {
-                        obj[d.Name] = d.Data[j].Item2;
-                        total += d.Data[j].Item2;
-                    });
-                    ++j;
-                    obj["Total"] = total;
-                    graphData.graphData.push(obj);
-                }
+                obj["Date"] = Date.parse(date);
+                $.each(data.Types, function (j, type) {
+                    obj[type.Name] = type.Data[i].Item2;
+                    total += type.Data[i].Item2;
+                });
+                obj["Total"] = total;
+                graphData.graphData.push(obj);
 
-            }
+            });
 
-     
             data.Types.forEach(function (d) {
                 graphData.keys.push(d.Name);
                 graphData.colors.push(d.Color);
@@ -773,7 +771,7 @@ function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedat
             } else if (thediv === "TrendingData") {
 
             } else
-                buildBarChart(graphData, thediv, siteName, siteID, thedatefrom, thedateto);
+                buildBarChart(graphData, thediv, siteName, siteID, data.StartDate, data.EndDate);
         }
     });
     
@@ -799,6 +797,9 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
     // D3
     var chartData = deepCopy(data.graphData);
+    var date1 = Date.parse(thedatefrom);
+    var date2 = Date.parse(thedateto);
+    var numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
 
     //container sizing variables
     var margin = { top: 20, right: 125, bottom: 100, left: 60 },
@@ -808,16 +809,15 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     heightOverview = $('#' + thediv).height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
-    var x = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
+    var x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
     var binsScale = d3.scale.ordinal().domain(d3.range(30)).rangeBands([0, width], 0.1, 0.05);
-    var xOverview = d3.time.scale().domain([new Date(thedatefrom), new Date(thedateto).setDate(new Date(thedateto).getDate() + 1)]).range([0, width]);
+    var xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
     var yOverview = d3.scale.linear().range([heightOverview, 0]);
     var color = d3.scale.ordinal().range(data.colors.reverse()).domain(data.keys.reverse());
 
-    var xAxis = d3.svg.axis().scale(x).orient("bottom");
     var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2d"));
-    var xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom");
+    var xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks(numSamples/3).tickFormat(d3.time.format.utc('%m/%d'));
 
     // graph initialization
     var tooltip = d3.select('#' + thediv).append('div')
@@ -877,6 +877,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 
     //// d3 Helper Functions
     function buildMainGraph(data) {
+
         var numSamples;
         if (brush !== null && !brush.empty()) {
             var date1 = new Date(brush.extent()[0]).setHours(0,0,0,0);
@@ -884,10 +885,12 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
         }
         else {
-            var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
-            var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
+            var date1 = Date.parse(thedatefrom);
+            var date2 = Date.parse(thedateto) + 1000*60*60*24;
             numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
         }
+
+        var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%m/%d'));
 
 
         y.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
@@ -968,7 +971,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
         });
 
         bar.on('click', function (d) {
-            var thedate = getFormattedDate(d.data.Date + (new Date(d.data.Date).getTimezoneOffset() * 60 * 1000));
+            var thedate = getFormattedDate(d.data.Date);
             contextfromdate = thedate;
             contexttodate = thedate;
             var filter = [];
@@ -985,12 +988,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     }
 
     function buildOverviewGraph(data) {
-
-        var date1 = new Date(thedatefrom).setHours(0, 0, 0, 0);
-        var date2 = new Date(thedateto).setHours(0, 0, 0, 0);
-        var numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
-
-
         yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
 
         overview = svg.append("g")
@@ -1108,10 +1105,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0);
         }));
 
-
         buildMainGraph(stackedData);
-
-
     }
 
     //Toggles a certain series.
@@ -3117,8 +3111,8 @@ function reflowContents(newTab) {
 
 function resizeDocklet( theparent , chartheight ) {
 
-    var thedatefrom = $.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate'));
-    var thedateto = $.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate'));
+    var thedatefrom = $.datepicker.formatDate("yy-mm-dd", $('#datePickerFrom').datepicker('getDate')) + "T00:00:00Z";
+    var thedateto = $.datepicker.formatDate("yy-mm-dd", $('#datePickerTo').datepicker('getDate')) + "T00:00:00Z";
     var selectedIDs = GetCurrentlySelectedSites();
 
     var siteName = selectedIDs.length + " of " + $('#siteList')[0].length + " selected";
