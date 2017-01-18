@@ -3086,7 +3086,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     selectsitesincharts();
 
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
-    resizeMapAndMatrix(theNewTab);
+    //resizeMapAndMatrix(theNewTab);
 }
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
