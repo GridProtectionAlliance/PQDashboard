@@ -1535,7 +1535,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName,
-                meterGroup: $('#meterGroupSelect').val()
+                MeterGroup: $('#meterGroupSelect').val()
             }
         };
         
@@ -2847,7 +2847,8 @@ function plotContourMap(data, thedatefrom, thedateto) {
                     EndDate: thedateto,
                     DataType: $('#trendingDataTypeSelection').val(),
                     ColorScaleName: $('#contourColorScaleSelect').val(),
-                    UserName: postedUserName
+                    UserName: postedUserName,
+                    MeterGroup: $('#meterGroupSelect').val()
                 }
             };
 
@@ -4273,7 +4274,8 @@ function loadContourAnimationData() {
             UserName: postedUserName,
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val(),
-            IncludeWeather: $('#weatherCheckbox:checked').length > 0
+            IncludeWeather: $('#weatherCheckbox:checked').length > 0,
+            MeterGroup: $('#meterGroupSelect').val()
         }
     };
 

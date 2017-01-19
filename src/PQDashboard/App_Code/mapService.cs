@@ -1099,7 +1099,8 @@ public class mapService : WebService
             ColorScaleName = HttpContext.Current.Request.QueryString["ColorScaleName"],
             DataType = HttpContext.Current.Request.QueryString["DataType"],
             UserName = HttpContext.Current.Request.QueryString["Username"],
-            Meters = HttpContext.Current.Request.QueryString["Meters"]
+            Meters = HttpContext.Current.Request.QueryString["Meters"],
+            MeterGroup = Convert.ToInt32(HttpContext.Current.Request.QueryString["MeterGroup"])
         };
 
         ContourTileData contourTileData = GetContourTileData(contourQuery);
@@ -1871,10 +1872,13 @@ public class mapService : WebService
                 Func<double, double> colorFunction = GetColorScale(contourQuery);
                 IDWFunc idwFunction = GetIDWFunction(contourQuery, locations);
 
-                contourTileData.MinLatitude = locations.Min(location => location.Latitude) - GetLatFromMiles(50.0D);
-                contourTileData.MaxLatitude = locations.Max(location => location.Latitude) + GetLatFromMiles(50.0D);
-                contourTileData.MinLongitude = locations.Min(location => location.Longitude) - GetLngFromMiles(50.0D, 0.0D);
-                contourTileData.MaxLongitude = locations.Max(location => location.Longitude) + GetLngFromMiles(50.0D, 0.0D);
+                if (locations.Any())
+                {
+                    contourTileData.MinLatitude = locations.Min(location => location.Latitude) - GetLatFromMiles(50.0D);
+                    contourTileData.MaxLatitude = locations.Max(location => location.Latitude) + GetLatFromMiles(50.0D);
+                    contourTileData.MinLongitude = locations.Min(location => location.Longitude) - GetLngFromMiles(50.0D, 0.0D);
+                    contourTileData.MaxLongitude = locations.Max(location => location.Longitude) + GetLngFromMiles(50.0D, 0.0D);
+                }
 
                 contourTileData.IDWFunction = idwFunction;
                 contourTileData.ColorFunction = colorFunction;
