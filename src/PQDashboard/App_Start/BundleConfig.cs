@@ -64,18 +64,7 @@ namespace PQDashboard
                         $"~/Scripts/ko-reactor{min}.js",
                         "~/Scripts/ko.observableDictionary.js"));
 
-            bundles.Add(new StyleBundle("~/css.bundle/bootstrap").Include(
-                        $"~/Content/bootstrap-datepicker3{min}.css",
-                        "~/Content/bootstrap-sidebar.css"));
-
-            bundles.Add(new StyleBundle("~/css.bundle/fileinput").Include(
-                        "~/Content/fileinput.css"));
-
-            bundles.Add(new StyleBundle("~/css.bundle/jqueryui").Include(
-                        $"~/Content/jquery-ui{min}.css"));
-
             bundles.Add(new StyleBundle("~/css.bundle/primeui").Include(
-                        "~/Content/primeui-theme.css",
                         $"~/Content/font-awesome{min}.css",
                         $"~/Content/primeui.css"));
 
