@@ -3180,9 +3180,11 @@ function resizeMapAndMatrix(newTab) {
     if (leafletMap[currentTab] !== null) {
         leafletMap[currentTab].invalidateSize(true);
 
-        markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
-        if (markerGroup.getBounds().isValid())
-            leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        leafletMap[currentTab].whenReady(function () {
+            markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
+            if (markerGroup.getBounds().isValid())
+                leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        });
         //leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -200), L.latLng(180, 200)));
 
     }
