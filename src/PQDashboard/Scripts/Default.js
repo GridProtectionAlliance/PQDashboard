@@ -927,7 +927,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                     return width / numSamples;
                 })
                 .attr("y", function (d) {
-                    return y(d[1]);
+                    return y((d[1]? d[1]: 0));
                 })
                 .attr("height", function (d) { return y(d[0]) - y(d[1]); })
                 .style("fill", function (d, e, i) {
@@ -1005,7 +1005,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .enter().append("rect")
                 .attr("x", function (d) { return xOverview(d.data.Date); })
                 .attr("width", function () { return width / numSamples; })
-                .attr("y", function (d) {  return yOverview(d[1]); })
+                .attr("y", function (d) {  return yOverview((d[1]? d[1]:0)); })
                 .attr("height", function (d) { return yOverview(d[0]) - yOverview(d[1]); })
                 .style("fill", "black");
 
@@ -1197,17 +1197,18 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
     $.each(data, function (_, point) {
         var mid = (point.Maximum + point.Minimum) / 2;
-        graphData[0].data.push([new Date(point.Date + ' UTC').getTime(), point.Maximum]);
-        graphData[1].data.push([new Date(point.Date + ' UTC').getTime(), point.Average]);
-        graphData[2].data.push([new Date(point.Date + ' UTC').getTime(), point.Minimum]);
-        graphData[3].data.push([new Date(point.Date + ' UTC').getTime(), mid, mid - point.Minimum, point.Maximum - mid]);
+        graphData[0].data.push([new Date(point.Date).getTime(), point.Maximum]);
+        graphData[1].data.push([new Date(point.Date).getTime(), point.Average]);
+        graphData[2].data.push([new Date(point.Date).getTime(), point.Minimum]);
+        graphData[3].data.push([new Date(point.Date).getTime(), mid, mid - point.Minimum, point.Maximum - mid]);
     });
 
 
     //Set mins and maxes
-    var xMin = new Date(thedatefrom + ' UTC').getTime();
-    var xMax = new Date(thedateto + ' UTC').getTime();
+    var xMin = new Date(thedatefrom).getTime();
+    var xMax = new Date(thedateto).getTime();
 
+    $('#' + thediv).empty();
     //initiate plot
     var plot = $.plot($('#' + thediv), graphData, {
         legend: {
@@ -3024,8 +3025,8 @@ function highlightDaysInCalendar(date) {
 
 function ManageLocationClick(siteName, siteID) {
 
-    var thedatefrom = $.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate'));
-    var thedateto = $.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate'));
+    var thedatefrom = $.datepicker.formatDate("yy-mm-dd", $('#datePickerFrom').datepicker('getDate')) + "T00:00:00Z";
+    var thedateto = $.datepicker.formatDate("yy-mm-dd", $('#datePickerTo').datepicker('getDate')) + "T00:00:00Z";
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
