@@ -3096,7 +3096,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
     currentTab = theNewTab;
 
-    reflowContents(theNewTab);
+    //reflowContents(theNewTab);
 
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
 }
