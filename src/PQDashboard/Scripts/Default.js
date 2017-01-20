@@ -817,7 +817,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     var color = d3.scale.ordinal().range(data.colors.reverse()).domain(data.keys.reverse());
 
     var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2d"));
-    var xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks(numSamples/3).tickFormat(d3.time.format.utc('%m/%d'));
+    var xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 10? numSamples: 10)).tickFormat(d3.time.format.utc('%m/%d'));
 
     // graph initialization
     var tooltip = d3.select('#' + thediv).append('div')
@@ -890,7 +890,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             numSamples = 1 + (date2 - date1) / 1000 / 60 / 60 / 24;
         }
 
-        var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%m/%d'));
+        var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
 
 
         y.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
