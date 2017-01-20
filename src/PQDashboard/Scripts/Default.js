@@ -3734,6 +3734,16 @@ function selectMeterGroup(thecontrol) {
     $('#siteList').multiselect('refresh');
     getMeters(mg);
 
+    $.each(Object.keys(leafletMap), function (i, key) {
+        if (leafletMap[key]) {
+            mapMarkers[key].forEach(function (d) { leafletMap[key].removeLayer(d.marker) });
+            mapMarkers[key] = [];
+            leafletMap[key] = null;
+            var parent = $('#theMap' + key).parent();
+            $('#theMap' + key).remove();
+            $(parent).append('<div id="theMap' + key + '"></div>');
+        }
+    });
     var newTab = currentTab;
     if (newTab.indexOf("Overview") > -1) {
         $('#headerStrip').hide();
