@@ -3179,15 +3179,18 @@ function resizeMapAndMatrix(newTab) {
         resizeDocklet($("#DockDetail" + newTab), chartheight);
     }
     if (leafletMap[currentTab] !== null) {
-        leafletMap[currentTab].invalidateSize(true);
-
-        leafletMap[currentTab].whenReady(function () {
+        var onResize = function () {
             markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
             if (markerGroup.getBounds().isValid())
                 leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-        });
-        //leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -200), L.latLng(180, 200)));
+        };
 
+        // Hack: If the map does need to resize, onResize must be called twice.
+        //       Otherwise, it only needs to be called once.
+        leafletMap[currentTab].on('resize', onResize);
+        leafletMap[currentTab].invalidateSize(true);
+        leafletMap[currentTab].off('resize', onResize);
+        onResize();
     }
     resizeMatrixCells(newTab);
 }
