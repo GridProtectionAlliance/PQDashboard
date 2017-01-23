@@ -23,7 +23,7 @@
 //******************************************************************************************************
 -->
 
-<%@ page language="C#" autoeventwireup="true" inherits="OpenSEE, App_Web_lsnpvlg0" %>
+<%@ page language="C#" autoeventwireup="true" inherits="OpenSEE, App_Web_fj120drj" %>
 
 <!DOCTYPE html>
 
