@@ -802,7 +802,7 @@
         var return_html = "";
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
         return_html += '<button onClick="OpenWindowToChannelDataCompleteness(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Channel Data Quality Details Page">';
-        return_html += '<img src="@Html.Raw("~/Images/dcDetailButton.png")" /></button></div>';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/dcDetailButton.png"))" /></button></div>';
         return (return_html);
     }
 

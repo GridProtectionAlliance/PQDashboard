@@ -37,48 +37,68 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, eventId) {
         cache: true,
         success: function (data) {
 
-            $('#' + thediv).jqxGrid(
-            {
-                width: '100%',
-                height: '100%',
-                source: {
-                    localdata: data.d,
-                    dataType: 'json',
+            //$('#' + thediv).jqxGrid(
+            //{
+            //    width: '100%',
+            //    height: '100%',
+            //    source: {
+            //        localdata: data.d,
+            //        dataType: 'json',
 
-                    datafields: [
-                        { name: 'Facility' },
-                        { name: 'Area' },
-                        { name: 'SectionTitle' },
-                        { name: 'SectionRank' },
-                        { name: 'ComponentModel' },
-                        { name: 'ManufacturerName' },
-                        { name: 'SeriesName' },
-                        { name: 'ComponentTypeName' }
-                    ]
+            //        datafields: [
+            //            { name: 'Facility' },
+            //            { name: 'Area' },
+            //            { name: 'SectionTitle' },
+            //            { name: 'SectionRank' },
+            //            { name: 'ComponentModel' },
+            //            { name: 'ManufacturerName' },
+            //            { name: 'SeriesName' },
+            //            { name: 'ComponentTypeName' }
+            //        ]
 
-                },
-                sortable: true,
-                altrows: true,
-                pageable: false,
-                theme: 'ui-redmond',
+            //    },
+            //    sortable: true,
+            //    altrows: true,
+            //    pageable: false,
+            //    theme: 'ui-redmond',
 
+            //    columns: [
+            //    { text: 'Facility', datafield: 'Facility', cellsrenderer: tooltiprenderer, renderer: columnsrenderer },
+            //    { text: 'Area', datafield: 'Area', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
+            //    { text: 'Equipment', datafield: 'SectionTitle', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
+            //    { text: 'SectionRank', datafield: 'SectionRank', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
+            //    { text: 'ComponentModel', datafield: 'ComponentModel', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
+            //    { text: 'ManufacturerName', datafield: 'ManufacturerName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
+            //    { text: 'SeriesName', datafield: 'SeriesName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
+            //    { text: 'ComponentTypeName', datafield: 'ComponentTypeName', cellsrenderer: tooltiprenderer, renderer: columnsrenderer }
+
+
+            //    ]
+            //});
+
+            $('#' + thediv).puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
+                scrollWidth: '100%',
+                sortMode: 'multiple',
+                sortMeta: [{ field: 'theinceptiontime', order: 1 }],
                 columns: [
-                { text: 'Facility', datafield: 'Facility', cellsrenderer: tooltiprenderer, renderer: columnsrenderer },
-                { text: 'Area', datafield: 'Area', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
-                { text: 'Equipment', datafield: 'SectionTitle', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-                { text: 'SectionRank', datafield: 'SectionRank', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
-                { text: 'ComponentModel', datafield: 'ComponentModel', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-                { text: 'ManufacturerName', datafield: 'ManufacturerName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-                { text: 'SeriesName', datafield: 'SeriesName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-                { text: 'ComponentTypeName', datafield: 'ComponentTypeName', cellsrenderer: tooltiprenderer, renderer: columnsrenderer }
-
-
-                ]
+                    { field: 'Facility', headerText: 'Facility', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'Area', headerText: 'Area', headerStyle: 'width:  6%', bodyStyle: 'width: 6%; height: 20px', sortable: true },
+                    { field: 'Equipment', headerText: 'Equipment', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true },
+                    { field: 'SectionRank', headerText: 'SectionRank', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'ComponentModel', headerText: 'ComponentModel', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'ManufacturerName', headerText: 'ManufacturerName', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'SeriesName', headerText: 'SeriesName', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                    { field: 'ComponentTypeName', headerText: 'ComponentTypeName', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
+                ],
+                datasource: $.parseJSON(data.d)
             });
 
-            var localizationobj = {};
-            localizationobj.emptydatastring = "Please Select Single Day";
-            $('#' + thediv).jqxGrid('localizestrings', localizationobj);
+
+            //var localizationobj = {};
+            //localizationobj.emptydatastring = "Please Select Single Day";
+            //$('#' + thediv).jqxGrid('localizestrings', localizationobj);
         }
     });
 }
