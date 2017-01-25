@@ -655,54 +655,51 @@ namespace PQDashboard
                 sc.Parameters.Add(param2);
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
+                DataTable table = new DataTable();
 
                 IDataReader rdr = sc.ExecuteReader();
-                try
-                {
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[0].Name = "500 kV";
-                    eventSet.Types[0].Color = "#ff0000";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[1].Name = "300 kV";
-                    eventSet.Types[1].Color = "#434348";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[2].Name = "230 kV";
-                    eventSet.Types[2].Color = "#90ed7d";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[3].Name = "135 kV";
-                    eventSet.Types[3].Color = "#f7a35c";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[4].Name = "115 kV";
-                    eventSet.Types[4].Color = "#8085e9";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[5].Name = "69 kV";
-                    eventSet.Types[5].Color = "#f15c80";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[6].Name = "46 kV";
-                    eventSet.Types[6].Color = "#e4d354";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[7].Name = "0 kV";
-                    eventSet.Types[7].Color = "#2b908f";
+                table.Load(rdr);
+                int color = 0x000000;
+                int colorDiff = (0xff0000 - color);
 
-                    while (rdr.Read())
-                    {
-                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["500"])));
-                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["300"])));
-                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["230"])));
-                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["135"])));
-                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["115"])));
-                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["69"])));
-                        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["46"])));
-                        eventSet.Types[7].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["0"])));
-                    }
-                }
-                finally
+                foreach (DataRow row in table.Rows)
                 {
-                    if (!rdr.IsClosed)
+                    foreach (DataColumn column in table.Columns)
                     {
-                        rdr.Close();
+                        if(column.ColumnName != "thedate")
+                        {
+                            if(eventSet.Types.All(x => x.Name != column.ColumnName))
+                            {
+                                eventSet.Types.Add(new EventSet.EventDetail());
+                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                eventSet.Types[eventSet.Types.Count - 1].Color = "#" + color.ToString("X");
+
+                                color += colorDiff /(table.Columns.Count - 2);
+                            }
+                            eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
+                        }
                     }
                 }
+
+                if (!eventSet.Types.Any())
+                {
+                    foreach (DataColumn column in table.Columns)
+                    {
+                        if (column.ColumnName != "thedate")
+                        {
+                            if (eventSet.Types.All(x => x.Name != column.ColumnName))
+                            {
+                                eventSet.Types.Add(new EventSet.EventDetail());
+                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                eventSet.Types[eventSet.Types.Count - 1].Color = "#" + color.ToString("X");
+
+                                color += colorDiff / (table.Columns.Count - 2);
+                            }
+                        }
+                    }
+
+                }
+
             }
             return eventSet;
         }
