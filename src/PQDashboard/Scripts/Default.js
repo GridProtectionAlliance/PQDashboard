@@ -2992,7 +2992,12 @@ function resizeMapAndMatrix(newTab) {
         // Hack: If the map does need to resize, onResize must be called twice.
         //       Otherwise, it only needs to be called once.
         leafletMap[currentTab].on('resize', onResize);
-        leafletMap[currentTab].invalidateSize(true);
+        try{
+            leafletMap[currentTab].invalidateSize(true);
+        }
+        catch(ex){
+
+        }
         leafletMap[currentTab].off('resize', onResize);
         onResize();
     }
