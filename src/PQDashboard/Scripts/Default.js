@@ -115,7 +115,7 @@ var lastselectedindex = 0;
 
 var heatmap_Cache_Date_From;
 var heatmap_Cache_Date_To;
-var heatmapCache = new Array();
+var heatmapCache = [];
 
 var postedUserName = "";
 
@@ -1059,7 +1059,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 showSiteSet($("#selectSiteSet" + currentTab)[0]);
                 if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
                     var legendFields = color.domain().slice().filter(function (a) { return $.map(disabledList[currentTab], function (data, key) { if (data) return key }).indexOf(a) < 0 });
-                    showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
+                    //showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
                 }
 
             });
@@ -1347,172 +1347,6 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getEventsHeatmapSwell(currentTab, datefrom, dateto) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = homePath + "mapService.asmx/getLocationsHeatmapSwell";
-
-    heatmap_Cache_Date_From = null;
-    heatmap_Cache_Date_To = null;
-    heatmapCache = null;
-
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-
-            heatmap_Cache_Date_From = datefrom;
-            heatmap_Cache_Date_To = dateto;
-            heatmapCache = data.d;
-            //var map = getMapInstance(currentTab);
-            LoadHeatmapLeaflet(data.d);
-
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function getEventsHeatmapSags(currentTab, datefrom, dateto) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "'}";
-    var url = homePath + "mapService.asmx/getLocationsHeatmapSags";
-
-    heatmap_Cache_Date_From = null;
-    heatmap_Cache_Date_To = null;
-    heatmapCache = null;
-
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-
-            heatmap_Cache_Date_From = datefrom;
-            heatmap_Cache_Date_To = dateto;
-            heatmapCache = data.d;
-            //var map = getMapInstance(currentTab);
-            LoadHeatmapLeaflet(data.d);
-
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function getEventsHeatmapCounts(currentTab, datefrom, dateto, severities) {
-    var thedatasent = {
-        targetDateFrom: datefrom,
-        targetDateTo: dateto,
-        meterGroup: $('#meterGroupSelect').val(),
-        severityFilter: severities.toString()
-    };
-    //var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
-
-    heatmap_Cache_Date_From = null;
-    heatmap_Cache_Date_To = null;
-    heatmapCache = null;
-
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: JSON.stringify(thedatasent),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            //var map = getMapInstance(currentTab);
-            LoadHeatmapLeaflet(data.d);
-
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, severities) {
-    var thedatasent = {
-        targetDateFrom: datefrom,
-        targetDateTo: dateto,
-        meterGroup: $('#meterGroupSelect').val(),
-        severityFilter: severities.toString()
-    };
-
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities+"'}";
-    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
-    //console.log(thedatasent);
-    heatmap_Cache_Date_From = null;
-    heatmap_Cache_Date_To = null;
-    heatmapCache = null;
-    //console.log(url);
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: JSON.stringify(thedatasent),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            LoadHeatmapLeaflet(data.d);
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////
-function getTrendingHeatmapCounts(currentTab, datefrom, dateto, severities) {
-    var thedatasent = "{'targetDateFrom':'" + datefrom + "' , 'targetDateTo':'" + dateto + "' , 'userName':'" + postedUserName + "', 'severityFilter':'" + severities + "'}";
-    var url = homePath + "mapService.asmx/getLocations" + currentTab + "HeatmapCounts";
-    heatmap_Cache_Date_From = null;
-    heatmap_Cache_Date_To = null;
-    heatmapCache = null;
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            LoadHeatmapLeaflet(data.d);
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
     var url = homePath + "mapService.asmx/getLocations" + currentTab;
@@ -1563,7 +1397,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             cache_Map_Matrix_Data_Date_To = this.dateto;
             cache_Map_Matrix_Data = data;
 
-            plotContourMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+            plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
             plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
 
         },
@@ -2458,48 +2292,6 @@ function showSiteSet(thecontrol) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function showHeatmap(thecontrol, string ) {
-    var i = 0;
-
-    var datefrom = getMapHeaderDate("From");
-    var dateto = getMapHeaderDate("To");
-
-    switch (thecontrol.value) {
-
-        case "EventCounts":
-            getEventsHeatmapCounts(currentTab, datefrom, dateto, string);
-            break;
-
-        case "MinimumSags":
-            getEventsHeatmapSags(currentTab, datefrom, dateto);
-            break;
-
-        case "MaximumSwells":
-            getEventsHeatmapSwell(currentTab, datefrom, dateto);
-            break;
-
-        case "TrendingCounts":
-            getTrendingHeatmapCounts(currentTab, datefrom, dateto, string);
-            break;
-
-        case "THD":
-            $('#HeatmapControlsTrending').show();
-            break;
-
-        case "DisturbanceCounts":
-            getDisturbancesHeatmapCounts(currentTab, datefrom, dateto, string);
-            break;
-
-        case "AnimateDisturbancecounts":
-            break;
-
-        default:
-            break;
-
-    }
-    
- 
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2548,7 +2340,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 /// Builds Heatmap
 
 
-function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
+function plotMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
         $.each(locationdata.Locations, function (index, data) {
@@ -2652,7 +2444,7 @@ function plotContourMapLocations(locationdata, newTab, thedatefrom, thedateto, f
 
     }
     showSiteSet($('#selectSiteSet' + currentTab)[0]);
-    plotContourMap(locationdata, thedatefrom, thedateto);
+    plotMapPoints(locationdata, thedatefrom, thedateto);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2833,7 +2625,7 @@ function getLeafletLocationPopup(dataPoint) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function plotContourMap(data, thedatefrom, thedateto) {
+function plotMapPoints(data, thedatefrom, thedateto) {
     $('.contourControl').hide();
 
     if (currentTab === "TrendingData") {
@@ -2954,18 +2746,30 @@ function plotContourMap(data, thedatefrom, thedateto) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function LoadHeatmapLeaflet(thedata) {
+
+    //var markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
+    //if (markerGroup.getBounds().isValid())
+    //    leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+
+    var GLOBE_WIDTH = 256; // a constant in Google's map projection
+    var west = markerGroup.getBounds()._southWest.lng;
+    var east = markerGroup.getBounds()._northEast.lng;
+    var angle = east - west;
+    if (angle < 0) {
+        angle += 360;
+    }
+    var zoom = Math.round(Math.log(($('#theMap' + currentTab).width() < 500 ? 500 : $('#theMap' + currentTab).width()) * 360 / angle / GLOBE_WIDTH) / Math.LN2);
     var cfg = {
         // radius should be small ONLY if scaleRadius is true (or small radius is intended)
         // if scaleRadius is false it will be the constant radius used in pixels
-        "radius": 1,
-        "scaleRadius": false,
+        "radius": 50 / Math.pow(2, (zoom > 13 ? 13 : zoom )),
         "maxOpacity": .5,
         // scales the radius based on map zoom
         "scaleRadius": true,
         // if set to false the heatmap uses the global maximum for colorization
         // if activated: uses the data maximum within the current map boundaries 
         //   (there will always be a red spot with useLocalExtremas true)
-        "useLocalExtrema": false,
+        "useLocalExtrema": true,
         // which field name in your data represents the latitude - default "lat"
         latField: 'Latitude',
         // which field name in your data represents the longitude - default "lng"
