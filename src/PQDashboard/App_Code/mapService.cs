@@ -1316,7 +1316,7 @@ public class mapService : WebService
             const int byteSize = 8;
 
             // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
-            string padding = "A==".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+            string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
             string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
             byte[] meterSelections = Convert.FromBase64String(base64);
 
@@ -1366,7 +1366,7 @@ public class mapService : WebService
             const int byteSize = 8;
 
             // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
-            string padding = "A==".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+            string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
             string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
             byte[] meterSelections = Convert.FromBase64String(base64);
 

@@ -4013,7 +4013,7 @@ function loadContourOverlay(contourInfo) {
 }
 
 function showType(thecontrol) {
-    plotContourMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+    plotMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 }
 
 function initiateTimeRangeSlider() {
@@ -4183,7 +4183,7 @@ function runContourAnimation(contourData) {
         var progressBarIndex = Math.round(index / (contourData.Infos.length - 1) * 100);
         $('#tabs-' + currentTab + ' #contourProgressBar').attr('value', progressBarIndex);
         $('#tabs-' + currentTab + ' #progressDate').text(contourData.Infos[index].Date);
-        plotContourMapLocations(info, null, null, null, null);
+        plotMapLocations(info, null, null, null, null);
     }
     var interval;
     $('#tabs-' + currentTab + ' #contourProgressBar').off('click');
@@ -4362,7 +4362,7 @@ function getBase64MeterSelection() {
             (meterSelections[i + 4] ?  2 : 0) +
             (meterSelections[i + 5] ?  1 : 0);
 
-        base64Selections += base64Map[mapIndex];
+        base64Selections += '' + base64Map[mapIndex];
     }
 
     return base64Selections;
