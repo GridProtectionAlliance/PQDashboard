@@ -20,6 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+#define DEBUG
 
 
 using System;
@@ -102,6 +103,9 @@ namespace PQDashboard
             JsonSerializer serializer = JsonSerializer.Create(settings);
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => serializer);
 
+#if DEBUG
+            GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromMinutes(30);
+#endif
         }
 
         /// <summary>

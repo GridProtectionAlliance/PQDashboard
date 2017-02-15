@@ -1059,7 +1059,6 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 showSiteSet($("#selectSiteSet" + currentTab)[0]);
                 if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
                     var legendFields = color.domain().slice().filter(function (a) { return $.map(disabledList[currentTab], function (data, key) { if (data) return key }).indexOf(a) < 0 });
-                    //showHeatmap(document.getElementById('selectHeatmap' + currentTab), legendFields);
                 }
 
             });
@@ -1397,7 +1396,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             cache_Map_Matrix_Data_Date_To = this.dateto;
             cache_Map_Matrix_Data = data;
 
-            plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+            plotMapLocations(data.d, currentTab, this.datefrom, this.dateto);
             plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
 
         },
@@ -2340,7 +2339,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 /// Builds Heatmap
 
 
-function plotMapLocations(locationdata, newTab, thedatefrom, thedateto, filter) {
+function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
         $.each(locationdata.Locations, function (index, data) {
@@ -2744,6 +2743,50 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+function showHeatmap(thecontrol) {
+    var url = homePath + "mapService.asmx/getLocationsHeatmap";
+    var thedatasent = {
+        targetDateFrom: contextfromdate,
+        targetDateTo: contexttodate,       
+    };
+
+    if ($(thecontrol).val() == "MinimumSags"){
+        url += "Sags";
+        thedatasent.userName = postedUserName;
+    }
+    else if ($(thecontrol).val() == "MaximumSwells")
+    {
+        url += "Swell"
+        thedatasent.userName = postedUserName;
+    }
+    else {
+        url = "mapService.asmx/getLocationsEvents";
+        thedatasent.meterGroup = $('#meterGroupSelect').val();
+
+    }
+
+
+
+
+    // Jeff Walker
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: JSON.stringify(thedatasent),
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            LoadHeatmapLeaflet(data.d);
+        },
+        failure: function (msg) {
+            alert(msg);
+        },
+        async: true
+    });
+
+}
 
 function LoadHeatmapLeaflet(thedata) {
 
