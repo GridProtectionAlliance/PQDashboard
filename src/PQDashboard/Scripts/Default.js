@@ -2789,11 +2789,6 @@ function showHeatmap(thecontrol) {
 }
 
 function LoadHeatmapLeaflet(thedata) {
-
-    //var markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
-    //if (markerGroup.getBounds().isValid())
-    //    leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-
     var GLOBE_WIDTH = 256; // a constant in Google's map projection
     var west = markerGroup.getBounds()._southWest.lng;
     var east = markerGroup.getBounds()._northEast.lng;
@@ -2801,6 +2796,7 @@ function LoadHeatmapLeaflet(thedata) {
     if (angle < 0) {
         angle += 360;
     }
+
     var zoom = Math.round(Math.log(($('#theMap' + currentTab).width() < 500 ? 500 : $('#theMap' + currentTab).width()) * 360 / angle / GLOBE_WIDTH) / Math.LN2);
     var cfg = {
         // radius should be small ONLY if scaleRadius is true (or small radius is intended)
@@ -3900,11 +3896,12 @@ function loadLeafletMap(theDiv) {
         });
 
         mapLink =
-            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+            '<a href="https://openstreetmap.org">OpenStreetMap</a>';
 
         L.tileLayer(
-            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             }).addTo(leafletMap[currentTab]);
+
 
         var contourControl = L.control({ position: 'bottomleft' });
 
