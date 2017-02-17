@@ -120,7 +120,7 @@
                     {
                         field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true, content:
                           function (row) {
-                              return "<a href='"+'@xdaInstance'+"/Workbench/Events.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>"
+                              return "<a href='" + '@xdaInstance' + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue" + (row.UpdatedBy ? '; background-color: yellow' : '') + "' target='_blank' " + (row.UpdatedBy ? "title='This event has been edited.'" : "") + ">" + row.theinceptiontime + "</a>"
                           }
                     },
                     { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
@@ -139,7 +139,8 @@
                                         a !== 'thelineid' &&
                                         a !== 'thelinename' &&
                                         a !== 'pqiexists' &&
-                                        a !== 'voltage';
+                                        a !== 'voltage' &&
+                                        a !== 'UpdatedBy';
                             });
                             var html = "";
 
