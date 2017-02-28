@@ -80,14 +80,14 @@ var contourOverlay = null;
 var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: []};
 var currentTab = null;
 var disabledList = {
-    Events: { "Interruption": false, "Fault": false, "Sag": false, "Transient": false, "Swell": false, "Other": true },
+    Events: { "Interruption": false, "Fault": false, "Sag": false, "Transient": false, "Swell": false, "Other": false },
     Disturbances: {"5": false, "4": false, "3": false, "2": false, "1": false, "0": false},
     Trending: { "Alarm": false, "OffNormal": false},
     TrendingData: {},
     Faults: { "500 kV": false, "300 kV": false, "230 kV": false, "135 kV": false, "115 kV": false, "69 kV": false, "46 kV": false, "0 kV": false},
     Breakers: {"Normal" : false, "Late": false, "Indeterminate": false},
-    Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": true},
-    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": true }
+    Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
+    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false}
 };
 var calendardatesEvents = [];
 var calendartipsEvents = [];
