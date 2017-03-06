@@ -50,6 +50,7 @@
     NameValueCollection parameters = Request.QueryString;
     string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
+    string xdaInstance = "";
 
     string eventID = parameters["eventid"] ?? "";
     string postedShowFaultCurves = parameters["faultcurves"] ?? "";
@@ -88,7 +89,7 @@
         postedLineName = theEvent.LineName;
         postedLineLength = theEvent.Length.ToString();
         postedEventName = theEvent.EventTypeName;
-
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
         IDataReader rdr = null;
 
 
@@ -310,7 +311,7 @@
             </tr>
             <tr>
                 <td colspan="3" style="text-align: center">
-                    <div id="TitleData"></div>
+                    <div ><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" href="@(xdaInstance + "/Workbench/Event.cshtml?EventID=" + eventID)" class="">edit</a></div>
                 </td>
             </tr>
         </table>

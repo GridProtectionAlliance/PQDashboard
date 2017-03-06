@@ -427,7 +427,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
     $.ajax({
         type: "POST",
-        url: '././signalService.asmx/getFlotData',
+        url: '../../../signalService.asmx/getFlotData',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
