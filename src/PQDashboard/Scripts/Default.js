@@ -1824,8 +1824,10 @@ function populateGridSparklineEvents(data, siteID, siteName) {
      var numbers = [];
      var colors = [];
      $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }), function (index, field) {
-            numbers.push(sparkValues[field].data);
-            colors.push(sparkValues[field].color);
+         if (sparkValues[field] != null) {
+             numbers.push(sparkValues[field].data);
+             colors.push(sparkValues[field].color);
+         }
      });
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
@@ -3732,7 +3734,7 @@ function buildPage() {
 
     $(document).ajaxStart(function () {
         timeout = setTimeout(function () {
-            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="' + homePath + '/images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
+            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="' + homePath + '/Images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
         }, 1000);
     });
 

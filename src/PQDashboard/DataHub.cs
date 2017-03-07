@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -435,6 +436,28 @@ namespace PQDashboard
             EventSet eventSet = new EventSet();
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
+            Dictionary<string, string> colors = new Dictionary<string, string>()
+            {
+                { "Interruption", "#C00000" },
+                { "Fault", "#FF2800" },
+                { "Sag", "#FF9600" },
+                { "Swell", "#00FFF4" },
+                { "Transient", "#FFFF00" },
+                { "Other", "#0000FF" },
+                { "Test", "#A9A9A9" },
+                { "Breaker", "#A500FF" },
+            };
+
+            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChartColors' AND Enabled = 1"));
+
+            foreach (var color in usersColors)
+            {
+                if(colors.ContainsKey(color.Value.Split(',')[0]))
+                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
+                else
+                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
+            }
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
@@ -459,36 +482,72 @@ namespace PQDashboard
                 sc.Parameters.Add(param4);
 
                 IDataReader rdr = sc.ExecuteReader();
+                DataTable table = new DataTable();
+                table.Load(rdr);
+
                 try
                 {
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[0].Name = "Interruption";
-                    eventSet.Types[0].Color = "#C00000";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[1].Name = "Fault";
-                    eventSet.Types[1].Color = "#FF2800";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[2].Name = "Sag";
-                    eventSet.Types[2].Color = "#FF9600";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[3].Name = "Transient";
-                    eventSet.Types[3].Color = "#FFFF00";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[4].Name = "Swell";
-                    eventSet.Types[4].Color = "#00FFF4";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[5].Name = "Other";
-                    eventSet.Types[5].Color = "#0000FF";
-
-                    while (rdr.Read())
+                    foreach (DataRow row in table.Rows)
                     {
-                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["interruptions"])));
-                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["faults"])));
-                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["sags"])));
-                        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["transients"])));
-                        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["swells"])));
-                        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["others"])));
+                        foreach (DataColumn column in table.Columns)
+                        {
+                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            {
+                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
+                                {
+                                    eventSet.Types.Add(new EventSet.EventDetail());
+                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                    if(colors.ContainsKey(column.ColumnName))
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                    else
+                                    {
+                                        Random r = new Random();
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") +  r.Next(256).ToString("X2");
+                                        DashSettings ds = new DashSettings()
+                                        {
+                                            Name = "EventChartColors",
+                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                            Enabled = true
+                                        };
+                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                    }
+                                }
+                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
+                            }
+                        }
                     }
+
+                    if (!eventSet.Types.Any())
+                    {
+                        foreach (DataColumn column in table.Columns)
+                        {
+                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            {
+                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
+                                {
+                                    eventSet.Types.Add(new EventSet.EventDetail());
+                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                    if (colors.ContainsKey(column.ColumnName))
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                    else
+                                    {
+                                        Random r = new Random();
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                                        DashSettings ds = new DashSettings()
+                                        {
+                                            Name = "EventChartColors",
+                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                            Enabled = true
+                                        };
+                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
                 }
                 finally
                 {
