@@ -693,6 +693,34 @@ namespace PQDashboard
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
 
+            Dictionary<string, string> colors = new Dictionary<string, string>()
+            {
+                { "500", "#91e8e1" },
+                { "300", "#f45b5b" },
+                { "230", "#2b908f" },
+                { "200", "#e4d354" },
+                { "161", "#f15c80" },
+                { "135", "#8085e9" },
+                { "115", "#f7a35c" },
+                { "69", "#ff0000" },
+                { "46", "#434348" },
+                { "0", "#90ed7d" },
+
+            };
+
+            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultChartColors' AND Enabled = 1"));
+            DataTable table = new DataTable();
+
+            foreach (var color in usersColors)
+            {
+                if (colors.ContainsKey(color.Value.Split(',')[0]))
+                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
+                else
+                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
+            }
+
+
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
                 sc.CommandText = "dbo.selectFaultsForMeterIDByDateRange";
@@ -714,12 +742,9 @@ namespace PQDashboard
                 sc.Parameters.Add(param2);
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
-                DataTable table = new DataTable();
 
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
-                int color = 0x000000;
-                int colorDiff = (0xff0000 - color);
 
                 foreach (DataRow row in table.Rows)
                 {
@@ -731,9 +756,20 @@ namespace PQDashboard
                             {
                                 eventSet.Types.Add(new EventSet.EventDetail());
                                 eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                eventSet.Types[eventSet.Types.Count - 1].Color = "#" + color.ToString("X");
-
-                                color += colorDiff /(table.Columns.Count - 2);
+                                if (colors.ContainsKey(column.ColumnName))
+                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                else
+                                {
+                                    Random r = new Random();
+                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                                    DashSettings ds = new DashSettings()
+                                    {
+                                        Name = "FaultChartColors",
+                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                        Enabled = true
+                                    };
+                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                }
                             }
                             eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
                         }
@@ -750,9 +786,20 @@ namespace PQDashboard
                             {
                                 eventSet.Types.Add(new EventSet.EventDetail());
                                 eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                eventSet.Types[eventSet.Types.Count - 1].Color = "#" + color.ToString("X");
-
-                                color += colorDiff / (table.Columns.Count - 2);
+                                if (colors.ContainsKey(column.ColumnName))
+                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                else
+                                {
+                                    Random r = new Random();
+                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                                    DashSettings ds = new DashSettings()
+                                    {
+                                        Name = "FaultChartColors",
+                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                        Enabled = true
+                                    };
+                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                }
                             }
                         }
                     }
