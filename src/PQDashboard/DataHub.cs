@@ -871,6 +871,27 @@ namespace PQDashboard
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
 
+
+            Dictionary<string, string> colors = new Dictionary<string, string>()
+            {
+                { "Normal", "#ff0000" },
+                { "Late", "#434348" },
+                { "Indeterminate", "#90ed7d" }
+            };
+
+            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakerChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakerChartColors' AND Enabled = 1"));
+            DataTable table = new DataTable();
+
+            foreach (var color in usersColors)
+            {
+                if (colors.ContainsKey(color.Value.Split(',')[0]))
+                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
+                else
+                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
+            }
+
+
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
                 sc.CommandText = "dbo.selectBreakersForMeterIDByDateRange";
@@ -894,23 +915,68 @@ namespace PQDashboard
                 sc.Parameters.Add(param4);
 
                 IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+
                 try
                 {
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[0].Name = "Normal";
-                    eventSet.Types[0].Color = "#ff0000";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[1].Name = "Late";
-                    eventSet.Types[1].Color = "#434348";
-                    eventSet.Types.Add(new EventSet.EventDetail());
-                    eventSet.Types[2].Name = "Indeterminate";
-                    eventSet.Types[2].Color = "#90ed7d";
-
-                    while (rdr.Read())
+                    foreach (DataRow row in table.Rows)
                     {
-                        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["normal"])));
-                        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["late"])));
-                        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["indeterminate"])));
+                        foreach (DataColumn column in table.Columns)
+                        {
+                            if (column.ColumnName != "thedate")
+                            {
+                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
+                                {
+                                    eventSet.Types.Add(new EventSet.EventDetail());
+                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                    if (colors.ContainsKey(column.ColumnName))
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                    else
+                                    {
+                                        Random r = new Random();
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                                        DashSettings ds = new DashSettings()
+                                        {
+                                            Name = "BreakerChartColors",
+                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                            Enabled = true
+                                        };
+                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                    }
+                                }
+                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
+                            }
+                        }
+                    }
+
+                    if (!eventSet.Types.Any())
+                    {
+                        foreach (DataColumn column in table.Columns)
+                        {
+                            if (column.ColumnName != "thedate")
+                            {
+                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
+                                {
+                                    eventSet.Types.Add(new EventSet.EventDetail());
+                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
+                                    if (colors.ContainsKey(column.ColumnName))
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
+                                    else
+                                    {
+                                        Random r = new Random();
+                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                                        DashSettings ds = new DashSettings()
+                                        {
+                                            Name = "BreakerChartColors",
+                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                                            Enabled = true
+                                        };
+                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 }
                 finally
