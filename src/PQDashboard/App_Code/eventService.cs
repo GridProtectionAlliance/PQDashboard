@@ -35,7 +35,10 @@ using System.Web.Script.Serialization;
 using GSF.Configuration;
 using GSF.Data;
 using GSF.Collections;
+using GSF.Data.Model;
+using GSF.Web.Model;
 using openHistorian.XDALink;
+using PQDashboard.Model;
 
 
 /// <summary>
@@ -769,35 +772,45 @@ public class eventService : System.Web.Services.WebService {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
 
-        try
+        using(DataContext dataContext = new DataContext("systemSettings"))
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectSitesEventsDetailsByDate", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
-            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandTimeout = 300;
-
-            rdr = cmd.ExecuteReader();
-            DataTable dt = new DataTable();
-            dt.Load(rdr);
-            thedata = DataTable2JSON(dt);
-            dt.Dispose();
-        }
-        finally
-        {
-            if (conn != null)
+            try
             {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
+                List<string> disabledFields = dataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+                conn = (SqlConnection)dataContext.Connection.Connection;
+                SqlCommand cmd = new SqlCommand("dbo.selectSitesEventsDetailsByDate", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+                cmd.Parameters.Add(new SqlParameter("@username", userName));
+                cmd.CommandTimeout = 300;
 
+                rdr = cmd.ExecuteReader();
+                DataTable dt = new DataTable();
+                dt.Load(rdr);
+
+                foreach (var field in disabledFields)
+                {
+                   dt.Columns.RemoveAt(dt.Columns.IndexOf(field)); 
+                }
+
+                thedata = DataTable2JSON(dt);
+                dt.Dispose();
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+
+        }
         return thedata;
     }
 

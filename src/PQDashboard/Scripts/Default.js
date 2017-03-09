@@ -514,10 +514,10 @@ function populateEventsDivWithGrid(data) {
 
     $.each(data, function (i, d) {
         var sum = 0;
-        d["transients"] = 0;
-        $.each(Object.keys(disabledList[currentTab]), function (index, key) {
-            if (!disabledList[currentTab][key]) {
-                sum += parseInt(d[key.toLowerCase() + 's']);
+
+        $.each(Object.keys(d), function (index, key) {
+            if ( key != "EventID" && key != "Site" &!disabledList[currentTab][key]) {
+                sum += parseInt(d[key]);
             }
         });
 
@@ -526,21 +526,33 @@ function populateEventsDivWithGrid(data) {
 
     });
 
-    fixNumbers(filteredData, ['interruptions', 'faults', 'sags', 'swells', 'others']);
-
-    $('#Detail' + currentTab + "Table").puidatatable({
+    //fixNumbers(filteredData, Object.keys(disabledList[currentTab]));
+    var tableObject = {
         scrollable: true,
         scrollHeight: '100%',
         columns: [
-            { field: 'thesite',       headerText: 'Name',          headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
-            { field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['Interruption'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['Interruption']      ? 'display: none' : ''), sortable: true },
-            { field: 'faults',        headerText: 'Faults',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Fault']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Fault']             ? 'display: none' : ''), sortable: true },
-            { field: 'sags',          headerText: 'Sags',          headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Sag']          ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Sag']               ? 'display: none' : ''), sortable: true },
-            { field: 'swells',        headerText: 'Swells',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Swell']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Swell']             ? 'display: none' : ''), sortable: true },
-            { field: 'others',        headerText: 'Others',        headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Other']        ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Other']             ? 'display: none' : ''), sortable: true }
+            { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+            //{ field: 'interruptions', headerText: 'Interruptions', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['Interruption'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['Interruption'] ? 'display: none' : ''), sortable: true },
+            //{ field: 'faults', headerText: 'Faults', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Fault'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Fault'] ? 'display: none' : ''), sortable: true },
+            //{ field: 'sags', headerText: 'Sags', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Sag'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Sag'] ? 'display: none' : ''), sortable: true },
+            //{ field: 'swells', headerText: 'Swells', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Swell'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Swell'] ? 'display: none' : ''), sortable: true },
+            //{ field: 'others', headerText: 'Others', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['Other'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['Other'] ? 'display: none' : ''), sortable: true }
         ],
         datasource: filteredData
+    };
+    $.each(Object.keys(data[0]), function (i, d) {
+        if(d != "MeterID" && d != "EventID" && d!= "Site" && !disabledList[currentTab][d]){
+            tableObject.columns.push({
+                field: d,
+                headerText: d,
+                headerStyle: 'width: 12%; ',
+                bodyStyle: 'width: 12%; height: 20px; ',
+                sortable: true
+            });
+        }
     });
+
+    $('#Detail' + currentTab + "Table").puidatatable(tableObject);
 
 }
 
@@ -2797,8 +2809,8 @@ function showHeatmap(thecontrol) {
 
 function LoadHeatmapLeaflet(thedata) {
     var GLOBE_WIDTH = 256; // a constant in Google's map projection
-    var west = markerGroup.getBounds()._southWest.lng;
-    var east = markerGroup.getBounds()._northEast.lng;
+    var west = (markerGroup.getBounds()._southWest != undefined? markerGroup.getBounds()._southWest.lng: 84.3880);
+    var east = (markerGroup.getBounds()._northEast != undefined ? markerGroup.getBounds()._northEast.lng : 84.3880);
     var angle = east - west;
     if (angle < 0) {
         angle += 360;
