@@ -22,6 +22,7 @@
 //*******************************************************************************************************@
 
 @using System.Collections.Specialized
+@using GSF.Data
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
@@ -32,7 +33,7 @@
 
     NameValueCollection parameters = Request.QueryString;
 
-    int postedEventId = int.Parse(parameters["eventId"] ?? "-1");
+    int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
 

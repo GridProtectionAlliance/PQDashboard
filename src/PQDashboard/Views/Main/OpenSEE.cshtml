@@ -350,8 +350,10 @@
 
     <div id="DockCharts"></div>
 
-<script> 
+<script>
     var SeriesList;
+    var homePath = '@Html.Raw(Url.Content("~/"))';
+
     $(function(){
         SeriesList = @Html.Raw(postedSeriesList);
 
