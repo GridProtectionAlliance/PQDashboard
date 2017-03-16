@@ -1560,13 +1560,13 @@ function getStatusColorForGridElement( data ) {
             if (data[0] == 0 && data[1] == 0 && data[2] == 0 ) 
                 return ("#0E892C");
             if (data[0] > 0 && !disabledList[currentTab]["Normal"])  // Normal
-                return (globalcolors[0]);
+                return (globalcolors[2]);
 
             if (data[1] > 0 && !disabledList[currentTab]["Late"])  // Late
                 return (globalcolors[1]);
 
             if (data[2] > 0 && !disabledList[currentTab]["Indeterminate"])  // Indeterminate
-                return (globalcolors[2]);
+                return (globalcolors[0]);
             else return ("#0E892C");
             break;
 
