@@ -53,6 +53,7 @@
     string xdaInstance = "";
 
     string eventID = parameters["eventid"] ?? "";
+    string breakerOperationID = parameters["breakeroperation"] ?? "";
     string postedShowFaultCurves = parameters["faultcurves"] ?? "";
     string postedShowBreakerDigitals = parameters["breakerdigitals"] ?? "";
 
@@ -63,33 +64,51 @@
         .Select(key => "&" + HttpUtility.UrlEncode(key) + "=" + HttpUtility.UrlEncode(parameters[key])));
 
     string postedSeriesList = "";
-    string postedMeterName = "";
-    string postedEventDate = "";
-    string postedEventName = "";
+
+    string postedStationName = "";
     string postedMeterId = "";
-    string postedDate = "";
-    string postedEventMilliseconds = "";
+    string postedMeterName = "";
     string postedLineName = "";
     string postedLineLength = "";
 
+    string postedEventDate = "";
+    string postedEventName = "";
+    string postedDate = "";
+    string postedEventMilliseconds = "";
+
     string postedStartTime = "";
+    string postedPhase = "";
     string postedMagnitude = "";
     string postedDurationPeriod = "";
+
+    string postedBreakerNumber = "";
+    string postedBreakerPhase = "";
+    string postedBreakerTiming = "";
+    string postedBreakerSpeed = "";
+    string postedBreakerOperation = "";
+
     string postedErrorMessage = "";
+
     using (DataContext dataContext = new DataContext("systemSettings"))
     {
         JavaScriptSerializer serializer = new JavaScriptSerializer();
         postedSeriesList = JsonConvert.SerializeObject(SignalCode.GetFlotInfo(int.Parse(eventID)));
+
         EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", eventID)).First();
-        postedMeterName = theEvent.MeterName;
-        postedEventDate = theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+
+        postedStationName = theEvent.StationName;
         postedMeterId = theEvent.MeterID.ToString();
-        postedDate = theEvent.StartTime.ToShortDateString();
-        postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
+        postedMeterName = theEvent.MeterName;
         postedLineName = theEvent.LineName;
         postedLineLength = theEvent.Length.ToString();
+
         postedEventName = theEvent.EventTypeName;
+        postedEventDate = theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+        postedDate = theEvent.StartTime.ToShortDateString();
+        postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
+
         xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+
         IDataReader rdr = null;
 
 
@@ -172,8 +191,10 @@
 
         using(DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(connectionString))
         {
+            MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
             FaultSummaryTableAdapter summaryInfo = dbAdapterContainer.GetAdapter<FaultSummaryTableAdapter>();
             DisturbanceTableAdapter disturbanceAdapter = dbAdapterContainer.GetAdapter<DisturbanceTableAdapter>();
+            BreakerOperationTableAdapter breakerAdapter = dbAdapterContainer.GetAdapter<BreakerOperationTableAdapter>();
 
             if (postedEventName.Equals("Fault"))
             {
@@ -188,6 +209,7 @@
                 if ((object)thesummary != null)
                 {
                     postedStartTime = thesummary.Inception.TimeOfDay.ToString();
+                    postedPhase = thesummary.FaultType;
                     postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
                     postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
                 }
@@ -204,6 +226,7 @@
                 if ((object)disturbance != null)
                 {
                     postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
+                    postedPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == disturbance.PhaseID)?.Name ?? "";
                     postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
 
                     if (disturbance.PerUnitMagnitude != -1.0e308)
@@ -213,10 +236,30 @@
                 }
             }
 
+            if (breakerOperationID != "")
+            {
+                int id;
+
+                if (int.TryParse(breakerOperationID, out id))
+                {
+                    MeterData.BreakerOperationDataTable breakerTable = breakerAdapter.GetDataBy(theEvent.ID);
+
+                    MeterData.BreakerOperationRow breakerRow = breakerTable
+                        .Where(row => row.ID == id)
+                        .FirstOrDefault();
+
+                    if ((object)breakerRow != null)
+                    {
+                        postedBreakerNumber = breakerRow.BreakerNumber;
+                        postedBreakerPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == breakerRow.PhaseID)?.Name ?? "";
+                        postedBreakerTiming = breakerRow.BreakerTiming.ToString();
+                        postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
+                        postedBreakerOperation = dbAdapterContainer.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                    }
+                }
+            }
         }
     }
-
-
 }
 <!DOCTYPE html>
 
@@ -256,21 +299,27 @@
     <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
     <script type="text/javascript" src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
-
 </head>
 <body>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedStationName">@postedStationName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterId">@postedMeterId</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterName">@postedMeterName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedLineName">@postedLineName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedLineLength">@postedLineLength</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedStartTime">@postedStartTime</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedPhase">@postedPhase</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedDurationPeriod">@postedDurationPeriod</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMagnitude">@postedMagnitude</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerNumber">@postedBreakerNumber</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerPhase">@postedBreakerPhase</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerTiming">@postedBreakerTiming</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerSpeed">@postedBreakerSpeed</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerOperation">@postedBreakerOperation</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedShowFaultCurves">@postedShowFaultCurves</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedShowBreakerDigitals">@postedShowBreakerDigitals</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedErrorMessage">@postedErrorMessage</div>
@@ -356,7 +405,6 @@
 
     $(function(){
         SeriesList = @Html.Raw(postedSeriesList);
-
     });
 </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>

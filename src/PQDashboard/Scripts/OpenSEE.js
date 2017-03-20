@@ -26,20 +26,28 @@
 
 var pointdata = new Array();
 var loadingPanel = null;
-var postedEventId = "";
-var postedEventName = "";
-var postedShowFaultCurves = "";
-var postedShowBreakerDigitals = "";
+
+var postedStationName = "";
 var postedMeterId = "";
-var postedDate = "";
-var postedEventDate = "";
-var postedEventMilliseconds = "";
 var postedMeterName = "";
 var postedLineName = "";
 var postedLineLength = "";
+var postedEventId = "";
+var postedEventName = "";
+var postedEventDate = "";
+var postedDate = "";
+var postedEventMilliseconds = "";
 var postedStartTime = "";
+var postedPhase = "";
 var postedDurationPeriod = "";
 var postedMagnitude = "";
+var postedBreakerNumber = "";
+var postedBreakerPhase = "";
+var postedBreakerTiming = "";
+var postedBreakerSpeed = "";
+var postedBreakerOperation = "";
+var postedShowFaultCurves = "";
+var postedShowBreakerDigitals = "";
 
 var pointsTable = [];
 var selectedPoint;
@@ -178,20 +186,27 @@ var colorTan = '#CC9900';
 $(document).ready(function () {
     buildPage();
 
-    postedEventId = $("#postedEventId")[0].innerHTML;
-    postedEventName = $("#postedEventName")[0].innerHTML;
-    postedShowFaultCurves = $("#postedShowFaultCurves")[0].innerHTML;
-    postedShowBreakerDigitals = $("#postedShowBreakerDigitals")[0].innerHTML;
+    postedStationName = $("#postedStationName")[0].innerHTML;
     postedMeterId = $("#postedMeterId")[0].innerHTML;
-    postedDate = $("#postedDate")[0].innerHTML;
-    postedEventDate = $("#postedEventDate")[0].innerHTML;
-    postedEventMilliseconds = $("#postedEventMilliseconds")[0].innerHTML;
     postedMeterName = $("#postedMeterName")[0].innerHTML;
     postedLineName = $("#postedLineName")[0].innerHTML;
     postedLineLength = $("#postedLineLength")[0].innerHTML;
+    postedEventId = $("#postedEventId")[0].innerHTML;
+    postedEventName = $("#postedEventName")[0].innerHTML;
+    postedEventDate = $("#postedEventDate")[0].innerHTML;
+    postedDate = $("#postedDate")[0].innerHTML;
+    postedEventMilliseconds = $("#postedEventMilliseconds")[0].innerHTML;
     postedStartTime = $("#postedStartTime")[0].innerHTML;
+    postedPhase = $("#postedPhase")[0].innerHTML;
     postedDurationPeriod = $("#postedDurationPeriod")[0].innerHTML;
     postedMagnitude = $("#postedMagnitude")[0].innerHTML;
+    postedBreakerNumber = $("#postedBreakerNumber")[0].innerHTML;
+    postedBreakerPhase = $("#postedBreakerPhase")[0].innerHTML;
+    postedBreakerTiming = $("#postedBreakerTiming")[0].innerHTML;
+    postedBreakerSpeed = $("#postedBreakerSpeed")[0].innerHTML;
+    postedBreakerOperation = $("#postedBreakerOperation")[0].innerHTML;
+    postedShowFaultCurves = $("#postedShowFaultCurves")[0].innerHTML;
+    postedShowBreakerDigitals = $("#postedShowBreakerDigitals")[0].innerHTML;
 
     xaxisHover = Number(postedEventMilliseconds);
 
@@ -320,12 +335,22 @@ function showData() {
         var details = "";
         var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
 
-        label += "Line: " + postedLineName;
-        label += separator + "Event Type: " + postedEventName;
+        label += "Station: " + postedStationName;
+        label += separator + "Line: " + postedLineName;
+        label += "<br />";
+
+        label += "Event Type: " + postedEventName;
         label += separator + "Event Time: " + postedEventDate;
 
         if (postedStartTime != "")
             details += "Start: " + postedStartTime;
+
+        if (postedPhase != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Phase: " + postedPhase;
+        }
 
         if (postedDurationPeriod != "") {
             if (details != "")
@@ -339,6 +364,42 @@ function showData() {
                 details += separator;
 
             details += "Magnitude: " + postedMagnitude;
+        }
+
+        if (details != "")
+            label += "<br />" + details;
+
+        details = "";
+
+        if (postedBreakerNumber != "")
+            details += "Breaker: " + postedBreakerNumber;
+
+        if (postedBreakerPhase != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Phase: " + postedBreakerPhase;
+        }
+
+        if (postedBreakerTiming != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Timing: " + postedBreakerTiming;
+        }
+
+        if (postedBreakerSpeed != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Speed: " + postedBreakerSpeed;
+        }
+
+        if (postedBreakerOperation != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Operation: " + postedBreakerOperation;
         }
 
         if (details != "")

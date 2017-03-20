@@ -756,7 +756,7 @@
     function makeOpenSEEButton_html(id) {
         var return_html = "";
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
+        return_html += '<button onClick="OpenWindowToOpenSEE(' + id.theeventid + ',' + id.breakeroperationid + ');" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSEE Waveform Viewer">';
         return_html += '<img src="@Html.Raw(Url.Content("~/Images/seeButton.png"))" /></button></div>';
         return (return_html);
     }
@@ -781,11 +781,11 @@
     }
 
 
-    function OpenWindowToOpenSEE(id) {
+    function OpenWindowToOpenSEE(id, breaker) {
         var url = "@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id;
 
         if (currentTab === "Breakers")
-            url += "&breakerdigitals=1";
+            url += "&breakeroperation=" + breaker + "&breakerdigitals=1";
         else
             url += "&faultcurves=1";
 
