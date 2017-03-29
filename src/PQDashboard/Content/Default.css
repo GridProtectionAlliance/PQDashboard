@@ -327,7 +327,7 @@
         }
         .mapheader {
             display: inline;
-            font-size: 1.8em;
+            font-size: large;
         }
 
         .noselect {
@@ -550,23 +550,23 @@ box-shadow: 0 0 7px black;
 }
 
 .header-container {
-    /*width: 100px;
-    height: 100px;*/
+    width: 100%;
     position: relative;
     overflow: hidden;
 }
 
-.siteselectdropdown,
-.overlaydate {
-    width: 100%;
+.siteselectdropdown {
     height: 100%;
-    top: 0;
-    left: 0;
+    /*top: 0;
+    left: 0;*/
 
 }
 
 .overlaydate {
     z-index: 10;
+    right: 25px;
+    position: relative;
+    height: 100%;
 }
 
 .axis path,
