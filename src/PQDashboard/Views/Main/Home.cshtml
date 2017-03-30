@@ -62,6 +62,7 @@
     <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/> 
     <link rel="stylesheet" href="~/Content/Default.css" type="text/css" />
     <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
+    <link rel="stylesheet" href="~/Content/daterangepicker.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
@@ -74,6 +75,9 @@
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.multiselect.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.multiselect.filter.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/daterangepicker.js"></script>
+
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
     <script type="text/javascript" src="~/Scripts/Default.js"></script>
@@ -116,31 +120,26 @@
 <div id="headerStrip" class="headerStrip ui-state-default noselect">
     <table style="width: 100%;">
         <tr>
-            <td width="20%" align="center" style="z-index: 999;" nowrap>
+            <td width="15%" align="center" style="z-index: 999;" nowrap>
                 <select class="smallbutton" id="Configurations"></select>
                 <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())">Load</button>
                 <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);">New</button>
                 <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);">Save</button>
                 <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);">Delete</button>
             </td>
-            <td width="20%" align="center" nowrap>
+            <td width="15%" align="center" nowrap>
                 Site:
                 <select id="siteList" multiple="multiple">
                 </select>
             </td>
 
-            <td width="20%" align="center" nowrap>
-                From:&nbsp;<input type="text" id="datePickerFrom" class="datepicker">&nbsp;&nbsp;To:&nbsp;<input type="text" id="datePickerTo" class="datepicker">
-                <button class="smallbutton" id="load_for_date_range" onclick="loadDataForDateClick();">Load</button>
-
-                <select class="smallbutton" id="staticPeriod" onchange="selectStaticPeriod(this);">
-                    <option value="Custom"></option>
-                    <option value="Today">Today</option>
-                    <option value="PastWeek">Today - 7</option>
-                    <option value="PastMonth">Today - 30</option>
-                    <option value="PastYear">Today - 365</option>
-                </select>
+            <td width="15%" align="center" nowrap>
+                <div id="dateRange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                    <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
+                    <span></span> <b class="caret"></b>
+                </div>
             </td>
+
             <td width="10%" align="center" style="z-index: 999;" nowrap>
                 User:
                 <span>@ViewBag.username</span>

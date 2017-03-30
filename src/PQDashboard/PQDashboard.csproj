@@ -262,6 +262,7 @@
     <Content Include="Content\bootstrap\images\ui-icons_333333_256x240.png" />
     <Content Include="Content\bootstrap\images\ui-icons_ffffff_256x240.png" />
     <Content Include="Content\bootstrap\theme.css" />
+    <Content Include="Content\daterangepicker.css" />
     <Content Include="Content\graphics\close.png" />
     <Content Include="Content\graphics\closeX.png" />
     <Content Include="Content\graphics\controlbar-black-border.gif" />
@@ -471,6 +472,7 @@
     <None Include="Properties\PublishProfiles\desktop.pubxml" />
     <None Include="Properties\PublishProfiles\dev.pubxml" />
     <Content Include="Scripts\D3\LICENSE" />
+    <Content Include="Scripts\daterangepicker.js" />
     <Content Include="Scripts\flot\API.md" />
     <Content Include="Scripts\flot\CONTRIBUTING.md" />
     <Content Include="Scripts\flot\FAQ.md" />
@@ -574,6 +576,7 @@
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
+    <Content Include="Scripts\moment.min.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEEold.js" />

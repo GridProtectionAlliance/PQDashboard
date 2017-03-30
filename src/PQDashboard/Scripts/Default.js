@@ -89,6 +89,29 @@ var disabledList = {
     Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
     Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false}
 };
+
+var dateRangeOptions = {
+    "timePicker": false,
+    "timePicker24Hour": false,
+    "timePickerSeconds": false,
+    "locale": {
+        "format": 'MM/DD/YYYY'
+    },
+    "showDropdowns": true,
+    "autoApply": true,
+    "ranges": {
+        //'1 Day': [moment().utc().startOf('day'), moment().utc().endOf('day')],
+        'Last 3 Days': [moment().utc().startOf('day').subtract(2, 'days'), moment().utc().endOf('day')],
+        'Last 7 Days': [moment().utc().startOf('day').subtract(6, 'days'), moment().utc().endOf('day')],
+        'Last 30 Days': [moment().utc().startOf('day').subtract(29, 'days'), moment().utc().endOf('day')],
+        'Last 90 Days': [moment().utc().startOf('day').subtract(89, 'days'), moment().utc().endOf('day')],
+        'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')]
+    },
+    "startDate": moment().utc().subtract(29, 'days').startOf('day'),
+    "endDate": moment.utc().endOf('day')
+};
+
+
 var calendardatesEvents = [];
 var calendartipsEvents = [];
 
@@ -160,11 +183,18 @@ function getMapHeaderDate(whichdate) {
 
 function loadDataForDate() {
     if (currentTab != null) {
-        var fromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
-        var todate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
+        //var fromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
+        //var todate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
 
-        contextfromdate = getFormattedDate(fromdate);
-        contexttodate = getFormattedDate(todate);
+        //var fromdate = new Date($('#dateRange').data('daterangepicker').startDate._i);
+        //var todate = new Date($('#dateRange').data('daterangepicker').endDate._i);
+
+        //contextfromdate = getFormattedDate(fromdate);
+        //contexttodate = getFormattedDate(todate);
+
+        contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('MM/DD/YY');
+        contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('MM/DD/YY');
+
 
         cache_Map_Matrix_Data_Date_From = contextfromdate;
         cache_Map_Matrix_Data_Date_To = contexttodate;
@@ -2893,9 +2923,8 @@ function highlightDaysInCalendar(date) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function ManageLocationClick(siteName, siteID) {
-
-    var thedatefrom = $.datepicker.formatDate("yy-mm-dd", $('#datePickerFrom').datepicker('getDate')) + "T00:00:00Z";
-    var thedateto = $.datepicker.formatDate("yy-mm-dd", $('#datePickerTo').datepicker('getDate')) + "T00:00:00Z";
+    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -2981,9 +3010,9 @@ function reflowContents(newTab) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function resizeDocklet( theparent , chartheight ) {
+    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
 
-    var thedatefrom = $.datepicker.formatDate("yy-mm-dd", $('#datePickerFrom').datepicker('getDate')) + "T00:00:00Z";
-    var thedateto = $.datepicker.formatDate("yy-mm-dd", $('#datePickerTo').datepicker('getDate')) + "T00:00:00Z";
     var selectedIDs = GetCurrentlySelectedSites();
 
     var siteName = selectedIDs.length + " of " + $('#siteList')[0].length + " selected";
@@ -3027,10 +3056,6 @@ function resizeDocklet( theparent , chartheight ) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function resizeMapAndMatrix(newTab) {
-
-    $("#datePickerFrom").datepicker("hide");
-    $("#datePickerTo").datepicker("hide");
-
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
     $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
@@ -3122,65 +3147,17 @@ function resizeMatrixCells(newTab) {
 
 function initializeDatePickers(datafromdate , datatodate) {
 
-    $("#datePickerFrom").datepicker({
-        onSelect: function (dateText, inst) {
-            //$("#staticPeriod")[0].value = "Custom";
-        },
-        onChangeMonthYear: function (year, month, instance) {
+    dateRangeOptions.startDate = moment(datafromdate).utc();
+    dateRangeOptions.endDate = moment(datatodate).utc();
 
-            var d = instance.selectedDay;
-            // Set new Date(year, month, 0) for entire month
-            $(this).datepicker('setDate', new Date(year, month - 1, d));
-        },
+    $('#dateRange').daterangepicker(dateRangeOptions, function (start, end, label) {
+        $('#dateRange span').html(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
 
-        numberOfMonths: 1,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        changeMonth: true,
-        changeYear: true,
-        autoSize: false,
-        beforeShowDay: highlightDaysInCalendar,
-        timeFormat: 'hh:mm:ss',
-        dateFormat: 'mm/dd/yy',
-        showButtonPanel: false,
-
-        onClose: function (selectedDate) {
-            $("#datePickerTo").datepicker("option", "minDate", selectedDate);
-            $("#datePickerTo").datepicker("option", "minDate", null);
-        }
+        loadDataForDate();
     });
 
-    $("#datePickerFrom").datepicker("setDate", new Date(datafromdate));
+    $('#dateRange span').html(dateRangeOptions.startDate.format('MM/DD/YYYY') + ' - ' + dateRangeOptions.endDate.format('MM/DD/YYYY'));
 
-    $("#datePickerTo").datepicker({
-        onSelect: function (dateText, inst) {
-            //$("#staticPeriod")[0].value = "Custom";
-        },
-        onChangeMonthYear: function (year, month, instance) {
-
-            var d = instance.selectedDay;
-            // Set new Date(year, month, 0) for entire month
-
-            $(this).datepicker('setDate', new Date(year, month - 1, d));
-        },
-
-        numberOfMonths: 1,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        changeMonth: true,
-        changeYear: true,
-        autoSize: true,
-        beforeShowDay: highlightDaysInCalendar,
-        timeFormat: 'hh:mm:ss',
-        dateFormat: 'mm/dd/yy',
-        showButtonPanel: false,
-        onClose: function (selectedDate) {
-            $("#datePickerFrom").datepicker("option", "maxDate", selectedDate);
-            $("#datePickerFrom").datepicker("option", "maxDate", null);
-        }
-    });
-
-    $("#datePickerTo").datepicker("setDate", new Date(datatodate));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3281,11 +3258,8 @@ function configurationapply(item) {
     usersettings["lastSetting"] = currentconfigname;
     $.jStorage.deleteKey("usersettings");
     $.jStorage.set("usersettings", usersettings);
-
-    $("#datePickerFrom").datepicker("setDate", new Date(getcurrentconfigsetting("DataFromDate")));
-
-    $("#datePickerTo").datepicker("setDate", new Date(getcurrentconfigsetting("DataToDate")));
-
+    $('#daterange').data('daterangepicker').setStartDate(moment(getcurrentconfigsetting("DataFromDate")).utc());
+    $('#daterange').data('daterangepicker').setEndDate(moment(getcurrentconfigsetting("DataToDate")).utc());
     contextfromdate = getcurrentconfigsetting("ContextFromDate");
     contexttodate = getcurrentconfigsetting("ContextToDate");
     disabledList = usersettings["disabledList"];
@@ -3408,29 +3382,19 @@ var returnvalue = "";
 switch (thetoken) {
 
     case "Today":
-        returnvalue = $.datepicker.formatDate("mm/dd/yy", new Date());
+        returnvalue = moment().utc().format('MM/DD/YY');
         break;
 
     case "PastWeek":
-        var d = new Date();
-        d.setDate(d.getDate() - 7);
-
-        returnvalue = $.datepicker.formatDate("mm/dd/yy", d);
+        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YY');
         break;
 
     case "PastMonth":
-
-        var d = new Date();
-        d.setDate(d.getDate() - 30);
-
-        returnvalue = $.datepicker.formatDate("mm/dd/yy", d);
+        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YY');
         break;
 
     case "PastYear":
-        var d = new Date();
-        d.setDate(d.getDate() - 365);
-
-        returnvalue = $.datepicker.formatDate("mm/dd/yy", d);
+        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YY');
         break;
             
     default:
@@ -3509,10 +3473,10 @@ function initializesettings() {
     var thesetting = {};
     thesetting["Name"] = "Last Session";
     thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["DataFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datafromdate));
-    thesetting["DataToDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datatodate));
-    thesetting["ContextFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datafromdate));
-    thesetting["ContextToDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(datatodate));
+    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
+    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YY');
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
     thesetting["MapGrid"] = "Map";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "Custom";
@@ -3544,10 +3508,10 @@ function createupdateconfig(configname) {
 
     thesetting["Name"] = configname;
     thesetting["CurrentTab"] = currentTab;
-    thesetting["DataFromDate"] = $("#datePickerFrom")[0].value;
-    thesetting["DataToDate"] = $("#datePickerTo")[0].value;
-    thesetting["ContextFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(contextfromdate));
-    thesetting["ContextToDate"] = $.datepicker.formatDate("mm/dd/yy", new Date (contexttodate));
+    thesetting["DataFromDate"] = $('#dateRange').data('daterangepicker').startDate._i;
+    thesetting["DataToDate"] = $('#dateRange').data('daterangepicker').endDate._i;
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
     thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
     thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
     thesetting["staticPeriod"] = $("#staticPeriod").val();
@@ -3597,8 +3561,9 @@ function selectStaticPeriod(thecontrol) {
     var theCalculatedDate = new Date();
 
     if (thecontrol.value != "Custom") {
-        $("#datePickerTo").datepicker("setDate", new Date(theCalculatedDate));
-        $("#datePickerFrom").datepicker("setDate", new Date(substituteToken(thecontrol.value)));
+        $('#daterange').data('daterangepicker').setStartDate(moment().utc().format('MM/DD/YY'));
+        $('#daterange').data('daterangepicker').setEndDate(substituteToken(thecontrol.value));
+
         loadDataForDate();
     }
 }
@@ -3775,6 +3740,7 @@ function buildPage() {
     $('#modal-dialog').hide();
 
     var mousemove = null;
+
 
     $(".resizeable").resizable(
     {
