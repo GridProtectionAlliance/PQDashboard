@@ -111,8 +111,16 @@ var dateRangeOptions = {
         'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')],
         'Month To Date': [moment().utc().startOf('month'), moment().utc().endOf('day')],
         'Last Month': [moment().utc().subtract(1, 'months').startOf('month'), moment().utc().subtract(1, 'months').endOf('month')],
-        'Year To Date': [moment().utc().startOf('year'), moment().utc().endOf('day')],
-        'Last Year': [moment().utc().subtract(1, 'years').startOf('year'), moment().utc().subtract(1, 'years').endOf('year')],
+        'Year To Date': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
+                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
+                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()),
+                          moment().utc().endOf('day')],
+        'Last Year': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
+                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc() :
+                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc()),
+                       (moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
+                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
+                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()).subtract(1,'days')],
     },
     "startDate": moment().utc().subtract(29, 'days').startOf('day'),
     "endDate": moment.utc().endOf('day')

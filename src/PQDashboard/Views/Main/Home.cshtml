@@ -32,6 +32,7 @@
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'");
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
 
     int defaulMeterGroupID = -1;
 
@@ -57,13 +58,20 @@
     <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
     <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css"/>
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css"/>
-    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>  
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>
     <link rel="stylesheet" href="~/Content/jquery.multiselect.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/> 
-    <link rel="stylesheet" href="~/Content/Default.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/>
+    <link rel="stylesheet" href="~/Content/Default.css" type="text/css"/>
     <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
-    <link rel="stylesheet" href="~/Content/daterangepicker.css" />
+    <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
+    <script>
+        var mg = @defaulMeterGroupID;
+        var homePath = '@Html.Raw(Url.Content("~/"))';
+        var historianConnection = '@historianConnection';
+        var xdaInstance = '@xdaInstance';
+        var yearBegin = '@yearBegin';
+    </script>
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
     <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
@@ -734,10 +742,6 @@
 </div>
 
 <script>
-    var mg = @defaulMeterGroupID;
-    var homePath = '@Html.Raw(Url.Content("~/"))';
-    var historianConnection = '@historianConnection';
-    var xdaInstance = '@xdaInstance';
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The following function are for making button links to another page and opening another page
