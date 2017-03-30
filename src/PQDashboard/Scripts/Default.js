@@ -99,6 +99,9 @@ var dateRangeOptions = {
     },
     "showDropdowns": true,
     "autoApply": true,
+    "alwaysShowCalendars": true,
+    "minDate": "01/01/1990",
+    "maxDate": "12/31/2030",
     "ranges": {
         //'1 Day': [moment().utc().startOf('day'), moment().utc().endOf('day')],
         'Last 3 Days': [moment().utc().startOf('day').subtract(2, 'days'), moment().utc().endOf('day')],
