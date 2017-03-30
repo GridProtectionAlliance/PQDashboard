@@ -186,6 +186,7 @@ function loadDataForDate() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectmapgrid(thecontrol) {
+    $('.mapGrid').val($(thecontrol).val());
     if (thecontrol.selectedIndex === 1) {
         $("#theMatrix" + currentTab).show();
         $("#theMap" + currentTab).hide();
@@ -1080,7 +1081,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
                 resizeMatrixCells(currentTab);
                 showSiteSet($("#selectSiteSet" + currentTab)[0]);
-                if ($('#mapGrid')[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
+                if ($("#map" + currentTab + "Grid")[0].value == "Map" && (currentTab === 'Disturbances' || currentTab === 'Events' || currentTab === 'Trending')) {
                     var legendFields = color.domain().slice().filter(function (a) { return $.map(disabledList[currentTab], function (data, key) { if (data) return key }).indexOf(a) < 0 });
                 }
 
@@ -2082,7 +2083,7 @@ function SelectAdd(theControlID,theValue,theText,selected) {
 
 function showSiteSet(thecontrol) {
 
-    var mapormatrix = $("#mapGrid")[0].value;
+    var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
 
     if (mapormatrix == "Grid") {
 
@@ -3312,10 +3313,10 @@ function configurationapply(item) {
     else 
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
-    $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
+    $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
     $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
-    selectmapgrid($("#mapGrid")[0]);
+    selectmapgrid($("#map" + currentTab + "Grid")[0]);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3547,7 +3548,7 @@ function createupdateconfig(configname) {
     thesetting["DataToDate"] = $("#datePickerTo")[0].value;
     thesetting["ContextFromDate"] = $.datepicker.formatDate("mm/dd/yy", new Date(contextfromdate));
     thesetting["ContextToDate"] = $.datepicker.formatDate("mm/dd/yy", new Date (contexttodate));
-    thesetting["MapGrid"] = $("#mapGrid")[0].value;
+    thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
     thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
     thesetting["staticPeriod"] = $("#staticPeriod").val();
 
@@ -3635,11 +3636,11 @@ function selectMeterGroup(thecontrol) {
         cache_Graph_Data = null;
         cache_Errorbar_Data = null;
         cache_Sparkline_Data = null;
-        var mapormatrix = $("#mapGrid")[0].value;
+        var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
             manageTabsByDate(newTab, contextfromdate, contexttodate);
-            $("#mapGrid")[0].value = mapormatrix;
-            selectmapgrid($("#mapGrid")[0]);
+            $(".mapGrid").val(mapormatrix);
+            selectmapgrid($("#map" + currentTab + "Grid")[0]);
         });
 
     }
@@ -3848,11 +3849,11 @@ function buildPage() {
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
                 cache_Sparkline_Data = null;
-                var mapormatrix = $("#mapGrid")[0].value;
+                var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
                 manageTabsByDate(newTab, contextfromdate, contexttodate);
-                $("#mapGrid")[0].value = mapormatrix;
-                selectmapgrid($("#mapGrid")[0]);
+                $(".mapGrid").val(mapormatrix);
+                selectmapgrid($("#map" + currentTab + "Grid")[0]);
 
             }
 
@@ -3893,10 +3894,10 @@ function buildPage() {
             }
             else {
                 $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-                $("#mapGrid")[0].value = getcurrentconfigsetting("MapGrid");
+                $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
                 $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
-                selectmapgrid($("#mapGrid")[0]);
+                selectmapgrid($("#map" + currentTab + "Grid")[0]);
             }
 
 
@@ -4354,11 +4355,11 @@ function showColorScale(thecontrol) {
     $('#tabs-' + currentTab + ' #progressBar').hide();
     $('#tabs-' + currentTab + ' .contourControl').css('width', '165px');
 
-    var mapormatrix = $("#mapGrid")[0].value;
+    var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
 
     manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
-    $("#mapGrid")[0].value = mapormatrix;
-    selectmapgrid($("#mapGrid")[0]);
+    $(".mapGrid").val(mapormatrix);
+    selectmapgrid($("#map" + currentTab + "Grid")[0]);
 }
 
 function cancelCall(animationID) {

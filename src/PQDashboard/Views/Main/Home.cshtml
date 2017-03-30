@@ -141,12 +141,6 @@
                     <option value="PastYear">Today - 365</option>
                 </select>
             </td>
-            <td width="10%" align="center" style="z-index: 999;" nowrap>Mode:
-                <select class="smallbutton" id="mapGrid" onchange="selectmapgrid(this);">
-                    <option value="Map">Map</option>
-                    <option value="Grid">Grid</option>
-                </select>
-            </td>
             <td width="10%" align="center" style="z-index: 999;" nowrap>
                 User:
                 <span>@ViewBag.username</span>
@@ -158,8 +152,6 @@
                     {
                         <option value="@mg.ID">@mg.Name</option>
                     }
-
-
                 </select>
             </td>
 
@@ -257,6 +249,10 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapEventsGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
                         <select class="smallbutton" id="selectSiteSetEvents" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
@@ -319,6 +315,10 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapDisturbancesGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
                         <select class="smallbutton" id="selectSiteSetDisturbances" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Disturbances">Disturbances</option>
@@ -381,6 +381,10 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapTrendingGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
                         <select class="smallbutton" id="selectSiteSetTrending" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
@@ -438,6 +442,10 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
                         <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="RecievedData">Recieved Data</option>
@@ -499,6 +507,10 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapFaultsGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
                         <select class="smallbutton" id="selectSiteSetFaults" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
@@ -552,6 +564,11 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapBreakersGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
+
                         <select class="smallbutton" id="selectSiteSetBreakers" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
@@ -605,6 +622,11 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapCompletenessGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
+
                         <select class="smallbutton" id="selectSiteSetCompleteness" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
@@ -658,6 +680,11 @@
             <div class="portlet-header portlet-header-text">
                 <div class="header-container">
                     <div class="siteselectdropdown" style="position: absolute;">
+                        <select class="smallbutton mapGrid" id="mapCorrectnessGrid" onchange="selectmapgrid(this);">
+                            <option value="Map">Map</option>
+                            <option value="Grid">Grid</option>
+                        </select>
+
                         <select class="smallbutton" id="selectSiteSetCorrectness" onchange="showSiteSet(this);">
                             <option value="All">All Sites</option>
                             <option value="Events">Events</option>
