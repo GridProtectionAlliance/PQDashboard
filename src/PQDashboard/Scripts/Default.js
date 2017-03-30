@@ -108,7 +108,11 @@ var dateRangeOptions = {
         'Last 7 Days': [moment().utc().startOf('day').subtract(6, 'days'), moment().utc().endOf('day')],
         'Last 30 Days': [moment().utc().startOf('day').subtract(29, 'days'), moment().utc().endOf('day')],
         'Last 90 Days': [moment().utc().startOf('day').subtract(89, 'days'), moment().utc().endOf('day')],
-        'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')]
+        'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')],
+        'Month To Date': [moment().utc().startOf('month'), moment().utc().endOf('day')],
+        'Last Month': [moment().utc().subtract(1, 'months').startOf('month'), moment().utc().subtract(1, 'months').endOf('month')],
+        'Year To Date': [moment().utc().startOf('year'), moment().utc().endOf('day')],
+        'Last Year': [moment().utc().subtract(1, 'years').startOf('year'), moment().utc().subtract(1, 'years').endOf('year')],
     },
     "startDate": moment().utc().subtract(29, 'days').startOf('day'),
     "endDate": moment.utc().endOf('day')
