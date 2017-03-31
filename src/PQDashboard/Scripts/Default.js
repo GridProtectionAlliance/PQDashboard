@@ -113,14 +113,14 @@ var dateRangeOptions = {
         'Last Month': [moment().utc().subtract(1, 'months').startOf('month'), moment().utc().subtract(1, 'months').endOf('month')],
         'Year To Date': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
                                 moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
-                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()),
+                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()),
                           moment().utc().endOf('day')],
         'Last Year': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
                                 moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc() :
-                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc()),
+                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc()),
                        (moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
                                 moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
-                                moment().subtract('year', 1).month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()).subtract(1,'days')],
+                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()).subtract(1,'days')],
     },
     "startDate": moment().utc().subtract(29, 'days').startOf('day'),
     "endDate": moment.utc().endOf('day')
@@ -198,17 +198,8 @@ function getMapHeaderDate(whichdate) {
 
 function loadDataForDate() {
     if (currentTab != null) {
-        //var fromdate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerFrom').datepicker('getDate')));
-        //var todate = new Date($.datepicker.formatDate("mm/dd/yy", $('#datePickerTo').datepicker('getDate')));
-
-        //var fromdate = new Date($('#dateRange').data('daterangepicker').startDate._i);
-        //var todate = new Date($('#dateRange').data('daterangepicker').endDate._i);
-
-        //contextfromdate = getFormattedDate(fromdate);
-        //contexttodate = getFormattedDate(todate);
-
-        contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('MM/DD/YY');
-        contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('MM/DD/YY');
+        contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('MM/DD/YY');
+        contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('MM/DD/YY');
 
 
         cache_Map_Matrix_Data_Date_From = contextfromdate;
@@ -2938,8 +2929,8 @@ function highlightDaysInCalendar(date) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function ManageLocationClick(siteName, siteID) {
-    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -3025,8 +3016,8 @@ function reflowContents(newTab) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function resizeDocklet( theparent , chartheight ) {
-    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
 
     var selectedIDs = GetCurrentlySelectedSites();
 
@@ -3166,13 +3157,37 @@ function initializeDatePickers(datafromdate , datatodate) {
     dateRangeOptions.endDate = moment(datatodate).utc();
 
     $('#dateRange').daterangepicker(dateRangeOptions, function (start, end, label) {
-        $('#dateRange span').html(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
+        $('#dateRangeSpan').html(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
 
         loadDataForDate();
     });
 
-    $('#dateRange span').html(dateRangeOptions.startDate.format('MM/DD/YYYY') + ' - ' + dateRangeOptions.endDate.format('MM/DD/YYYY'));
+    $('#dateRangeSpan').html(dateRangeOptions.startDate.format('MM/DD/YYYY') + ' - ' + dateRangeOptions.endDate.format('MM/DD/YYYY'));
 
+}
+
+function moveDateBackward() {
+    var startDate = $('#dateRange').data('daterangepicker').startDate.clone().startOf('day');
+    var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
+    var duration = moment.duration(endDate.diff(startDate));
+
+    $('#dateRange').data('daterangepicker').setEndDate(startDate);
+    $('#dateRange').data('daterangepicker').setStartDate(startDate.subtract(duration.asDays() - 1, 'days'));
+
+    $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    loadDataForDate();
+}
+
+function moveDateForward() {
+    var startDate = $('#dateRange').data('daterangepicker').startDate.clone().startOf('day');
+    var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
+    var duration = moment.duration(endDate.diff(startDate));
+
+    $('#dateRange').data('daterangepicker').setStartDate(endDate);
+    $('#dateRange').data('daterangepicker').setEndDate(endDate.add(duration.asDays() - 1, 'days'));
+
+    $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    loadDataForDate();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3273,8 +3288,8 @@ function configurationapply(item) {
     usersettings["lastSetting"] = currentconfigname;
     $.jStorage.deleteKey("usersettings");
     $.jStorage.set("usersettings", usersettings);
-    $('#daterange').data('daterangepicker').setStartDate(moment(getcurrentconfigsetting("DataFromDate")).utc());
-    $('#daterange').data('daterangepicker').setEndDate(moment(getcurrentconfigsetting("DataToDate")).utc());
+    $('#dateRange').data('daterangepicker').setStartDate(moment(getcurrentconfigsetting("DataFromDate")).utc());
+    $('#dateRange').data('daterangepicker').setEndDate(moment(getcurrentconfigsetting("DataToDate")).utc());
     contextfromdate = getcurrentconfigsetting("ContextFromDate");
     contexttodate = getcurrentconfigsetting("ContextToDate");
     disabledList = usersettings["disabledList"];
@@ -3303,7 +3318,13 @@ function configurationapply(item) {
         manageTabsByDate(currentTab, contextfromdate, contexttodate);
 
     $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-    $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+    //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+
+    $.each($('.ranges li'), function (i, a) {
+        if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
+            $(a).click();
+    })
+
 
     selectmapgrid($("#map" + currentTab + "Grid")[0]);
 }
@@ -3480,7 +3501,7 @@ function initializesettings() {
     thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
     thesetting["MapGrid"] = "Grid";
     thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "PastMonth";
+    thesetting["staticPeriod"] = "Last 30 Days";
 
 
     usersettings["uisettings"].push(thesetting);
@@ -3494,7 +3515,7 @@ function initializesettings() {
     thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
     thesetting["MapGrid"] = "Map";
     thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "Custom";
+    thesetting["staticPeriod"] = "Custom Range";
     usersettings["lastSetting"] = "Default";
     usersettings["uisettings"].push(thesetting);
 
@@ -3529,7 +3550,7 @@ function createupdateconfig(configname) {
     thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
     thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
     thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
-    thesetting["staticPeriod"] = $("#staticPeriod").val();
+    thesetting["staticPeriod"] = $('.ranges li.active').text();
 
     var loc = -1;
 
@@ -3876,8 +3897,12 @@ function buildPage() {
             else {
                 $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
                 $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-                $("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
+                //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
 
+                $.each($('.ranges li'), function (i, a) {
+                    if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
+                        $(a).click();
+                })
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
             }
 
