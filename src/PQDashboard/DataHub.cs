@@ -448,8 +448,27 @@ namespace PQDashboard
                 { "Breaker", "#A500FF" },
             };
 
-            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChart' AND Enabled = 0")).Select(x => x.Value).ToList();
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChartColors' AND Enabled = 1"));
+
+
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach(DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            //List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChartColors' AND Enabled = 1"));
 
             foreach (var color in usersColors)
             {
@@ -491,7 +510,20 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            if(column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "EventsChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -505,7 +537,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") +  r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "EventChartColors",
+                                            Name = "EventsChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -521,7 +553,20 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "EventsChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -535,7 +580,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "EventChartColors",
+                                            Name = "EventsChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -575,7 +620,23 @@ namespace PQDashboard
                 { "0", "#0000FF" },
             };
 
-            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbanceChart' AND Enabled = 0")).Select(x => x.Value).ToList();
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
             IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbanceChartColors' AND Enabled = 1"));
 
             foreach (var color in usersColors)
@@ -618,7 +679,20 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "DisturbancesChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -648,7 +722,20 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate" && !disabledFields.Contains(column.ColumnName))
+                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "DisturbancesChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -762,9 +849,24 @@ namespace PQDashboard
                 { "0", "#90ed7d" },
 
             };
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
 
-            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultChart' AND Enabled = 0")).Select(x => x.Value).ToList();
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultChartColors' AND Enabled = 1"));
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChartColors' AND Enabled = 1"));
             DataTable table = new DataTable();
 
             foreach (var color in usersColors)
@@ -805,7 +907,20 @@ namespace PQDashboard
                 {
                     foreach (DataColumn column in table.Columns)
                     {
-                        if(column.ColumnName != "thedate")
+                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                        {
+                            disabledFileds.Add(column.ColumnName, true);
+                            DashSettings ds = new DashSettings()
+                            {
+                                Name = "EventsChart",
+                                Value = column.ColumnName,
+                                Enabled = true
+                            };
+                            DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                        }
+
+                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                         {
                             if(eventSet.Types.All(x => x.Name != column.ColumnName))
                             {
@@ -819,7 +934,7 @@ namespace PQDashboard
                                     eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                     DashSettings ds = new DashSettings()
                                     {
-                                        Name = "FaultChartColors",
+                                        Name = "FaultsChartColors",
                                         Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                         Enabled = true
                                     };
@@ -835,7 +950,20 @@ namespace PQDashboard
                 {
                     foreach (DataColumn column in table.Columns)
                     {
-                        if (column.ColumnName != "thedate")
+                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                        {
+                            disabledFileds.Add(column.ColumnName, true);
+                            DashSettings ds = new DashSettings()
+                            {
+                                Name = "FaultsChart",
+                                Value = column.ColumnName,
+                                Enabled = true
+                            };
+                            DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                        }
+
+                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                         {
                             if (eventSet.Types.All(x => x.Name != column.ColumnName))
                             {
@@ -849,7 +977,7 @@ namespace PQDashboard
                                     eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                     DashSettings ds = new DashSettings()
                                     {
-                                        Name = "FaultChartColors",
+                                        Name = "FaultsChartColors",
                                         Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                         Enabled = true
                                     };
@@ -879,8 +1007,24 @@ namespace PQDashboard
                 { "Indeterminate", "#90ed7d" }
             };
 
-            List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakerChart' AND Enabled = 0")).Select(x => x.Value).ToList();
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakerChartColors' AND Enabled = 1"));
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChartColors' AND Enabled = 1"));
             DataTable table = new DataTable();
 
             foreach (var color in usersColors)
@@ -923,7 +1067,21 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate")
+                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "BreakersChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -937,7 +1095,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "BreakerChartColors",
+                                            Name = "BreakersChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -953,7 +1111,21 @@ namespace PQDashboard
                     {
                         foreach (DataColumn column in table.Columns)
                         {
-                            if (column.ColumnName != "thedate")
+                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                            {
+                                disabledFileds.Add(column.ColumnName, true);
+                                DashSettings ds = new DashSettings()
+                                {
+                                    Name = "FaultsChart",
+                                    Value = column.ColumnName,
+                                    Enabled = true
+                                };
+                                DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                            }
+
+
+                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                             {
                                 if (eventSet.Types.All(x => x.Name != column.ColumnName))
                                 {
@@ -967,7 +1139,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "BreakerChartColors",
+                                            Name = "BreakersChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -1542,7 +1714,7 @@ namespace PQDashboard
         /// Gets UserAccount table ID for current user.
         /// </summary>
         /// <returns>UserAccount.ID for current user.</returns>
-        public Guid GetCurrentUserID()
+        public static Guid GetCurrentUserID()
         {
             Guid userID;
             AuthorizationCache.UserIDs.TryGetValue(UserInfo.CurrentUserID, out userID);

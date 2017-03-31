@@ -20,7 +20,10 @@
     //       Generated original version of source code.
     //
     //*****************************************************************************************************@
+@using GSF
 @using GSF.Data
+@using GSF.Collections;
+
 @using GSF.Data.Model
 @using GSF.Identity
 @using GSF.Web.Model
@@ -31,6 +34,17 @@
     DataContext dataContext = Model.DataContext;
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'");
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
+    List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
+    List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID = {0}", DataHub.GetCurrentUserID())).ToList();
+    foreach(DashSettings setting in dashSettings)
+    {
+        var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+        if (index >= 0)
+        {
+            setting.Enabled = userDashSettings[index].Enabled;
+        }
+    }
+
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
     string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
 
@@ -75,7 +89,7 @@
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
     <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-
+    <script src="~/Scripts/jscolor.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.sparkline.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
@@ -144,7 +158,7 @@
             <td width="20%" align="left" nowrap>
                 <div class="row">
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-default" onclick="moveDateBackward()"><span class="glyphicon glyphicon-backward"></span></button>
+                        <button type="button" class="btn btn-default" onclick="moveDateBackward()" title="Move 1 step back in time"><span class="glyphicon glyphicon-backward"></span></button>
                     </div>
                     <div class="col-md-8">
                         
@@ -156,7 +170,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-default" onclick="moveDateForward()"><span class="glyphicon glyphicon-forward"></span></button>
+                        <button type="button" class="btn btn-default" onclick="moveDateForward()" title="Move 1 step forward in time"><span class="glyphicon glyphicon-forward"></span></button>
                     </div>
 
                 </div>
@@ -164,7 +178,7 @@
 
             </td>
 
-            <td width="30%" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
+            <td width="5%" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
                 User:
                 <span>@ViewBag.username</span>
             </td>
@@ -177,6 +191,10 @@
                     }
                 </select>
             </td>
+            <td width="2%" align="right" style="z-index: 999; padding-right: 5px;" >
+                <button type="button" title="View page settings" data-toggle="modal" data-target="#settingsModal"><span class="glyphicon glyphicon-cog"></span></button>
+            </td>
+
 
         </tr>
     </table>
@@ -188,10 +206,10 @@
     <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
     <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
     <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
-    <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
-    <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
     <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
     <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
+    <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
+    <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
     <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
     <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
     <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
@@ -755,6 +773,90 @@
         </table>
     </center>
 </div>
+</div>
+
+
+<!-- Modal -->
+<div id="settingsModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 90%; height:100%">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">PQDashboard Settings</h4>
+            </div>
+            <div class="modal-body" style="height: 95%; overflow-y: scroll">
+                <div class="col-md-3">
+                    <h4><u>Tabs</u></h4>
+                    <div class="well">
+                        <table>
+                            @foreach (DashSettings setting in dashSettings)
+                            {
+                                if (setting.Name == "DashTab")
+                                {
+                                    <tr>
+                                        <td>
+                                            @setting.Value
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </table>
+                    </div>
+                </div>
+
+                    @foreach (DashSettings setting in dashSettings)
+                    {
+                        if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Name) < 0)
+                        {
+                            <div class="col-md-4">
+
+                                <h4><u>@setting.Value.Substring(5)</u></h4>
+                                <div class="well">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Color</th>
+                                                <th>Enabled</th>
+                                            </tr>
+                                        </thead>
+                                        @foreach (DashSettings innerSetting in dashSettings)
+                                        {
+                                            if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @innerSetting.Value
+                                                    </td>
+                                                    <td>
+                                                        <input class="jscolor {z-index: 999999999}" value="@(dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && innerSetting.Value.Contains(x.Value.Split(',')[0])).FirstOrDefault()?.Value.Split(',')?[1] ?? "")" />
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </table>
+                                </div>
+                            </div>
+
+                        }
+                    }
+                            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>

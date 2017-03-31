@@ -794,3 +794,19 @@ color:#333;
     font-size: 10px;
 
 }
+
+#ui-id-1, #ui-id-2 {
+    background-color: blanchedalmond;
+}
+
+#ui-id-3, #ui-id-4,#ui-id-5,#ui-id-6 {
+    background-color: lavender;
+}
+
+#ui-id-7, #ui-id-8,#ui-id-9,#ui-id-10 {
+    background-color: lavenderblush;
+}
+
+#ui-id-11, #ui-id-12 {
+    background-color: ghostwhite;
+}

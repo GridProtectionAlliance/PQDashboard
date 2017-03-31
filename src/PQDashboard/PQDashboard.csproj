@@ -555,6 +555,8 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\jscolor.js" />
+    <Content Include="Scripts\jscolor.min.js" />
     <Content Include="Scripts\jstorage.js" />
     <Content Include="Scripts\keydragzoom.js" />
     <Content Include="Scripts\knockout-3.4.0.debug.js" />
