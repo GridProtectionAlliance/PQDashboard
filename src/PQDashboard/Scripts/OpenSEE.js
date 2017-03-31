@@ -143,10 +143,13 @@ var colorTan = '#CC9900';
                         if (axis.delta < 1000) {
                             var format = $.plot.formatDate(new Date(value), "%M:%S");
                             var ticks = Math.floor(value * 10000);
-                            var subsecond = ticks % 10000000;
+                            var subsecond = (ticks % 10000000).toString();
+
+                            while (subsecond.length < 7)
+                                subsecond = "0" + subsecond;
                             
-                            while (subsecond > 0 && subsecond % 10 == 0)
-                                subsecond /= 10;
+                            while (subsecond.length > 1 && subsecond.slice(-1) == "0")
+                                subsecond = subsecond.slice(0, -1);
 
                             if (subsecond != 0)
                                 return format + "." + subsecond;
@@ -2075,7 +2078,8 @@ function updateTooltip() {
     var phasorvalueC = null;
 
     var floatingtooltip = $('#unifiedtooltipcontent');
-    var format = $.plot.formatDate($.plot.dateGenerator(xaxisHover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + (xaxisHover * 10000 % 10000000);
+    var subsecond = ("0000000" + (xaxisHover * 10000 % 10000000)).slice(-7);
+    var format = $.plot.formatDate($.plot.dateGenerator(xaxisHover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + subsecond;
     var tooltiphtml = '<div align="center"><b>' + format + '</b><br /><table align="center">';
 
     $.each(plotDataList, function (key, plotData) {
