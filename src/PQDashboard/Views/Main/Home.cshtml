@@ -191,10 +191,12 @@
                     }
                 </select>
             </td>
-            <td width="2%" align="right" style="z-index: 999; padding-right: 5px;" >
-                <button type="button" title="View page settings" data-toggle="modal" data-target="#settingsModal"><span class="glyphicon glyphicon-cog"></span></button>
-            </td>
-
+            @if (ViewBag.username != "External")
+            {
+                <td width="2%" align="right" style="z-index: 999; padding-right: 5px;" >
+                    <button type="button" title="View page settings" data-toggle="modal" data-target="#settingsModal"><span class="glyphicon glyphicon-cog"></span></button>
+                </td>
+            }
 
         </tr>
     </table>
@@ -777,14 +779,14 @@
 
 
 <!-- Modal -->
-<div id="settingsModal" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 90%; height:100%">
+<div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
+    <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
 
         <!-- Modal content-->
-        <div class="modal-content">
+        <div class="modal-content" style="z-index: 300">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">PQDashboard Settings</h4>
+                <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
             </div>
             <div class="modal-body" style="height: 95%; overflow-y: scroll">
                 <div class="col-md-3">
@@ -811,7 +813,7 @@
 
                     @foreach (DashSettings setting in dashSettings)
                     {
-                        if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Name) < 0)
+                        if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
                         {
                             <div class="col-md-4">
 
