@@ -88,8 +88,9 @@
     </script>
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-    <script src="~/Scripts/jscolor.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
+    <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.sparkline.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
@@ -247,57 +248,22 @@
                 <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
             </div>
             <div class="modal-body" style="height: 95%; overflow-y: scroll">
-                <div class="col-md-3">
-                    <h4><u>Tabs</u></h4>
-                    <div class="well">
-                        <table>
-                            @foreach (DashSettings setting in dashSettings)
-                            {
-                                if (setting.Name == "DashTab")
-                                {
-                                    <tr>
-                                        <td>
-                                            @setting.Value
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </table>
-                    </div>
-                </div>
-
-                @foreach (DashSettings setting in dashSettings)
-                {
-                    if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
-                    {
-                        <div class="col-md-4">
-
-                            <h4><u>@setting.Value.Substring(5)</u></h4>
+                <div style="position: relative">
+                    <div class="grid">
+                        <div class="grid-item">
+                            <h4><u>Tabs</u></h4>
                             <div class="well">
                                 <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Field</th>
-                                            <th>Color</th>
-                                            <th>Enabled</th>
-                                        </tr>
-                                    </thead>
-                                    @foreach (DashSettings innerSetting in dashSettings)
+                                    @foreach (DashSettings setting in dashSettings)
                                     {
-                                        if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                        if (setting.Name == "DashTab")
                                         {
                                             <tr>
                                                 <td>
-                                                    @innerSetting.Value
+                                                    @setting.Value
                                                 </td>
                                                 <td>
-                                                    <input class="jscolor {z-index: 999999999}" value="@(dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0).FirstOrDefault()?.Value.Split(',')?[1] ?? "")" />
-                                                </td>
-                                                <td>
-                                                    <input type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
                                                 </td>
                                             </tr>
                                         }
@@ -306,8 +272,47 @@
                             </div>
                         </div>
 
-                    }
-                }
+                        @foreach (DashSettings setting in dashSettings)
+                        {
+                            if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
+                            {
+                                <div class="grid-item">
+
+                                    <h4><u>@setting.Value.Substring(5)</u></h4>
+                                    <div class="well">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Field</th>
+                                                    <th>Color</th>
+                                                    <th>Enabled</th>
+                                                </tr>
+                                            </thead>
+                                            @foreach (DashSettings innerSetting in dashSettings)
+                                            {
+                                                if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @innerSetting.Value
+                                                        </td>
+                                                        <td>
+                                                            <input id="color@(setting.ID)"class="jscolor" value="@(dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0).FirstOrDefault()?.Value.Split(',')?[1] ?? "")" />
+                                                        </td>
+                                                        <td>
+                                                            <input id="enable@(setting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </table>
+                                    </div>
+                                </div>
+
+                            }
+                        }
+                    </div>
+                </div>
             </div>
 
             <div class="modal-footer">

@@ -3680,7 +3680,6 @@ $(document).ready(function () {
         }
     });
 
-
     $(window).on('hubConnected', function () {
         showContent();
     })
@@ -3832,6 +3831,14 @@ function buildPage() {
 
     disabledList = usersettings["disabledList"];
     loadconfigdropdown(usersettings.lastSetting);
+    $('.grid').masonry({
+        itemSelector: '.grid-item',
+        columnWidth: 400
+    });
+
+    $('#settingsModal').on('shown.bs.modal', function () {
+        $('.grid').masonry('layout');
+    });
 
     $("#application-tabs").tabs({
         heightStyle: "100%",

@@ -810,3 +810,12 @@ color:#333;
 #ui-id-11, #ui-id-12 {
     background-color: ghostwhite;
 }
+
+.grid {
+    max-width: 100%
+}
+
+.grid-item {
+    width: 375px;
+    float: left;
+}
