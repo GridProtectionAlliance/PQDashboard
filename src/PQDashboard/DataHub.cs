@@ -843,7 +843,20 @@ namespace PQDashboard
                 {
                     foreach (DataColumn column in table.Columns)
                     {
-                        if (column.ColumnName != "thedate")
+                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                        {
+                            disabledFileds.Add(column.ColumnName, true);
+                            DashSettings ds = new DashSettings()
+                            {
+                                Name = "TrendingChart",
+                                Value = column.ColumnName,
+                                Enabled = true
+                            };
+                            DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                        }
+
+                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                         {
                             if (eventSet.Types.All(x => x.Name != column.ColumnName))
                             {
@@ -873,7 +886,20 @@ namespace PQDashboard
                 {
                     foreach (DataColumn column in table.Columns)
                     {
-                        if (column.ColumnName != "thedate")
+                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
+                        {
+                            disabledFileds.Add(column.ColumnName, true);
+                            DashSettings ds = new DashSettings()
+                            {
+                                Name = "TrendingChart",
+                                Value = column.ColumnName,
+                                Enabled = true
+                            };
+                            DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                        }
+
+                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
                         {
                             if (eventSet.Types.All(x => x.Name != column.ColumnName))
                             {
