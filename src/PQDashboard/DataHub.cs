@@ -438,6 +438,7 @@ namespace PQDashboard
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
             Dictionary<string, string> colors = new Dictionary<string, string>();
+            Random r = new Random();
 
             IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
             List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
@@ -528,7 +529,6 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
                                     else
                                     {
-                                        Random r = new Random();
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
@@ -571,7 +571,6 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
                                     else
                                     {
-                                        Random r = new Random();
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
