@@ -798,8 +798,8 @@ function getFormattedDate(date) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function populateDivWithBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
-    window['dataHub'][thedatasource](siteID, thedatefrom, thedateto, postedUserName).done(function (data) {
+function populateDivWithBarChart(thediv, siteName, siteID, thedatefrom, thedateto) {
+    dataHub.getDataForPeriod(siteID, thedatefrom, thedateto, postedUserName, currentTab).done(function (data) {
         var dateDiff = (Date.parse(data.EndDate) - Date.parse(data.StartDate)) / 1000 / 60 / 60 / 24;
         if (data !== null) {
 
@@ -2936,49 +2936,11 @@ function ManageLocationClick(siteName, siteID) {
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
-    switch (currentTab) {
-        case "Events":
-            populateDivWithBarChart('getEventsForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-           
-            break;
+    if (currentTab == "TrendingData")
+        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+    else
+        populateDivWithBarChart( 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
 
-        case "Disturbances":
-            populateDivWithBarChart('getDisturbancesForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-
-        case "Faults":
-            populateDivWithBarChart('getFaultsForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-            
-            break;
-
-        case "Trending":
-            populateDivWithBarChart('getTrendingForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-
-        case "TrendingData":
-            populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-        case "Breakers":
-            populateDivWithBarChart('getBreakersForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-
-        case "Completeness":
-            populateDivWithBarChart('getCompletenessForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-
-        case "Correctness":
-            populateDivWithBarChart('getCorrectnessForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-
-            break;
-
-        default:
-            break;
-    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3838,6 +3800,24 @@ function buildPage() {
 
     $('#settingsModal').on('shown.bs.modal', function () {
         $('.grid').masonry('layout');
+    });
+
+    $('.modal-body input').change(function(event){
+        var field;
+        if ($(event.currentTarget).attr('id').indexOf('enable') > -1)
+            field = "enable";
+        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1)
+            field = "tab"
+        else if ($(event.currentTarget).attr('id').indexOf('color') > -1)
+            field = "color"
+        var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
+
+        var value;
+        if ($(event.currentTarget).attr('type') == "checkbox")
+            value = $(event.currentTarget).prop('checked');
+        else
+            value = $(event.currentTarget).val();
+        dataHub.updateDashSettings(id, field, value, userId);
     });
 
     $("#application-tabs").tabs({

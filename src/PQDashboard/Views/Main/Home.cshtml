@@ -35,13 +35,24 @@
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'");
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
-    List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID = {0}", DataHub.GetCurrentUserID())).ToList();
+    List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
     foreach(DashSettings setting in dashSettings)
     {
-        var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-        if (index >= 0)
+        if (setting.Name == "DashTab" || setting.Name.EndsWith("Chart"))
         {
-            setting.Enabled = userDashSettings[index].Enabled;
+            var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+            if (index >= 0)
+            {
+                setting.Enabled = userDashSettings[index].Enabled;
+            }
+        }
+        else if (setting.Name.EndsWith("Colors"))
+        {
+            var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value.Split(',')[0] == setting.Value.Split(',')[0]);
+            if (index >= 0)
+            {
+                setting.Value = userDashSettings[index].Value;
+            }
         }
     }
 
@@ -85,6 +96,7 @@
         var historianConnection = '@historianConnection';
         var xdaInstance = '@xdaInstance';
         var yearBegin = '@yearBegin';
+        var userId = '@ViewBag.usersid';
     </script>
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
@@ -297,10 +309,14 @@
                                                             @innerSetting.Value
                                                         </td>
                                                         <td>
-                                                            <input id="color@(setting.ID)"class="jscolor" value="@(dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0).FirstOrDefault()?.Value.Split(',')?[1] ?? "")" />
+                                                            @{
+                                                                DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
+                                                                
+                                                            }
+                                                            <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
                                                         </td>
                                                         <td>
-                                                            <input id="enable@(setting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                            <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
                                                         </td>
                                                     </tr>
                                                 }

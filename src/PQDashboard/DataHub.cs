@@ -392,7 +392,8 @@ namespace PQDashboard
 
             foreach (UserDashSettings setting in userDashSettings)
             {
-                dashSettings.Find(x => x.Value == setting.Value).Enabled = setting.Enabled;
+                if(setting.Name == "DashTab")
+                    dashSettings.Find(x => x.Value == setting.Value).Enabled = setting.Enabled;
             }
 
             return dashSettings;
@@ -431,197 +432,15 @@ namespace PQDashboard
             public double Average;
         }
 
-        public EventSet GetEventsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
+        public EventSet GetDataForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab)
         {
             EventSet eventSet = new EventSet();
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
             Dictionary<string, string> colors = new Dictionary<string, string>();
-            //{
-            //    { "Interruption", "#C00000" },
-            //    { "Fault", "#FF2800" },
-            //    { "Sag", "#FF9600" },
-            //    { "Swell", "#00FFF4" },
-            //    { "Transient", "#FFFF00" },
-            //    { "Other", "#0000FF" },
-            //    { "Test", "#A9A9A9" },
-            //    { "Breaker", "#A500FF" },
-            //};
 
-
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach(DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            //List<string> disabledFields = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart' AND Enabled = 0")).Select(x => x.Value).ToList();
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChartColors' AND Enabled = 1"));
-
-            foreach (var color in usersColors)
-            {
-                if(colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectEventsForMeterIDbyDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                DataTable table = new DataTable();
-                table.Load(rdr);
-
-                try
-                {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if(column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "EventsChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if(colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") +  r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "EventsChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "EventsChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "EventsChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-            }
-            return eventSet;
-        }
-
-        public EventSet GetDisturbancesForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            //{
-            //    { "5", "#C00000" },
-            //    { "4", "#FF2800" },
-            //    { "3", "#FF9600" },
-            //    { "2", "#00FFF4" },
-            //    { "1", "#FFFF00" },
-            //    { "0", "#0000FF" },
-            //};
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
 
             Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
             foreach (DashSettings setting in dashSettings)
@@ -637,10 +456,17 @@ namespace PQDashboard
 
             }
 
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChartColors' AND Enabled = 1"));
+            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
+            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
 
-            foreach (var color in usersColors)
+            foreach (var color in colorSettings)
             {
+                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
+                if (index >= 0)
+                {
+                    color.Value = userColorSettings[index].Value;
+                }
+
                 if (colors.ContainsKey(color.Value.Split(',')[0]))
                     colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
                 else
@@ -649,7 +475,7 @@ namespace PQDashboard
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                sc.CommandText = "dbo.selectDisturbancesForMeterIDByDateRange";
+                sc.CommandText = "dbo.select" + tab + "ForMeterIDbyDateRange";
                 sc.CommandType = CommandType.StoredProcedure;
                 IDbDataParameter param1 = sc.CreateParameter();
                 param1.ParameterName = "@EventDateFrom";
@@ -684,7 +510,7 @@ namespace PQDashboard
                                 disabledFileds.Add(column.ColumnName, true);
                                 DashSettings ds = new DashSettings()
                                 {
-                                    Name = "DisturbancesChart",
+                                    Name = "" + tab + "Chart",
                                     Value = column.ColumnName,
                                     Enabled = true
                                 };
@@ -706,7 +532,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "DisturbancesChartColors",
+                                            Name = "" + tab + "ChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -727,7 +553,7 @@ namespace PQDashboard
                                 disabledFileds.Add(column.ColumnName, true);
                                 DashSettings ds = new DashSettings()
                                 {
-                                    Name = "DisturbancesChart",
+                                    Name = "" + tab + "Chart",
                                     Value = column.ColumnName,
                                     Enabled = true
                                 };
@@ -749,7 +575,7 @@ namespace PQDashboard
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                                         DashSettings ds = new DashSettings()
                                         {
-                                            Name = "DisturbancesChartColors",
+                                            Name = "" + tab + "ChartColors",
                                             Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
                                             Enabled = true
                                         };
@@ -770,934 +596,6 @@ namespace PQDashboard
                         rdr.Close();
                     }
                 }
-            }
-                return eventSet;
-        }
-
-        public EventSet GetTrendingForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            //{
-            //    { "Alarm", "#ff0000" },
-            //    { "OffNormal", "#434348" }
-            //};
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'TrendingChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'TrendingChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'TrendingChartColors' AND Enabled = 1"));
-            DataTable table = new DataTable();
-
-            foreach (var color in usersColors)
-            {
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectTrendingForMeterIDByDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-
-                foreach (DataRow row in table.Rows)
-                {
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            DashSettings ds = new DashSettings()
-                            {
-                                Name = "TrendingChart",
-                                Value = column.ColumnName,
-                                Enabled = true
-                            };
-                            DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                        }
-
-                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                        {
-                            if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                            {
-                                eventSet.Types.Add(new EventSet.EventDetail());
-                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                if (colors.ContainsKey(column.ColumnName))
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                else
-                                {
-                                    Random r = new Random();
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                    DashSettings ds = new DashSettings()
-                                    {
-                                        Name = "TrendingChartColors",
-                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                        Enabled = true
-                                    };
-                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                }
-                            }
-                            eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                        }
-                    }
-                }
-
-                if (!eventSet.Types.Any())
-                {
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            DashSettings ds = new DashSettings()
-                            {
-                                Name = "TrendingChart",
-                                Value = column.ColumnName,
-                                Enabled = true
-                            };
-                            DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                        }
-
-                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                        {
-                            if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                            {
-                                eventSet.Types.Add(new EventSet.EventDetail());
-                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                if (colors.ContainsKey(column.ColumnName))
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                else
-                                {
-                                    Random r = new Random();
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                    DashSettings ds = new DashSettings()
-                                    {
-                                        Name = "TrendingChartColors",
-                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                        Enabled = true
-                                    };
-                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-                //try
-                //{
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[0].Name = "Alarm";
-                //    eventSet.Types[0].Color = "#FF0000";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[1].Name = "Offnormal";
-                //    eventSet.Types[1].Color = "#434348";
-
-                //    while (rdr.Read())
-                //    {
-                //        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["alarm"])));
-                //        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["thedate"]), Convert.ToInt32(rdr["offnormal"])));
-                //    }
-                //}
-                //finally
-                //{
-                //    if (!rdr.IsClosed)
-                //    {
-                //        rdr.Close();
-                //    }
-                //}
-            }
-            return eventSet;
-        }
-
-        public EventSet GetFaultsForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            //{
-            //    { "500", "#91e8e1" },
-            //    { "300", "#f45b5b" },
-            //    { "230", "#2b908f" },
-            //    { "200", "#e4d354" },
-            //    { "161", "#f15c80" },
-            //    { "135", "#8085e9" },
-            //    { "115", "#f7a35c" },
-            //    { "69", "#ff0000" },
-            //    { "46", "#434348" },
-            //    { "0", "#90ed7d" },
-
-            //};
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'FaultsChartColors' AND Enabled = 1"));
-            DataTable table = new DataTable();
-
-            foreach (var color in usersColors)
-            {
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectFaultsForMeterIDByDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-
-                foreach (DataRow row in table.Rows)
-                {
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            DashSettings ds = new DashSettings()
-                            {
-                                Name = "EventsChart",
-                                Value = column.ColumnName,
-                                Enabled = true
-                            };
-                            DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                        }
-
-                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                        {
-                            if(eventSet.Types.All(x => x.Name != column.ColumnName))
-                            {
-                                eventSet.Types.Add(new EventSet.EventDetail());
-                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                if (colors.ContainsKey(column.ColumnName))
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                else
-                                {
-                                    Random r = new Random();
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                    DashSettings ds = new DashSettings()
-                                    {
-                                        Name = "FaultsChartColors",
-                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                        Enabled = true
-                                    };
-                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                }
-                            }
-                            eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                        }
-                    }
-                }
-
-                if (!eventSet.Types.Any())
-                {
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            DashSettings ds = new DashSettings()
-                            {
-                                Name = "FaultsChart",
-                                Value = column.ColumnName,
-                                Enabled = true
-                            };
-                            DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                        }
-
-                        if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                        {
-                            if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                            {
-                                eventSet.Types.Add(new EventSet.EventDetail());
-                                eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                if (colors.ContainsKey(column.ColumnName))
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                else
-                                {
-                                    Random r = new Random();
-                                    eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                    DashSettings ds = new DashSettings()
-                                    {
-                                        Name = "FaultsChartColors",
-                                        Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                        Enabled = true
-                                    };
-                                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-            }
-            return eventSet;
-        }
-
-        public EventSet GetBreakersForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            //{
-            //    { "Normal", "#ff0000" },
-            //    { "Late", "#434348" },
-            //    { "Indeterminate", "#90ed7d" }
-            //};
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'BreakersChartColors' AND Enabled = 1"));
-            DataTable table = new DataTable();
-
-            foreach (var color in usersColors)
-            {
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectBreakersForMeterIDByDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-
-                try
-                {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "BreakersChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "BreakersChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "BreakersChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "BreakersChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-            }
-            return eventSet;
-        }
-
-        public EventSet GetCompletenessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CompletenessChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CompletenesssChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CompletenessChartColors' AND Enabled = 1"));
-            DataTable table = new DataTable();
-
-            foreach (var color in usersColors)
-            {
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectCompletenessForMeterIDByDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-
-                try
-                {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "CompletenessChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "CompletenessChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "CompletenessChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "CompletenessChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-
-                //try
-                //{
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[0].Name = "> 100%";
-                //    eventSet.Types[0].Color = "#00FFF4";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[1].Name = "98% - 100%";
-                //    eventSet.Types[1].Color = "#00C80E";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[2].Name = "90% - 97%";
-                //    eventSet.Types[2].Color = "#FFFF00";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[3].Name = "70% - 89%";
-                //    eventSet.Types[3].Color = "#FF9600";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[4].Name = "50% - 69%";
-                //    eventSet.Types[4].Color = "#FF2800";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[5].Name = ">0% - 49%";
-                //    eventSet.Types[5].Color = "#FF0EF0";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[6].Name = "0%";
-                //    eventSet.Types[6].Color = "#0000FF";
-                //    while (rdr.Read())
-                //    {
-                //        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["First"])));
-                //        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Second"])));
-                //        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Third"])));
-                //        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fourth"])));
-                //        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fifth"])));
-                //        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Sixth"])));
-
-                //        Double composite = eventSet.Types[0].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[1].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[2].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[3].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[4].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[5].Data[eventSet.Types[0].Data.Count - 1].Item2;
-                //        int metercount = siteID.Split(',').Length - 1;
-
-                //        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(metercount - composite)));
-                //    }
-                //}
-                //finally
-                //{
-                //    if (!rdr.IsClosed)
-                //    {
-                //        rdr.Close();
-                //    }
-                //}
-            }
-            return eventSet;
-        }
-
-        public EventSet GetCorrectnessForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CorrectnessChart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CorrectnesssChart' AND UserAccountID = {0}", GetCurrentUserID())).ToList();
-
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> usersColors = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'CorrectnessChartColors' AND Enabled = 1"));
-            DataTable table = new DataTable();
-
-            foreach (var color in usersColors)
-            {
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectCorrectnessForMeterIDByDateRange";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-
-                try
-                {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "CorrectnessChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "CorrectnessChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "CorrectnessChart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        Random r = new Random();
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "CorrectnessChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-
-                //try
-                //{
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[0].Name = "> 100%";
-                //    eventSet.Types[0].Color = "#00FFF4";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[1].Name = "98% - 100%";
-                //    eventSet.Types[1].Color = "#00C80E";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[2].Name = "90% - 97%";
-                //    eventSet.Types[2].Color = "#FFFF00";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[3].Name = "70% - 89%";
-                //    eventSet.Types[3].Color = "#FF9600";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[4].Name = "50% - 69%";
-                //    eventSet.Types[4].Color = "#FF2800";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[5].Name = ">0% - 49%";
-                //    eventSet.Types[5].Color = "#FF0EF0";
-                //    eventSet.Types.Add(new EventSet.EventDetail());
-                //    eventSet.Types[6].Name = "0%";
-                //    eventSet.Types[6].Color = "#0000FF";
-                //    while (rdr.Read())
-                //    {
-                //        eventSet.Types[0].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["First"])));
-                //        eventSet.Types[1].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Second"])));
-                //        eventSet.Types[2].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Third"])));
-                //        eventSet.Types[3].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fourth"])));
-                //        eventSet.Types[4].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Fifth"])));
-                //        eventSet.Types[5].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(rdr["Sixth"])));
-
-                //        Double composite = eventSet.Types[0].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[1].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[2].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[3].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[4].Data[eventSet.Types[0].Data.Count - 1].Item2 + eventSet.Types[5].Data[eventSet.Types[0].Data.Count - 1].Item2;
-                //        int metercount = siteID.Split(',').Length - 1;
-
-                //        eventSet.Types[6].Data.Add(Tuple.Create(Convert.ToDateTime(rdr["Date"]), Convert.ToInt32(metercount - composite)));
-                //    }
-                //}
-                //finally
-                //{
-                //    if (!rdr.IsClosed)
-                //    {
-                //        rdr.Close();
-                //    }
-                //}
             }
             return eventSet;
         }
@@ -1923,6 +821,45 @@ namespace PQDashboard
             return thedata;
         }
 
+        #endregion
+
+        #region [ PageSettings ]
+        
+        public void UpdateDashSettings(int id, string field, string value, string userId)
+        {
+            DashSettings ds = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("ID = {0}", id))?.FirstOrDefault() ?? null;
+            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value = {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value, userId))?.FirstOrDefault() ?? null;
+
+            if(uds != null)
+            {
+                if (field.EndsWith("enable") || field.EndsWith("tab"))
+                    uds.Enabled = !uds.Enabled;
+                else
+                    uds.Value = uds.Value.Split(',')[0] + ",#" + value;
+                DataContext.Table<UserDashSettings>().UpdateRecord(uds);
+
+            }
+            else
+            {
+                uds = new UserDashSettings();
+                uds.UserAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
+                uds.Name = ds.Name;
+
+                bool result;
+                if (!bool.TryParse(value, out result))
+                {
+                    uds.Enabled = true;
+                    uds.Value = ds.Value.Split(',')[0] + ",#" + value;
+                }
+                else
+                {
+                    uds.Enabled = result;
+                    uds.Value = ds.Value;
+                }
+                DataContext.Table<UserDashSettings>().AddNewRecord(uds);
+
+            }
+        }
         #endregion
 
         #region [OpenSEE Operations]
