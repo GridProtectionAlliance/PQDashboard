@@ -438,7 +438,7 @@ namespace PQDashboard
             eventSet.StartDate = DateTime.Parse(targetDateFrom);
             eventSet.EndDate = DateTime.Parse(targetDateTo);
             Dictionary<string, string> colors = new Dictionary<string, string>();
-            Random r = new Random();
+            Random r = new Random(DateTime.UtcNow.Millisecond);
 
             IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
             List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
