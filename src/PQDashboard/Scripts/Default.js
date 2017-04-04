@@ -384,8 +384,10 @@ function populateFaultsDivWithGrid(data) {
         scrollHeight: '100%',
         columns: [
             {
-                field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true, content:
-                            function (row) {
+                field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', bodyClass: '', sortable: true, content:
+                            function (row, options, td) {
+                                if (row.notecount > 0)
+                                    td.addClass('note')
                                 return "<a href='" + xdaInstance + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>"
                             }
             },
@@ -395,11 +397,44 @@ function populateFaultsDivWithGrid(data) {
             { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
             { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
             { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-            { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html }
+            { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
+            { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return '<button onclick="openNoteModal('+row.thefaultid+')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+
         ],
         datasource: filteredData
     });
+
 }
+
+function openNoteModal(faultId) {
+    $('#previousNotes').remove();
+    dataHub.getNotesForFault(faultId).done(function (data) {
+        $('#faultId').text(faultId);
+        if (data.length > 0)
+            $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
+        $.each(data, function (i, d) {
+            $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note'+d.ID+'">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td><button onclick="editNote(' + d.ID +')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+        });
+
+        $('#note').val('');
+        $('#notesModal').modal('show');
+    });
+}
+
+function saveNote() {
+    dataHub.saveNoteForFault($('#faultId').text(), $('#note').val(), userId);
+}
+
+function removeNote(id) {
+    dataHub.removeNote(id);
+    $('#row' +id).remove()
+}
+
+function editNote(id) {
+    $('#note').val($('#note' + id).text());
+    dataHub.removeNote(id);
+}
+
 
 function populateCorrectnessDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {

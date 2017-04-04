@@ -884,9 +884,33 @@
 </div>
 
 
+<!-- Modal -->
+<div id="notesModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+
+        <!-- Modal content-->
+        <div class="modal-content" >
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add a note to fault record <span id="faultId"></span></h4>
+            </div>
+            <div id="previousNotesDiv">
+                
+            </div>
+            <div class="modal-body">
+                <textarea id="note" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="saveNote()">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 <script>
-
+    const DateTimeFormat = '@Model.Global.DateTimeFormat'
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The following function are for making button links to another page and opening another page
     function filterMakeFaultSpecificsButton_html(id) {

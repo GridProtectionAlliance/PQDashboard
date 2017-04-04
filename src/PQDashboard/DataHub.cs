@@ -823,8 +823,34 @@ namespace PQDashboard
 
         #endregion
 
-        #region [ PageSettings ]
+        #region [ Fault Notes ]
         
+        public IEnumerable<FaultNote> GetNotesForFault(int id)
+        {
+            return DataContext.Table<FaultNote>().QueryRecords(restriction: new RecordRestriction("FaultSummaryID = {0}", id));
+        }
+
+        public void SaveNoteForFault(int id, string note, string userId)
+        {
+            DataContext.Table<FaultNote>().AddNewRecord(new FaultNote()
+            {
+                FaultSummaryID = id,
+                Note = note,
+                UserAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId),
+                TimeStamp = DateTime.UtcNow
+            });
+        }
+
+        public void RemoveNote(int id)
+        {
+            DataContext.Table<FaultNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
+        }
+
+
+        #endregion
+
+        #region [ PageSettings ]
+
         public void UpdateDashSettings(int id, string field, string value, string userId)
         {
             DashSettings ds = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("ID = {0}", id))?.FirstOrDefault() ?? null;

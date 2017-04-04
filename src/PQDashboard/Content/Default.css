@@ -819,3 +819,20 @@ color:#333;
     width: 375px;
     float: left;
 }
+
+.note {
+    position: relative;
+}
+.note:after { /* Magic Happens Here!!! */
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0; 
+    height: 0; 
+    display: block;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+
+    border-top: 20px solid #f00;
+} /* </magic> */

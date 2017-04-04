@@ -2517,7 +2517,7 @@ PUI.resolveUserAgent();
                             }
 
                             if(columnOptions.content) {
-                                var content = columnOptions.content.call(this, rowData, columnOptions);
+                                var content = columnOptions.content.call(this, rowData, columnOptions, column);
                                 if($.type(content) === 'string')
                                     column.html(content);
                                 else
