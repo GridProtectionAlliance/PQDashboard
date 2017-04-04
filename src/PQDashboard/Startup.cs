@@ -37,10 +37,10 @@ namespace PQDashboard
             //GlobalHost.DependencyResolver.Register(typeof(SecurityHub), () => new SecurityHub(new DataContext("securityProvider", exceptionHandler: MvcApplication.LogException), MvcApplication.LogStatusMessage, MvcApplication.LogException));
 
             HubConfiguration hubConfig = new HubConfiguration();
-#if DEBUG
+
             // Enabled detailed client errors
             hubConfig.EnableDetailedErrors = true;
-#endif
+
             // Load ServiceHub SignalR class
             app.MapSignalR(hubConfig);
         }
