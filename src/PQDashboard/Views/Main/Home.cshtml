@@ -261,6 +261,7 @@
             </div>
             <div class="modal-body" style="height: 95%; overflow-y: scroll">
                 <div style="position: relative">
+                    <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
                     <div class="grid">
                         <div class="grid-item">
                             <h4><u>Tabs</u></h4>
@@ -275,7 +276,7 @@
                                                     @setting.Value
                                                 </td>
                                                 <td>
-                                                    <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "")/>
                                                 </td>
                                             </tr>
                                         }
@@ -286,7 +287,7 @@
 
                         @foreach (DashSettings setting in dashSettings)
                         {
-                            if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
+                            if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() {"#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData"}).IndexOf(setting.Value) < 0)
                             {
                                 <div class="grid-item">
 
@@ -294,11 +295,11 @@
                                     <div class="well">
                                         <table>
                                             <thead>
-                                                <tr>
-                                                    <th>Field</th>
-                                                    <th>Color</th>
-                                                    <th>Enabled</th>
-                                                </tr>
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Color</th>
+                                                <th>Enabled</th>
+                                            </tr>
                                             </thead>
                                             @foreach (DashSettings innerSetting in dashSettings)
                                             {
@@ -311,12 +312,12 @@
                                                         <td>
                                                             @{
                                                                 DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-                                                                
+
                                                             }
                                                             <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
                                                         </td>
                                                         <td>
-                                                            <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                            <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "")/>
                                                         </td>
                                                     </tr>
                                                 }
@@ -332,7 +333,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -993,6 +994,10 @@
     function OpenWindowToChannelDataCompleteness(id) {
         var popup = window.open("@Html.Raw(Url.Content("~/ChannelDataCompleteness.aspx"))?eventid=" + id, id + "ChannelDataCompleteness");
         return false;
+    }
+    
+    function refresh(){
+        location.reload();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
