@@ -796,19 +796,23 @@ color:#333;
 }
 
 #ui-id-1, #ui-id-2 {
-    background-color: blanchedalmond;
+    background-color: #FCD883;
 }
 
 #ui-id-3, #ui-id-4,#ui-id-5,#ui-id-6 {
-    background-color: lavender;
+    background-color: #92F1F9;
 }
 
-#ui-id-7, #ui-id-8,#ui-id-9,#ui-id-10 {
-    background-color: lavenderblush;
+#ui-id-7, #ui-id-8 {
+    background-color: #A4CCFD;
+}
+
+#ui-id-9,#ui-id-10 {
+    background-color: #FDD2BB;
 }
 
 #ui-id-11, #ui-id-12 {
-    background-color: ghostwhite;
+    background-color: #DDDDDD;
 }
 
 .grid {
@@ -836,3 +840,12 @@ color:#333;
 
     border-top: 20px solid #f00;
 } /* </magic> */
+
+  .portlet-content {
+      z-index: 100;
+  }
+
+  .myjqstooltip {
+      width: 100%;
+      height: 100%;
+  }

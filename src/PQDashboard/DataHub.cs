@@ -822,8 +822,143 @@ namespace PQDashboard
 
         #endregion
 
+        #region [ Map/Grip Data Operations]
+
+        public class MeterLocations
+        {
+            public string Data;
+            public Dictionary<string, string> Colors; 
+        }
+
+        /// <summary>
+        /// getLocationsEvents 
+        /// </summary>
+        /// <param name="targetDateFrom">Start Date</param>
+        /// <param name="targetDateTo">End Date</param>
+        /// <param name="meterGroup">Meter Group</param>
+        /// <param name="tab">Current PQDashboard Tab</param>
+        /// <param name="userName">Current PQDashboard user</param>
+        /// <returns>Object with list of meters and counts for tab.</returns> 
+        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, int meterGroup, string tab, string userName)
+        {
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            MeterLocations meters = new MeterLocations();
+            DataTable table = new DataTable();
+
+            Dictionary<string, string> colors = new Dictionary<string, string>();
+
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
+            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            foreach (var color in colorSettings)
+            {
+                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
+                if (index >= 0)
+                {
+                    color.Value = userColorSettings[index].Value;
+                }
+
+                if (colors.ContainsKey(color.Value.Split(',')[0]))
+                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
+                else
+                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
+            }
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + tab, conn);
+
+                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+                cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 300;
+                rdr = cmd.ExecuteReader();
+                table.Load(rdr);
+
+                List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints"};
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn column in table.Columns)
+                {
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
+                    {
+                        disabledFileds.Add(column.ColumnName, true);
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "Chart",
+                            Value = column.ColumnName,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                    }
+
+                    if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
+                    {
+                        Random r = new Random(DateTime.UtcNow.Millisecond);
+                        string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                        colors.Add(column.ColumnName, color);
+
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "ChartColors",
+                            Value = column.ColumnName + ",#" + color,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+
+                    }
+
+
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                    {
+                        columnsToRemove.Add(column.ColumnName);
+                    }
+
+                }
+                foreach (string columnName in columnsToRemove)
+                {
+                        table.Columns.Remove(columnName);
+                }
+                
+                meters.Colors = colors;
+                meters.Data = DataTable2JSON(table);
+            }
+            finally
+            {
+                if (!rdr.IsClosed)
+                {
+                    rdr.Close();
+                }
+            }
+            return meters;
+        }
+
+        #endregion
+
         #region [ Fault Notes ]
-        
+
         public IEnumerable<FaultNote> GetNotesForFault(int id)
         {
             return DataContext.Table<FaultNote>().QueryRecords(restriction: new RecordRestriction("FaultSummaryID = {0}", id));

@@ -231,7 +231,6 @@ function selectmapgrid(thecontrol) {
                 plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
-            updateGridWithSelectedSites();
         }
         else if (thecontrol.selectedIndex === 0) {
             //$("#ContoursControlsTrending").hide();
@@ -369,41 +368,41 @@ function populateFaultsDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (data == null) data = [];
+    if (data != null) {
 
-    $.each(data, function (i, d) {
-        if(!disabledList[currentTab][d.voltage + ' kV'])
-            filteredData.push(d);
-    });
+        $.each(data, function (i, d) {
+            if (!disabledList[currentTab][d.voltage + ' kV'])
+                filteredData.push(d);
+        });
 
 
-    fixNumbers(data, ['voltage', 'thecurrentdistance']);
+        fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            {
-                field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', bodyClass: '', sortable: true, content:
-                            function (row, options, td) {
-                                if (row.notecount > 0)
-                                    td.addClass('note')
-                                return "<a href='" + xdaInstance + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>"
-                            }
-            },
-            { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
-            { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-            { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-            { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-            { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-            { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
-            { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return '<button onclick="openNoteModal('+row.thefaultid+')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                {
+                    field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', bodyClass: '', sortable: true, content:
+                                function (row, options, td) {
+                                    if (row.notecount > 0)
+                                        td.addClass('note')
+                                    return "<a href='" + xdaInstance + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>"
+                                }
+                },
+                { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
+                { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
 
-        ],
-        datasource: filteredData
-    });
-
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function openNoteModal(faultId) {
@@ -444,66 +443,68 @@ function populateCorrectnessDivWithGrid(data) {
     }
 
     var filteredData = [];
-    $.each(data, function (i, d) {
-        var flag = false;
-        $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
-            switch (e) {
-                case '> 100%':
-                    if (parseFloat(d.Correctness) > 100)
-                        flag = true;
-                    break;
+    if (data != null) {
+        $.each(data, function (i, d) {
+            var flag = false;
+            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
+                switch (e) {
+                    case '> 100%':
+                        if (parseFloat(d.Correctness) > 100)
+                            flag = true;
+                        break;
 
-                case '98% - 100%':
-                    if (parseFloat(d.Correctness) >= 98 && parseFloat(d.Correctness) <= 100)
-                        flag = true;
-                    break;
+                    case '98% - 100%':
+                        if (parseFloat(d.Correctness) >= 98 && parseFloat(d.Correctness) <= 100)
+                            flag = true;
+                        break;
 
-                case '90% - 97%':
-                    if (parseFloat(d.Correctness) >= 90 && parseFloat(d.Correctness) < 98)
-                        flag = true;
-                    break;
+                    case '90% - 97%':
+                        if (parseFloat(d.Correctness) >= 90 && parseFloat(d.Correctness) < 98)
+                            flag = true;
+                        break;
 
-                case '70% - 89%':
-                    if (parseFloat(d.Correctness) >= 70 && parseFloat(d.Correctness) < 90)
-                        flag = true;
-                    break;
+                    case '70% - 89%':
+                        if (parseFloat(d.Correctness) >= 70 && parseFloat(d.Correctness) < 90)
+                            flag = true;
+                        break;
 
-                case '50% - 69%':
-                    if (parseFloat(d.Correctness) >= 50 && parseFloat(d.Correctness) < 70)
-                        flag = true;
-                    break;
+                    case '50% - 69%':
+                        if (parseFloat(d.Correctness) >= 50 && parseFloat(d.Correctness) < 70)
+                            flag = true;
+                        break;
 
-                case '>0% - 49%':
-                    if (parseFloat(d.Correctness) > 0 && parseFloat(d.Correctness) < 50)
-                        flag = true;
-                    break;
+                    case '>0% - 49%':
+                        if (parseFloat(d.Correctness) > 0 && parseFloat(d.Correctness) < 50)
+                            flag = true;
+                        break;
 
-                case '0%':
-                    if (parseFloat(d.Correctness) == 0)
-                        flag = true;
-                    break;
-            }
+                    case '0%':
+                        if (parseFloat(d.Correctness) == 0)
+                            flag = true;
+                        break;
+                }
+            });
+            if (!flag)
+                filteredData.push(d);
         });
-        if (!flag)
-            filteredData.push(d);
-    });
 
 
-    fixNumbers(data, ['Latched', 'Unreasonable', 'Noncongruent', 'Correctness']);
+        fixNumbers(data, ['Latched', 'Unreasonable', 'Noncongruent', 'Correctness']);
 
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-            { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return row.Latched.toFixed(0) + '%'; } },
-            { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Unreasonable.toFixed(0) + '%'; } },
-            { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Noncongruent.toFixed(0) + '%'; } },
-            { field: 'Correctness', headerText: 'Correctness', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Correctness.toFixed(0) + '%'; } },
-            { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
-        ],
-        datasource: filteredData
-    });
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                { field: 'Latched', headerText: 'Latched', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true, content: function (row) { return row.Latched.toFixed(0) + '%'; } },
+                { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Unreasonable.toFixed(0) + '%'; } },
+                { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Noncongruent.toFixed(0) + '%'; } },
+                { field: 'Correctness', headerText: 'Correctness', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Correctness.toFixed(0) + '%'; } },
+                { field: 'ChannelDataQuality', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelDataQualityButton_html }
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function populateCompletenessDivWithGrid(data) {
@@ -513,67 +514,69 @@ function populateCompletenessDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    var filteredData = [];
-    $.each(data, function (i, d) {
-        var flag = false;
-        $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
-            switch (e) {
-                case '> 100%':
-                    if (d.Completeness > 100)
-                        flag = true;
-                    break;
+    if (data != null) {
+        var filteredData = [];
+        $.each(data, function (i, d) {
+            var flag = false;
+            $.each($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }), function (j, e) {
+                switch (e) {
+                    case '> 100%':
+                        if (d.Completeness > 100)
+                            flag = true;
+                        break;
 
-                case '98% - 100%':
-                    if (d.Completeness >= 98 && d.Completeness <= 100)
-                        flag = true;
-                    break;
+                    case '98% - 100%':
+                        if (d.Completeness >= 98 && d.Completeness <= 100)
+                            flag = true;
+                        break;
 
-                case '90% - 97%':
-                    if (d.Completeness >= 90 && d.Completeness < 98)
-                        flag = true;
-                    break;
+                    case '90% - 97%':
+                        if (d.Completeness >= 90 && d.Completeness < 98)
+                            flag = true;
+                        break;
 
-                case '70% - 89%':
-                    if (d.Completeness >= 70 && d.Completeness < 90)
-                        flag = true;
-                    break;
+                    case '70% - 89%':
+                        if (d.Completeness >= 70 && d.Completeness < 90)
+                            flag = true;
+                        break;
 
-                case '50% - 69%':
-                    if (d.Completeness >= 50 && d.Completeness < 70)
-                        flag = true;
-                    break;
+                    case '50% - 69%':
+                        if (d.Completeness >= 50 && d.Completeness < 70)
+                            flag = true;
+                        break;
 
-                case '>0% - 49%':
-                    if (d.Completeness > 0 && d.Completeness < 50)
-                        flag = true;
-                    break;
+                    case '>0% - 49%':
+                        if (d.Completeness > 0 && d.Completeness < 50)
+                            flag = true;
+                        break;
 
-                case '0%':
-                    if (d.Completeness == 0)
-                        flag = true;
-                    break;
-            }
+                    case '0%':
+                        if (d.Completeness == 0)
+                            flag = true;
+                        break;
+                }
+            });
+            if (!flag)
+                filteredData.push(d);
         });
-        if (!flag)
-            filteredData.push(d);
-    });
 
 
-    fixNumbers(data, ['Expected', 'Received', 'Duplicate', 'Completeness']);
+        fixNumbers(data, ['Expected', 'Received', 'Duplicate', 'Completeness']);
 
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-            { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Received.toFixed(0) + '%'; } },
-            { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Duplicate.toFixed(0) + '%'; } },
-            { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Completeness.toFixed(0) + '%'; } },
-            { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
-        ],
-        datasource: filteredData
-    });
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Received.toFixed(0) + '%'; } },
+                { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Duplicate.toFixed(0) + '%'; } },
+                { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Completeness.toFixed(0) + '%'; } },
+                { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function populateEventsDivWithGrid(data) {
@@ -638,37 +641,38 @@ function populateDisturbancesDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (data == null) data = [];
+    if (data != null) {
 
-    $.each(data, function (i, d) {
-        var sum = 0;
-        $.each(Object.keys(disabledList[currentTab]), function (index, key) {
-            if (!disabledList[currentTab][key]) {
-                sum += parseInt(d[key]);
-            }
+        $.each(data, function (i, d) {
+            var sum = 0;
+            $.each(Object.keys(disabledList[currentTab]), function (index, key) {
+                if (!disabledList[currentTab][key]) {
+                    sum += parseInt(d[key]);
+                }
+            });
+
+            if (sum > 0)
+                filteredData.push(d);
+
         });
 
-        if (sum > 0)
-            filteredData.push(d);
+        fixNumbers(data, ['5', '4', '3', '2', '1', '0']);
 
-    });
-
-    fixNumbers(data, ['5', '4', '3', '2', '1', '0']);
-
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite+ '</button>' } },
-            { field: '5', headerText: '5', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), sortable: true },
-            { field: '4', headerText: '4', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), sortable: true },
-            { field: '3', headerText: '3', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), sortable: true },
-            { field: '2', headerText: '2', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), sortable: true },
-            { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), sortable: true },
-            { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), sortable: true },
-        ],
-        datasource: filteredData
-    });
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite + '</button>' } },
+                { field: '5', headerText: '5', headerStyle: 'width: 12%; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), bodyStyle: 'width: 12%; height: 20px; ' + (disabledList[currentTab]['5'] ? 'display: none' : ''), sortable: true },
+                { field: '4', headerText: '4', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['4'] ? 'display: none' : ''), sortable: true },
+                { field: '3', headerText: '3', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['3'] ? 'display: none' : ''), sortable: true },
+                { field: '2', headerText: '2', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['2'] ? 'display: none' : ''), sortable: true },
+                { field: '1', headerText: '1', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['1'] ? 'display: none' : ''), sortable: true },
+                { field: '0', headerText: '0', headerStyle: 'width: 10%; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), bodyStyle: 'width: 10%; height: 20px; ' + (disabledList[currentTab]['0'] ? 'display: none' : ''), sortable: true },
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function populateBreakersDivWithGrid(data) {
@@ -678,38 +682,38 @@ function populateBreakersDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
+    if (data != null) {
+        var filteredData = [];
+        $.each(data, function (i, d) {
+            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.operationtype) < 0)
+                filteredData.push(d);
+        });
 
-    var filteredData = [];
-    $.each(data, function (i, d) {
-        if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.operationtype) < 0)
-            filteredData.push(d);
-    });
 
+        fixNumbers(data, ['timing', 'statustiming', 'speed']);
 
-    fixNumbers(data, ['timing', 'statustiming', 'speed']);
-
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            {
-                field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
-                              function (row) {
-                                  return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.energized + "</a>"
-                              }
-            },
-            { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-            { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true },
-            { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
-            { field: 'timing', headerText: 'Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-            { field: 'statustiming', headerText: 'Status Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-            { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
-            { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
-            { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-        ],
-        datasource: filteredData
-    });
-
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                {
+                    field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
+                                  function (row) {
+                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.energized + "</a>"
+                                  }
+                },
+                { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
+                { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true },
+                { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
+                { field: 'timing', headerText: 'Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
+                { field: 'statustiming', headerText: 'Status Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
+                { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
+                { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
+                { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function populateTrendingDivWithGrid(data) {
@@ -719,31 +723,32 @@ function populateTrendingDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    var filteredData = [];
-    $.each(data, function (i, d) {
-        if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.eventtype) < 0)
-            filteredData.push(d);
-    });
+    if (data != null) {
+        var filteredData = [];
+        $.each(data, function (i, d) {
+            if ($.grep(Object.keys(disabledList[currentTab]), function (d) { return disabledList[currentTab][d] }).indexOf(d.eventtype) < 0)
+                filteredData.push(d);
+        });
 
 
-    fixNumbers(data, ['HarmonicGroup', 'eventcount']);
+        fixNumbers(data, ['HarmonicGroup', 'eventcount']);
 
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            { field: 'sitename', headerText: 'Name', headerStyle: 'width: 25%', bodyStyle: 'width: 35%; height: 20px', sortable: true},
-            { field: 'eventtype', headerText: 'Alarm Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: 'measurementtype', headerText: 'Measurement Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'characteristic', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: 'HarmonicGroup', headerText: 'HG', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-            { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); } }
-        ],
-        datasource: filteredData
-    });
-
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'sitename', headerText: 'Name', headerStyle: 'width: 25%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                { field: 'eventtype', headerText: 'Alarm Type', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                { field: 'measurementtype', headerText: 'Measurement Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                { field: 'characteristic', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                { field: 'HarmonicGroup', headerText: 'HG', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                { field: 'eventcount', headerText: 'Count', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
+                { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); } }
+            ],
+            datasource: filteredData
+        });
+    }
 }
 
 function populateTrendingDataDivWithGrid(data) {
@@ -753,22 +758,24 @@ function populateTrendingDataDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    fixNumbers(data, ['Minimum', 'Maximum', 'Average']);
+    if(data != null){
+        fixNumbers(data, ['Minimum', 'Maximum', 'Average']);
 
-    $('#Detail' + currentTab + "Table").puidatatable({
-        scrollable: true,
-        scrollHeight: '100%',
-        columns: [
-            { field: 'Name', headerText: 'Name', headerStyle: 'width: 15%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
-            { field: 'characteristic', headerText: 'Characterisitc', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-            { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-            { field: 'Minimum', headerText: 'Minimum', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Minimum).toFixed(4);} },
-            { field: 'Maximum', headerText: 'Maximum', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Maximum).toFixed(4); } },
-            { field: 'Average', headerText: 'Average', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Average).toFixed(4); } },
-            { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); }}
-        ],
-        datasource: data
-    });
+        $('#Detail' + currentTab + "Table").puidatatable({
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'Name', headerText: 'Name', headerStyle: 'width: 15%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
+                { field: 'characteristic', headerText: 'Characterisitc', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
+                { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
+                { field: 'Minimum', headerText: 'Minimum', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Minimum).toFixed(4);} },
+                { field: 'Maximum', headerText: 'Maximum', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Maximum).toFixed(4); } },
+                { field: 'Average', headerText: 'Average', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Average).toFixed(4); } },
+                { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); }}
+            ],
+            datasource: data
+        });
+    }
 }
 
 function fixNumbers(data, numFields) {
@@ -781,45 +788,6 @@ function fixNumbers(data, numFields) {
     }
 }
 //////////////////////////////////////////////////////////////////////////
-
-function getColorsForTab(thetab) {   
-    switch(thetab) {
-    
-        case "Events":
-            return(globalcolorsEvents);
-            break;
-
-        case "Disturbances":
-            return (globalcolorsEvents);
-            break;
-
-
-        case "Trending":
-            return(globalcolorsTrending);
-            break;
-
-        case "Faults":
-            return(globalcolorsFaults);
-            break;
-
-        case "Breakers":
-            return(globalcolorsBreakers);
-            break;
-
-        case "Completeness":
-            return (globalcolorsDQ);
-            break;
-
-        case "Correctness":
-            return (globalcolorsDQ);
-            break;
-
-        default :
-            return (globalcolors);
-    }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function getFormattedDate(date) {
     var newdate = new Date(date);
@@ -1441,11 +1409,11 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
 
 
 }
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
 function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
-    var url = homePath + "mapService.asmx/getLocations" + currentTab;
+    var url = homePath + "mapService.asmx/getMeterLocations";
     var thedatasent = "{'targetDateFrom':'" + datefrom + "'" +
         (currentTab === "TrendingData" ? ", 'measurementType': '" + $('#trendingDataSelection').val() + "'" : "") +
         " , 'targetDateTo':'" + dateto +
@@ -1456,7 +1424,10 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         thedatasent = {
             targetDateFrom: datefrom,
             targetDateTo: dateto,
-            meterGroup: $('#meterGroupSelect').val()
+            meterGroup: $('#meterGroupSelect').val(),
+            tab: currentTab,
+            userName: postedUserName,
+
         };
     } else {
         thedatasent = {
@@ -1478,187 +1449,22 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
 
     setMapHeaderDate(datefrom, dateto);
 
-    // Jeff Walker
-    $.ajax({
-        datefrom: datefrom,
-        dateto: dateto,
-        type: "POST",
-        url: url,
-        data: JSON.stringify(thedatasent),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            cache_Map_Matrix_Data_Date_From = this.datefrom;
-            cache_Map_Matrix_Data_Date_To = this.dateto;
-            cache_Map_Matrix_Data = data;
+    dataHub.getMeterLocations(datefrom, dateto, $('#meterGroupSelect').val(), currentTab, userId).done(function (data) {
+        data.JSON = JSON.parse(data.Data);
+        cache_Map_Matrix_Data_Date_From = this.datefrom;
+        cache_Map_Matrix_Data_Date_To = this.dateto;
+        cache_Map_Matrix_Data = data;
 
-            plotMapLocations(data.d, currentTab, this.datefrom, this.dateto);
-            plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
-
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
+        plotMapLocations(data, currentTab, this.datefrom, this.dateto);
+        plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+    }).fail(function (msg) {
+        alert(msg);
     });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getStatusColorForGridElement( data ) {
-    
-    switch (currentTab) {
-        case "Events":
-            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0)
-                return ("#0E892C");
-            if (data[0] > 0 && !disabledList[currentTab]["Interruption"])  // Interruptions
-                return (globalcolorsEvents[5]);
-            if (data[1] > 0 && !disabledList[currentTab]["Fault"])  // Faults
-                return (globalcolorsEvents[4]);
-            if (data[2] > 0 && !disabledList[currentTab]["Sag"])  // Sags
-                return (globalcolorsEvents[3]);
-            if (data[3] > 0 && !disabledList[currentTab]["Transient"])  // Transients
-                return (globalcolorsEvents[2]);
-            if (data[4] > 0 && !disabledList[currentTab]["Swell"])  // Swells
-                return (globalcolorsEvents[1]);
-            if (data[5] > 0 && !disabledList[currentTab]["Other"])   // Others
-                return (globalcolorsEvents[0]);
-            else return ("#0E892C");
-            break;
-        case "Disturbances":
-            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) 
-                return ("#0E892C");
-            if (data[5] > 0 && !disabledList[currentTab]["5"])  // 5
-                return (globalcolorsEvents[5]);
-            if (data[4] > 0 && !disabledList[currentTab]["4"])  // 4
-                return (globalcolorsEvents[4]);
-            if (data[3] > 0 && !disabledList[currentTab]["3"])  // 3
-                return (globalcolorsEvents[3]);
-            if (data[2] > 0 && !disabledList[currentTab]["2"])  // 2
-                return (globalcolorsEvents[2]);
-            if (data[1] > 0 && !disabledList[currentTab]["1"])  // 1
-                return (globalcolorsEvents[1]);
-            if (data[0] > 0 && !disabledList[currentTab]["0"])  // 0
-                return (globalcolorsEvents[0]);
-            else return ("#0E892C");
-            break;
-        case "Completeness":
-            //[0]ExpectedPoints
-            //[1]GoodPoints
-            //[2]LatchedPoints
-            //[3]UnreasonablePoints
-            //[4]NoncongruentPoints
-            //[5]DuplicatePoints
-
-            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0)
-                return (globalcolorsDQ[0]);
-            if (data[0] == 0 || data[1] == 0)
-                return ("#CCCCCC");
-
-            var percentage = Math.floor(((data[1] + data[2] + data[3] +data[4]) / data[0]) * 100);
-            if (percentage > 100 && !disabledList[currentTab]["> 100%"])
-                return (globalcolorsDQ[6]);
-            if (percentage >= 98 && !disabledList[currentTab]["98% - 100%"])
-                return (globalcolorsDQ[5]);
-            if (percentage >= 90 && !disabledList[currentTab]["90% - 97%"])
-                return (globalcolorsDQ[4]);
-            if (percentage >= 70 && !disabledList[currentTab]["70% - 89%"])
-                return (globalcolorsDQ[3]);
-            if (percentage >= 50 && !disabledList[currentTab]["50% - 69%"])
-                return (globalcolorsDQ[2]);
-            if (percentage > 0 && !disabledList[currentTab][">0% - 49%"])
-                return (globalcolorsDQ[1]);
-            if (!disabledList[currentTab]["0%"]) return (globalcolorsDQ[0]);
-            return (globalcolorsDQ[0]);
-            break;
-
-        case "Correctness":
-            //[0]ExpectedPoints
-            //[1]GoodPoints
-            //[2]LatchedPoints
-            //[3]UnreasonablePoints
-            //[4]NoncongruentPoints
-            //[5]DuplicatePoints
-            if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0) 
-                return (globalcolorsDQ[0]);
-            if (data[0] == 0 || data[1] == 0) 
-                return ("#CCCCCC");
-
-            var percentage = Math.floor((data[1]/(data[1] + data[2] + data[3] + data[4])) * 100);
-            if (percentage > 100 && !disabledList[currentTab]["> 100%"])
-                return (globalcolorsDQ[6]);
-            if (percentage >= 98 && !disabledList[currentTab]["98% - 100%"])
-                return (globalcolorsDQ[5]);
-            if (percentage >= 90 && !disabledList[currentTab]["90% - 97%"])
-                return (globalcolorsDQ[4]);
-            if (percentage >= 70 && !disabledList[currentTab]["70% - 89%"])
-                return (globalcolorsDQ[3]);
-            if (percentage >= 50 && !disabledList[currentTab]["50% - 69%"])
-                return (globalcolorsDQ[2]);
-            if (percentage > 0 && !disabledList[currentTab][">0% - 49%"])
-                return (globalcolorsDQ[1]);
-            if (!disabledList[currentTab]["0%"]) return (globalcolorsDQ[0]);
-            return (globalcolorsDQ[0]);
-            break;
-
-        case "Trending":
-                    
-            if (data[0] == 0 && data[1] == 0) 
-                return ("#339933");
-            else if (data[1] > 0 && data[0] > 0) 
-                return ("#FF7700");
-            else if (data[0] > 0 && data[1] == 0 && !disabledList[currentTab]["Alarm"])
-                return ("#FF0000");
-            else if (data[1] > 0 && data[0] == 0 && !disabledList[currentTab]["OffNormal"])
-                return ("#FFCC00");
-            else return ("#339933");
-            break;
-
-
-        case "TrendingData":
-            if ($('#trendingDataTypeSelection').val() === "Average") {
-                if (data[2] !== null) return ("#0E892C");
-            }
-            else if ($('#trendingDataTypeSelection').val() === "Minimum") {
-                if (data[1] !== null) return ("#0E892C");
-            }
-            else if ($('#trendingDataTypeSelection').val() === "Maximum") {
-                if (data[0] !== null) return ("#0E892C");
-            }
-            break;
-
-        case "Faults":
-            if (data[0] == 0) 
-                return ("#0E892C");
-            if (data[0] > 0)  // Faults
-                return ("#FF0000");
-            break;
-
-
-        case "Breakers":
-            if (data[0] == 0 && data[1] == 0 && data[2] == 0 ) 
-                return ("#0E892C");
-            if (data[0] > 0 && !disabledList[currentTab]["Normal"])  // Normal
-                return (globalcolors[2]);
-
-            if (data[1] > 0 && !disabledList[currentTab]["Late"])  // Late
-                return (globalcolors[1]);
-
-            if (data[2] > 0 && !disabledList[currentTab]["Indeterminate"])  // Indeterminate
-                return (globalcolors[0]);
-            else return ("#0E892C");
-            break;
-
-        default:
-            break;
-    }
-    return ("#000000");
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateGridMatrix(data, siteID, siteName) {
+function populateGridMatrix(data, siteID, siteName, colors) {
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
     $(matrixItemID).empty();
@@ -1669,69 +1475,65 @@ function populateGridMatrix(data, siteID, siteName) {
 
     $(matrixItemID).append("<div style='font-size: 1em'><div class='faultgridtitle'>" + siteName + "</div>");
 
-    var theGridColor = getStatusColorForGridElement(data);
+    var theGridColor = getLeafletLocationColors(data, colors);
 
     $(matrixItemID).css("background-color", theGridColor);
 
-    if (theGridColor != "#0E892C" && theGridColor != "#777777") {
-        DrawGridSparklines(data, siteID, siteName, matrixItemID);
-        $(matrixItemID).append("</div>");
+    if (parseInt(data.Count) > 0) {
+        DrawGridSparklines(data, siteID, siteName, matrixItemID, colors);
     }
 
-        $(matrixItemID).click(function (e) {
+    $(matrixItemID).click(function (e) {
 
-            if (!e.shiftKey && !e.ctrlKey ) {
-                $('#siteList').multiselect('uncheckAll');                    
-            }
+        if (!e.shiftKey && !e.ctrlKey ) {
+            $('#siteList').multiselect('uncheckAll');                    
+        }
 
-            var thisselectedindex = 0;
+        var thisselectedindex = 0;
 
-            $('#siteList').multiselect("widget").find(":checkbox").each(function(item) {
-                if (this.title == siteName) {
-                    thisselectedindex = item;
-                }
-            });
-
-
-            $('#siteList').multiselect("widget").find(":checkbox").each(function (item) {
-
-                if (e.shiftKey) {
-
-                    if (thisselectedindex > lastselectedindex) {
-                        if ((item >= lastselectedindex) && (item <= thisselectedindex)) {
-                            if (this.checked == false) this.click();
-                        } else {
-                            if (this.checked == true) this.click();
-                        }
-                    } else {
-                        if ((item >= thisselectedindex) && (item <= lastselectedindex)) {
-                            if (this.checked == false) this.click();
-                        } else {
-                            if (this.checked == true) this.click();
-                        }
-                    }
-                } else if (item == thisselectedindex) {
-                        this.click();
-                        return(false);
-                }
-            });
-
-            if (!e.shiftKey && !e.ctrlKey) {
-
-                lastselectedindex = thisselectedindex;
-
-            }
-
-            updateGridWithSelectedSites();
-
-            if (e.ctrlKey) {
-                if (selectiontimeout != null) clearTimeout(selectiontimeout);
-                selectiontimeout = setTimeout('selectsitesincharts()', 1500);
-            } else {
-                selectsitesincharts();
+        $('#siteList').multiselect("widget").find(":checkbox").each(function(item) {
+            if (this.title == siteName) {
+                thisselectedindex = item;
             }
         });
 
+
+        $('#siteList').multiselect("widget").find(":checkbox").each(function (item) {
+
+            if (e.shiftKey) {
+
+                if (thisselectedindex > lastselectedindex) {
+                    if ((item >= lastselectedindex) && (item <= thisselectedindex)) {
+                        if (this.checked == false) this.click();
+                    } else {
+                        if (this.checked == true) this.click();
+                    }
+                } else {
+                    if ((item >= thisselectedindex) && (item <= lastselectedindex)) {
+                        if (this.checked == false) this.click();
+                    } else {
+                        if (this.checked == true) this.click();
+                    }
+                }
+            } else if (item == thisselectedindex) {
+                    this.click();
+                    return(false);
+            }
+        });
+
+        if (!e.shiftKey && !e.ctrlKey) {
+            lastselectedindex = thisselectedindex;
+        }
+
+        updateGridWithSelectedSites();
+
+        if (e.ctrlKey) {
+            if (selectiontimeout != null) clearTimeout(selectiontimeout);
+            selectiontimeout = setTimeout('selectsitesincharts()', 1500);
+        } else {
+            selectsitesincharts();
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1745,395 +1547,104 @@ function updateGridWithSelectedSites() {
         } else {
             $(matrixItemID).switchClass('matrixButton', 'matrixButtonBlack');
         }
-    });  
+    });
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////
-function DrawGridSparklines(data, siteID, siteName, matrixItemID) {
+function DrawGridSparklines(data, siteID, siteName, matrixItemID, colors) {
     switch (currentTab) {
         case "Events":
-            populateGridSparklineEvents(data, siteID, siteName);
-            break;
-
         case "Disturbances":
-            populateGridSparklineDisturbances(data, siteID, siteName);
-            break;
-
-        case "Trending":
-            
-
-            break;
-
-        case "Faults":
-            $(matrixItemID).append("<div unselectable='on' class='faultgridcount'>" + data[0] + "</div>");
-            $(matrixItemID)[0].title = siteName + " Faults: " + data[0];
-            break;
-
         case "Breakers":
-            populateGridSparklineBreakers(data, siteID, siteName);
+            populateGridSparklines(data, siteID, siteName, colors);
             break;
-
+        case "Faults":
+            $(matrixItemID).append("<div unselectable='on' class='faultgridcount'>" + data.Count + "</div>");
+            $(matrixItemID)[0].title = siteName + " Faults: " + data.Count;
+            break;
         case "Completeness":
-            populateGridSparklineCompleteness(data, siteID, siteName, false);
-            break;
-
         case "Correctness":
-            populateGridSparklineCorrectness(data, siteID, siteName, false);
-            break;
-
+            populateGridSparklineDataQuality(data, siteID, siteName, true, colors);
+            break;  
+        case "Trending":
+        case "TrendingData":
         default:
             break;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
     
-function populateGridSparklineCorrectness(data, siteID, siteName, makespark) {
-
+function populateGridSparklineDataQuality(data, siteID, siteName, makespark, colors) {
     var sparkvalues = [];
 
     var colorMap = [];
 
-    var completeness = data[1] + data[2] + data[3] + data[4];
+    var completeness = parseInt(data.GoodPoints) + parseInt(data.LatchedPoints) + parseInt(data.NoncongruentPoints) + parseInt(data.UnreasonablePoints);
 
-    sparkvalues = [data[0], completeness, data[5]];
-
-    colorMap = globalcolorsDQ;
+    sparkvalues = [parseInt(data.ExpectedPoints), completeness, parseInt(data.DuplicatePoints)];
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
     $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
 
-    if (data[0] == 0) {
-        $(matrixItemID)[0].title = "No Data Available";
-
-    } else {
-        var title = siteName;
-
-        title += "\nGood: " + (data[1] / completeness * 100).toFixed(0) + "%";
-        title += "\nLatched: " + (data[2] / completeness * 100).toFixed(0) + "%";
-        title += "\nUnreasonable: " + (data[3] / completeness * 100).toFixed(0) + "%";
-        title += "\nNoncongruent: " + (data[4] / completeness * 100).toFixed(0) + "%";
-
-        $(matrixItemID)[0].title = title;
-    }
+    var colorMap = ["#ff0000","#00ff00","#0000ff"]
 
     if (!makespark) return;
     $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
         type: 'bar',
-        height: parseInt($(matrixItemID).height() * .4),
-        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
-        siteid: siteName,
-        borderWidth: 0,
-        nullColor: '#f5f5f5',
-        zeroColor: '#f5f5f5',
-        borderColor: '#f5f5f5',
-        colorMap: colorMap,
-
         tooltipFormatter: function (sp, options, fields) {
-            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-            switch (fields[0].offset) {
-                case 0:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
-                    break;
-                case 1:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
-                    break;
-                case 2:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
-                    break;
-            }
-
-            return (returnvalue);
-        }
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateGridSparklineCompleteness(data, siteID, siteName, makespark) {
-
-    var sparkvalues = [];
-
-    var colorMap = [];
-
-    var completeness = data[1] + data[2] + data[3] + data[4];
-
-    sparkvalues = [data[0], completeness, data[5]];
-
-    colorMap = globalcolors;
-
-    var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
-
-    $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
-
-    if (data[0] == 0) {
-        $(matrixItemID)[0].title = "No Data Available";
-
-    } else {
-        $(matrixItemID)[0].title = siteName + "\nExpected: " + data[0] + "\nReceived: " + (completeness / data[0] * 100).toFixed(2) + "%\nDuplicate: " + (data[5] / data[0] * 100).toFixed(2) + "%";
-
-    }
-
-    if (!makespark) return;
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
-        type: 'bar',
-        height: parseInt($(matrixItemID).height() * .4),
-        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
-        siteid: siteName,
-        borderWidth: 0,
-        nullColor: '#f5f5f5',
-        zeroColor: '#f5f5f5',
-        borderColor: '#f5f5f5',
-        colorMap: colorMap,
-
-        tooltipFormatter: function (sp, options, fields) {
-            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-            switch (fields[0].offset) {
-                case 0:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Expected: ' + fields[0].value + '</div>';
-                    break;
-                case 1:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Received: ' + fields[0].value + '</div>';
-                    break;
-                case 2:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Duplicate: ' + fields[0].value + '</div>';
-                    break;
-            }
-
-            return (returnvalue);
-        }
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateGridSparklineEvents(data, siteID, siteName) {
-
-     var sparkValues = { "Interruption": { data: data[0], color: globalcolorsEvents[5] }, "Fault": { data: data[1], color: globalcolorsEvents[4] }, "Sag": { data: data[2], color: globalcolorsEvents[3] }, "Transient": { data: data[3], color: globalcolorsEvents[2] }, "Swell": { data: data[4], color: globalcolorsEvents[1] }, "Other": { data: data[5], color: globalcolorsEvents[0] } };
-     var numbers = [];
-     var colors = [];
-     $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }), function (index, field) {
-         if (sparkValues[field] != null) {
-             numbers.push(sparkValues[field].data);
-             colors.push(sparkValues[field].color);
-         }
-     });
-
-    var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
-
-    $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
-
-    $(matrixItemID).tooltip({
-        position: {
-            my: "center bottom-20",
-            at: "center top",
-            using: function( position, feedback ) {
-                $( this ).css( position );
-                $( "<div>" )
-                    .addClass( "arrow" )
-                    .addClass( feedback.vertical )
-                    .addClass( feedback.horizontal )
-                    .appendTo( this );
-            }
-        },
-
-        content: function() {
             var thetitle = "";
-            thetitle += "<table>";
-            thetitle += "<tr><td colspan=2 align='center'>" + siteName + "</td></tr>";
-            thetitle += "<tr><td>Interruptions</td><td align='right'>" + data[5] + "</td></tr>";
-            thetitle += "<tr><td>Faults</td><td align='right'>" + data[4] + "</td></tr>";
-            thetitle += "<tr><td>Sags</td><td align='right'>" + data[3] + "</td></tr>";
-            thetitle += "<tr><td>Transients</td><td align='right'>" + data[2] + "</td></tr>";
-            thetitle += "<tr><td>Swells</td><td align='right'>" + data[1] + "</td></tr>";
-            thetitle += "<tr><td>Others</td><td align='right'>" + data[0] + "</td></tr>";
+            thetitle += "<table class='table'>";
+            thetitle += "<tr><td colspan=2 align='center'>" + data.Name + "</td></tr>";
+            thetitle += "<tr><td><span style='color: #ff0000'>&#9679;</span> Expected:</td><td align='right'>" + data.ExpectedPoints + "</td></tr>";
+            thetitle += "<tr><td><span style='color: #00ff00'>&#9679;</span> Received:</td><td align='right'>" + completeness + "</td></tr>";
+            thetitle += "<tr><td><span style='color: #0000ff'>&#9679;</span> Duplicate:</td><td align='right'>" + data.DuplicatePoints + "</td></tr>";
             thetitle += "</table>";
             return (thetitle);
         }
     });
 
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(numbers, {
-        type: 'bar',
-        height: parseInt($(matrixItemID).height() * .4),
-        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
-        siteid: siteName,
-        //datadate: thedate,
-        borderWidth: 0,
-        nullColor: '#f5f5f5',
-        zeroColor: '#f5f5f5',
-        borderColor: '#f5f5f5',
-        colorMap: colors,
-
-        tooltipFormatter: function (sp, options, fields) {
-            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-            switch (fields[0].offset) {
-
-                case 0:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Interruptions: ' + fields[0].value + '</div>';
-                    break;
-                case 1:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Faults: ' + fields[0].value + '</div>';
-                    break;
-                case 2:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Sags: ' + fields[0].value + '</div>';
-                    break;
-                case 3:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Transients: ' + fields[0].value + '</div>';
-                    break;
-                case 4:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Swells: ' + fields[0].value + '</div>';
-                    break;
-                case 5:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Others: ' + fields[0].value + '</div>';
-                    break;
-
-            }
-
-            return (returnvalue);
-        }
-    });
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function populateGridSparklineDisturbances(data, siteID, siteName) {
-    var sparkValues = { "5": { data: data[5], color: globalcolorsEvents[5] }, "4": { data: data[4], color: globalcolorsEvents[4] }, "3": { data: data[3], color: globalcolorsEvents[3] }, "2": { data: data[2], color: globalcolorsEvents[2] }, "1": { data: data[1], color: globalcolorsEvents[1] }, "0": { data: data[0], color: globalcolorsEvents[0] } };
+function populateGridSparklines(data, siteID, siteName, colors) {
+    var sparkValues = {}; // = { "Interruption": { data: data[0], color: globalcolorsEvents[5] }, "Fault": { data: data[1], color: globalcolorsEvents[4] }, "Sag": { data: data[2], color: globalcolorsEvents[3] }, "Transient": { data: data[3], color: globalcolorsEvents[2] }, "Swell": { data: data[4], color: globalcolorsEvents[1] }, "Other": { data: data[5], color: globalcolorsEvents[0] } };
+    $.each(Object.keys(data), function (i, key) {
+        if (key != "Count" && key != "ID" && key != "Name" && key != "Latitude" && key != "Longitude")
+            sparkValues[key] = { data: data[key], color: colors[key] };
+    });
+
     var numbers = [];
-    var colors = [];
-    $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }).sort(function (a, b) { return b - a;}), function (index, field) {
-            numbers.push(sparkValues[field].data);
-            colors.push(sparkValues[field].color);
+    var color = [];
+    $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }), function (index, field) {
+        if (sparkValues[field] != null) {
+            numbers.push(parseInt(sparkValues[field].data));
+            color.push(sparkValues[field].color);
+        }
     });
 
     var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
 
     $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
 
-    $(matrixItemID).tooltip({
-        position: {
-            my: "center bottom-20",
-            at: "center top",
-            using: function (position, feedback) {
-                $(this).css(position);
-                $("<div>")
-                    .addClass("arrow")
-                    .addClass(feedback.vertical)
-                    .addClass(feedback.horizontal)
-                    .appendTo(this);
-            }
-        },
-
-        content: function () {
+    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(numbers, {
+        type: 'bar',
+        colorMap: color,
+        tooltipFormatter: function (sparkline, options, fields) {
             var thetitle = "";
-            thetitle += "<table>";
-            thetitle += "<tr><td colspan=2 align='center'>" + siteName + "</td></tr>";
-            thetitle += "<tr><td>5</td><td align='right'>" + data[0] + "</td></tr>";
-            thetitle += "<tr><td>4</td><td align='right'>" + data[1] + "</td></tr>";
-            thetitle += "<tr><td>3</td><td align='right'>" + data[2] + "</td></tr>";
-            thetitle += "<tr><td>2</td><td align='right'>" + data[3] + "</td></tr>";
-            thetitle += "<tr><td>1</td><td align='right'>" + data[4] + "</td></tr>";
-            thetitle += "<tr><td>0</td><td align='right'>" + data[5] + "</td></tr>";
+            thetitle += "<table class='table'>";
+            thetitle += "<tr><td colspan=2 align='center'>" + data.Name + "</td></tr>";
+            $.each(Object.keys(data), function (i, key) {
+                if (key != "Count" && key != "ID" && key != "Name" && key != "Latitude" && key != "Longitude")
+                    thetitle += "<tr><td>" + key + "</td><td align='right'>" + data[key] + "</td></tr>";
+            });
             thetitle += "</table>";
-            return (thetitle);
+            return thetitle
         }
     });
 
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(numbers, {
-        type: 'bar',
-        height: parseInt($(matrixItemID).height() * .4),
-        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
-        siteid: siteName,
-        //datadate: thedate,
-        borderWidth: 0,
-        nullColor: '#f5f5f5',
-        zeroColor: '#f5f5f5',
-        borderColor: '#f5f5f5',
-        colorMap: colors,
-
-        tooltipFormatter: function (sp, options, fields) {
-            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-            switch (fields[0].offset) {
-
-                case 0:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 5: ' + fields[0].value + '</div>';
-                    break;
-                case 1:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 4: ' + fields[0].value + '</div>';
-                    break;
-                case 2:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 3: ' + fields[0].value + '</div>';
-                    break;
-                case 3:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 2: ' + fields[0].value + '</div>';
-                    break;
-                case 4:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 1: ' + fields[0].value + '</div>';
-                    break;
-                case 5:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> 0: ' + fields[0].value + '</div>';
-                    break;
-
-            }
-
-            return (returnvalue);
-        }
-    });
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function populateGridSparklineBreakers(data, siteID, siteName) {
-
-    var sparkValues = { "Indeterminate": { data: data[2], color: globalcolors[0] }, "Late": { data: data[1], color: globalcolors[1] }, "Normal": { data: data[2], color: globalcolors[2] } };
-    var numbers = [];
-    var colors = [];
-    $.each($.map(disabledList[currentTab], function (data, key) { if (!data) return key }).sort(function (a, b) { return b - a; }), function (index, field) {
-        numbers.push(sparkValues[field].data);
-        colors.push(sparkValues[field].color);
-    });
-    var  colorMap = globalcolors; //['#FF0000', '#CC6600', '#FF8800'];
-
-    var matrixItemID = "#" + "matrix_" + siteID + "_box_" + currentTab;
-
-    $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
-
-    $(matrixItemID)[0].title = siteName + "\nNormal: " + data[0] + "\nLate: " + data[1] + "\nIndeterminate: " + data[2];
-
-    $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkValues, {
-        type: 'bar',
-        height: parseInt($(matrixItemID).height() * .4),
-        barWidth: parseInt($(matrixItemID).width() / (data.length * 2)),
-        siteid: siteName,
-        borderWidth: 0,
-        nullColor: '#f5f5f5',
-        zeroColor: '#f5f5f5',
-        borderColor: '#f5f5f5',
-        colorMap: colorMap,
-
-        tooltipFormatter: function (sp, options, fields) {
-            var returnvalue = '<div unselectable="on" class="jqsheader">' + options.userOptions.siteid + '</div>';// + ' ' + options.userOptions.datadate
-
-            switch (fields[0].offset) {
-
-                case 0:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Normal: ' + fields[0].value + '</div>';
-                    break;
-                case 1:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Late: ' + fields[0].value + '</div>';
-                    break;
-                case 2:
-                    returnvalue += '<div unselectable="on" class="jqsfield"><span style="color: ' + fields[0].color + '">&#9679;</span> Indeterminate: ' + fields[0].value + '</div>';
-                    break;
-            }
-            return (returnvalue);
-        }
-    });
-}
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function SelectAdd(theControlID,theValue,theText,selected) {
@@ -2402,49 +1913,38 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
     var selectedIDs = GetCurrentlySelectedSites();
 
     // For each data unit, build containers, add to layer based on status
-    $.each(locationdata.d.Locations, function (key, value) {
-        var theindex = $.inArray(value.name + "|" + value.id, selectedIDs);
+    $.each(locationdata.JSON, function (key, value) {
+        var theindex = $.inArray(value.Name + "|" + value.ID, selectedIDs);
  
         var item;
 
         if (theindex > -1) {
-            item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.id + "_box_" + newTab + "'/>");
+            item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
 
         } else {
-            item = $("<div unselectable='on' class='matrix matrixButtonBlack noselect' id='" + "matrix_" + value.id + "_box_" + newTab + "'/>");
+            item = $("<div unselectable='on' class='matrix matrixButtonBlack noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
         }
 
-        item.data('gridstatus', value.status);
-        item.data('siteid', value.name + "|" + value.id);
+        item.data('gridstatus', value.Event_Count);
+        item.data('siteid', value.name + "|" + value.ID);
         $("#theMatrix" + newTab).append(item);
 
     });
 
     /// Set Matrix Cell size
-    cache_Sparkline_Data = locationdata.d.Locations;
-    //resizeMatrixCells(newTab);
-
-    //$.each(locationdata.d.Locations, (function (key, value) {
-    //    populateGridMatrix(value.data, value.id, value.name);
-    //}));
-
+    cache_Sparkline_Data = locationdata;
     showSiteSet($("#selectSiteSet" + currentTab)[0]);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// creates markers for each geocoordinate
-/// Builds location dropdown
-/// Builds sparklines
-/// Builds Heatmap
-
 
 function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
     var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] !== null){
-        $.each(locationdata.Locations, function (index, data) {
-            $('#' + data.name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.id + ' circle').attr('fill', getLeafletLocationColors(data));
+        $.each(locationdata.JSON, function (index, data) {
+            $('#' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + ' circle').attr('fill', getLeafletLocationColors(data, locationdata.Colors));
             $.each(mapMarkers[currentTab], function (mmIndex, object) {
-                if(object.id === data.id)
+                if(object.id === data.ID)
                     object.marker.getPopup().setContent(getLeafletLocationPopup(data))
             });
         });
@@ -2452,10 +1952,10 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
     else {
         loadLeafletMap('theMap' + currentTab);
 
-        $.each(locationdata.Locations, function (index, data) {
-            var color = getLeafletLocationColors(data);
+        $.each(locationdata.JSON, function (index, data) {
+            var color = getLeafletLocationColors(data, locationdata.Colors);
 
-            var html = '<svg height="12" width="12" id="' + data.name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.id + '">' +
+            var html = '<svg height="12" width="12" id="' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + '">' +
                             '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
                        '</svg>';
 
@@ -2473,7 +1973,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
                 if ($('#siteList').multiselect("option").multiple) {
 
                     $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                        if (this.value == data.id) {
+                        if (this.value == data.ID) {
                             this.click();
                         }
 
@@ -2482,7 +1982,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
                     selectsitesincharts();
 
                 } else {
-                    $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
+                    $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
                     $('#siteList').multiselect('refresh');
                 }
 
@@ -2495,8 +1995,8 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             marker.on('mouseout', function (event) {
                 marker.closePopup();
             });
-            if ($.inArray(data.name + "|" + data.id, selectedIDs) > -1)
-                mapMarkers[currentTab].push({ id: data.id, marker: marker });
+            if ($.inArray(data.Name + "|" + data.ID, selectedIDs) > -1)
+                mapMarkers[currentTab].push({ id: data.ID, marker: marker });
         });
 
         // Hack: if displaying an overlay for animation,
@@ -2513,19 +2013,19 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
         leafletMap[currentTab].on('boxzoomend', function (event) {
             $('#siteList').multiselect("uncheckAll");
 
-            $.each(locationdata.Locations, function (index, data) {
+            $.each(locationdata.JSON, function (index, data) {
                 if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
                     && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
                     if ($('#siteList').multiselect("option").multiple) {
 
                         $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                            if (this.value == data.id) {
+                            if (this.value == data.ID) {
                                 this.click();
                             }
 
                         });
                     } else {
-                        $('#siteList').multiselect("widget").find(":radio[value='" + data.id + "']").each(function () { this.click(); });
+                        $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
                         $('#siteList').multiselect('refresh');
                     }
 
@@ -2546,38 +2046,57 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function getLeafletLocationColors(dataPoint) {
+function getLeafletLocationColors(dataPoint, colors) {
     var color = '#000000';
 
     if (currentTab === "TrendingData") {
         color = 'rgb(0,255,0)'; // green
         if (dataPoint[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
-        //else if (dataPoint[$('#trendingDataTypeSelection').val()] < 0.8) color = '#996633';  //dark brown
-        //else if (dataPoint[$('#trendingDataTypeSelection').val()] > 1.2) color = '#ff0000';       //bright red 
     }
-    else if (currentTab === "Correctness" || currentTab === "Completeness") {
-        var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
+    else if (currentTab === "Correctness") {
+        var percentage = (parseFloat(dataPoint.GoodPoints) / (parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) * 100).toFixed(2);
 
-        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0) {
-            color = ['#0000FF'];
+        if (dataPoint.Count == 0) {
+            color = '#0000FF';
         } else if (percentage > 100) {
-            color = [globalcolorsDQ[6]];
+            color = colors["> 100%"];
         } else if (percentage <= 100 && percentage >= 98) {
-            color = [globalcolorsDQ[5]];
+            color = colors["98% - 100%"];
         } else if (percentage < 98 && percentage >= 90) {
-            color = [globalcolorsDQ[4]];
+            color = colors["90% - 97%"];
         } else if (percentage < 90 && percentage >= 70) {
-            color = [globalcolorsDQ[3]];
+            color = colors["70% - 89%"];
         } else if (percentage < 70 && percentage >= 50) {
-            color = [globalcolorsDQ[2]];
+            color = colors["50% - 69%"];
         } else if (percentage < 50 && percentage > 0) {
-            color = [globalcolorsDQ[1]];
+            color = colors[">0% - 49%"];
         } else {
-            color = [globalcolorsDQ[0]];
+            color = colors["0%"];
+        }
+    }
+    else if (currentTab == "Completeness") {
+        var percentage = ((parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) / parseFloat(dataPoint.ExpectedPoints) * 100).toFixed(2);
+
+        if (dataPoint.Count == 0) {
+            color = '#0000FF';
+        } else if (percentage > 100) {
+            color = colors["> 100%"];
+        } else if (percentage <= 100 && percentage >= 98) {
+            color = colors["98% - 100%"];
+        } else if (percentage < 98 && percentage >= 90) {
+            color = colors["90% - 97%"];
+        } else if (percentage < 90 && percentage >= 70) {
+            color = colors["70% - 89%"];
+        } else if (percentage < 70 && percentage >= 50) {
+            color = colors["50% - 69%"];
+        } else if (percentage < 50 && percentage > 0) {
+            color = colors[">0% - 49%"];
+        } else {
+            color = colors["0%"];
         }
     }
     else if (currentTab === "Breakers") {
-        if (dataPoint.data[0] === 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0) {
+        if (dataPoint.Count == 0) {
             color = '#0E892C';
         } else {
             color = '#CC3300';
@@ -2585,52 +2104,51 @@ function getLeafletLocationColors(dataPoint) {
 
     }
     else if (currentTab === "Trending") {
-        if (dataPoint.data[0] === 0 && dataPoint.data[1] === 0) {
+        if (dataPoint.Count == 0) 
             color = '#0E892C';
-        } else if(dataPoint.data[0] > 0){
-            color = '#FF0000';
-        } else if (dataPoint.data[1] > 0) {
-            color = '#000000'
-        }
+        else if(dataPoint.Alarm > 0)
+            color = colors['Alarm'];
+        else 
+            color = colors['Offnormal']
     }
 
     else if (currentTab === "Faults") {
-            if (dataPoint.status === 0) 
+            if (dataPoint.Count == 0) 
                 color = '#0E892C';
             else 
                 color = '#CC3300';
     }
     else if (currentTab === "Disturbances") {
-        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0)
+        if (dataPoint.Count == 0)
             color = '#0E892C';
-        else if (dataPoint.data[5] > 0)
-            color = globalcolorsEvents[5];
-        else if (dataPoint.data[4] > 0)
-            color = globalcolorsEvents[4];
-        else if (dataPoint.data[3] > 0)
-            color = globalcolorsEvents[3];
-        else if (dataPoint.data[2] > 0)
-            color = globalcolorsEvents[2];
-        else if (dataPoint.data[1] > 0)
-            color = globalcolorsEvents[1];
-        else if (dataPoint.data[0] > 0)
-            color = globalcolorsEvents[0];
+        else if (dataPoint["5"] > 0)
+            color = colors["5"];
+        else if (dataPoint["4"] > 0)
+            color = colors["4"];
+        else if (dataPoint["3"] > 0)
+            color = colors["3"];
+        else if (dataPoint["2"] > 0)
+            color = colors["2"];
+        else if (dataPoint["1"] > 0)
+            color = colors["1"];
+        else if (dataPoint["0"] > 0)
+            color = colors["0"];
     }
     else if (currentTab === "Events") {
-        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0)
+        if (dataPoint.Count == 0)
             color = '#0E892C';
-        else if (dataPoint.data[0] > 0)
-            color = globalcolorsEvents[5];
-        else if (dataPoint.data[1] > 0)
-            color = globalcolorsEvents[4];
-        else if (dataPoint.data[2] > 0)
-            color = globalcolorsEvents[3];
-        else if (dataPoint.data[3] > 0)
-            color = globalcolorsEvents[2];
-        else if (dataPoint.data[4] > 0)
-            color = globalcolorsEvents[1];
-        else if (dataPoint.data[5] > 0)
-            color = globalcolorsEvents[0];
+        else if (dataPoint.Fault > 0)
+            color = colors["Fault"];
+        else if (dataPoint.Interruption > 0)
+            color = colors["Interruption"];
+        else if (dataPoint.Sag > 0)
+            color = colors["Sag"];
+        else if (dataPoint.Swell > 0)
+            color = colors["Swell"];
+        else if (dataPoint.Other > 0)
+            color = colors["Other"];
+        else 
+            color = '#0E892C';
     }
     return color;
 
@@ -2639,86 +2157,13 @@ function getLeafletLocationColors(dataPoint) {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 function getLeafletLocationPopup(dataPoint) {
     var popup;
-    if (currentTab === "TrendingData") {
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Average:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Average).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "<tr><td>Minimum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Minimum).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "<tr><td>Maximum:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(dataPoint.Maximum).toFixed(2) + "&nbsp;</td></tr>";
-        popup += "</table>";
+    popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.Name + "&nbsp;</td></tr>";
+    $.each(Object.keys(dataPoint), function (i, key) {
+        if(key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude")
+            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint[key] + "&nbsp;</td></tr>";
+    });
+    popup += "</table>";
 
-    }
-    else if (currentTab === "Completeness") {
-        var completepoints = dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4];
-        var recieved = (completepoints / dataPoint.data[0] * 100).toFixed(2);
-        var duplicate = (dataPoint.data[5] / dataPoint.data[0] * 100).toFixed(2);
-
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Expected:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Recieved:&nbsp;</td><td style='text-align: right'>&nbsp;" + recieved + "&nbsp;</td></tr>";
-        popup += "<tr><td>Duplicate:&nbsp;</td><td style='text-align: right'>&nbsp;" + duplicate + "&nbsp;</td></tr>";
-        popup += "</table>";
-
-    }
-    else if (currentTab === "Correctness") {
-        var percentage = (dataPoint.data[1] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
-
-        var val1 = (dataPoint.data[2] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
-        var val2 = (dataPoint.data[3] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
-        var val3 = (dataPoint.data[4] / (dataPoint.data[1] + dataPoint.data[2] + dataPoint.data[3] + dataPoint.data[4]) * 100).toFixed(2);
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        if (dataPoint.data[0] == 0 && dataPoint.data[1] == 0 && dataPoint.data[2] == 0 && dataPoint.data[3] == 0 && dataPoint.data[4] == 0 && dataPoint.data[5] == 0) {
-            popup += "<tr><td>No Data Available</td></tr>";
-        } else {
-
-            popup += "<tr><td>Latched:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val1).toFixed(2) + "&nbsp;</td></tr>";
-            popup += "<tr><td>Unreasonable:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val2).toFixed(2) + "&nbsp;</td></tr>";
-            popup += "<tr><td>Non-Congruent:&nbsp;</td><td style='text-align: right'>&nbsp;" + parseFloat(val3).toFixed(2) + "&nbsp;</td></tr>";
-            popup += "</table>";
-        }
-    }
-    else if (currentTab === "Breakers") {
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Normal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Late:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Indeterminate:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[2] + "&nbsp;</td></tr>";
-        popup += "</table>";
-
-    }
-    else if (currentTab === "Faults") {
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Faults:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.status + "&nbsp;</td></tr>";
-        popup += "</table>";
-
-    }
-    else if (currentTab === "Disturbances") {
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>5:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[5] + "&nbsp;</td></tr>";
-        popup += "<tr><td>4:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[4] + "&nbsp;</td></tr>";
-        popup += "<tr><td>3:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[3] + "&nbsp;</td></tr>";
-        popup += "<tr><td>2:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[2] + "&nbsp;</td></tr>";
-        popup += "<tr><td>1:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
-        popup += "<tr><td>0:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
-        popup += "</table>";
-
-    }
-    else if (currentTab === "Events") {
-        popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-        popup += "<tr><td>Interruption:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Fault:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Sag:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[2] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Transient:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[3] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Swell:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[4] + "&nbsp;</td></tr>";
-        popup += "<tr><td>Other:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[5] + "&nbsp;</td></tr>";
-        popup += "</table>";
-
-    }
-    else if (currentTab === "Trending") {
-            popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.name + "&nbsp;</td></tr>";
-            popup += "<tr><td>Normal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[0] + "&nbsp;</td></tr>";
-            popup += "<tr><td>OffNormal:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.data[1] + "&nbsp;</td></tr>";
-            popup += "</table>";
-
-        }
     return popup;
 }
 
@@ -2787,37 +2232,12 @@ function plotMapPoints(data, thedatefrom, thedateto) {
         $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Faults</div>');
         $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Faults</div>');
     }
-    else if (currentTab === "Trending") {
-        $('#innerLegend').append('<div class="row"><i style="background: #FF0000"></i> Normal</div>');
-        $('#innerLegend').append('<div class="row"><i style="background: #000000"></i> OffNormal</div>');
-        LoadHeatmapLeaflet(data);
-
-    }
-
-    else if (currentTab === "Disturbances") {
-        for (var i = globalcolorsEvents.length - 1, j= 0; i >= 0; --i, ++j)
-            $('#innerLegend').append('<div class="row"><i style="background: ' + globalcolorsEvents[i] + '"></i> ' + i + '</div>');
-        LoadHeatmapLeaflet(data);
-    }
-    else if (currentTab === "Events") {
-        var strings = ['Other', 'Swell', 'Transient', 'Sag', 'Fault', 'Interruption'];
-        for (var i = globalcolorsEvents.length - 1; i >= 0; --i)
-            $('#innerLegend').append('<div class="row"><i style="background: ' + globalcolorsEvents[i] + '"></i> ' +strings[i] + '</div>');
-        LoadHeatmapLeaflet(data);
-    }
     else {
-        for (var i = data.ColorDomain.length - 1; i >= 0; --i) {
-            if (i === data.ColorDomain.length - 1) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i] + '</div>');
-            }
-            if (i == 0) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i] + '</div>');
-            }
-            else if (i % 2 === 0) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i-1].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i-1] + '&ndash;' + data.ColorDomain[i] + '</div>');
-            }
-        }
-
+        $.each(Object.keys(data.Colors), function(i, key){
+            $('#innerLegend').append('<div class="row"><i style="background: ' + data.Colors[key]+ '"></i> ' + key + '</div>');
+        });
+        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i>None</div>');
+        LoadHeatmapLeaflet(data);
     }
 
     legend.getContainer().addEventListener('mouseover', function () {
@@ -2917,13 +2337,12 @@ function LoadHeatmapLeaflet(thedata) {
     };
 
     $(leafletMap[currentTab].getPanes().overlayPane).children().remove();
-    var testData = { data: thedata.Locations.filter(function (currentValue, index, array) { return currentValue.status > 0;}), min: 1, max: 100 };
+    var testData = { data: thedata.JSON.filter(function (currentValue, index, array) { return currentValue.Count > 0; }), min: 1, max: 100 };
     var heatmapLayer = new HeatmapOverlay(cfg);
     var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
     heatmapLayer.setData(testData);
     L.control.layers().addOverlay(heatmap, "Heatmap layer");
 }
-
 
 function highlightDaysInCalendar(date) {
     var i = -1;
@@ -2999,9 +2418,6 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     currentTab = theNewTab;
-
-    //reflowContents(theNewTab);
-
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
 }
 
@@ -3052,8 +2468,6 @@ function resizeDocklet( theparent , chartheight ) {
             buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
     }
 
-
-    //console.log($('#Detail' + currentTab + 'Table').children());
     if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
         window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);    
 }
@@ -3124,9 +2538,6 @@ function resizeMatrixCells(newTab) {
         var rows = Math.ceil(r / columns);
         $(".matrix").css("width", (w / columns) - 4);
         $(".matrix").css("height", (h / rows) - 2);
-        //$.each($(".sparkbox"), function (i, element) {
-        //    $(element).css('height', '30%');
-        //});
 
         if ($(".matrix").width() < 200) {
             $('.faultgridtitle').css("font-size", '10px');
@@ -3142,9 +2553,9 @@ function resizeMatrixCells(newTab) {
 
     }
     if (cache_Sparkline_Data !== null) {
-          $.each(cache_Sparkline_Data, (function (key, value) {
-              populateGridMatrix(value.data, value.id, value.name);
-           }));
+          $.each(cache_Sparkline_Data.JSON, (function (key, value) {
+              populateGridMatrix(value, value.ID, value.Name, cache_Sparkline_Data.Colors);
+          }));
     }
 }
 

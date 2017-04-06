@@ -36,16 +36,21 @@ using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI.WebControls;
 using GSF.Collections;
 using GSF.Configuration;
 using GSF.Data;
+using GSF.Data.Model;
 using GSF.Drawing;
 using GSF.Geo;
 using GSF.NumericalAnalysis.Interpolation;
 using GSF.Threading;
+using GSF.Web.Model;
 using openHistorian.XDALink;
+using PQDashboard;
+using PQDashboard.Model;
 
 /// <summary>
 /// Summary description for MapService
@@ -200,6 +205,12 @@ public class mapService : WebService
         public Func<double, double> ColorFunction { get; set; }
     }
 
+    public class MeterLocations
+    {
+        public string Data;
+        public Dictionary<string, string> Colors;
+    }
+
     private class ProgressCounter
     {
         private int m_progress;
@@ -320,6 +331,7 @@ public class mapService : WebService
 
         return (theMeterIDs);
     }
+
 
     /// <summary>
     /// getLocationsHeatmapSags 
@@ -519,8 +531,7 @@ public class mapService : WebService
         SqlConnection conn = null;
         SqlDataReader rdr = null;
         LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorDomain = new double[] {};
-        locationStates.ColorRange = new double[] {};
+
         try
         {
             conn = new SqlConnection(connectionstring);
@@ -720,182 +731,6 @@ public class mapService : WebService
         return (locationStates);
     }
 
-
-    /// <summary>
-    /// getLocationsCorrectness 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsCorrectness(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorRange = new double[] { 4278190335, 4294905584,0,4294912000,0, 4294940160,0, 4294967040, 0, 4278241294, 4278255604};
-        locationStates.ColorDomain = new double[] {0, 0,  49, 50,69, 70 ,89,90,97,98 , 100};
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsCorrectness", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude= (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
-                ourStatus.data.Add((int)rdr["ExpectedPoints"]);
-                ourStatus.data.Add((int)rdr["GoodPoints"]);
-                ourStatus.data.Add((int)rdr["LatchedPoints"]);
-                ourStatus.data.Add((int)rdr["UnreasonablePoints"]);
-                ourStatus.data.Add((int)rdr["NoncongruentPoints"]);
-                ourStatus.data.Add((int)rdr["DuplicatePoints"]);
-
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-
-    /// <summary>
-    /// getLocationsCompleteness 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsCompleteness(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorRange = new double[] { 4278190335, 4294905584, 0, 4294912000, 0, 4294940160, 0, 4294967040, 0, 4278241294, 4278255604 };
-        locationStates.ColorDomain = new double[] { 0, 0, 49, 50, 69, 70, 89, 90, 97, 98, 100 };
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsCompleteness", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
-                ourStatus.data.Add((int)rdr["ExpectedPoints"]);
-                ourStatus.data.Add((int)rdr["GoodPoints"]);
-                ourStatus.data.Add((int)rdr["LatchedPoints"]);
-                ourStatus.data.Add((int)rdr["UnreasonablePoints"]);
-                ourStatus.data.Add((int)rdr["NoncongruentPoints"]);
-                ourStatus.data.Add((int)rdr["DuplicatePoints"]);
-
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsTrending 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod]
-    public LocationStatusList getLocationsFaults(string targetDateFrom, string targetDateTo, int meterGroup )
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorRange = new double[] { 4278190335, 4294905584, 0, 4294912000, 0, 4294940160, 0, 4294967040, 0, 4278241294, 4278255604 };
-        locationStates.ColorDomain = new double[] { 0, 0, 49, 50, 69, 70, 89, 90, 97, 98, 100 };
-
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsFaults", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
-                ourStatus.data.Add(ourStatus.status);
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
-    }
 
     /// <summary>
     /// getHeatmapLocationsTrending 
@@ -1441,7 +1276,7 @@ public class mapService : WebService
 
         using (Historian historian = new Historian(historianServer, historianInstance))
         {
-            foreach (TrendingDataPoint point in historian.Read(lookup.Keys, startDate, endDate))
+            foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(lookup.Keys, startDate, endDate))
             {
                 List<TrendingDataLocation> locations = lookup[point.ChannelID];
 
@@ -1911,4 +1746,30 @@ public class mapService : WebService
     {
         return deg * 68.6863716;
     }
+
+    /// <summary>
+    /// DataTable2JSON
+    /// </summary>
+    /// <param name="dt"></param>
+    /// <returns></returns>
+    public string DataTable2JSON(DataTable dt)
+    {
+        List<Object> RowList = new List<Object>();
+        foreach (DataRow dr in dt.Rows)
+        {
+            Dictionary<Object, Object> ColList = new Dictionary<Object, Object>();
+            foreach (DataColumn dc in dt.Columns)
+            {
+                string t = (string)((string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString());
+
+                ColList.Add(dc.ColumnName, t);
+            }
+            RowList.Add(ColList);
+        }
+        JavaScriptSerializer js = new JavaScriptSerializer();
+        string JSON = js.Serialize(RowList);
+        return JSON;
+    }
+
+
 }
