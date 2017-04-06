@@ -774,9 +774,25 @@ public class eventService : System.Web.Services.WebService {
 
         using(DataContext dataContext = new DataContext("systemSettings"))
         {
+            IEnumerable<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart'"));
+            List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventsChart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
             try
             {
-                List<string> disabledFields = dataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'EventChart' AND Enabled = 0")).Select(x => x.Value).ToList();
                 conn = (SqlConnection)dataContext.Connection.Connection;
                 SqlCommand cmd = new SqlCommand("dbo.selectSitesEventsDetailsByDate", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -789,11 +805,34 @@ public class eventService : System.Web.Services.WebService {
                 DataTable dt = new DataTable();
                 dt.Load(rdr);
 
-                foreach (var field in disabledFields)
+                List<string> skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn column in dt.Columns)
                 {
-                   dt.Columns.RemoveAt(dt.Columns.IndexOf(field)); 
-                }
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
+                    {
+                        disabledFileds.Add(column.ColumnName, true);
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "EventsChart",
+                            Value = column.ColumnName,
+                            Enabled = true
+                        };
+                        dataContext.Table<DashSettings>().AddNewRecord(ds);
 
+                    }
+
+
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                    {
+                        columnsToRemove.Add(column.ColumnName);
+                    }
+
+                }
+                foreach (string columnName in columnsToRemove)
+                {
+                    dt.Columns.Remove(columnName);
+                }
                 thedata = DataTable2JSON(dt);
                 dt.Dispose();
             }
@@ -829,35 +868,84 @@ public class eventService : System.Web.Services.WebService {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
 
-        try
+        using (DataContext dataContext = new DataContext("systemSettings"))
         {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectSitesDisturbancesDetailsByDate", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
-            cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandTimeout = 300;
+            IEnumerable<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart'"));
+            List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = 'DisturbancesChart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
 
-            rdr = cmd.ExecuteReader();
-            DataTable dt = new DataTable();
-            dt.Load(rdr);
-            thedata = DataTable2JSON(dt);
-            dt.Dispose();
-        }
-        finally
-        {
-            if (conn != null)
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
             {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
 
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            try
+            {
+                conn = (SqlConnection)dataContext.Connection.Connection;
+                SqlCommand cmd = new SqlCommand("dbo.selectSitesDisturbancesDetailsByDate", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
+                cmd.Parameters.Add(new SqlParameter("@username", userName));
+                cmd.CommandTimeout = 300;
+
+                rdr = cmd.ExecuteReader();
+                DataTable dt = new DataTable();
+                dt.Load(rdr);
+
+                List<string> skipColumns = new List<string>() { "theeventid", "themeterid", "thesite" };
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn column in dt.Columns)
+                {
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
+                    {
+                        disabledFileds.Add(column.ColumnName, true);
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "EventsChart",
+                            Value = column.ColumnName,
+                            Enabled = true
+                        };
+                        dataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                    }
+
+
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                    {
+                        columnsToRemove.Add(column.ColumnName);
+                    }
+
+                }
+                foreach (string columnName in columnsToRemove)
+                {
+                    dt.Columns.Remove(columnName);
+                }
+                thedata = DataTable2JSON(dt);
+                dt.Dispose();
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+
+        }
         return thedata;
     }
 

@@ -664,6 +664,101 @@ namespace PQDashboard
         #region [ Table Data ]
 
         /// <summary>
+        /// getDetailsForSite
+        /// </summary>
+        /// <param name="siteId"></param>
+        /// <param name="targetDate"></param>
+        /// <param name="userName"></param>
+        /// <param name="tab"></param>
+        /// <returns></returns>
+        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab)
+        {
+
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            String thedata = "";
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("dbo.selectSites" + tab + "DetailsByDate", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
+                cmd.Parameters.Add(new SqlParameter("@MeterID", siteId));
+                cmd.Parameters.Add(new SqlParameter("@username", userName));
+                cmd.CommandTimeout = 300;
+
+                rdr = cmd.ExecuteReader();
+                DataTable table = new DataTable();
+                table.Load(rdr);
+
+                List<string> skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn column in table.Columns)
+                {
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
+                    {
+                        disabledFileds.Add(column.ColumnName, true);
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "Chart",
+                            Value = column.ColumnName,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                    }
+
+
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                    {
+                        columnsToRemove.Add(column.ColumnName);
+                    }
+
+                }
+                foreach (string columnName in columnsToRemove)
+                {
+                    table.Columns.Remove(columnName);
+                }
+
+
+                thedata = DataTable2JSON(table);
+                table.Dispose();
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+            return thedata;
+        }
+
+        /// <summary>
         /// getSiteLinesDetailsByDate
         /// </summary>
         /// <param name="siteID"></param>
