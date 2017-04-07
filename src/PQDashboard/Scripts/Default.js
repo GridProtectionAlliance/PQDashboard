@@ -3759,9 +3759,10 @@ function stepSelectionChange(thecontrol) {
 function showOverviewPage(tab) {
     var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top;
     $('#tabs-' + tab).css('height', columnHeight);
-    //$('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
 
-    $('#overviewDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
+    $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
+    $('#overviewTodayDate').text(new Date(new Date().setDate(new Date().getDate())).toDateString());
+
     /*<--JPH MARKER -- NEW CODE -- line was added>*/
     $('.grid2').masonry({
         itemSelector: '.grid2-item',
@@ -3792,13 +3793,27 @@ function showOverviewPage(tab) {
     $(window).resize(function () {
         $('.grid2').masonry('layout');
 
-        //var columnHeight = $(window).height();
-
+        var columnHeight = $(window).height();
         var gridHeight = $('.grid2').height() + $('.grid2').offset().top;
+        var ovtodayHeight = $('#tabs-Overview-Today').height();
+        var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
 
-        //var overviewHeight = $('#tabs-Overview-Today').height();
+        if (gridHeight <= 1) {
+            if (columnHeight <= 1) {
+                gridHeight = ovtodayHeight;
 
-        $('#tabs-Overview-Today').css('height', gridHeight);
+                if (ovtodayHeight <= 1) {
+                    gridHeight = 800;
+                }
+            }
+            else  {
+                gridHeight = columnHeight;
+            }
+        }
+
+        //$('#tabs-Overview-Today').css('height', gridHeight);
+        //$('#tabs-Overview-Yesterday').css('height', gridHeight);
+        $('#tabs-' + currentTab).css('height', gridHeight);
     });
 
     $(window).resize();
