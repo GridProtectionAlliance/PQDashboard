@@ -231,23 +231,303 @@
     <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
 </ul>
 
-<div id="tabs-Overview-Today">
-    <img class="overviewImg" src="~/Images/todaymockup.png"/>
-    <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
-        <div style="text-align: center; color: white">
-            <h3>PQ Overview for <span id="overviewDate"></span></h3>
-        </div>
-        <div style="height: 1px; width: 80%; display: inline-block; background-color: #66ffe0"></div>
-        <div id="elementContainer">
-            <div id="meters"></div>
-            <div id="alarms"></div>
-            <div id="offnormal"></div>
-            <div id="last30days"></div>
-            <div id="voltageDisturbances"></div>
-            <div id="faults"></div>
+    <div id="tabs-Overview-Today">
+        @*<img class="overviewImg" src="~/Images/todaymockup.png"/>
+            <div id="overviewContainer" class="container" style="background-color: #005ce6; width: 100%; height: 100%; text-align: center">
+                <div style="text-align: center; color: white">
+                    <h3>PQ Overview for <span id="overviewDate"></span></h3>
+                </div>
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: #66ffe0"></div>
+                <div id="elementContainer">
+                    <div id="meters"></div>
+                    <div id="alarms"></div>
+                    <div id="offnormal"></div>
+                    <div id="last30days"></div>
+                    <div id="voltageDisturbances"></div>
+                    <div id="faults"></div>
+                </div>
+            </div>*@
+
+        <div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">
+            @*<div style="text-align: center; color: black">
+                    <h3>PQ Overview for <span id="overviewDate"></span></h3>
+                </div>
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>*@
+
+            <div style="text-align: center; color: black">
+                <h3>PQ Overview for <span id="overviewDate"></span></h3>
+            </div>
+            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+
+
+            @*<--JPH MARKER -- NEW CODE -- insert start marker -->*@
+
+
+
+            @*<--JPH MARKER -- NEW CODE -->*@
+            <div class="grid2">
+
+                @*<--JPH MARKER -- NEW CODE -->*@
+                <div class="grid2-item" style="width: 400px; left: 0px; top: 0px">
+
+                    @*<--JPH MARKER -- NEW CODE -->*@
+                    <h5> <u>Disturbance Event File Downloads</u> </h5>
+                    <div id="disturbance-downloads" class="well">
+
+
+
+                        <table title="disturbance-eventfiles" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
+                            <caption style="text-align: center; width: 100%"> Downloaded Event Files </caption>
+                            <tr>
+                                <th></th>
+                                <th style="text-align: center"> No. of Files </th>
+                                <th style="text-align: center"> No. of Reporting Devices </th>
+                            </tr>
+                            <tr>
+                                <th> DFR's </th>
+                                <td style="text-align: center"> 184 </td>
+                                <td style="text-align: center"> 44 </td>
+                            </tr>
+                            <tr>
+                                <th> PQ's </th>
+                                <td style="text-align: center"> 623 </td>
+                                <td style="text-align: center"> 341</td>
+                            </tr>
+                        </table>
+
+
+
+                    </div>
+
+                </div>
+
+                <div class="grid2-item" style="width: 400px; top: 0px">
+
+                    <h5> Disturbance Faults Recorded </h5>
+                    <div id="disturbance-faults" class="well">
+
+
+
+                        <table title="disturbance-faultrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
+                            <caption style="text-align: center; width: 100%"> <h4>Disturbance Fault Records - 8 faults</h4> </caption>
+                            <tr>
+                                <th> Phase to Ground </th>
+                                <td style="text-align: center"> 5 </td>
+                            </tr>
+                            <tr>
+                                <th> Phase to Phase </th>
+                                <td style="text-align: center"> 2 </td>
+                            </tr>
+                            <tr>
+                                <th> Three Phase </th>
+                                <td style="text-align: center"> 1 </td>
+                            </tr>
+                        </table>
+
+
+
+                    </div>
+                </div>
+
+
+
+                <div class="grid2-item" style="width: 800px; top: 0">
+
+                    <h5> Disturbances Log Detail </h5>
+                    <div id="disturbance-log" class="well">
+
+
+
+                        <table title="disturbance-logevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
+                            <caption style="text-align: center; width: 100%"> Downloaded Event Files </caption>
+                            <tr>
+                                <th></th>
+                                <th style="text-align: center"> No. </th>
+                                <th style="text-align: center"> Time (CDT) </th>
+                                <th style="text-align: center"> Electrical Element Monitored </th>
+                                <th style="text-align: center"> Type </th>
+                                <th style="text-align: center"> Severity </th>
+                                <th style="text-align: center"> Duration </th>
+                            </tr>
+                            <tr>
+                                <th> 1 </th>
+                                <td style="text-align: center"> 9:49 pm </td>
+                                <td style="text-align: center"> Substation: 3 Line: A </td>
+                                <td style="text-align: center"> Swell </td>
+                                <td style="text-align: center"> 2 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 2 </th>
+                                <td style="text-align: center"> 7:10 pm </td>
+                                <td style="text-align: center"> Substation: 4 Line: B </td>
+                                <td style="text-align: center"> Sag </td>
+                                <td style="text-align: center"> 3 </td>
+                                <td style="text-align: center"> 33 </td>
+                            </tr>
+                            <tr>
+                                <th> 3 </th>
+                                <td style="text-align: center"> 5:49 pm </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> Interupt </td>
+                                <td style="text-align: center"> 1 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 4 </th>
+                                <td style="text-align: center"> 5:27 pm </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> FAULT </td>
+                                <td style="text-align: center"> -- </td>
+                                <td style="text-align: center"> -- </td>
+                            </tr>
+                            <tr>
+                                <th> 5 </th>
+                                <td style="text-align: center"> 3:49 pm </td>
+                                <td style="text-align: center"> Substation: 3 Line: A </td>
+                                <td style="text-align: center"> Swell </td>
+                                <td style="text-align: center"> 2 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 6 </th>
+                                <td style="text-align: center"> 2:10 pm </td>
+                                <td style="text-align: center"> Substation: 4 Line: B </td>
+                                <td style="text-align: center"> Sag </td>
+                                <td style="text-align: center"> 3 </td>
+                                <td style="text-align: center"> 33 </td>
+                            </tr>
+                            <tr>
+                                <th> 7 </th>
+                                <td style="text-align: center"> 1:49 pm </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> Interupt </td>
+                                <td style="text-align: center"> 1 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 8 </th>
+                                <td style="text-align: center"> 12:27 pm </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> FAULT </td>
+                                <td style="text-align: center"> -- </td>
+                                <td style="text-align: center"> -- </td>
+                            </tr>
+                            <tr>
+                                <th> 9 </th>
+                                <td style="text-align: center"> 11:49 am </td>
+                                <td style="text-align: center"> Substation: 3 Line: A </td>
+                                <td style="text-align: center"> Swell </td>
+                                <td style="text-align: center"> 2 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 10 </th>
+                                <td style="text-align: center"> 10:10 am </td>
+                                <td style="text-align: center"> Substation: 4 Line: B </td>
+                                <td style="text-align: center"> Sag </td>
+                                <td style="text-align: center"> 3 </td>
+                                <td style="text-align: center"> 33 </td>
+                            </tr>
+                            <tr>
+                                <th> 11 </th>
+                                <td style="text-align: center"> 9:49 am </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> Interupt </td>
+                                <td style="text-align: center"> 1 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 12 </th>
+                                <td style="text-align: center"> 8:27 am </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> FAULT </td>
+                                <td style="text-align: center"> -- </td>
+                                <td style="text-align: center"> -- </td>
+                            </tr>
+                            <tr>
+                                <th> 13 </th>
+                                <td style="text-align: center"> 7:49 am </td>
+                                <td style="text-align: center"> Substation: 3 Line: A </td>
+                                <td style="text-align: center"> Swell </td>
+                                <td style="text-align: center"> 2 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 14 </th>
+                                <td style="text-align: center"> 6:10 am </td>
+                                <td style="text-align: center"> Substation: 4 Line: B </td>
+                                <td style="text-align: center"> Sag </td>
+                                <td style="text-align: center"> 3 </td>
+                                <td style="text-align: center"> 33 </td>
+                            </tr>
+                            <tr>
+                                <th> 15 </th>
+                                <td style="text-align: center"> 5:49 am </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> Interupt </td>
+                                <td style="text-align: center"> 1 </td>
+                                <td style="text-align: center"> 4 </td>
+                            </tr>
+                            <tr>
+                                <th> 16 </th>
+                                <td style="text-align: center"> 1:27 am </td>
+                                <td style="text-align: center"> Substation: 8 Line: M </td>
+                                <td style="text-align: center"> FAULT </td>
+                                <td style="text-align: center"> -- </td>
+                                <td style="text-align: center"> -- </td>
+                            </tr>
+                        </table>
+
+
+
+                    </div>
+                </div>
+
+                <div class="grid2-item" style="width: 800px; left: 0px; top:50%">
+
+                    <h5> Voltage Disturbances </h5>
+                    <div id="disturbance-voltage" class="well">
+
+
+
+                        <table title="disturbance-voltageevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
+                            <caption style="text-align: center; width: 100%"> Voltage Disturbances </caption>
+                            <tr>
+
+                                <th style="text-align: center"> Severity </th>
+                                <th style="text-align: center"> No. of Volt. Disturbances </th>
+
+                            </tr>
+                            <tr>
+
+                                <th style="text-align: center"> Severity 4 </th>
+                                <td style="text-align: center"> 3 </td>
+
+                            </tr>
+                            <tr>
+
+                                <th style="text-align: center"> Severity 5 </th>
+                                <td style="text-align: center"> 1 </td>
+
+                            </tr>
+
+                        </table>
+                        <h4> Voltage disturbance Bar Chart to go here. </h4>
+
+
+
+                    </div>
+                </div>
+
+            </div>
+
+            @*<--JPH MARKER -- NEW CODE -- insert END marker -->*@
+
+
+
         </div>
     </div>
-</div>
 
     <!-- Modal -->
 <div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
