@@ -3763,32 +3763,10 @@ function showOverviewPage(tab) {
     $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
     $('#overviewTodayDate').text(new Date(new Date().setDate(new Date().getDate())).toDateString());
 
-    /*<--JPH MARKER -- NEW CODE -- line was added>*/
     $('.grid2').masonry({
         itemSelector: '.grid2-item',
         columnWidth: 400
     });
-
-    /*<--JPH MARKER -- NEW CODE -- line was added>*/
-    //$('#').on('', function () {
-    //    $('.grid2').masonry('layout');
-    //});
-    /*<--JPH MARKER -- NEW CODE -- line was added>*/
-    //$('#').~name~('', function () {
-    //    $('.grid2').masonry('layout');
-    //});
-
-    //$('#overviewContainer').on('resize', function () {
-    //    var windowHeight = $(window).height();
-    //    var overviewHeight = $('#overviewContainer').height();
-    //    $('#overviewContainer').css('height', windowHeight)
-    //});
-
-    //$('#overviewContainer').resize(function () {
-    //    var windowHeight = $(window).height();
-    //    var overviewHeight = $('#overviewContainer').height();
-    //    $('#overviewContainer').css('height', windowHeight)
-    //});
 
     $(window).resize(function () {
         $('.grid2').masonry('layout');
@@ -3811,8 +3789,6 @@ function showOverviewPage(tab) {
             }
         }
 
-        //$('#tabs-Overview-Today').css('height', gridHeight);
-        //$('#tabs-Overview-Yesterday').css('height', gridHeight);
         $('#tabs-' + currentTab).css('height', gridHeight);
     });
 
