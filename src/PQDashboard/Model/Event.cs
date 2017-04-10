@@ -43,7 +43,6 @@ namespace PQDashboard.Model
     [TableName("EventView")]
     public class EventView
     {
-        [Searchable(SearchType.LikeExpression)]
         [PrimaryKey(true)]
         public int ID { get; set; }
         public int FileGroupID { get; set; }

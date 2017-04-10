@@ -34,7 +34,7 @@
     NameValueCollection parameters = Request.QueryString;
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
-    EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
+    EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
 
 }
