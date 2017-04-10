@@ -3757,7 +3757,32 @@ function stepSelectionChange(thecontrol) {
 }
 
 function showOverviewPage(tab) {
+    var windowHeight = $(window).height();
+    var gridHeight = $('.grid2').height() + $('.grid2').offset().top;
+    var ovtodayHeight = $('#tabs-Overview-Today').height();
+    var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
+
     var columnHeight = $(window).height() - $('#tabs-' + currentTab).offset().top;
+    if (windowHeight > 1 & columnHeight <= windowHeight) {
+        columnHeight = windowHeight * 2.0;
+    }
+
+    if (ovyesterdayHeight > 1 & columnHeight <= ovyesterdayHeight) {
+        columnHeight = ovyesterdayHeight * 2.0;
+    }
+
+    if (ovtodayHeight > 1 & columnHeight <= ovtodayHeight) {
+        columnHeight = ovtodayHeight * 2.0;
+    }
+
+    if (gridHeight > 1 & columnHeight <= gridHeight) {
+        columnHeight = gridHeight;
+    }
+
+    if (columnHeight > 1 & columnHeight <= 2000.0) {
+        columnHeight = 2500.0;
+    }
+
     $('#tabs-' + tab).css('height', columnHeight);
 
     $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
@@ -3771,24 +3796,44 @@ function showOverviewPage(tab) {
     $(window).resize(function () {
         $('.grid2').masonry('layout');
 
-        var columnHeight = $(window).height();
+        var windowHeight = $(window).height();
         var gridHeight = $('.grid2').height() + $('.grid2').offset().top;
         var ovtodayHeight = $('#tabs-Overview-Today').height();
         var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
 
-        if (gridHeight <= 1) {
-            if (columnHeight <= 1) {
-                gridHeight = ovtodayHeight;
+        $('.grid2').css('height', gridHeight)
+        $('#tabs-' + currentTab).css('height', gridHeight);
 
-                if (ovtodayHeight <= 1) {
-                    gridHeight = 800;
-                }
-            }
-            else  {
-                gridHeight = columnHeight;
-            }
+        //if (gridHeight <= 1) {
+        //    if (ovtodayHeight <= 1) {
+        //        gridHeight = columnHeight;
+
+        //        if (columnHeight <= 1) {
+        //            gridHeight = 1000;
+        //        }
+        //    }
+        //    else  {
+        //        gridHeight = ovtodayHeight * 2.0;
+        //    }
+        //}
+        //else {
+        if (windowHeight > 1 & gridHeight <= windowHeight) {
+            gridHeight = windowHeight * 2.0;
         }
 
+        if (ovyesterdayHeight > 1 & gridHeight <= ovyesterdayHeight) {
+            gridHeight = ovyesterdayHeight * 2.0;
+        }
+
+        if (ovtodayHeight > 1 & gridHeight <= ovtodayHeight) {
+            gridHeight = ovtodayHeight * 2.0;
+        }
+
+        if (gridHeight > 1 & gridHeight <= 2000.0) {
+            gridHeight = 4000.0;
+        }
+        //}
+        $('.grid2').css('height', gridHeight)
         $('#tabs-' + currentTab).css('height', gridHeight);
     });
 
