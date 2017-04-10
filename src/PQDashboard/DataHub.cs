@@ -659,6 +659,22 @@ namespace PQDashboard
             return (eventSet);
         }
 
+        public IEnumerable<DisturbanceView> GetVoltageMagnitudeData(string meterIds,DateTime startDate, DateTime endDate)
+        {
+
+            DataTable table = DataContext.Connection.RetrieveData(
+                " SELECT * " +
+                " FROM DisturbanceView  " +
+                " WHERE (MeterID IN (Select * FROM String_To_Int_Table({0},','))) " +
+                " AND StartTime >= {1} AND StartTime <= {2} AND PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') ", meterIds, startDate, endDate);
+            return table.Select().Select(row => DataContext.Table<DisturbanceView>().LoadRecord(row));
+        }
+
+        public IEnumerable<WorkbenchVoltageCurveView> GetCurves()
+        {
+            return DataContext.Table<WorkbenchVoltageCurveView>().QueryRecords("ID, LoadOrder");
+        }
+
         #endregion
 
         #region [ Table Data ]
@@ -1049,6 +1065,53 @@ namespace PQDashboard
             }
             return meters;
         }
+
+        /// <summary>
+        /// getLocationsHeatmapSags 
+        /// </summary>
+        /// <param name="targetDateFrom"></param>
+        /// <param name="targetDateTo"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        public MeterLocations GetLocationsHeatmap(string targetDateFrom, string targetDateTo, string userName, string type)
+        {
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            MeterLocations meters = new MeterLocations();
+            DataTable table = new DataTable();
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + type, conn);
+
+                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+                cmd.Parameters.Add(new SqlParameter("@username", userName));
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 300;
+                rdr = cmd.ExecuteReader();
+                table.Load(rdr);
+
+                meters.Colors = null;
+                meters.Data = DataTable2JSON(table);
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+            return meters;
+        }
+
 
         #endregion
 

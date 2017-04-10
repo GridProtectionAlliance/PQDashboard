@@ -829,6 +829,13 @@ function populateDivWithBarChart(thediv, siteName, siteID, thedatefrom, thedatet
                 buildBarChart(graphData, thediv, siteName, siteID, data.StartDate, data.EndDate);
         }
     });
+
+    if (currentTab == "Disturbances") {
+        dataHub.getVoltageMagnitudeData(siteID, thedatefrom, thedateto).done(function (data) {
+            cache_MagDur_Data = data;
+            buildMagDurChart(data, thediv + "MagDur")
+        })
+    }
     
 }
 
@@ -1396,6 +1403,74 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
         plot.setupGrid();
         plot.draw();
     }
+
+
+}
+
+function buildMagDurChart(data, thediv) {
+    var companyTrace = [{
+        x: [],
+        y: [],
+        name: 'Disturbances',
+        text: [],
+        type: 'scatter',
+        mode: 'markers'
+    }];
+    $.each(data, function (i, d) {
+        companyTrace[0].x.push(d.DurationSeconds);
+        companyTrace[0].y.push(d.PerUnitMagnitude * 100);
+        companyTrace[0].text.push(d.EventID)
+    });
+
+    var layout = {
+        title: 'Disturbance Magnitude Duration Scatter Plot',
+        hovermode: 'closest',
+        //showLink: false,
+        //displayLogo: false,
+        //autosize: false,
+        //width: $('#viewWindow').innerWidth(),
+        xaxis: { title: 'Duration (Seconds)', type: 'log', autorange: true, autotick: false, tickvals: [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]/*, range: [-3, 4] */ },
+        yaxis: { side: 'left', overlaying: 'y', anchor: 'x', title: 'Voltage Magnitude(% of Nominal)'/*, range: [0, 150]*/ },
+        //margin: {
+        //    l: 15,
+        //    r: 15,
+        //    t: 50,
+        //    b: 50,
+        //    pad: 15
+        //},
+        //height: $('#viewWindow').height() * 0.85,
+    };
+
+    dataHub.getCurves().done(function (curves) {
+
+        var curveIds = [];
+        $.each(curves, function (index, points) {
+            if (curveIds.indexOf(points.ID) < 0)
+                curveIds.push(points.ID);
+        });
+        var lines = []
+        $.each(curveIds, function (index, id) {
+            companyTrace.push({
+                x: $.map(curves, function (curve) { if (curve.ID == id) return parseFloat(curve.DurationSeconds) }),
+                y: $.map(curves, function (curve) { if (curve.ID == id) return parseFloat(curve.PerUnitMagnitude) * 100 }),
+                name: $.map(curves, function (curve) { if (curve.ID == id) return curve.Name })[0], type: 'scatter', mode: 'lines',
+                visible: ($.map(curves, function (curve) { if (curve.ID == id) return curve.Visible })[0] ? true : 'legendonly')
+            });
+        });
+
+        var plot = Plotly.newPlot(thediv, companyTrace, layout);
+
+        $('#'+ thediv).off('plotly_click');
+        $('#'+ thediv).on('plotly_click', function (event, data) {
+            window.open("OpenSEE.cshtml?ID=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
+        });
+    });
+
+    $(window).off('resize');
+    $(window).on('resize', function () {
+        Plotly.purge(thediv);
+        buildMagDurChart(cache_MagDur_Data, thediv)
+    });
 
 
 }
@@ -2260,40 +2335,22 @@ function showHeatmap(thecontrol) {
         targetDateTo: contexttodate,       
     };
 
-    if ($(thecontrol).val() == "MinimumSags"){
-        url += "Sags";
-        thedatasent.userName = postedUserName;
-    }
-    else if ($(thecontrol).val() == "MaximumSwells")
-    {
-        url += "Swell"
-        thedatasent.userName = postedUserName;
+    if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
+        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, postedUserName, $(thecontrol).val()).done(function (data) {
+            data.JSON = JSON.parse(data.Data);
+            LoadHeatmapLeaflet(data);
+        });
     }
     else {
-        url = "mapService.asmx/getLocationsEvents";
-        thedatasent.meterGroup = $('#meterGroupSelect').val();
-
+        if(cache_Map_Matrix_Data != null)
+            LoadHeatmapLeaflet(cache_Map_Matrix_Data);
+        else {
+            dataHub.getMeterLocations(contextfromdate, contexttodate, $('#meterGroupSelect').val(), currentTab, userId).done(function (data) {
+                data.JSON = JSON.parse(data.Data);
+                LoadHeatmapLeaflet(data);
+            });
+        }
     }
-
-
-
-
-    // Jeff Walker
-    $.ajax({
-        type: "POST",
-        url: url,
-        data: JSON.stringify(thedatasent),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            LoadHeatmapLeaflet(data.d);
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        async: true
-    });
 
 }
 
@@ -3108,6 +3165,7 @@ function loadsitedropdown() {
     }
 
     $('#siteList').multiselect('refresh');
+    $('.ui-multiselect').hide()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3863,6 +3921,18 @@ function getBase64MeterSelection() {
     }
 
     return base64Selections;
+}
+
+function showMagDur(theControl) {
+    if ($(theControl).val() == 0) {
+        $('#OverviewDisturbances').show()
+        $('#OverviewDisturbancesMagDur').hide()
+    }
+    else {
+        $('#OverviewDisturbances').hide()
+        $('#OverviewDisturbancesMagDur').show()
+        $(window).trigger('resize');
+    }
 }
 
 /// EOF
