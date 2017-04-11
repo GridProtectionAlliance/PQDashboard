@@ -288,6 +288,7 @@
     <Content Include="Content\graphics\scrollarrows.png" />
     <Content Include="Content\graphics\zoomin.cur" />
     <Content Include="Content\graphics\zoomout.cur" />
+    <Content Include="Content\jquery.jspanel.min.css" />
     <Content Include="Content\themes\redmond\images\animated-overlay.gif" />
     <Content Include="Content\themes\redmond\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\redmond\images\ui-bg_flat_55_fbec88_40x100.png" />
@@ -332,6 +333,8 @@
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\DashSettings.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
+    <Compile Include="Model\DeviceFilter.cs" />
+    <Compile Include="Model\Disturbance.cs" />
     <Compile Include="Model\Event.cs" />
     <Compile Include="Model\FaultNote.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
@@ -345,6 +348,7 @@
     <Compile Include="Model\MeterLocationsEventView.cs" />
     <Compile Include="Model\Page.cs" />
     <Compile Include="Model\PhasorDetail.cs" />
+    <Compile Include="Model\SavedViews.cs" />
     <Compile Include="Model\SchemaVersion.cs" />
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Model\StatusLight.cs" />
@@ -363,6 +367,7 @@
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="Model\WorkbenchVoltageCurveView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
@@ -546,6 +551,7 @@
     <Content Include="Scripts\jquery-2.2.3.min.js" />
     <Content Include="Scripts\jquery-ui.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
+    <Content Include="Scripts\jquery.jspanel-compiled.min.js" />
     <Content Include="Scripts\jquery.multiselect.filter.js" />
     <Content Include="Scripts\jquery.multiselect.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.js" />
@@ -585,6 +591,7 @@
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEEold.js" />
     <Content Include="Scripts\OpenSTE.js" />
+    <Content Include="Scripts\plotly-latest.min.js" />
     <Content Include="Scripts\PQIByEvent.js" />
     <Content Include="Scripts\prettify.js" />
     <Content Include="Scripts\PrimeUI\Font-Awesome\css\font-awesome.css" />
@@ -1230,6 +1237,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Content\fonts\" />
     <Folder Include="Images\playericons\" />
     <Folder Include="Images\StatusLights\" />
     <Folder Include="Views\Home\" />

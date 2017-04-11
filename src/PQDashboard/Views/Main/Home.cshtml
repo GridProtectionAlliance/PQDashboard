@@ -34,8 +34,11 @@
     DataContext dataContext = Model.DataContext;
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'");
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
+    List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+    List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
+    int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{0}')))", ViewBag.usersid));
     foreach(DashSettings setting in dashSettings)
     {
         if (setting.Name == "DashTab" || setting.Name.EndsWith("Chart"))
@@ -89,6 +92,7 @@
     <link rel="stylesheet" href="~/Content/Default.css" type="text/css"/>
     <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
     <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
+    <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
     <script>
         var mg = @defaulMeterGroupID;
@@ -124,8 +128,10 @@
     <script type="text/javascript" src="~/Scripts/D3/d3-scale.v1.min.js"></script>
     <script type="text/javascript" src="~/Scripts/D3/d3-shape.v1.min.js"></script>
     <script type="text/javascript" src="~/Scripts/Leaflet/leaflet-src.js"></script>
-    <script src="~/Scripts/heatmap.js"></script>
-    <script src="~/Scripts/leaflet-heatmap.js"></script>
+    <script type="text/javascript" src="~/Scripts/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/heatmap.js"></script>
+    <script type="text/javascript" src="~/Scripts/leaflet-heatmap.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.min.js"></script>
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.js"></script>
 	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.errorbars.js"></script>
 	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.navigate.js"></script>
@@ -156,16 +162,28 @@
     <table style="width: 100%;">
         <tr>
             <td width="15%" align="left" style="z-index: 999; padding-left: 5px;" nowrap>
-                <select class="smallbutton" id="Configurations"></select>
-                <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())">Load</button>
-                <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);">New</button>
-                <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);">Save</button>
-                <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);">Delete</button>
+                Device Filter:
+                <select class="smallbutton" id="deviceFilterList" onchange="selectMeterGroup(this)">
+                    <option value="0">All (no filter)</option>
+                    @foreach (DeviceFilter df in deviceFilters)
+                    {
+                        <option value="@df.ID">@df.Name</option>
+                    }
+
+                </select>
+                <button class="smallbutton" id="newDeviceFilterBtn" onclick="showDeviceFilter('new')">New</button>
+                <button class="smallbutton" id="editDeviceFilterBtn" onclick="showDeviceFilter('edit')">Edit</button>
+
+                <select class="smallbutton" id="Configurations" hidden="hidden"></select>
+                <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())" hidden="hidden">Load</button>
+                <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);" hidden="hidden">New</button>
+                <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);" hidden="hidden">Save</button>
+                <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);" hidden="hidden">Delete</button>
             </td>
             <td width="25%" align="left" nowrap>
-                Site:
-                <select id="siteList" multiple="multiple">
-                </select>
+                <span id="meterSelected"></span> of <span id="meterCount">@meterCount</span> devices selected
+                @*Site:*@
+                <select id="siteList" multiple="multiple" hidden="hidden"></select>
             </td>
 
             <td width="20%" align="left" nowrap>
@@ -192,17 +210,29 @@
             </td>
 
             <td width="5%" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
-                User:
+                Welcome:
                 <span>@ViewBag.username</span>
             </td>
             <td width="10%" align="right" style="z-index: 999; padding-right: 5px;" nowrap>
-                Monitor Group:
-                <select id="meterGroupSelect" class="smallbutton" onchange="selectMeterGroup(this);">
+                @*Monitor Group:*@
+                <select id="meterGroupSelect" class="smallbutton" onchange="selectMeterGroup(this);" hidden="hidden">
                     @foreach (MeterGroup mg in meterGroups)
                     {
                         <option value="@mg.ID">@mg.Name</option>
                     }
                 </select>
+                Saved Views:
+                <select id="viewSelect" class="smallbutton" onchange="selectView(this)">
+                    <option value="0">None</option>
+                    @foreach (SavedViews sv in savedViews)
+                    {
+                        <option value="@sv.ID">@sv.Name</option>
+                    }
+
+                </select>
+                <button class="smallbutton" id="saveNewView" onclick="saveView()">Save</button>
+                <button class="smallbutton" id="deleteView" onclick="deleteView()">Delete</button>
+
             </td>
             @if (ViewBag.username != "External")
             {
@@ -1735,7 +1765,7 @@
                         <select class="smallbutton" id="selectHeatmapEvents" onchange="showHeatmap(this);">
                             <option value="EventCounts">Event Counts</option>
                             <option value="MinimumSags">Sag Minimum</option>
-                            <option value="MaximumSwells">Swell Maximum</option>
+                            <option value="MaximumSwell">Swell Maximum</option>
                         </select>
                     </div>
 
@@ -1762,10 +1792,14 @@
         <div class="portlet" id="Portlet1Disturbances">
             <div class="portlet-header">
                 <div class="portlet-header-text" style="display: inline">Disturbances Overview (For Date Range)</div>
+                <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
+                    <option value="0">Bar Chart</option>
+                    <option value="1">Mag/Dur Chart</option>
+                </select>
             </div>
             <div id="DockOverviewDisturbances" class="portlet-content">
-                <div id="OverviewDisturbances" class="docklet chart-container">
-                </div>
+                <div id="OverviewDisturbances" class="docklet chart-container"></div>
+                <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
             </div>
         </div>
         <div class="portlet" id="Portlet2Disturbances">
@@ -2207,7 +2241,7 @@
 </div>
 
 
-<!-- Modal -->
+<!-- Modals -->
 <div id="notesModal" class="modal fade" role="dialog">
     <div class="modal-dialog" style="width: 50%">
 
@@ -2229,6 +2263,40 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<div id="deviceFilterModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add/Edit a device filter.</h4>
+            </div>
+            <div class="modal-body">
+                <div id="deviceFilterId" hidden="hidden"></div>
+                <label for="deviceFilterName">Name:</label>
+                <input type="text" class="form-control" id="deviceFilterName"/>
+                <label for="deviceFilterMeterGroup">Meter Group:</label>
+                <select class="form-control" id="deviceFilterMeterGroup">
+                    <option value="0">Union of All Groups</option>
+                    @foreach (MeterGroup mg in meterGroups)
+                    {
+                        <option value="@mg.ID">@mg.Name</option>
+                    }
+
+                </select>
+                <label for="filterExpression">Filter Expression:</label><button class="btn btn-xs btn-default" id="filterExpressionHelp"><span class="glyphicon glyphicon-asterisk"></span></button>
+                <textarea id="filterExpression" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="showDeviceFilterSaveBtn" type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveDeviceFilter('new')">Save</button>
+                <button id="showDeviceFilterEditBtn" type="button" class="btn btn-primary" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('edit')">Edit</button>
+                <button id="showDeviceFilterDeleteBtn" type="button" class="btn btn-danger" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('delete')">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 

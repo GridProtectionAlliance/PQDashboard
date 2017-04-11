@@ -365,9 +365,9 @@ public class mapService : WebService
                 ourStatus.location = new siteGeocoordinates();
                 ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
                 ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
+                ourStatus.name = (string)rdr["Name"];
+                ourStatus.status = (int)rdr["Count"];
+                ourStatus.id = (int)rdr["ID"];
                 locationStates.Locations.Add(ourStatus);
             }
         }
@@ -418,9 +418,9 @@ public class mapService : WebService
                 ourStatus.location = new siteGeocoordinates();
                 ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
                 ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
+                ourStatus.name = (string)rdr["Name"];
+                ourStatus.status = (int)rdr["Count"];
+                ourStatus.id = (int)rdr["ID"];
                 locationStates.Locations.Add(ourStatus);
             }
         }
