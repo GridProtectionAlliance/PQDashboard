@@ -38,6 +38,7 @@ using FaultData.Database;
 using GSF;
 using GSF.Configuration;
 using GSF.Collections;
+using GSF.Data;
 using GSF.Data.Model;
 using GSF.Identity;
 using GSF.Web.Hubs;
@@ -379,10 +380,41 @@ namespace PQDashboard
 
         #region [ Page Load Operations]
 
-        public IEnumerable<MeterID> GetMeters(int meterGroup)
+        public IEnumerable<MeterID> GetMetersByGroup(int meterGroup)
         {
             return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
         }
+
+        public IEnumerable<MeterID> GetMeters(int deviceFilter)
+        {
+            DeviceFilter df = DataContext.Table<DeviceFilter>().QueryRecord(new RecordRestriction("ID = {0}", deviceFilter));
+            DataTable table;
+
+            try
+            {
+                string filterExpression = null;
+                if (df == null)
+                {
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{GetCurrentUserSID()}')))");
+                    return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+                }
+
+                if (df.MeterGroupID == 0)
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{df.UserAccount}')))");
+                else
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {df.MeterGroupID})");
+
+                if (df.FilterExpression != "")
+                    return table.Select(df.FilterExpression).Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+            }
+            catch (Exception)
+            {
+                return new List<MeterID>();
+            }
+
+            return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+        }
+
 
         public IEnumerable<DashSettings> GetTabSettings(string userName)
         {
@@ -950,7 +982,7 @@ namespace PQDashboard
         /// <param name="tab">Current PQDashboard Tab</param>
         /// <param name="userName">Current PQDashboard user</param>
         /// <returns>Object with list of meters and counts for tab.</returns> 
-        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, int meterGroup, string tab, string userName)
+        public MeterLocations GetMeterLocationsOld(string targetDateFrom, string targetDateTo, int meterGroup, string tab, string userName)
         {
             SqlConnection conn = null;
             SqlDataReader rdr = null;
@@ -1053,6 +1085,131 @@ namespace PQDashboard
                         table.Columns.Remove(columnName);
                 }
                 
+                meters.Colors = colors;
+                meters.Data = DataTable2JSON(table);
+            }
+            finally
+            {
+                if (!rdr.IsClosed)
+                {
+                    rdr.Close();
+                }
+            }
+            return meters;
+        }
+
+        /// <summary>
+        /// getLocationsEvents 
+        /// </summary>
+        /// <param name="targetDateFrom">Start Date</param>
+        /// <param name="targetDateTo">End Date</param>
+        /// <param name="meterIds">comma separated list of meterIds</param>
+        /// <param name="tab">Current PQDashboard Tab</param>
+        /// <param name="userName">Current PQDashboard user</param>
+        /// <returns>Object with list of meters and counts for tab.</returns> 
+        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, string meterIds, string tab, string userName)
+        {
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            MeterLocations meters = new MeterLocations();
+            DataTable table = new DataTable();
+
+            Dictionary<string, string> colors = new Dictionary<string, string>();
+
+            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
+            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
+            foreach (DashSettings setting in dashSettings)
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+
+                if (!disabledFileds.ContainsKey(setting.Value))
+                    disabledFileds.Add(setting.Value, setting.Enabled);
+
+            }
+
+            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
+            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+
+            foreach (var color in colorSettings)
+            {
+                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
+                if (index >= 0)
+                {
+                    color.Value = userColorSettings[index].Value;
+                }
+
+                if (colors.ContainsKey(color.Value.Split(',')[0]))
+                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
+                else
+                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
+            }
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + tab, conn);
+
+                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
+                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
+                cmd.Parameters.Add(new SqlParameter("@meterIds", meterIds));
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 300;
+                rdr = cmd.ExecuteReader();
+                table.Load(rdr);
+
+                List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn column in table.Columns)
+                {
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
+                    {
+                        disabledFileds.Add(column.ColumnName, true);
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "Chart",
+                            Value = column.ColumnName,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+                    }
+
+                    if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
+                    {
+                        Random r = new Random(DateTime.UtcNow.Millisecond);
+                        string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                        colors.Add(column.ColumnName, color);
+
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "ChartColors",
+                            Value = column.ColumnName + ",#" + color,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+
+                    }
+
+
+                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                    {
+                        columnsToRemove.Add(column.ColumnName);
+                    }
+
+                }
+                foreach (string columnName in columnsToRemove)
+                {
+                    table.Columns.Remove(columnName);
+                }
+
                 meters.Colors = colors;
                 meters.Data = DataTable2JSON(table);
             }
@@ -1178,6 +1335,70 @@ namespace PQDashboard
 
             }
         }
+        #endregion
+
+        #region [ DeviceFilter Operations ]
+
+        public IEnumerable<DeviceFilter> QueryDeviceFilterRecords(string userAccount)
+        {
+            return DataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", userAccount));
+        }
+
+        public DeviceFilter QueryDeviceFilterRecord(int id)
+        {
+            return DataContext.Table<DeviceFilter>().QueryRecord( new RecordRestriction("ID = {0}", id));
+        }
+
+        public int AddDeviceFilter(DeviceFilter record)
+        {
+            DataContext.Table<DeviceFilter>().AddNewRecord(record);
+            return DataContext.Connection.ExecuteScalar<int>("SELECT @@IDENTITY");
+
+        }
+
+        public void EditDeviceFilter(DeviceFilter record)
+        {
+            DataContext.Table<DeviceFilter>().UpdateRecord(record);
+        }
+
+
+        public void DeleteDeviceFilter(int id)
+        {
+            DataContext.Table<DeviceFilter>().DeleteRecord(new RecordRestriction("ID = {0}", id));
+        }
+
+        #endregion
+
+        #region [ SavedViews Operations ]
+
+        public IEnumerable<SavedViews> QuerySavedViewsRecords(string userAccount)
+        {
+            return DataContext.Table<SavedViews>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", userAccount));
+        }
+
+        public SavedViews QuerySavedViewsRecord(int id)
+        {
+            return DataContext.Table<SavedViews>().QueryRecord(new RecordRestriction("ID = {0}", id));
+        }
+
+        public int AddSavedViews(SavedViews record)
+        {
+            DataContext.Table<SavedViews>().AddNewRecord(record);
+            return DataContext.Connection.ExecuteScalar<int>("SELECT @@IDENTITY");
+
+        }
+
+        public void EditSavedViews(SavedViews record)
+        {
+            DataContext.Table<SavedViews>().UpdateRecord(record);
+        }
+
+
+        public void DeleteSavedViews(int id)
+        {
+            DataContext.Table<SavedViews>().DeleteRecord(new RecordRestriction("ID = {0}", id));
+        }
+
         #endregion
 
         #region [OpenSEE Operations]
@@ -1356,9 +1577,20 @@ namespace PQDashboard
         public static Guid GetCurrentUserID()
         {
             Guid userID;
-            AuthorizationCache.UserIDs.TryGetValue(UserInfo.CurrentUserID, out userID);
+            AuthorizationCache.UserIDs.TryGetValue(Thread.CurrentPrincipal.Identity.Name, out userID);
             return userID;
         }
+
+        /// <summary>
+        /// Gets UserAccount table ID for current user.
+        /// </summary>
+        /// <returns>UserAccount.ID for current user.</returns>
+        public static string GetCurrentUserSID()
+        {
+            return UserInfo.UserNameToSID(Thread.CurrentPrincipal.Identity.Name);
+        }
+
+
 
         /// <summary>
         /// DataTable2JSON
