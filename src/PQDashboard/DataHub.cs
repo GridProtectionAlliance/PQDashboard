@@ -1230,7 +1230,7 @@ namespace PQDashboard
         /// <param name="targetDateTo"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public MeterLocations GetLocationsHeatmap(string targetDateFrom, string targetDateTo, string userName, string type)
+        public MeterLocations GetLocationsHeatmap(string targetDateFrom, string targetDateTo, string meterIds, string type)
         {
             SqlConnection conn = null;
             SqlDataReader rdr = null;
@@ -1245,7 +1245,7 @@ namespace PQDashboard
 
                 cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
                 cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-                cmd.Parameters.Add(new SqlParameter("@username", userName));
+                cmd.Parameters.Add(new SqlParameter("@meterIds", meterIds));
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = 300;
                 rdr = cmd.ExecuteReader();

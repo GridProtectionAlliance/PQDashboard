@@ -183,12 +183,6 @@ function setMapHeaderDate(datefrom, dateto) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMapHeaderDate(whichdate) {
-    return ($("#mapHeader" + currentTab + whichdate)[0].innerHTML);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function loadDataForDate() {
     if (currentTab != null) {
         contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('MM/DD/YY');
@@ -232,19 +226,6 @@ function selectmapgrid(thecontrol) {
             resizeMapAndMatrix(currentTab);
         }
     }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function GetAllSitesIDs() {
-
-    var returnValue = "";
-
-    $.each(cache_Map_Matrix_Data.d, function (key, value) {
-        returnValue += value.id + ",";
-    });
-
-    return (returnValue);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,8 +277,6 @@ function selectsitesincharts() {
 
     ManageLocationClick(sitename, thesiteidlist);  
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
@@ -403,7 +382,6 @@ function editNote(id) {
     $('#note').val($('#note' + id).text());
     dataHub.removeNote(id);
 }
-
 
 function populateCorrectnessDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
@@ -1910,9 +1888,6 @@ function showSiteSet(thecontrol) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////////
-
 function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
     /// Clear Matrix
     if ($("#theMatrix" + newTab)[0].childElementCount > 0) {
@@ -2273,14 +2248,8 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function showHeatmap(thecontrol) {
-    var url = homePath + "mapService.asmx/getLocationsHeatmap";
-    var thedatasent = {
-        targetDateFrom: contextfromdate,
-        targetDateTo: contexttodate,       
-    };
-
     if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, postedUserName, $(thecontrol).val()).done(function (data) {
+        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), $(thecontrol).val()).done(function (data) {
             data.JSON = JSON.parse(data.Data);
             LoadHeatmapLeaflet(data);
         });
@@ -2289,7 +2258,7 @@ function showHeatmap(thecontrol) {
         if(cache_Map_Matrix_Data != null)
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
-            dataHub.getMeterLocations(contextfromdate, contexttodate, $('#meterGroupSelect').val(), currentTab, userId).done(function (data) {
+            dataHub.getMeterLocations(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), currentTab, userId).done(function (data) {
                 data.JSON = JSON.parse(data.Data);
                 LoadHeatmapLeaflet(data);
             });
