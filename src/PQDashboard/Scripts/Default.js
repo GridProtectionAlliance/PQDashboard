@@ -3745,9 +3745,7 @@ function stepSelectionChange(thecontrol) {
 }
 
 function showOverviewPage(tab) {
-
     var heightNew = 0;
-
     var ovtodayHeight = $('#tabs-Overview-Today').height();
     var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
 
@@ -3779,7 +3777,6 @@ function showOverviewPage(tab) {
         var mygrid2Height = $('.grid2').height();
         var myovtodayHeight = $('#tabs-Overview-Today').height();
         var myovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
-
         var myheightNew = 0;
 
         myheightNew = myovyesterdayHeight;
