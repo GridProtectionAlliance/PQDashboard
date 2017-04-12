@@ -1335,6 +1335,11 @@ namespace PQDashboard
 
             }
         }
+
+        public void ResetDefaultSettings()
+        {
+            DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", GetCurrentUserSID()));
+        }
         #endregion
 
         #region [ DeviceFilter Operations ]
