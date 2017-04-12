@@ -1311,8 +1311,11 @@ namespace PQDashboard
                     uds.Enabled = !uds.Enabled;
                 else
                     uds.Value = uds.Value.Split(',')[0] + ",#" + value;
-                DataContext.Table<UserDashSettings>().UpdateRecord(uds);
 
+                if(uds.Enabled != ds.Enabled)
+                    DataContext.Table<UserDashSettings>().UpdateRecord(uds);
+                else
+                    DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
             }
             else
             {
@@ -1331,7 +1334,9 @@ namespace PQDashboard
                     uds.Enabled = result;
                     uds.Value = ds.Value;
                 }
-                DataContext.Table<UserDashSettings>().AddNewRecord(uds);
+               
+                if(uds.Enabled != ds.Enabled)
+                    DataContext.Table<UserDashSettings>().AddNewRecord(uds);
 
             }
         }
