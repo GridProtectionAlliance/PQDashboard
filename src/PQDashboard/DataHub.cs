@@ -1303,7 +1303,7 @@ namespace PQDashboard
         public void UpdateDashSettings(int id, string field, string value, string userId)
         {
             DashSettings ds = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("ID = {0}", id))?.FirstOrDefault() ?? null;
-            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value = {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value, userId))?.FirstOrDefault() ?? null;
+            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value LIKE {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value.Split(',')[0] + "%", userId))?.FirstOrDefault() ?? null;
 
             if(uds != null)
             {

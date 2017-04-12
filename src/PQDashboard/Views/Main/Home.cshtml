@@ -32,13 +32,13 @@
 @{
     Layout = "";
     DataContext dataContext = Model.DataContext;
-    string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'");
+    string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'") ?? "127.0.0.0";
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
     List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
-    int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{0}')))", ViewBag.usersid));
+    int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
     foreach(DashSettings setting in dashSettings)
     {
         if (setting.Name == "DashTab" || setting.Name.EndsWith("Chart"))

@@ -3225,7 +3225,7 @@ function buildPage() {
         });
     });
 
-
+    // Settings modal jscolor and enable change events
     $('.modal-body input').change(function(event){
         var field;
         if ($(event.currentTarget).attr('id').indexOf('enable') > -1)
