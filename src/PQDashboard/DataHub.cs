@@ -385,7 +385,7 @@ namespace PQDashboard
             return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
         }
 
-        public IEnumerable<MeterID> GetMeters(int deviceFilter)
+        public IEnumerable<MeterID> GetMeters(int deviceFilter, string userName)
         {
             DeviceFilter df = DataContext.Table<DeviceFilter>().QueryRecord(new RecordRestriction("ID = {0}", deviceFilter));
             DataTable table;
@@ -395,7 +395,7 @@ namespace PQDashboard
                 string filterExpression = null;
                 if (df == null)
                 {
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{GetCurrentUserSID()}')))");
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
                     return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
                 }
 
@@ -1303,7 +1303,7 @@ namespace PQDashboard
         public void UpdateDashSettings(int id, string field, string value, string userId)
         {
             DashSettings ds = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("ID = {0}", id))?.FirstOrDefault() ?? null;
-            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value = {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value, userId))?.FirstOrDefault() ?? null;
+            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value LIKE {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value.Split(',')[0] + "%", userId))?.FirstOrDefault() ?? null;
 
             if(uds != null)
             {
@@ -1311,8 +1311,11 @@ namespace PQDashboard
                     uds.Enabled = !uds.Enabled;
                 else
                     uds.Value = uds.Value.Split(',')[0] + ",#" + value;
-                DataContext.Table<UserDashSettings>().UpdateRecord(uds);
 
+                if(uds.Enabled != ds.Enabled)
+                    DataContext.Table<UserDashSettings>().UpdateRecord(uds);
+                else
+                    DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
             }
             else
             {
@@ -1331,9 +1334,16 @@ namespace PQDashboard
                     uds.Enabled = result;
                     uds.Value = ds.Value;
                 }
-                DataContext.Table<UserDashSettings>().AddNewRecord(uds);
+               
+                if(uds.Enabled != ds.Enabled)
+                    DataContext.Table<UserDashSettings>().AddNewRecord(uds);
 
             }
+        }
+
+        public void ResetDefaultSettings()
+        {
+            DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", GetCurrentUserSID()));
         }
         #endregion
 

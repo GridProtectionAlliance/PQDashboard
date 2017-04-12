@@ -90,6 +90,8 @@ var disabledList = {
     Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false}
 };
 
+var yearBeginMoment = moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc();
+var nowMoment = moment.utc();
 var dateRangeOptions = {
     "timePicker": false,
     "timePicker24Hour": false,
@@ -111,16 +113,9 @@ var dateRangeOptions = {
         'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')],
         'Month To Date': [moment().utc().startOf('month'), moment().utc().endOf('day')],
         'Last Month': [moment().utc().subtract(1, 'months').startOf('month'), moment().utc().subtract(1, 'months').endOf('month')],
-        'Year To Date': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
-                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
-                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()),
-                          moment().utc().endOf('day')],
-        'Last Year': [(moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
-                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc() :
-                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).subtract(1, 'years').utc()),
-                       (moment().utc().month(yearBegin.split(' ')[0]).quarter() == moment().utc().quarter() ?
-                                moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc() :
-                                moment().subtract(1,'years').month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc()).subtract(1,'days')],
+        'Year To Date': [(nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1,'years')), moment().utc().endOf('day')],
+        'Last Year': [(nowMoment >= yearBeginMoment ? yearBeginMoment.clone().subtract(1, 'years') : yearBeginMoment.clone().subtract(2, 'years')),
+                       (nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1, 'years'))],
     },
     "startDate": moment().utc().subtract(29, 'days').startOf('day'),
     "endDate": moment.utc().endOf('day')
@@ -2952,7 +2947,7 @@ function showContent() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getMeters(meterGroup) {
-    dataHub.getMeters(meterGroup).done(function (data) {
+    dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
         cache_Meters = data;
         updateMeterselect();
         $('#meterSelected').text(data.length);
@@ -3230,7 +3225,7 @@ function buildPage() {
         });
     });
 
-
+    // Settings modal jscolor and enable change events
     $('.modal-body input').change(function(event){
         var field;
         if ($(event.currentTarget).attr('id').indexOf('enable') > -1)
