@@ -385,7 +385,7 @@ namespace PQDashboard
             return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
         }
 
-        public IEnumerable<MeterID> GetMeters(int deviceFilter)
+        public IEnumerable<MeterID> GetMeters(int deviceFilter, string userName)
         {
             DeviceFilter df = DataContext.Table<DeviceFilter>().QueryRecord(new RecordRestriction("ID = {0}", deviceFilter));
             DataTable table;
@@ -395,7 +395,7 @@ namespace PQDashboard
                 string filterExpression = null;
                 if (df == null)
                 {
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{GetCurrentUserSID()}')))");
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
                     return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
                 }
 

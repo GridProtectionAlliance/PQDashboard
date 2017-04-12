@@ -2947,7 +2947,7 @@ function showContent() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getMeters(meterGroup) {
-    dataHub.getMeters(meterGroup).done(function (data) {
+    dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
         cache_Meters = data;
         updateMeterselect();
         $('#meterSelected').text(data.length);
