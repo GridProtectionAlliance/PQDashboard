@@ -3745,6 +3745,14 @@ function stepSelectionChange(thecontrol) {
 }
 
 function showOverviewPage(tab) {
+    $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
+    $('#overviewTodayDate').text(new Date(new Date().setDate(new Date().getDate())).toDateString());
+
+    $('.grid2').masonry({
+        itemSelector: '.grid2-item',
+        columnWidth: 400
+    });
+
     var heightNew = 0;
     var ovtodayHeight = $('#tabs-Overview-Today').height();
     var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
@@ -3763,29 +3771,101 @@ function showOverviewPage(tab) {
         $('#tabs-' + 'Overview-Today').css('height', heightNew);
     }
 
-    $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
-    $('#overviewTodayDate').text(new Date(new Date().setDate(new Date().getDate())).toDateString());
-
-    $('.grid2').masonry({
-        itemSelector: '.grid2-item',
-        columnWidth: 400
-    });
-
     $(window).resize(function () {
         $('.grid2').masonry('layout');
 
-        var mygrid2Height = $('.grid2').height();
-        var myovtodayHeight = $('#tabs-Overview-Today').height();
-        var myovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
         var myheightNew = 0;
 
-        myheightNew = myovyesterdayHeight;
-        if (myovtodayHeight > 1 & myovyesterdayHeight <= myovtodayHeight) {
-            myheightNew = myovtodayHeight;
+        if (currentTab === 'Overview-Today') {
+            var ovtodayWidth = $('#tabs-Overview-Today').width();
+            var leftrightoffset = $('#grid2Today').offset().left * 2.0;
+            var grid2width = $('#grid2Today').width();
+
+            myheightNew = $('#tabs-Overview-Today').offset().top * 1.03;
+
+            if (ovtodayWidth > (1600 + leftrightoffset)) {
+                var iterator = 1;
+                while (iterator <= 4) {
+
+                    if (myheightNew <= $('#grid2-item-Today-' + iterator).height())
+                    {
+                        myheightNew += $('#grid2-item-Today-' + iterator).height();
+                    }
+                    iterator++;
+                }
+            }
+            else if (ovtodayWidth <= (1600 + leftrightoffset) & ovtodayWidth > (800 + leftrightoffset)) {
+                var iterator = 2;
+                while (iterator <= 4) {
+
+                    myheightNew += $('#grid2-item-Today-' + iterator).height();
+                    iterator++;
+                }
+            }
+            else if (ovtodayWidth <= (800 + leftrightoffset)) {
+                var iterator = 1;
+                while (iterator <= 4) {
+
+                    myheightNew += $('#grid2-item-Today-' + iterator).height();
+
+                    iterator++;
+                }
+            }
         }
 
-        if (mygrid2Height > myheightNew) {
-            myheightNew = mygrid2Height;
+        if (currentTab === 'Overview-Yesterday') {
+            var ovyesterdayWidth = $('#tabs-Overview-Yesterday').width();
+            var leftrightoffset = $('#grid2Yesterday').offset().left * 2.0;
+            var grid2width = $('#grid2Yesterday').width();
+
+            myheightNew = $('#tabs-Overview-Yesterday').offset().top * 1.03;
+
+            if (ovyesterdayWidth > (1600 + leftrightoffset)) {
+
+                var iterator = 1;
+                while (iterator <= 6) {
+
+                    if (myheightNew <= $('#grid2-item-Yesterday-' + iterator).height()) {
+                        myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
+                    }
+                    iterator++;
+                }
+            }
+            else if (ovyesterdayWidth <= (1600 + leftrightoffset) & ovyesterdayWidth > (1200 + leftrightoffset)) {
+                var iterator = 3;
+                while (iterator <= 4) {
+
+                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
+                    iterator++;
+                }
+            }
+            else if (ovyesterdayWidth <= (1200 + leftrightoffset) & ovyesterdayWidth > (800 + leftrightoffset)) {
+
+                var iterator = 2;
+                while (iterator <= 6) {
+
+                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
+                    iterator++;
+                }
+            }
+            else if (ovyesterdayWidth <= (800 + leftrightoffset) & ovyesterdayWidth > (400 + leftrightoffset)) {
+                var iterator = 1;
+                while (iterator <= 6) {
+
+                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
+
+                    iterator++;
+                }
+            }
+            else if (ovyesterdayWidth <= (400 + leftrightoffset)) {
+                var iterator = 1;
+                while (iterator <= 6) {
+
+                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
+
+                    iterator++;
+                }
+            }
         }
 
         $('#tabs-' + currentTab).css('height', myheightNew);

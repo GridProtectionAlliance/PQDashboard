@@ -850,19 +850,10 @@ color:#333;
       height: 100%;
   }
 
-html { 
-    overflow-y: scroll; 
-    overflow-x: scroll; 
-}
-
 .grid2 {
-    //background-color: #FCD883;
     width: 100%;
     height: 100%;
     max-width: 100%;
-
-    /*overflow-y: scroll; 
-    overflow-x: scroll;*/ 
 }
 
 .grid2:after {
@@ -873,7 +864,7 @@ html {
 
 .grid2-sizer,
 .grid2-item {
-  width: 100px;
+  width: 800px;
 }
 .grid2-item {
     float: left;
@@ -882,7 +873,9 @@ html {
     border-radius: 2px;
     text-align: center;
     background-color: wheat;
+}
 
-    /*overflow-y: scroll; 
-    overflow-x: scroll;*/
+html {
+    overflow-y:scroll;
+    overflow-x:scroll;
 }
