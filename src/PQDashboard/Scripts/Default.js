@@ -3750,7 +3750,8 @@ function showOverviewPage(tab) {
 
     $('.grid2').masonry({
         itemSelector: '.grid2-item',
-        columnWidth: 400
+        columnWidth: 300,
+        gutter: 4
     });
 
     var heightNew = 0;
@@ -3781,9 +3782,9 @@ function showOverviewPage(tab) {
             var leftrightoffset = $('#grid2Today').offset().left * 2.0;
             var grid2width = $('#grid2Today').width();
 
-            myheightNew = $('#tabs-Overview-Today').offset().top * 1.03;
+            myheightNew = ($('#tabs-Overview-Today').offset().top) + 60;
 
-            if (ovtodayWidth > (1600 + leftrightoffset)) {
+            if (ovtodayWidth > (1200 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 4) {
 
@@ -3794,7 +3795,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovtodayWidth <= (1600 + leftrightoffset) & ovtodayWidth > (800 + leftrightoffset)) {
+            else if (ovtodayWidth <= (1200 + leftrightoffset) & ovtodayWidth > (600 + leftrightoffset)) {
                 var iterator = 2;
                 while (iterator <= 4) {
 
@@ -3802,7 +3803,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovtodayWidth <= (800 + leftrightoffset)) {
+            else if (ovtodayWidth <= (600 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 4) {
 
@@ -3818,7 +3819,7 @@ function showOverviewPage(tab) {
             var leftrightoffset = $('#grid2Yesterday').offset().left * 2.0;
             var grid2width = $('#grid2Yesterday').width();
 
-            myheightNew = $('#tabs-Overview-Yesterday').offset().top * 1.03;
+            myheightNew = ($('#tabs-Overview-Yesterday').offset().top) + 60;
 
             if (ovyesterdayWidth > (1600 + leftrightoffset)) {
 

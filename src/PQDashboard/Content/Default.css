@@ -864,18 +864,18 @@ color:#333;
 
 .grid2-sizer,
 .grid2-item {
-  width: 800px;
+  width: 300px;
 }
 .grid2-item {
     float: left;
     border-color: black;
-    border: 2px solid #333;
+    border: 2px solid black;
     border-radius: 2px;
     text-align: center;
     background-color: wheat;
+    margin-bottom: 4px;
 }
 
 html {
     overflow-y:scroll;
-    overflow-x:scroll;
 }
