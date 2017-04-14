@@ -1377,6 +1377,30 @@ namespace PQDashboard
             DataContext.Table<DeviceFilter>().DeleteRecord(new RecordRestriction("ID = {0}", id));
         }
 
+        public IEnumerable<MeterID> DeviceFilterPreview(int meterGroupId, string filterExpression, string userName)
+        {
+            DataTable table;
+
+            try
+            {
+
+                if (meterGroupId == 0)
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
+                else
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+
+                if (filterExpression != "")
+                    return table.Select(filterExpression).Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+            }
+            catch (Exception)
+            {
+                return new List<MeterID>();
+            }
+
+            return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+        }
+
+
         #endregion
 
         #region [ SavedViews Operations ]

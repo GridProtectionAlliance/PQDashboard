@@ -341,7 +341,7 @@ function populateFaultsDivWithGrid(data) {
                 { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                 { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
                 { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
-                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
 
             ],
             datasource: filteredData
@@ -3205,7 +3205,7 @@ function buildPage() {
                 at: 'center-top',
                 of: e.target
             },
-            contentSize: { width: 400, height: 250 },
+            contentSize: { width: 400, height: 400 },
             theme: 'blue',
             headerTitle: 'Filter Expression Help',
             callback: function (panel) {
@@ -3215,9 +3215,9 @@ function buildPage() {
                     panel.reposition({ my: 'center-top', at: 'center-bottom', of: e.target });
                 }
 
-                var content = "<p>Filter expressions are a way of filtering down data by equating specific values to certain fields.  This follows the exact syntax of a SQL WHERE clause.  Use the <code>=</code> operator to equate an attribute and the <code>LIKE</code> operator "+
-                              "to do a compare.  With the <code>LIKE</code> operator, the <code>%</code> operator can be used as a wild card.  The fields that can be used in this filter expression are Name, Alias, ShortName, AssetKey and MeterLocationID.\n</p>" +
-                              "\nExamples:\n <ul><li><code>Name = 'Greenville'</code></li><li><code>Alias LIKE 'DFR%'</code></li><li><code>ShortName LIKE '%ville'</code></li></ul>"
+                var content = "<p>Filter expressions can be used to limit the number of monitors for a monitor (meter) group.  The syntax is like a SQL WHERE expression.  The operators are:</p><ul><li><code>=</code> operator to equate an attribute</li><li> the <code>LIKE</code> operator to do a compare</li><li> the <code>%</code> or <code>*</code> operator are used as a wild card</li></ul> " +
+                              "<p>The available fields for filtering are associted with a monitor (meter) are: </p><ul><li>Name</li><li>Alias</li><li>ShortName</li><li>AssetKey</li><li>MeterLocationID</li></ul>" +
+                              "<p>Examples:</p> <ul><li><code>Alias = 'Greenville'</code></li><li><code>Name LIKE 'DFR%'</code></li><li><code>ShortName LIKE '%ville'</code></li></ul>"
 
                 panel.content.append(content)
 
@@ -4051,6 +4051,27 @@ function saveDeviceFilter(word) {
             $('#deviceFilterList').children().filter('option[value=' + $('#deviceFilterId').text() + ']').remove();
         });
     }
+}
+
+function previewDeviceFilter() {
+    dataHub.deviceFilterPreview($('#deviceFilterMeterGroup').val(), $('#filterExpression').val(), postedUserName).done(function (data) {
+        var html = "<div>Total: "+ data.length +"<ul style='height: 300px; overflow-y:scroll'>";
+        $.each(data, function (i, d) {
+            html += "<li>"+ d.Name +"</li>";
+        });
+        html += "</ul></div>"
+        var myPanel = $.jsPanel({
+            headerTitle: "Preview Meter List",
+            content: html,
+            contentSize: {
+                width: 300,
+                height: 300
+            },
+            callback: function (panel) {
+                panel.css('z-index', '2000')
+            }
+        });
+    });
 }
 
 function saveView() {
