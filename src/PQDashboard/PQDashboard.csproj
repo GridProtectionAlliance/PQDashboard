@@ -332,11 +332,13 @@
     </Content>
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\DashSettings.cs" />
+    <Compile Include="Model\DataFile.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
     <Compile Include="Model\DeviceFilter.cs" />
     <Compile Include="Model\Disturbance.cs" />
     <Compile Include="Model\Event.cs" />
     <Compile Include="Model\FaultNote.cs" />
+    <Compile Include="Model\FaultSummary.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
     <Compile Include="Model\MeasurementDetail.cs" />
     <Compile Include="Model\MeasurementValue.cs" />
