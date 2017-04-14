@@ -3821,7 +3821,7 @@ function showOverviewPage(tab) {
 
             myheightNew = ($('#tabs-Overview-Yesterday').offset().top) + 60;
 
-            if (ovyesterdayWidth > (1600 + leftrightoffset)) {
+            if (ovyesterdayWidth > (1200 + leftrightoffset)) {
 
                 var iterator = 1;
                 while (iterator <= 6) {
@@ -3832,7 +3832,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovyesterdayWidth <= (1600 + leftrightoffset) & ovyesterdayWidth > (1200 + leftrightoffset)) {
+            else if (ovyesterdayWidth <= (1200 + leftrightoffset) & ovyesterdayWidth > (900 + leftrightoffset)) {
                 var iterator = 3;
                 while (iterator <= 4) {
 
@@ -3840,7 +3840,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovyesterdayWidth <= (1200 + leftrightoffset) & ovyesterdayWidth > (800 + leftrightoffset)) {
+            else if (ovyesterdayWidth <= (900 + leftrightoffset) & ovyesterdayWidth > (600 + leftrightoffset)) {
 
                 var iterator = 2;
                 while (iterator <= 6) {
@@ -3849,7 +3849,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovyesterdayWidth <= (800 + leftrightoffset) & ovyesterdayWidth > (400 + leftrightoffset)) {
+            else if (ovyesterdayWidth <= (600 + leftrightoffset) & ovyesterdayWidth > (300 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 6) {
 
@@ -3858,7 +3858,7 @@ function showOverviewPage(tab) {
                     iterator++;
                 }
             }
-            else if (ovyesterdayWidth <= (400 + leftrightoffset)) {
+            else if (ovyesterdayWidth <= (300 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 6) {
 
