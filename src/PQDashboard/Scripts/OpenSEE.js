@@ -213,14 +213,6 @@ $(document).ready(function () {
 
     xaxisHover = Number(postedEventMilliseconds);
 
-    $("#showdetails").hide();
-
-    if (parseBoolean(postedShowFaultCurves)) {
-        if (postedEventName == "Fault") {
-            $("#showdetails").show();
-        }
-    }
-
     if (postedMeterId != "") {
         resetWaveformDiv();
         showData();
@@ -230,6 +222,12 @@ $(document).ready(function () {
     } else {
         $.unblockUI();
     }
+
+    nextBackSelect($('#next-back-selection option:selected').val());
+
+    $('#next-back-selection').change(function () {
+        nextBackSelect($('#next-back-selection option:selected').val());
+    });
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -330,19 +328,23 @@ function addPlotDiv(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function showData() {
-
     // If all exist, then let's act
     if (postedEventName && postedEventId) {
         // Lets build a label for this chart
         var label = "";
         var details = "";
         var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
+        var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
 
         label += "Station: " + postedStationName;
         label += separator + "Line: " + postedLineName;
         label += "<br />";
 
-        label += "Event Type: " + postedEventName;
+        if (postedEventName != "Fault")
+            label += "Event Type: " + postedEventName;
+        else
+            label += "Event Type: " + faultLink;
+
         label += separator + "Event Time: " + postedEventDate;
 
         if (postedStartTime != "")
@@ -1912,7 +1914,7 @@ function showhidePhasor(thecontrol) {
 
 function showdetails(thecontrol) {
     if (postedEventName == "Fault")
-        var popup = window.open("FaultSpecifics.aspx?eventid=" + postedEventId, postedEventId + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        var popup = window.open(homePath + "FaultSpecifics.aspx?eventid=" + postedEventId, postedEventId + "FaultLocation", "left=0,top=0,width=350,height=300,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2111,4 +2113,12 @@ function updateTooltip() {
 function parseBoolean(postedText) {
     return postedText != "" &&
            postedText != "0";
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function nextBackSelect(nextBackType) {
+    $('.nextbackbutton').hide();
+    $('#' + nextBackType + '-back').show();
+    $('#' + nextBackType + '-next').show();
 }
