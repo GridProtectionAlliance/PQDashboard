@@ -235,7 +235,7 @@
 if ((object)evt != null)
 {
     string title = evt.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
-    string url = "?ID=" + evt.ID + postedURLQueryString;
+    string url = "?eventid=" + evt.ID + postedURLQueryString;
         <a href="@url" id="@id" class="nextbackbutton smallbutton" title="@title" style="padding: 4px 20px">@text</a>
 }
 else
