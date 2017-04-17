@@ -340,6 +340,7 @@
     <Compile Include="Model\FaultNote.cs" />
     <Compile Include="Model\FaultSummary.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
+    <Compile Include="Model\Line.cs" />
     <Compile Include="Model\MeasurementDetail.cs" />
     <Compile Include="Model\MeasurementValue.cs" />
     <Compile Include="Model\Menu.cs" />

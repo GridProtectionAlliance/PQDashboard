@@ -68,6 +68,54 @@
     {
         defaulMeterGroupID = meterGroups.First().ID;
     }
+
+    DateTime datetimeTodayNow = DateTime.Now;
+    DateTime datetimeTodayStart = new DateTime(datetimeTodayNow.Year, datetimeTodayNow.Month, datetimeTodayNow.Day);
+    DateTime datetimeTodayEnd = datetimeTodayStart.AddDays(1.0d);
+
+    DateTime datetimeYesterdayStart = new DateTime(datetimeTodayNow.Year, datetimeTodayNow.Month, datetimeTodayNow.Day - 1);
+    DateTime datetimeYesterdatEnd = datetimeTodayStart;
+
+    object[] datetimeTodayParams = { datetimeTodayStart, datetimeTodayEnd };
+    object[] datetimeYesterdayParams = { datetimeYesterdayStart, datetimeTodayStart };
+
+    object[] datetimeTest = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest0 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest1 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest2 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest3 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest4 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest5 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest6 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest7 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest8 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest9 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest10 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest11 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    object[] datetimeTest12 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+
+    // OverviewToday - DOWNLOADS - summary data
+    int totalDownloadedEventFilesToday = dataContext.Table<DataFile>().QueryRecordCount(restriction: new RecordRestriction("DataFile.FileGroupID IN (SELECT [Event].FileGroupID FROM [FaultSummary] LEFT JOIN [Event] ON  [Event].ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest));
+    int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("Meter.ID IN (SELECT DISTINCT [EVENT].MeterID FROM FaultSummary LEFT JOIN [Event] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest0));
+    int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("Line.ID IN (SELECT DISTINCT [EVENT].LineID FROM FaultSummary LEFT JOIN [Event] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest1));
+
+    // OverviewToday - FAULTS - summary data
+    int totalFaultEventsToday = dataContext.Table<Event>().QueryRecordCount(restriction: new RecordRestriction("ID IN (SELECT [Event].FileGroupID FROM [FaultSummary] LEFT JOIN [Event] ON  [Event].ID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", datetimeTest3));
+    //phase
+    //phase
+    //all phase
+
+    // OverviewToday - DISTURBANCE LOG - summary data
+    int totalDistrubanceLogRecordsToday = dataContext.Table<Event>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT S.EventID FROM [FaultSummary] S LEFT JOIN[Event] E ON E.ID = S.EventID WHERE (S.Inception >= {0} AND S.Inception < {1}) AND (S.IsSelectedAlgorithm = 1 AND S.IsValid = 1 AND S.IsSuppressed = 0)", datetimeTest7));
+
+
+    // OverviewToday - VOLT DISTURBANCE - summary data
+    //int totalVoltageDisturbanceToday = 0;
+    //int severity45VoltageDisturbance = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("", datetimeTest10));
+
+
+    int nJeffe = 0;
+    nJeffe++;
 }
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -138,7 +186,6 @@
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
    	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
-  
 </head>
 
 <body onunload="createupdateconfig(null);">
