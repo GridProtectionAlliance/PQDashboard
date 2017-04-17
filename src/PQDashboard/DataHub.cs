@@ -816,85 +816,27 @@ namespace PQDashboard
         {
             string thedata = "";
             string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
-            SqlConnection conn = null;
-            SqlDataReader rdr = null;
-            SqlConnection conn2 = null;
-            SqlDataReader rdr2 = null;
+            DataTable dt;
 
-
-            try
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn))
             {
-                conn = new SqlConnection(connectionString);
                 conn.Open();
 
-                SqlCommand cmd = new SqlCommand("SELECT * FROM EASExtension", conn);
-                rdr = cmd.ExecuteReader();
-
-                StringBuilder QueryBuilder = new StringBuilder();
-                while (rdr.Read())
-                {
-                    if (QueryBuilder.Length > 0)
-                    {
-                        QueryBuilder.Append(",");
-                    }
-                    QueryBuilder.Append("dbo.");
-                    QueryBuilder.Append(rdr["HasResultFunction"]);
-                    QueryBuilder.Append("(theeventid) AS ");
-                    QueryBuilder.Append(rdr["ServiceName"]);
-                }
-                rdr.Dispose();
-
-                cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
                 cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
                 cmd.CommandTimeout = 300;
 
-                rdr = cmd.ExecuteReader();
-                DataTable dt;
-                if (QueryBuilder.Length > 0)
-                {
-                    conn2 = new SqlConnection(connectionstring);
-                    conn2.Open();
-
-                    cmd = new SqlCommand("SELECT * , " + QueryBuilder + " FROM @EventIDTable", conn2);
-                    cmd.Parameters.Add(new SqlParameter("@EventIDTable", rdr));
-                    cmd.Parameters[0].SqlDbType = SqlDbType.Structured;
-                    cmd.Parameters[0].TypeName = "SiteLineDetailsByDate";
-                    rdr2 = cmd.ExecuteReader();
-
-                    dt = new DataTable();
-                    dt.Load(rdr2);
-
-                }
-                else
+                using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
                     dt = new DataTable();
                     dt.Load(rdr);
                 }
+            }
 
-                thedata = DataTable2JSON(dt);
-                dt.Dispose();
-            }
-            finally
-            {
-                if (conn != null)
-                {
-                    conn.Close();
-                }
-                if (rdr != null)
-                {
-                    rdr.Close();
-                }
-                if (conn2 != null)
-                {
-                    conn2.Close();
-                }
-                if (rdr2 != null)
-                {
-                    rdr2.Close();
-                }
-            }
+            thedata = DataTable2JSON(dt);
+            dt.Dispose();
 
             return thedata;
         }
