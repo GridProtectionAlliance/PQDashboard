@@ -289,6 +289,7 @@
     <Content Include="Content\graphics\zoomin.cur" />
     <Content Include="Content\graphics\zoomout.cur" />
     <Content Include="Content\jquery.jspanel.min.css" />
+    <Content Include="Content\overview.css" />
     <Content Include="Content\themes\redmond\images\animated-overlay.gif" />
     <Content Include="Content\themes\redmond\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\redmond\images\ui-bg_flat_55_fbec88_40x100.png" />
@@ -336,6 +337,7 @@
     <Compile Include="Model\DeviceDetail.cs" />
     <Compile Include="Model\DeviceFilter.cs" />
     <Compile Include="Model\Disturbance.cs" />
+    <Compile Include="Model\DisturbanceSeverity.cs" />
     <Compile Include="Model\Event.cs" />
     <Compile Include="Model\FaultNote.cs" />
     <Compile Include="Model\FaultSummary.cs" />
@@ -605,6 +607,7 @@
     <Content Include="Scripts\PrimeUI\images\loadingbar.gif" />
     <Content Include="Scripts\PrimeUI\images\password-meter.png" />
     <Content Include="Scripts\PrimeUI\images\rating.png" />
+    <Content Include="Scripts\overview.js" />
     <Content Include="Scripts\PrimeUI\plugins\cursorposition.js" />
     <Content Include="Scripts\PrimeUI\plugins\jquery.mousewheel.js" />
     <Content Include="Scripts\PrimeUI\plugins\mustache.min.js" />
@@ -1204,7 +1207,9 @@
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\Site.js" />
     <Content Include="signalService.asmx" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>

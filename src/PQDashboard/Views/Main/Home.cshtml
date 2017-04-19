@@ -79,43 +79,51 @@
     object[] datetimeTodayParams = { datetimeTodayStart, datetimeTodayEnd };
     object[] datetimeYesterdayParams = { datetimeYesterdayStart, datetimeTodayStart };
 
-    object[] datetimeTest = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest0 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest1 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest2 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest3 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest4 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest5 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest6 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest7 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest8 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest9 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest10 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest11 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
-    object[] datetimeTest12 = { new DateTime(2014, 6, 20), new DateTime(2014, 6, 21) };
+    int year = 2014;
+    int month = 6;
+    int day = 10;
+    object[] datetimeTest = { new DateTime(year, month, day), new DateTime(year, month, day+1) };
+    object[] datetimeTest0 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest1 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest2 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest3 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest4 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest5 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest6 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest7 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest8 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest9 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest10 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest11 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest12 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest13 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest14 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
+    object[] datetimeTest15 = { new DateTime(year, month, day), new DateTime(year, month, day + 1) };
 
     // OverviewToday - DOWNLOADS - summary data
-    int totalDownloadedEventFilesToday = dataContext.Table<DataFile>().QueryRecordCount(restriction: new RecordRestriction("DataFile.FileGroupID IN (SELECT [Event].FileGroupID FROM [FaultSummary] LEFT JOIN [Event] ON  [Event].ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest));
-    int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("Meter.ID IN (SELECT DISTINCT [EVENT].MeterID FROM FaultSummary LEFT JOIN [Event] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest0));
-    int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("Line.ID IN (SELECT DISTINCT [EVENT].LineID FROM FaultSummary LEFT JOIN [Event] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest1));
+    int totalDownloadedEventFilesToday = dataContext.Table<DataFile>().QueryRecordCount(restriction: new RecordRestriction("[DataFile].FileGroupID IN (SELECT [Event] .FileGroupID FROM [Event]  LEFT JOIN [FaultSummary] ON  [Event].ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest));
+    // meters
+    int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [EVENT].MeterID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest0));
+    // lines
+    int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [EVENT].LineID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < {1}))", datetimeTest1));
 
     // OverviewToday - FAULTS - summary data
-    int totalFaultEventsToday = dataContext.Table<Event>().QueryRecordCount(restriction: new RecordRestriction("ID IN (SELECT [Event].FileGroupID FROM [FaultSummary] LEFT JOIN [Event] ON  [Event].ID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", datetimeTest3));
-    //phase
-    //phase
+    int totalFaultEventsToday = dataContext.Table<FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("(FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)", datetimeTest2));
+    //phase ground
+    int phaseToGountFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID >= 1 AND [Disturbance].PhaseID <= 3) OR ([Disturbance].PhaseID = 6) OR ([Disturbance].PhaseID >= 11 AND [Disturbance].PhaseID <= 12))", datetimeTest4));
+    //phase phase
+    int phaseToPhaseFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([Disturbance].PhaseID >= 8  AND [Disturbance].PhaseID <= 10)", datetimeTest5));
     //all phase
+    int worstFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID = 7) OR ([Disturbance].PhaseID = 13) OR ([Disturbance].PhaseID = 14))", datetimeTest6));
 
     // OverviewToday - DISTURBANCE LOG - summary data
-    int totalDistrubanceLogRecordsToday = dataContext.Table<Event>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT S.EventID FROM [FaultSummary] S LEFT JOIN[Event] E ON E.ID = S.EventID WHERE (S.Inception >= {0} AND S.Inception < {1}) AND (S.IsSelectedAlgorithm = 1 AND S.IsValid = 1 AND S.IsSuppressed = 0)", datetimeTest7));
-
+    int totalDistrubanceLogRecordsToday = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", datetimeTest7));
+    IEnumerable<Disturbance> disturbanceOverviewToday = dataContext.Table<Disturbance>().QueryRecords(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", datetimeTest8));
 
     // OverviewToday - VOLT DISTURBANCE - summary data
-    //int totalVoltageDisturbanceToday = 0;
-    //int severity45VoltageDisturbance = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("", datetimeTest10));
-
-
-    int nJeffe = 0;
-    nJeffe++;
+    int totalVoltageDisturbanceToday = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", datetimeTest9));
+    IEnumerable<DisturbanceSeverity> disturbanceSeverityOverviewToday = dataContext.Table<DisturbanceSeverity>().QueryRecords(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", datetimeTest10));
+    int severity45VoltageDisturbance = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < {1}) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([DisturbanceSeverity].SeverityCode >= 4)", datetimeTest11));
 }
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -142,6 +150,7 @@
     <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
     <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
+    <link rel="stylesheet" href="~/Content/overview.css" />
     <script>
         var mg = @defaulMeterGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
@@ -155,6 +164,7 @@
     <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
     <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
     <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/overview.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.sparkline.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
@@ -318,54 +328,49 @@
 
             <div class="grid2" id="grid2Today"><a href="#grid2-Today"></a>
                 <div class="grid2-item" id="grid2-item-Today-1" style="width: 300px; left: 0px; top: 0px"><a href="#grid2-item-Today-1"></a>
-                    <h5> Disturbance Event File Downloads </h5>
+                    <h4><strong style="color: darkblue"><u>DOWNLOADS</u></strong></h4> 
                     <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
 
 
-
-                        <table title="disturbance-eventfiles" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px; background-color: white">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
+                        <table title="disturbance-downloads" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
                             <tr>
-                                <th></th>
-                                <th style="text-align: center"> # Files </th>
-                                <th style="text-align: center"> # Devices </th>
+                                <th style="text-align: left"> <h4><strong style="color: darkblue"> @totalDownloadedEventFilesToday </strong></h4>  </th>
                             </tr>
                             <tr>
-                                <th> DFR's </th>
-                                <td style="text-align: center"> 184 </td>
-                                <td style="text-align: center"> 44 </td>
+                                <th style="text-align: right; color: darkblue"> Meters </th>
+                                <td style="text-align: right"> @meterdDownloadedToday </td>
                             </tr>
                             <tr>
-                                <th> PQ's </th>
-                                <td style="text-align: center"> 623 </td>
-                                <td style="text-align: center"> 341</td>
+                                <th style="text-align: right; color: darkblue"> Lines </th>
+                                <td style="text-align: right"> @linesDownloadedToday </td>
                             </tr>
                         </table>
-
 
 
                     </div>
                 </div>
 
                 <div class="grid2-item" id="grid2-item-Today-2" style="width: 300px; top: 0px"><a href="#grid2-item-Today-2"></a>
-                    <h5> Disturbance Faults Recorded </h5>
+                    <h4><strong style="color: darkred"><u>FAULTS</u></strong></h4> 
                     <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
 
 
 
                         <table title="disturbance-faultrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Disturbance Fault - 8 faults</h4> </caption>
                             <tr>
-                                <th> Phase to Ground </th>
-                                <td style="text-align: center"> 5 </td>
+                                <th style="text-align: left"> <h4><strong style="color: darkred"> @totalFaultEventsToday </strong></h4>  </th>
                             </tr>
                             <tr>
-                                <th> Phase to Phase </th>
-                                <td style="text-align: center"> 2 </td>
+                                <th style="text-align: right; color: darkred"> Phase to Ground </th>
+                                <td style="text-align: center"> @phaseToGountFaults </td>
                             </tr>
                             <tr>
-                                <th> Three Phase </th>
-                                <td style="text-align: center"> 1 </td>
+                                <th style="text-align: right; color: darkred"> Phase to Phase </th>
+                                <td style="text-align: center"> @phaseToPhaseFaults </td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: right; color: darkred"> Three Phase </th>
+                                <td style="text-align: center"> @worstFaults </td>
                             </tr>
                         </table>
 
@@ -377,13 +382,12 @@
 
 
                 <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0; overflow-y: scroll"><a href="#grid2-item-Today-3"></a>
-                    <h5> Disturbances Log Detail </h5>
+                    <h4><strong style="color: black"><u>DISTURBANCE LOG</u></strong></h4> 
                     <div id="disturbance-log" class="well" style="background-color: white; border-color: black">
 
 
 
-                        <table title="disturbance-logevents" style="width: 100%; height: 822px; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
+                        <table title="disturbance-logevents" style="width: 100%; height: 822px; border: 2px; padding: 4px; border-spacing: 4px">
                             <tr>
                                 <th style="text-align: center"> No. </th>
                                 <th style="text-align: center"> Time (CDT) </th>
@@ -400,1022 +404,25 @@
                                 <td style="text-align: center"> 2 </td>
                                 <td style="text-align: center"> 4 </td>
                             </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
+
+                            
+                            @foreach (Disturbance logRecord in disturbanceOverviewToday)
+                            {
+                                int counter = 1;
+
+                                <tr>
+                                    <th> @counter </th>
+                                    <td style="text-align: center">@logRecord.StartTime.TimeOfDay </td>
+                                    <td style="text-align: center"> Substation: 8 Line: M </td>
+                                    <td style="text-align: center"> Fault </td>
+                                    <td style="text-align: center"> 4 </td>
+                                    <td style="text-align: center"> @logRecord.DurationSeconds </td>
+                                </tr>
+
+                                counter++;
+                            }
+
+
                         </table>
 
 

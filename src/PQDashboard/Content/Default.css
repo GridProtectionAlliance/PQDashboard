@@ -849,33 +849,3 @@ color:#333;
       width: 100%;
       height: 100%;
   }
-
-.grid2 {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-}
-
-.grid2:after {
-  content: '';
-  display: block;
-  clear: both;
-}
-
-.grid2-sizer,
-.grid2-item {
-  width: 300px;
-}
-.grid2-item {
-    float: left;
-    border-color: black;
-    border: 2px solid black;
-    border-radius: 2px;
-    text-align: center;
-    background-color: wheat;
-    margin-bottom: 4px;
-}
-
-html {
-    overflow-y:scroll;
-}
