@@ -45,7 +45,8 @@
     border: 2px solid black;
     border-radius: 2px;
     text-align: center;
-    background-color: wheat;
+    //background-color: wheat;
+    background-color: #FCD883;
     margin-bottom: 4px;
 }
 

@@ -152,4 +152,14 @@ function showOverviewPage(tab) {
     });
 
     $(window).resize();
+
+    // - 
+    buildDashboardCharts();
 }
+
+function buildDashboardCharts() {
+
+
+
+}
+
