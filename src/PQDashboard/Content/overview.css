@@ -42,12 +42,11 @@
 .grid2-item {
     float: left;
     border-color: black;
-    border: 2px solid black;
-    border-radius: 2px;
+    border: 1px solid black;
+    border-radius: 12px;
     text-align: center;
-    //background-color: wheat;
-    background-color: #FCD883;
-    margin-bottom: 4px;
+    background-color: #fee6b0;
+    margin-bottom: 2px;
 }
 
 html {

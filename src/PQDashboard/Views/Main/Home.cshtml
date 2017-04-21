@@ -39,7 +39,7 @@
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
     int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
-    foreach(DashSettings setting in dashSettings)
+    foreach (DashSettings setting in dashSettings)
     {
         if (setting.Name == "DashTab" || setting.Name.EndsWith("Chart"))
         {
@@ -69,7 +69,8 @@
         defaulMeterGroupID = meterGroups.First().ID;
     }
 
-    ////////////////////////////////////////////
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
     DateTime datetimeTodayNow = DateTime.Now;
     DateTime dateTimeToday = new DateTime(datetimeTodayNow.Year, datetimeTodayNow.Month, datetimeTodayNow.Day);
 
@@ -78,35 +79,37 @@
     int day = 20;
     dateTimeToday = new DateTime(year, month, day);
 
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
     // OverviewToday - DOWNLOADS - summary data
-    int totalDownloadedEventFilesToday = dataContext.Table<DataFile>().QueryRecordCount(restriction: new RecordRestriction("[DataFile].FileGroupID IN (SELECT [Event] .FileGroupID FROM [Event]  LEFT JOIN [FaultSummary] ON  [Event].ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-
+    int totalDownloadedEventFilesToday = dataContext.Table<FileGroup>().QueryRecordCount(restriction: new RecordRestriction("[FileGroup].ID IN (SELECT [FileGroup].ID FROM [FileGroup] LEFT JOIN EVENT ON [Event].FileGroupID = [FileGroup].ID WHERE ([FileGroup].DataStartTime >= {0} AND [FileGroup].DataStartTime < DATEADD(day,1,{0})))", dateTimeToday));
     // meters
     int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [EVENT].MeterID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-
     // lines
     int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [EVENT].LineID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
 
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
     // OverviewToday - FAULTS - summary data
     int totalFaultEventsToday = dataContext.Table<FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("(FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)", dateTimeToday));
 
     ////////////////////////////////////////////////////
     //phase ground
     int phaseToGountFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID >= 1 AND [Disturbance].PhaseID <= 3) OR ([Disturbance].PhaseID = 6) OR ([Disturbance].PhaseID >= 11 AND [Disturbance].PhaseID <= 12))", dateTimeToday));
-
     //phase phase
     int phaseToPhaseFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([Disturbance].PhaseID >= 8  AND [Disturbance].PhaseID <= 10)", dateTimeToday));
-
     //all phase
     int worstFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID = 7) OR ([Disturbance].PhaseID = 13) OR ([Disturbance].PhaseID = 14))", dateTimeToday));
 
-    //////////////////////////////////////////////////////////
-
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
     // OverviewToday - DISTURBANCE LOG - summary data
     int totalDistrubanceLogRecordsToday = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
 
     IEnumerable<Disturbance> disturbanceOverviewToday = dataContext.Table<Disturbance>().QueryRecords(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
 
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
     // OverviewToday - VOLT DISTURBANCE - summary data
     int totalVoltageDisturbanceToday = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", dateTimeToday));
 
@@ -114,6 +117,9 @@
 
     int severity45VoltageDisturbance = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([DisturbanceSeverity].SeverityCode >= 4)", dateTimeToday));
     var counter = 1;
+
+    //--------------------------------------------------
+    ////////////////////////////////////////////////////
 
 }
 <!DOCTYPE html>
@@ -310,7 +316,7 @@
 
     <div id="tabs-Overview-Today">
 
-        <div id="overviewContainer" class="container" style="background-color: white; width: 100%; height: 100%; text-align: center">@* background-color: #FCD883; *@
+        <div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">@* background-color: #FCD883; *@
 
             <div style="text-align: center; color: black">
                 <h3>PQ Overview for <span id="overviewTodayDate"></span> - TODAY </h3>
@@ -372,9 +378,9 @@
 
 
 
-                <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0; overflow-y: scroll"><a href="#grid2-item-Today-3"></a>
+                <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0"><a href="#grid2-item-Today-3"></a>
                     <div><h4><strong style="color: black"><u>DISTURBANCE LOG</u></strong></h4>  @totalDistrubanceLogRecordsToday  Log Recs.</div>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black">
+                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; height: 725px; overflow-y: scroll">
 
                         <div>
 
@@ -387,22 +393,22 @@
                                     <th style="text-align: center"> Severity </th>
                                     <th style="text-align: center"> Duration </th>
                                 </tr>
-                            
-                                @foreach (Disturbance logRecord in disturbanceOverviewToday)
-                                {
-                                    <tr>
-                                        <th> @counter </th>
-                                        <td style="text-align: center">@logRecord.StartTime.ToShortTimeString() </td>
-                                        <td style="text-align: center"> Substation: 8 Line: M </td>
-                                        <td style="text-align: center"> Fault </td>
-                                        <td style="text-align: center"> 4 </td>
-                                        <td style="text-align: center"> @logRecord.DurationSeconds </td>
-                                    </tr>
+                                @{
+                                    foreach (Disturbance logRecord in disturbanceOverviewToday)
+                                    {
+                                        <tr>
+                                            <th> @counter </th>
+                                            <td style="text-align: center">@logRecord.StartTime.ToShortTimeString() </td>
+                                            <td style="text-align: center"> Substation: 8 Line: M </td>
+                                            <td style="text-align: center"> Fault </td>
+                                            <td style="text-align: center"> 4 </td>
+                                            <td style="text-align: center"> @logRecord.DurationSeconds </td>
+                                        </tr>
 
-                                    counter = counter + 1;
+                                        counter = counter + 1;
+                                    }
+                                    counter = 1;
                                 }
-                                @counter=1;
-
                             </table>
 
                         </div>
@@ -410,9 +416,9 @@
                     </div>
                 </div>
 
-                <div class="grid2-item" id="grid2-item-Today-4" style="width: 600px; left: 0px; top:50%; height: 625px; overflow-y: scroll"><a href="#grid2-item-Today-4"></a>
+                <div class="grid2-item" id="grid2-item-Today-4" style="width: 600px; left: 0px; top:50%; height: 625px;"><a href="#grid2-item-Today-4"></a>
                     <h5><strong style="color: #e17009"><u>VOLTAGE DISTURBANCES</u></strong></h5> 
-                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black">
+                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black; height: 550px; overflow-y: scroll">
 
 
 
@@ -436,19 +442,20 @@
                                 <th style="text-align: center"> ID </th>
                                 <th style="text-align: center"> Severity </th>
                             </tr>
+                            @{ 
+                                foreach (DisturbanceSeverity logRecord in disturbanceSeverityOverviewToday)
+                                {
+                                    <tr>
+                                        <th> @counter </th>
+                                        <td style="text-align: center"> 7:49 am </td>
+                                        <td style="text-align: center"> @logRecord.ID </td>
+                                        <td style="text-align: center"> @logRecord.VoltageEnvelopeID </td>
+                                        <td style="text-align: center"> @logRecord.DisturbanceID </td>
+                                        <td style="text-align: center"> @logRecord.SeverityCode </td>
+                                    </tr>
 
-                            @foreach (DisturbanceSeverity logRecord in disturbanceSeverityOverviewToday)
-                            {
-                                <tr>
-                                    <th> @counter </th>
-                                    <td style="text-align: center"> 7:49 am </td>
-                                    <td style="text-align: center"> @logRecord.ID </td>
-                                    <td style="text-align: center"> @logRecord.VoltageEnvelopeID </td>
-                                    <td style="text-align: center"> @logRecord.DisturbanceID </td>
-                                    <td style="text-align: center"> @logRecord.SeverityCode </td>
-                                </tr>
-
-                                counter = counter + 1;
+                                    counter = counter + 1;
+                               }
                             }
 
 
@@ -554,7 +561,7 @@
 
         </div>
     </div>
-
+.
 
     <div id="tabs-Overview-Yesterday">
 
@@ -658,9 +665,9 @@
                 </div>
 
 
-                <div class="grid2-item" id="grid2-item-Yesterday-4" style="width: 300px; top: 0; overflow-y: scroll"><a href="#grid2-item-Yesterday-4"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-4" style="width: 300px; top: 0"><a href="#grid2-item-Yesterday-4"></a>
                     <h5> Overview Log Charts - Last 30 Days </h5>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black">
+                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; overflow-y: scroll">
 
 
 

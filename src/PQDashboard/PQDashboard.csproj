@@ -341,6 +341,7 @@
     <Compile Include="Model\Event.cs" />
     <Compile Include="Model\FaultNote.cs" />
     <Compile Include="Model\FaultSummary.cs" />
+    <Compile Include="Model\FileGroup.cs" />
     <Compile Include="Model\GlobalSettings.cs" />
     <Compile Include="Model\Line.cs" />
     <Compile Include="Model\MeasurementDetail.cs" />

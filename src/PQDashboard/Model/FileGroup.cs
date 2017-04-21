@@ -1,6 +1,4 @@
-﻿
-
-//******************************************************************************************************
+﻿//******************************************************************************************************
 //  AppModel.cs - Gbtc
 //
 //  Copyright © 2017, Grid Protection Alliance.  All Rights Reserved.
@@ -18,7 +16,7 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  04/17/2017 - JP Hyder
+//  04/21/2017 - JP Hyder
 //       Generated original version of source code.
 //
 //******************************************************************************************************
@@ -31,32 +29,31 @@ using GSF.Data.Model;
 
 namespace PQDashboard.Model
 {
-    [TableName("Line")]
-    public class Line
+    [TableName("FileGroup")]
+    public class FileGroup
     {
         [PrimaryKey(true)]
         public int ID { get; set; }
-        public string AssetKey { get; set; }
-        public float VoltageKV { get; set; }
-        public float ThermalRating { get; set; }
-        public float Length { get; set; }
-        public string Description { get; set; }
+        public DateTime DataStartTime { get; set; }
+        public DateTime DataEndtTime { get; set; }
+        public DateTime ProcessingStartTime { get; set; }
+        public DateTime ProcessingEndTime { get; set; }
+        public int Error { get; set; }
     }
 
-    [TableName("Line")]
-    public class LineView
+    public class FileGroupView
     {
         [PrimaryKey(true)]
         [Searchable]
         public int ID { get; set; }
         [Searchable]
-        public string AssetKey { get; set; }
-        public float VoltageKV { get; set; }
-        public float ThermalRating { get; set; }
-        public float Length { get; set; }
-        public string Description { get; set; }
+        public DateTime DataStartTime { get; set; }
+        public DateTime DataEndtTime { get; set; }
+        public DateTime ProcessingStartTime { get; set; }
+        public DateTime ProcessingEndTime { get; set; }
+        public int Error { get; set; }
     }
 
-    [TableName("LineOverview")]
-    public class LinesForOverview : LineView { }
+    [TableName("FileGroupOverview")]
+    public class FileGroupsForOverview : FileGroupView { }
 }

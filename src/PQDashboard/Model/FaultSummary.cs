@@ -77,5 +77,6 @@ namespace PQDashboard.Model
         public int IsSuppressed { get; set; }
     }
 
-
+    [TableName("FaultSummaryOverview")]
+    public class FaultSummarysForOverview : FaultSummaryView { }
 }
