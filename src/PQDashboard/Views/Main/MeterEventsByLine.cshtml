@@ -86,6 +86,7 @@
     var postedMeterId = "@theEvent.MeterID";
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
+    reconnectHub = false;
 
 
     $(document).ready(function () {    
@@ -163,6 +164,7 @@
                 ],
                 datasource: $.parseJSON(data)
             });
+            $.connection.hub.stop();
 
         });
     }

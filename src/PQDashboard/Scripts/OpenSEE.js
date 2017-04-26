@@ -76,7 +76,6 @@ var colorGray = '#333300';
 var colorPurple = '#9900FF';
 var colorAqua = '#66CCFF';
 var colorTan = '#CC9900';
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 (function ($) {

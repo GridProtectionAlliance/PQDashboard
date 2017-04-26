@@ -131,6 +131,7 @@
     // Global
 
     var globalcolors = ['#ff0000', '#FF9600', '#90ed7d', '#f7a35c', '#FF9600', '#ff0000'];
+    reconnectHub = false;
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     function buildPage() {
@@ -379,6 +380,8 @@
             scaleYAxis(plot);
 
             $.unblockUI();
+
+            $.connection.hub.stop();
 
         }).fail(function (msg) {
             alert(msg);

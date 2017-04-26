@@ -29,6 +29,7 @@ var dataHub, dataHubClient;
 var securityHub, securityHubClient;
 var hubIsConnecting = false;
 var hubIsConnected = false;
+var reconnectHub = true;
 
 //function hideSideBar() {
 //    $("#pageWrapper").removeClass("toggled");
@@ -162,9 +163,9 @@ $(function () {
 
     // Initialize proxy references to the SignalR hubs
     dataHub = $.connection.dataHub.server;
-    dataHubClient = $.connection.dataHub.client;
-    securityHub = $.connection.securityHub.server;
-    securityHubClient = $.connection.securityHub.client;
+    //dataHubClient = $.connection.dataHub.client;
+    //securityHub = $.connection.securityHub.server;
+    //securityHubClient = $.connection.securityHub.client;
 
     $.connection.hub.reconnecting(function () {
         hubIsConnecting = true;
@@ -193,11 +194,13 @@ $(function () {
         // Raise "hubDisconnected" event
         $(window).trigger("hubDisconnected");
 
-        setTimeout(function () {
-            $.connection.hub.start().done(function () {
-                hubConnected();
-            });
-        }, 5000); // Restart connection after 5 seconds
+        if (reconnectHub) {
+            setTimeout(function () {
+                $.connection.hub.start().done(function () {
+                    hubConnected();
+                });
+            }, 5000); // Restart connection after 5 seconds
+        }
     });
 
     // Start the connection
@@ -205,18 +208,18 @@ $(function () {
         hubConnected();
     });
 
-    // Create hub client functions for message control
-    dataHubClient.sendInfoMessage = function (message, timeout) {
-        // Html encode message
-        const encodedMessage = $("<div />").text(message).html();
-        showInfoMessage(encodedMessage, timeout);
-    }
+    //// Create hub client functions for message control
+    //dataHubClient.sendInfoMessage = function (message, timeout) {
+    //    // Html encode message
+    //    const encodedMessage = $("<div />").text(message).html();
+    //    showInfoMessage(encodedMessage, timeout);
+    //}
 
-    dataHubClient.sendErrorMessage = function (message, timeout) {
-        // Html encode message
-        const encodedMessage = $("<div />").text(message).html();
-        showErrorMessage(encodedMessage, timeout);
-    }
+    //dataHubClient.sendErrorMessage = function (message, timeout) {
+    //    // Html encode message
+    //    const encodedMessage = $("<div />").text(message).html();
+    //    showErrorMessage(encodedMessage, timeout);
+    //}
 
     // Enable tool-tips on the page
     $("[data-toggle='tooltip']").tooltip();
