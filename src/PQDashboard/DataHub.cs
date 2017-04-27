@@ -1468,6 +1468,64 @@ namespace PQDashboard
 
         #endregion
 
+        #region [ FileGroup - Event - FaultSummary - Disturbance - DisturbanceSeverity ]
+
+        public int QueryFileGroupCount()
+        {
+            //int year = 2014;
+            //int month = 6;
+            //int day = 20;
+            //DateTime dateTimeToday = new DateTime(year, month, day);
+
+            DateTime dateTimeToday = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FileGroup>().QueryRecordCount(restriction: new RecordRestriction("ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN FileGroup ON FileGroup.ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(d,1,{0})))", dateTimeToday));
+
+            return recordCount;
+        }
+
+        public int QueryFileGroupCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FileGroup>().QueryRecordCount(restriction: new RecordRestriction("[FileGroup].ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN [FileGroup] ON [FileGroup].ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD("+ timeSpanUnit+","+ timeSpanrange+",{0})))", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryEventCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.Event>().QueryRecordCount(restriction: new RecordRestriction("([Event].StartTime >= {0} AND [Event].StartTime < DATEADD("+ timeSpanUnit+","+ timeSpanrange+",{0}))", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryMeterCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.Meter>().QueryRecordCount(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanrange + ",{0})))", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryLineCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.Line>().QueryRecordCount(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanrange + ",{0})))", startTime));
+
+            return recordCount;
+        }
+
+        //public IEnumerable<>
+        //public string
+
+        #endregion
 
         #region [ Data Subscription Operations ]
 
