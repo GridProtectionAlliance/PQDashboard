@@ -27,7 +27,7 @@ Instructions for deploying PQ Dashboard can be found in the [wiki](../../wiki)
 # Contributing
 If you would like to contribute please:
 
-1. Read our [styleguide.](https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf)
+* Read our [styleguide.](https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf)
 * Fork the repository.
 * Work your magic.
 * Create a pull request.
