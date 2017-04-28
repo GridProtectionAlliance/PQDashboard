@@ -38,18 +38,14 @@ function showOverviewPage(tab) {
     var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
 
     if (currentTab != 'Overview-Today') {
-
         heightNew = ovyesterdayHeight;
         if (ovtodayHeight > 1 & ovyesterdayHeight <= ovtodayHeight) {
             heightNew = ovtodayHeight;
         }
-
         $('#tabs-' + tab).css('height', heightNew);
     }
     else if (currentTab === 'Overview-Today') {
-
         heightNew = ovtodayHeight;
-
         $('#tabs-' + 'Overview-Today').css('height', heightNew);
     }
 
@@ -59,7 +55,6 @@ function showOverviewPage(tab) {
         var myheightNew = 0;
 
         if (currentTab === 'Overview-Today') {
-
             var ovtodayWidth = $('#tabs-Overview-Today').width();
             var leftrightoffset = $('#grid2Today').offset().left * 2.0;
             var grid2width = $('#grid2Today').width();
@@ -79,7 +74,6 @@ function showOverviewPage(tab) {
             else if (ovtodayWidth <= (1200 + leftrightoffset) & ovtodayWidth > (600 + leftrightoffset)) {
                 var iterator = 2;
                 while (iterator <= 4) {
-
                     myheightNew += $('#grid2-item-Today-' + iterator).height();
                     iterator++;
                 }
@@ -87,16 +81,13 @@ function showOverviewPage(tab) {
             else if (ovtodayWidth <= (600 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 4) {
-
                     myheightNew += $('#grid2-item-Today-' + iterator).height();
-
                     iterator++;
                 }
             }
         }
 
         if (currentTab === 'Overview-Yesterday') {
-
             var ovyesterdayWidth = $('#tabs-Overview-Yesterday').width();
             var leftrightoffset = $('#grid2Yesterday').offset().left * 2.0;
             var grid2width = $('#grid2Yesterday').width();
@@ -104,10 +95,8 @@ function showOverviewPage(tab) {
             myheightNew = ($('#tabs-Overview-Yesterday').offset().top) + 60;
 
             if (ovyesterdayWidth > (1200 + leftrightoffset)) {
-
                 var iterator = 1;
                 while (iterator <= 6) {
-
                     if (myheightNew <= $('#grid2-item-Yesterday-' + iterator).height()) {
                         myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
                     }
@@ -117,16 +106,13 @@ function showOverviewPage(tab) {
             else if (ovyesterdayWidth <= (1200 + leftrightoffset) & ovyesterdayWidth > (900 + leftrightoffset)) {
                 var iterator = 3;
                 while (iterator <= 4) {
-
                     myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
                     iterator++;
                 }
             }
             else if (ovyesterdayWidth <= (900 + leftrightoffset) & ovyesterdayWidth > (600 + leftrightoffset)) {
-
                 var iterator = 2;
                 while (iterator <= 6) {
-
                     myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
                     iterator++;
                 }
@@ -134,18 +120,14 @@ function showOverviewPage(tab) {
             else if (ovyesterdayWidth <= (600 + leftrightoffset) & ovyesterdayWidth > (300 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 6) {
-
                     myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-
                     iterator++;
                 }
             }
             else if (ovyesterdayWidth <= (300 + leftrightoffset)) {
                 var iterator = 1;
                 while (iterator <= 6) {
-
                     myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-
                     iterator++;
                 }
             }
@@ -153,87 +135,56 @@ function showOverviewPage(tab) {
         $('#tabs-' + currentTab).css('height', myheightNew);
     });
 
-    // add charts and graphs
-    buildDashboardCharts();
+    var whichday = 'history';
+    if (currentTab === 'Overview-Today') {
+        whichday = 'today';
+    }
 
+    // add charts and graphs
+    buildDashboardCharts(whichday);
 
     // last thing - resize
     //$(window).resize();   
-
 }
 
-function buildDashboardCharts() {
+function buildDashboardCharts(whichday) {
 
     if (currentTab === 'Overview-Today') {
 
         var sourcedate = new Date(new Date().setDate(new Date().getDate()));
-        sourcedate = new Date(2014,6,20);
-        var testDate = '2014-06-20';
-        testdate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+        sourcedate = new Date(2014,6,10);
+        var testDate = '2014-06-10';
+        testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
         $('#today-downloads').children().remove();
         $('#today-faults').children().remove();
         $('#today-log').children().remove();
         $('#today-voltages').children().remove();
-
-        dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
-            //    // add charts and graphs
-
-            //$('#today-downloads') // *
-            $('#today-downloads').append('<h4 style="text-allign: left; color: darkblue">Event Files  ' + data + ' files.</h4>');
-            $('#today-downloads').append('<table id="today-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-            $('#today-downloads-table').append('<tr><th style="text-align: right; color: darkblue"> Meters </th><td style="text-align: right"> <h4 id="today-meters"></h4> </td></tr>');
-            $('#today-downloads-table').append('<tr><th style="text-align: right; color: darkblue"> Lines </th><td style="text-align: right"> <h4 id="today-lines"></h4> </td></tr>');
-
-            //$('#today-faults') // **
-            //$('#today-log')
-            //$('#today-voltages') // ***
-
-            // last thing - resize
-            $(window).resize();
-        });
         
-        dataHub.queryFileGroupCount().done(function (data) {
-            // day, dd, d
-            // last thing - resize
-            $(window).resize();
-        });
-
-        dataHub.queryEventCount(testDate, 'd', 1).done(function (data) {
-
-            // last thing - resize
-            $(window).resize();
-        });
-
-        dataHub.queryMeterCount(testDate, 'd', 1).done(function (data) {
-            $('#today-meters').append(data);
-
-            // last thing - resize
-            $(window).resize();
-        });
-
-        dataHub.queryLineCount(testDate, 'day', 1).done(function (data) {
-            $('#today-lines').append(data);
-
-            // last thing - resize
-            $(window).resize();
-        });
-
         // add charts and graphs
 
         //$('#today-downloads') // *
+        buildOverviewDownloads(testDate, whichday);
+        //$('#today-downloads') // *
+
         //$('#today-faults') // **
+        buildOverviewFaults(testDate, whichday);
+        //$('#today-faults') // **
+
         //$('#today-log')
+        //$('#today-log')
+
+        //$('#today-voltages') // ***
+        buildOverviewVoltages(testDate, whichday);
         //$('#today-voltages') // ***
     };
 
     if (currentTab === 'Overview-Yesterday') {
 
-        var sourcedate = new Date(new Date().setDate(new Date().getDate() -1));
-        sourcedate = new Date(2014, 6, 20);
-        var testDate = '2014-06-20';
-        testdate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
-
+        var sourcedate = new Date(new Date().setDate(new Date().getDate() -2));
+        sourcedate = new Date(2014, 6, 10);
+        var testDate = '2014-06-10';
+        testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
         $('#history-downloads').children().remove();
         $('#history-alarms').children().remove();
@@ -243,31 +194,75 @@ function buildDashboardCharts() {
         $('#history-faults').children().remove();
 
         //$('#history-downloads') // *
-        dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
+        buildOverviewDownloads(testDate, whichday);
+        //$('#history-downloads') // *
 
-            // last thing - resize
-            $(window).resize();
-        });
-
-        dataHub.queryMeterCount(testDate, 'd', 1).done(function (data) {
-
-            // last thing - resize
-            $(window).resize();
-        });
-
-        dataHub.queryLineCount(testDate, 'day', 1).done(function (data) {
-            $('#today-lines').append(data);
-
-            // last thing - resize
-            $(window).resize();
-        });
         //$('#history-alarms')
         //$('#history-offnormal')
         //$('#history-thirtyday')
+
         //$('#history-voltages') // ***
+        buildOverviewVoltages(testDate, whichday);
+        //$('#history-voltages') // ***
+
+        //$('#history-faults') // **
+        buildOverviewFaults(testDate, whichday);
         //$('#history-faults') // **
     };
+}
 
+function buildOverviewDownloads(testDate, whichday) {
+    dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
+        //$('#' + whichday + '-downloads') // * // history OR today
+        $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files  ' + data + ' files.</h3>');
+        $('#' + whichday + '-downloads').append('<table class="table table-striped" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
+        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
+        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+
+        // last thing - resize
+        $(window).resize();
+    });
+
+    dataHub.queryMeterCount(testDate, 'd', 1).done(function (data) {
+        $('#' + whichday + '-meters').append(data);
+        // last thing - resize
+        $(window).resize();
+    });
+
+    dataHub.queryLineCount(testDate, 'day', 1).done(function (data) {
+        $('#' + whichday + '-lines').append(data);
+        // last thing - resize
+        $(window).resize();
+    });
+}
+
+function buildOverviewFaults(testDate, whichday) {
+    dataHub.queryFaultSummaryCount(testDate, 'day', 1).done(function (data) {
+
+        // last thing - resize
+        $(window).resize();
+    });
+
+    dataHub.queryFaultSummaryGroundFaultCount(testDate, 'day', 1).done(function (data) {
+
+        // last thing - resize
+        $(window).resize();
+    });
+
+    dataHub.queryFaultSummaryLineFaultCount(testDate, 'day', 1).done(function (data) {
+
+        // last thing - resize
+        $(window).resize();
+    });
+
+    dataHub.queryFaultSummaryAllPhaseFaultCount(testDate, 'day', 1).done(function (data) {
+
+        // last thing - resize
+        $(window).resize();
+    });
+}
+
+function buildOverviewVoltages(testDate, whichday) {
 
 }
 

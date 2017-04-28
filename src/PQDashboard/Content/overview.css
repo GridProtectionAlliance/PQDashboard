@@ -29,26 +29,27 @@
     max-width: 100%;
 }
 
-.grid2:after {
-  content: '';
-  display: block;
-  clear: both;
-}
+    .grid2:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
 
 .grid2-sizer,
 .grid2-item {
-  width: 300px;
+    width: 300px;
 }
+
 .grid2-item {
     float: left;
     border-color: black;
-    border: 1px solid black;
-    border-radius: 12px;
+    border: 2px solid black;
+    border-radius: 0px;
     text-align: center;
-    background-color: #fee6b0;
-    margin-bottom: 2px;
+    /*background-color: #fee6b0;*/
+    margin-bottom: 0px;
 }
 
 html {
-    overflow-y:scroll;
+    overflow-y: scroll;
 }

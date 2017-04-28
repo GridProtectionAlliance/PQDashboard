@@ -1481,7 +1481,7 @@ namespace PQDashboard
 
             int recordCount = -1;
 
-            recordCount = DataContext.Table<Model.FileGroup>().QueryRecordCount(restriction: new RecordRestriction("ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN FileGroup ON FileGroup.ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(d,1,{0})))", dateTimeToday));
+            recordCount = DataContext.Table<Model.FileGroup>().QueryRecordCount(restriction: new RecordRestriction("[FileGroup].ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN FileGroup ON FileGroup.ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(d,1,{0})))", dateTimeToday));
 
             return recordCount;
         }
@@ -1522,8 +1522,45 @@ namespace PQDashboard
             return recordCount;
         }
 
-        //public IEnumerable<>
-        //public string
+        public int QueryFaultSummaryCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanrange + ",{0}))) AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryFaultSummaryGroundFaultCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanrange + ",{0}))) AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryFaultSummaryLineFaultCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanrange + ",{0}))) AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime));
+
+            return recordCount;
+        }
+
+        public int QueryFaultSummaryAllPhaseFaultCount(DateTime startTime, string timeSpanUnit, int timeSpanrange)
+        {
+            int recordCount = -1;
+
+            recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanrange + ",{0}))) AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime));
+
+            return recordCount;
+        }
+
+        // public int
+        // public IEnumerable<>
+        // public string
 
         #endregion
 
