@@ -24,8 +24,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function showOverviewPage(tab) {
-    $('#overviewYesterdayDate').text(new Date(new Date().setDate(new Date().getDate() - 1)).toDateString());
-    $('#overviewTodayDate').text(new Date(new Date().setDate(new Date().getDate())).toDateString());
+    $('#overviewYesterdayDate').text(moment().subtract(1,'days').format('dddd, MMMM Do'));
+    $('#overviewTodayDate').text(moment().format('LLLL'));
 
     $('.grid2').masonry({
         itemSelector: '.grid2-item',
@@ -151,9 +151,11 @@ function buildDashboardCharts(whichday) {
 
     if (currentTab === 'Overview-Today') {
 
-        var sourcedate = new Date(new Date().setDate(new Date().getDate()));
-        sourcedate = new Date(2014,6,10);
         var testDate = '2014-06-10';
+        var sourcedate = new Date(new Date().setDate(new Date().getDate()));
+        testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+
+        sourcedate = new Date(2014, 6, 10);
         testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
         $('#today-downloads').children().remove();
@@ -181,9 +183,11 @@ function buildDashboardCharts(whichday) {
 
     if (currentTab === 'Overview-Yesterday') {
 
-        var sourcedate = new Date(new Date().setDate(new Date().getDate() -2));
-        sourcedate = new Date(2014, 6, 10);
         var testDate = '2014-06-10';
+        var sourcedate = new Date(new Date().setDate(new Date().getDate() - 1));
+        testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+
+        sourcedate = new Date(2014, 6, 10);
         testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
         $('#history-downloads').children().remove();
@@ -212,13 +216,17 @@ function buildDashboardCharts(whichday) {
 }
 
 function buildOverviewDownloads(testDate, whichday) {
-    dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
-        //$('#' + whichday + '-downloads') // * // history OR today
-        $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files  ' + data + ' files.</h3>');
-        $('#' + whichday + '-downloads').append('<table class="table table-striped" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
-        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
 
+    //$('#' + whichday + '-downloads') // * // history OR today
+    $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files <span></span> files.</h3>');
+    $('#' + whichday + '-downloads').append('<table class="table table-striped" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
+    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
+    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+
+
+    dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
+        var element = $('#' + whichday + '-downloads span').first();
+        $(element).append(data);
         // last thing - resize
         $(window).resize();
     });
@@ -237,6 +245,8 @@ function buildOverviewDownloads(testDate, whichday) {
 }
 
 function buildOverviewFaults(testDate, whichday) {
+
+
     dataHub.queryFaultSummaryCount(testDate, 'day', 1).done(function (data) {
 
         // last thing - resize
