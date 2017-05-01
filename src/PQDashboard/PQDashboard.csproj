@@ -64,9 +64,10 @@
       <HintPath>..\packages\GSF.Communication.2.2.39-beta\lib\net46\GSF.Communication.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.2.37.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="GSF.Core, Version=2.2.39.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\GSF.Core.2.2.39-beta\lib\net46\GSF.Core.dll</HintPath>
+	  <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
