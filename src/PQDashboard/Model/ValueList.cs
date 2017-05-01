@@ -24,6 +24,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using GSF.Data.Model;
+using GSF.ComponentModel.DataAnnotations;
 
 namespace PQDashboard.Model
 {
@@ -111,7 +112,7 @@ namespace PQDashboard.Model
             get; set;
         }
 
-        [InitialValue("true")]
+        [InitialValueScript("true")]
         public bool Enabled
         {
             get; set;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using GSF.Data.Model;
+using GSF.ComponentModel.DataAnnotations;
 
 namespace PQDashboard.Model
 {

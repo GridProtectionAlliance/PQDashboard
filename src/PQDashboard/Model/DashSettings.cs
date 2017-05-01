@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GSF.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using GSF.Data.Model;
@@ -20,7 +21,7 @@ namespace PQDashboard.Model
     [TableName("USerDashSettings")]
     public class UserDashSettings: DashSettings
     {
-        [Label("User Account")]
+        [Label("Account Name")]
         public Guid UserAccountID { get; set; }
     }
 }
