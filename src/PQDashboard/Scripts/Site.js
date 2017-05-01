@@ -173,8 +173,8 @@ function calculateRemainingBodyHeight() {
 function hubConnected() {
     hideErrorMessage();
 
-    if (hubIsConnecting)
-        showInfoMessage("Reconnected to service.");
+    //if (hubIsConnecting)
+    //    showInfoMessage("Reconnected to service.");
 
     hubIsConnecting = false;
     hubIsConnected = true;
@@ -237,7 +237,7 @@ $(function () {
 
     $.connection.hub.reconnecting(function () {
         hubIsConnecting = true;
-        showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
+        //showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
 
         // Disable hub dependent controls
         updateHubDependentControlState(false);
@@ -253,8 +253,8 @@ $(function () {
     $.connection.hub.disconnected(function () {
         hubIsConnected = false;
 
-        if (hubIsConnecting)
-            showErrorMessage("Disconnected from server");
+        //if (hubIsConnecting)
+        //    showErrorMessage("Disconnected from server");
 
         // Disable hub dependent controls
         updateHubDependentControlState(false);
