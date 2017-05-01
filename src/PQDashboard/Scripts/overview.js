@@ -224,20 +224,20 @@ function buildOverviewDownloads(testDate, whichday) {
     $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
 
 
-    dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
+    dataHub.queryFileGroupRecords(testDate, 'dd', 1).done(function (data) {
         var element = $('#' + whichday + '-downloads span').first();
-        $(element).append(data);
+        $(element).append(data.length);
         // last thing - resize
         $(window).resize();
     });
 
-    dataHub.queryMeterCount(testDate, 'd', 1).done(function (data) {
+    dataHub.queryMeterCount(testDate, 'dd', 1).done(function (data) {
         $('#' + whichday + '-meters').append(data);
         // last thing - resize
         $(window).resize();
     });
 
-    dataHub.queryLineCount(testDate, 'day', 1).done(function (data) {
+    dataHub.queryLineCount(testDate, 'dd', 1).done(function (data) {
         $('#' + whichday + '-lines').append(data);
         // last thing - resize
         $(window).resize();
@@ -247,25 +247,25 @@ function buildOverviewDownloads(testDate, whichday) {
 function buildOverviewFaults(testDate, whichday) {
 
 
-    dataHub.queryFaultSummaryCount(testDate, 'day', 1).done(function (data) {
+    dataHub.queryFaultSummaryCount(testDate, 'dd', 1).done(function (data) {
 
         // last thing - resize
         $(window).resize();
     });
 
-    dataHub.queryFaultSummaryGroundFaultCount(testDate, 'day', 1).done(function (data) {
+    dataHub.queryFaultSummaryGroundFaultCount(testDate, 'dd', 1).done(function (data) {
 
         // last thing - resize
         $(window).resize();
     });
 
-    dataHub.queryFaultSummaryLineFaultCount(testDate, 'day', 1).done(function (data) {
+    dataHub.queryFaultSummaryLineFaultCount(testDate, 'dd', 1).done(function (data) {
 
         // last thing - resize
         $(window).resize();
     });
 
-    dataHub.queryFaultSummaryAllPhaseFaultCount(testDate, 'day', 1).done(function (data) {
+    dataHub.queryFaultSummaryAllPhaseFaultCount(testDate, 'dd', 1).done(function (data) {
 
         // last thing - resize
         $(window).resize();

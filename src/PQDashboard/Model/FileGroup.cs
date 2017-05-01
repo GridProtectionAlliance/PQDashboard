@@ -48,7 +48,7 @@ namespace PQDashboard.Model
         public int ID { get; set; }
         [Searchable]
         public DateTime DataStartTime { get; set; }
-        public DateTime DataEndtTime { get; set; }
+        public DateTime DataEndTime { get; set; }
         public DateTime ProcessingStartTime { get; set; }
         public DateTime ProcessingEndTime { get; set; }
         public int Error { get; set; }
