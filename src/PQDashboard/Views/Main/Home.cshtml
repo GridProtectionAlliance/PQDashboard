@@ -69,58 +69,6 @@
         defaulMeterGroupID = meterGroups.First().ID;
     }
 
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    DateTime datetimeTodayNow = DateTime.Now;
-    DateTime dateTimeToday = new DateTime(datetimeTodayNow.Year, datetimeTodayNow.Month, datetimeTodayNow.Day);
-
-    int year = 2014;
-    int month = 6;
-    int day = 20;
-    dateTimeToday = new DateTime(year, month, day);
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - DOWNLOADS - summary data
-    int totalDownloadedEventFilesToday = dataContext.Table<FileGroup>().QueryRecordCount(restriction: new RecordRestriction("[FileGroup].ID IN (SELECT [FileGroup].ID FROM [FileGroup] LEFT JOIN EVENT ON [Event].FileGroupID = [FileGroup].ID WHERE ([FileGroup].DataStartTime >= {0} AND [FileGroup].DataStartTime < DATEADD(day,1,{0})))", dateTimeToday));
-    // meters
-    int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [EVENT].MeterID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-    // lines
-    int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [EVENT].LineID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - FAULTS - summary data
-    int totalFaultEventsToday = dataContext.Table<FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("(FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)", dateTimeToday));
-
-    ////////////////////////////////////////////////////
-    //phase ground
-    int phaseToGountFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID >= 1 AND [Disturbance].PhaseID <= 3) OR ([Disturbance].PhaseID = 6) OR ([Disturbance].PhaseID >= 11 AND [Disturbance].PhaseID <= 12))", dateTimeToday));
-    //phase phase
-    int phaseToPhaseFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([Disturbance].PhaseID >= 8  AND [Disturbance].PhaseID <= 10)", dateTimeToday));
-    //all phase
-    int worstFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID = 7) OR ([Disturbance].PhaseID = 13) OR ([Disturbance].PhaseID = 14))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - DISTURBANCE LOG - summary data
-    int totalDistrubanceLogRecordsToday = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
-
-    IEnumerable<Disturbance> disturbanceOverviewToday = dataContext.Table<Disturbance>().QueryRecords(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - VOLT DISTURBANCE - summary data
-    int totalVoltageDisturbanceToday = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", dateTimeToday));
-
-    IEnumerable<DisturbanceSeverity> disturbanceSeverityOverviewToday = dataContext.Table<DisturbanceSeverity>().QueryRecords(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", dateTimeToday));
-
-    int severity45VoltageDisturbance = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([DisturbanceSeverity].SeverityCode >= 4)", dateTimeToday));
-    var counter = 1;
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-
 }
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -315,156 +263,43 @@
     </ul>
 
     <div id="tabs-Overview-Today">
-
-        <div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">@* background-color: #FCD883; *@
-
-            <div style="text-align: center; color: black">
-                <h3>PQ Overview for <span id="overviewTodayDate"></span> - TODAY </h3>
-            </div>
-            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-
-            <div class="grid2" id="grid2Today"><a href="#grid2-Today"></a>
-                <div class="grid2-item" id="grid2-item-Today-1" style="width: 300px; left: 0px; top: 0px"><a href="#grid2-item-Today-1"></a>
-                    <h4><strong style="color: darkblue"><u>DOWNLOADS</u></strong></h4> 
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
-
-
-                        <table title="disturbance-downloads" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: left"> <h4><strong style="color: darkblue"> @totalDownloadedEventFilesToday </strong></h4>  </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkblue"> Meters </th>
-                                <td style="text-align: right"> @meterdDownloadedToday </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkblue"> Lines </th>
-                                <td style="text-align: right"> @linesDownloadedToday </td>
-                            </tr>
-                        </table>
-
-
+        <div id="overviewContainer" class="container" style="background-color: #feeec8; width: 100%; height: 100%; text-align: center">
+            @* background-color: #FCD883; *@
+        <div style="text-align: center; color: black">
+            <h3>PQ Overview for <span id="overviewTodayDate"></span>.</h3>
+        </div>
+        <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+            <div class="grid2" id="grid2Today">
+                <div class="grid2-sizer"></div>
+                <div class="gutter2-sizer"></div>
+                <div class="grid2-item" id="grid2-item-Today-1" style="width: 300px; left: 0px; top: 0px">
+                    <div style="background-color:#f2f3fc; border-color: black; color: darkblue; text-align: left; margin-bottom: 0px" class="well well-sm">
+                        <h3>DOWNLOADS</h3>
+                        <div style="height: 2px; width: 100%; display: inline-block; background-color: darkblue"></div>
+                        <div id="today-downloads" style="background-color: #f2f3fc; border-color: black"></div>
                     </div>
                 </div>
-
-                <div class="grid2-item" id="grid2-item-Today-2" style="width: 300px; top: 0px"><a href="#grid2-item-Today-2"></a>
-                    <h4><strong style="color: darkred"><u>FAULTS</u></strong></h4> 
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-faultrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: left"> <h4><strong style="color: darkred"> @totalFaultEventsToday </strong></h4>  </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Phase to Ground </th>
-                                <td style="text-align: center"> @phaseToGountFaults </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Phase to Phase </th>
-                                <td style="text-align: center"> @phaseToPhaseFaults </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Three Phase </th>
-                                <td style="text-align: center"> @worstFaults </td>
-                            </tr>
-                        </table>
-
-
-
+                <div class="grid2-item" id="grid2-item-Today-2" style="width: 300px; top: 0px">
+                    <div style="background-color: #ffeae9; border-color: black; color:#640701; text-align: left; margin-bottom: 0px" class="well well-sm">
+                        <h3>FAULTS</h3>
+                        <div style="height: 2px; width: 100%; display: inline-block; background-color: #640701"></div>
+                        <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
                     </div>
                 </div>
-
-
-
-                <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0"><a href="#grid2-item-Today-3"></a>
-                    <div><h4><strong style="color: black"><u>DISTURBANCE LOG</u></strong></h4>  @totalDistrubanceLogRecordsToday  Log Recs.</div>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; height: 725px; overflow-y: scroll">
-
-                        <div>
-
-                            <table title="disturbance-logevents" style="width: 100%; height: 822px; border: 2px; padding: 4px; border-spacing: 4px">
-                                <tr>
-                                    <th style="text-align: center"> No. </th>
-                                    <th style="text-align: center"> Time (CDT) </th>
-                                    <th style="text-align: center"> Electrical Element Monitored </th>
-                                    <th style="text-align: center"> Type </th>
-                                    <th style="text-align: center"> Severity </th>
-                                    <th style="text-align: center"> Duration </th>
-                                </tr>
-                                @{
-                                    foreach (Disturbance logRecord in disturbanceOverviewToday)
-                                    {
-                                        <tr>
-                                            <th> @counter </th>
-                                            <td style="text-align: center">@logRecord.StartTime.ToShortTimeString() </td>
-                                            <td style="text-align: center"> Substation: 8 Line: M </td>
-                                            <td style="text-align: center"> Fault </td>
-                                            <td style="text-align: center"> 4 </td>
-                                            <td style="text-align: center"> @logRecord.DurationSeconds </td>
-                                        </tr>
-
-                                        counter = counter + 1;
-                                    }
-                                    counter = 1;
-                                }
-                            </table>
-
-                        </div>
-
+                <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0">
+                    <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                        <h3>DISTURBANCE LOG</h3>
+                        <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                        <div id="today-log" style="background-color: white; border-color: black"></div>
                     </div>
                 </div>
-
-                <div class="grid2-item" id="grid2-item-Today-4" style="width: 600px; left: 0px; top:50%; height: 625px;"><a href="#grid2-item-Today-4"></a>
-                    <h5><strong style="color: #e17009"><u>VOLTAGE DISTURBANCES</u></strong></h5> 
-                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black; height: 550px; overflow-y: scroll">
-
-
-
-                        <table title="disturbance-voltageevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-
-                                <th style="text-align: left; color: #e17009"><h5><strong> @severity45VoltageDisturbance </strong></h5></th>
-
-
-                            </tr>
-                        </table>
-
-
-                        <div><h5><strong style="color: #e17009">Voltage disturbance Bar Chart to go here. </strong></h5>  @totalVoltageDisturbanceToday </div>
-                        <table title="disturbance-logevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-                                <th style="text-align: center"> Record ID</th>
-                                <th style="text-align: center"> Envelope </th>
-                                <th style="text-align: center"> ID </th>
-                                <th style="text-align: center"> Severity </th>
-                            </tr>
-                            @{ 
-                                foreach (DisturbanceSeverity logRecord in disturbanceSeverityOverviewToday)
-                                {
-                                    <tr>
-                                        <th> @counter </th>
-                                        <td style="text-align: center"> 7:49 am </td>
-                                        <td style="text-align: center"> @logRecord.ID </td>
-                                        <td style="text-align: center"> @logRecord.VoltageEnvelopeID </td>
-                                        <td style="text-align: center"> @logRecord.DisturbanceID </td>
-                                        <td style="text-align: center"> @logRecord.SeverityCode </td>
-                                    </tr>
-
-                                    counter = counter + 1;
-                               }
-                            }
-
-
-                        </table>
-
-
+                <div class="grid2-item" id="grid2-item-Today-4" style="width: 600px; left: 0px; top:50%; height: 625px;">
+                    <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px" class="well well-sm">
+                        <h3>VOLTAGE DISTURBANCES</h3>
+                        <div style="height: 2px; width: 100%; display: inline-block; background-color: #834a05"></div>
+                        <div id="today-voltages" style="background-color: #f1e5da; border-color: black"></div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -571,574 +406,68 @@
             </div>
             <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
 
-            <div class="grid2" id="grid2Yesterday"><a href="#grid2-Yesterday"></a>
+            <div class="grid2" id="grid2Yesterday">
                 <div class="grid2-sizer"></div>
                 <div class="gutter2-sizer"></div>
-                <div class="grid2-item" id="grid2-item-Yesterday-1" style="width: 300px; left: 0px; top: 0px"><a href="#grid2-item-Yesterday-1"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-1" style="width: 300px; left: 0px; top: 0px">
                     <h5> Downloads </h5>
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
+                    <div class="well well-sm" style="background-color: white; border-color: black">
+                        <div id="history-downloads">
 
-
-
-                        <table title="disturbance-alarmfiles" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
-                            <tr>
-                                <th></th>
-                                <th style="text-align: center"> # Files </th>
-                                <th style="text-align: center"> # Devices </th>
-                            </tr>
-                            <tr>
-                                <th> DFR's </th>
-                                <td style="text-align: center"> 184 </td>
-                                <td style="text-align: center"> 44 </td>
-                            </tr>
-                            <tr>
-                                <th> PQ's </th>
-                                <td style="text-align: center"> 623 </td>
-                                <td style="text-align: center"> 341</td>
-                            </tr>
-                        </table>
-
-
-
+                        </div>
                     </div>
-
                 </div>
 
-                <div class="grid2-item" id="grid2-item-Yesterday-2" style="width: 300px; top: 0px"><a href="#grid2-item-Yesterday-2"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-2" style="width: 300px; top: 0px">
                     <h5> Disturbance Alarms Recorded </h5>
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
+                    <div class="well well-sm" style="background-color: white; border-color: black">
+                        <div id="history-alarms">
 
-
-
-                        <table title="disturbance-alarmrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Alarms Records - 18 Alarms</h4> </caption>
-                            <tr>
-                                <th> Phase to Ground </th>
-                                <td style="text-align: center"> 5 </td>
-                            </tr>
-                            <tr>
-                                <th> Phase to Phase </th>
-                                <td style="text-align: center"> 2 </td>
-                            </tr>
-                            <tr>
-                                <th> Three Phase </th>
-                                <td style="text-align: center"> 1 </td>
-                            </tr>
-                        </table>
-
-
-
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid2-item" id="grid2-item-Yesterday-3" style="width: 300px; top: 0px"><a href="#grid2-item-Yesterday-3"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-3" style="width: 300px; top: 0px">
                     <h5> Disturbance Off-Normal Records </h5>
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
+                    <div class="well well-sm" style="background-color: white; border-color: black">
+                        <div id="history-offnormal">
 
-
-
-                        <table title="disturbance-offnormalevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Off-Normal Records</h4> </caption>
-                            <tr>
-                                <th></th>
-                                <th style="text-align: center"> # Files </th>
-                                <th style="text-align: center"> # Devices </th>
-                            </tr>
-                            <tr>
-                                <th> DFR's </th>
-                                <td style="text-align: center"> 184 </td>
-                                <td style="text-align: center"> 44 </td>
-                            </tr>
-                            <tr>
-                                <th> PQ's </th>
-                                <td style="text-align: center"> 623 </td>
-                                <td style="text-align: center"> 341</td>
-                            </tr>
-                        </table>
-
-
-
+                        </div>
                     </div>
-
                 </div>
 
 
-                <div class="grid2-item" id="grid2-item-Yesterday-4" style="width: 300px; top: 0"><a href="#grid2-item-Yesterday-4"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-4" style="width: 300px; height: 625px; top: 0">
                     <h5> Overview Log Charts - Last 30 Days </h5>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; overflow-y: scroll">
+                    <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll">
+                        <div id="history-thirtyday">
 
 
-
-                        <table title="disturbance-alarmcharts" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Charts for Last 30 Days</h4> </caption>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            @*<tr>
-                                <th></th>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                            </tr>*@
-
-                        </table>
-
-
-
+                        </div>
                     </div>
                 </div>
 
 
-                <div class="grid2-item" id="grid2-item-Yesterday-5" style="width: 600px; left: 0px; top:70%"><a href="#grid2-item-Yesterday-5"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-5" style="width: 600px; left: 0px; top:70%">
                     <h5> Voltage Disturbances </h5>
-                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black">
+                    <div class="well well-sm" style="background-color: white; border-color: black">
+                        <div id="history-voltages">
 
 
-
-                        <table title="disturbance-voltageevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Voltage Disturbances</h4> </caption>
-                            <tr>
-
-                                <th style="text-align: center"> Severity </th>
-                                <th style="text-align: center"> No. of Volt. Disturbances </th>
-
-                            </tr>
-                            <tr>
-
-                                <th style="text-align: center"> Severity 4 </th>
-                                <td style="text-align: center"> 3 </td>
-
-                            </tr>
-                            <tr>
-
-                                <th style="text-align: center"> Severity 5 </th>
-                                <td style="text-align: center"> 1 </td>
-
-                            </tr>
-
-                        </table>
-                        <h4> Voltage disturbance Bar Chart to go here. </h4>
-                        <table title="disturbance-logevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
-                            <tr>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-                                <th style="text-align: center"> Electrical Element Monitored </th>
-                                <th style="text-align: center"> Type </th>
-                                <th style="text-align: center"> Severity </th>
-                                <th style="text-align: center"> Duration </th>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                        </table>
-
-
-
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid2-item"  id="grid2-item-Yesterday-6" style="width: 300px; top:70%"><a href="#grid2-item-Yesterday-6"></a>
+                <div class="grid2-item" id="grid2-item-Yesterday-6" style="width: 300px; top:70%">
                     <h5> Disturbance Alarms Recorded </h5>
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
+                    <div class="well well-sm" style="background-color: white; border-color: black">
+                        <div id="history-faults">
 
-
-
-                        <table title="disturbance-faultAlarmsrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4> Fault Records - 8 faults</h4> </caption>
-                            <tr>
-                                <th> Phase to Ground </th>
-                                <td style="text-align: center"> 5 </td>
-                            </tr>
-                            <tr>
-                                <th> Phase to Phase </th>
-                                <td style="text-align: center"> 2 </td>
-                            </tr>
-                            <tr>
-                                <th> Three Phase </th>
-                                <td style="text-align: center"> 1 </td>
-                            </tr>
-                        </table>
-
-
-
+                        </div>
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 
@@ -1832,7 +1161,6 @@
             window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate)
         }
     }
-
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     </script>
