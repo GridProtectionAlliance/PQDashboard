@@ -20,12 +20,8 @@
     //       Generated original version of source code.
     //
     //*****************************************************************************************************@
-@using GSF
-@using GSF.Data
 @using GSF.Collections;
-
 @using GSF.Data.Model
-@using GSF.Identity
 @using GSF.Web.Model
 @using PQDashboard.Model
 @model AppModel
@@ -33,7 +29,7 @@
     Layout = "";
     DataContext dataContext = Model.DataContext;
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'") ?? "127.0.0.0";
-    IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
+    IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecordsWhere("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
     List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();

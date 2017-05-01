@@ -58,7 +58,7 @@ namespace PQDashboard
 
         #region [ Constructors ]
 
-        public DataHub()
+        public DataHub() : base(MvcApplication.LogStatusMessage, MvcApplication.LogException)
         {
             m_coreContext = new DataContext("securityProvider",exceptionHandler: MvcApplication.LogException);
             m_dataSubscriptionOperations = new DataSubscriptionOperations(this, MvcApplication.LogStatusMessage, MvcApplication.LogException);
