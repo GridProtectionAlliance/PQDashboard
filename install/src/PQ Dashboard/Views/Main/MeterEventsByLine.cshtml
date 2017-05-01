@@ -22,6 +22,7 @@
 //*******************************************************************************************************@
 
 @using System.Collections.Specialized
+@using GSF.Data
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
@@ -32,8 +33,9 @@
 
     NameValueCollection parameters = Request.QueryString;
 
-    int postedEventId = int.Parse(parameters["eventId"] ?? "-1");
-    EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
+    int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
+    EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
+    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
 
 }
 
@@ -71,7 +73,7 @@
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime</center>
+<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy") (<a href="@(xdaInstance + "/Workbench/MeterEventsByLine.cshtml?EventID=" + postedEventId)" target="_blank">View in OpenXDA</a>)</center>
 </div>
 
 
@@ -84,6 +86,7 @@
     var postedMeterId = "@theEvent.MeterID";
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
+    reconnectHub = false;
 
 
     $(document).ready(function () {    
@@ -116,7 +119,12 @@
                 scrollHeight: '100%',
                 scrollWidth: '100%',
                 columns: [
-                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true },
+                    {
+                        field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true, content:
+                          function (row) {
+                              return "<a href='" + '@xdaInstance' + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue" + (row.UpdatedBy ? '; background-color: yellow' : '') + "' target='_blank' " + (row.UpdatedBy ? "title='This event has been edited.'" : "") + ">" + row.theinceptiontime + "</a>"
+                          }
+                    },
                     { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
                     { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
@@ -133,7 +141,8 @@
                                         a !== 'thelineid' &&
                                         a !== 'thelinename' &&
                                         a !== 'pqiexists' &&
-                                        a !== 'voltage';
+                                        a !== 'voltage' &&
+                                        a !== 'UpdatedBy';
                             });
                             var html = "";
 
@@ -155,6 +164,7 @@
                 ],
                 datasource: $.parseJSON(data)
             });
+            $.connection.hub.stop();
 
         });
     }

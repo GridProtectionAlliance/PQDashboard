@@ -46,133 +46,124 @@
 @using Newtonsoft.Json
 
 @{
+    const string NextBackForSystem = "GetPreviousAndNextEventIdsForSystem";
+    const string NextBackForStation = "GetPreviousAndNextEventIdsForMeterLocation";
+    const string NextBackForMeter = "GetPreviousAndNextEventIdsForMeter";
+    const string NextBackForLine = "GetPreviousAndNextEventIdsForLine";
+
     Layout = "";
     NameValueCollection parameters = Request.QueryString;
     string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
+    string xdaInstance = "";
 
-    string eventID = parameters["eventid"] ?? "";
+    string eventID = parameters["eventid"] ?? "-1";
+    string breakerOperationID = parameters["breakeroperation"] ?? "-1";
+    string navigation = parameters["navigation"] ?? "system";
     string postedShowFaultCurves = parameters["faultcurves"] ?? "";
     string postedShowBreakerDigitals = parameters["breakerdigitals"] ?? "";
 
-    int[] postedAdjacentEventIds = new int[] { -1, -1 };
-    int[] postedAdjacentNonmeterEventIds = new int[] {-1,-1};
+    Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
+    {
+        { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+        { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+        { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+        { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+    };
+
     string postedURLQueryString = string.Concat(parameters.AllKeys
         .Where(key => !key.Equals("eventid", StringComparison.OrdinalIgnoreCase))
+        .Where(key => !key.Equals("navigation", StringComparison.OrdinalIgnoreCase))
         .Select(key => "&" + HttpUtility.UrlEncode(key) + "=" + HttpUtility.UrlEncode(parameters[key])));
 
     string postedSeriesList = "";
-    string postedMeterName = "";
-    string postedEventDate = "";
-    string postedEventName = "";
+
+    string postedStationName = "";
     string postedMeterId = "";
-    string postedDate = "";
-    string postedEventMilliseconds = "";
+    string postedMeterName = "";
     string postedLineName = "";
     string postedLineLength = "";
 
+    string postedEventDate = "";
+    string postedEventName = "";
+    string postedDate = "";
+    string postedEventMilliseconds = "";
+
     string postedStartTime = "";
+    string postedPhase = "";
     string postedMagnitude = "";
     string postedDurationPeriod = "";
+
+    string postedBreakerNumber = "";
+    string postedBreakerPhase = "";
+    string postedBreakerTiming = "";
+    string postedBreakerSpeed = "";
+    string postedBreakerOperation = "";
+
     string postedErrorMessage = "";
+
     using (DataContext dataContext = new DataContext("systemSettings"))
     {
         JavaScriptSerializer serializer = new JavaScriptSerializer();
         postedSeriesList = JsonConvert.SerializeObject(SignalCode.GetFlotInfo(int.Parse(eventID)));
+
         EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", eventID)).First();
-        postedMeterName = theEvent.MeterName;
-        postedEventDate = theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+
+        postedStationName = theEvent.StationName;
         postedMeterId = theEvent.MeterID.ToString();
-        postedDate = theEvent.StartTime.ToShortDateString();
-        postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
+        postedMeterName = theEvent.MeterName;
         postedLineName = theEvent.LineName;
         postedLineLength = theEvent.Length.ToString();
+
         postedEventName = theEvent.EventTypeName;
+        postedEventDate = theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+        postedDate = theEvent.StartTime.ToShortDateString();
+        postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
 
-        IDataReader rdr = null;
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
 
-
-        try
+        using (IDbCommand cmd = dataContext.Connection.Connection.CreateCommand())
         {
-            IDbCommand cmd = dataContext.Connection.Connection.CreateCommand();
-            cmd.CommandText = "GetPreviousAndNextEventIds";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@EventID", eventID));
             cmd.CommandTimeout = 300;
 
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+            foreach (string procedure in nextBackLookup.Keys.ToList())
             {
-                if (rdr.IsDBNull(0))
-                {
-                    postedAdjacentEventIds[0] = -1;
-                }
-                else
-                {
-                    postedAdjacentEventIds[0] = rdr.GetInt32(0);
-                }
-                if (rdr.IsDBNull(1))
-                {
-                    postedAdjacentEventIds[1] = -1;
-                }
-                else
-                {
-                    postedAdjacentEventIds[1] = rdr.GetInt32(1);
-                }
-            }
-        }
-        finally
-        {
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
+                EventView back = null;
+                EventView next = null;
+                int backID = -1;
+                int nextID = -1;
 
-        try
-        {
-            IDbCommand cmd = dataContext.Connection.Connection.CreateCommand();
-            cmd = dataContext.Connection.Connection.CreateCommand();
-            cmd.CommandText = "GetPreviousAndNextEventIdsNonMeter";
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@EventID", eventID));
-            cmd.CommandTimeout = 300;
+                cmd.CommandText = procedure;
 
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                if (rdr.IsDBNull(0))
+                using (IDataReader rdr = cmd.ExecuteReader())
                 {
-                    postedAdjacentNonmeterEventIds[0] = -1;
-                }
-                else
-                {
-                    postedAdjacentNonmeterEventIds[0] = rdr.GetInt32(0);
-                }
-                if (rdr.IsDBNull(1))
-                {
-                    postedAdjacentNonmeterEventIds[1] = -1;
-                }
-                else
-                {
-                    postedAdjacentNonmeterEventIds[1] = rdr.GetInt32(1);
-                }
-            }
+                    rdr.Read();
 
+                    if (!rdr.IsDBNull(0))
+                    {
+                        backID = rdr.GetInt32(0);
+                    }
 
-        }
-        finally
-        {
-            if (rdr != null)
-            {
-                rdr.Close();
+                    if (!rdr.IsDBNull(1))
+                    {
+                        nextID = rdr.GetInt32(1);
+                    }
+                }
+
+                back = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", backID)).FirstOrDefault();
+                next = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", nextID)).FirstOrDefault();
+                nextBackLookup[procedure] = Tuple.Create(back, next);
             }
         }
 
-        using(DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(connectionString))
+        using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(connectionString))
         {
+            MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
             FaultSummaryTableAdapter summaryInfo = dbAdapterContainer.GetAdapter<FaultSummaryTableAdapter>();
             DisturbanceTableAdapter disturbanceAdapter = dbAdapterContainer.GetAdapter<DisturbanceTableAdapter>();
+            BreakerOperationTableAdapter breakerAdapter = dbAdapterContainer.GetAdapter<BreakerOperationTableAdapter>();
 
             if (postedEventName.Equals("Fault"))
             {
@@ -187,6 +178,7 @@
                 if ((object)thesummary != null)
                 {
                     postedStartTime = thesummary.Inception.TimeOfDay.ToString();
+                    postedPhase = thesummary.FaultType;
                     postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
                     postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
                 }
@@ -203,6 +195,7 @@
                 if ((object)disturbance != null)
                 {
                     postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
+                    postedPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == disturbance.PhaseID)?.Name ?? "";
                     postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
 
                     if (disturbance.PerUnitMagnitude != -1.0e308)
@@ -212,10 +205,43 @@
                 }
             }
 
+            if (breakerOperationID != "")
+            {
+                int id;
+
+                if (int.TryParse(breakerOperationID, out id))
+                {
+                    MeterData.BreakerOperationDataTable breakerTable = breakerAdapter.GetDataBy(theEvent.ID);
+
+                    MeterData.BreakerOperationRow breakerRow = breakerTable
+                        .Where(row => row.ID == id)
+                        .FirstOrDefault();
+
+                    if ((object)breakerRow != null)
+                    {
+                        postedBreakerNumber = breakerRow.BreakerNumber;
+                        postedBreakerPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == breakerRow.PhaseID)?.Name ?? "";
+                        postedBreakerTiming = breakerRow.BreakerTiming.ToString();
+                        postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
+                        postedBreakerOperation = dbAdapterContainer.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                    }
+                }
+            }
         }
     }
-
-
+}
+@helper NextBackButton(EventView evt, string id, string postedURLQueryString, string text)
+{
+if ((object)evt != null)
+{
+    string title = evt.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+    string url = "?eventid=" + evt.ID + postedURLQueryString;
+        <a href="@url" id="@id" class="nextbackbutton smallbutton" title="@title" style="padding: 4px 20px">@text</a>
+}
+else
+{
+        <a href="#" id="@id" class="nextbackbutton smallbutton-disabled" title="No event" style="padding: 4px 20px">@text</a>
+}
 }
 <!DOCTYPE html>
 
@@ -252,24 +278,30 @@
     <script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
     <script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
     <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    @*<script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
     <script type="text/javascript" src="~/signalr/hubs"></script>
-    <script type="text/javascript" src="~/Scripts/Site.js"></script>
-
+    <script type="text/javascript" src="~/Scripts/Site.js"></script>*@
 </head>
 <body>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedStationName">@postedStationName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterId">@postedMeterId</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterName">@postedMeterName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedLineName">@postedLineName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedLineLength">@postedLineLength</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedStartTime">@postedStartTime</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedPhase">@postedPhase</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedDurationPeriod">@postedDurationPeriod</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMagnitude">@postedMagnitude</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerNumber">@postedBreakerNumber</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerPhase">@postedBreakerPhase</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerTiming">@postedBreakerTiming</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerSpeed">@postedBreakerSpeed</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerOperation">@postedBreakerOperation</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedShowFaultCurves">@postedShowFaultCurves</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedShowBreakerDigitals">@postedShowBreakerDigitals</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedErrorMessage">@postedErrorMessage</div>
@@ -310,7 +342,7 @@
             </tr>
             <tr>
                 <td colspan="3" style="text-align: center">
-                    <div id="TitleData"></div>
+                    <div ><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" href="@(xdaInstance + "/Workbench/Event.cshtml?EventID=" + eventID)" class="">edit</a></div>
                 </td>
             </tr>
         </table>
@@ -319,41 +351,42 @@
     <div class="DockWaveformHeader">
         <table style="width: 75%; margin: 0 auto">
             <tr>
-                @if (postedAdjacentNonmeterEventIds[0] != -1)
-                {
-                    <td><a href="?eventid=@Html.Raw(postedAdjacentNonmeterEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (time)</a></td>
-                }
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom"/></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints"/></td>
 
-                @if (postedAdjacentEventIds[0] != -1)
-                {
-                    <td><a href="?eventid=@(postedAdjacentEventIds[0] + postedURLQueryString )" class="smallbutton" type="button" id="previousevent">Previous Event (meter)</a></td>
-                }
-                <td><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom"/></td>
-                <td><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints"/></td>
-                <td><input class="smallbutton" type="button" value="Show Tooltip" onclick="showhideTooltip(this);" id="showtooltip"/></td>
-                <td><input class="smallbutton" type="button" value="Show Phasor" onclick="showhidePhasor(this);" id="showphasor"/></td>
-                <td><input class="smallbutton" type="button" value="Export Data" onclick="exportdata(this);" id="exportdata"/></td>
-                <td><input class="smallbutton" type="button" value="Fault Details" onclick="showdetails(this);" id="showdetails"/></td>
-                @if (postedAdjacentEventIds[1] != -1)
-                {
-                    <td><a href="?eventid=@(postedAdjacentEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (meter)</a></td>
-                }
-                @if (postedAdjacentNonmeterEventIds[1] != -1)
-                {
-                    <td><a href="?eventid=@(postedAdjacentNonmeterEventIds[1] + postedURLQueryString )" class="smallbutton" type="button" id="nextevent">Next Event (time)</a></td>
-                }
+                <td style="text-align: center">
+                    @NextBackButton(nextBackLookup[NextBackForSystem].Item1, "system-back", postedURLQueryString + "&navigation=system", "<")
+                    @NextBackButton(nextBackLookup[NextBackForStation].Item1, "station-back", postedURLQueryString + "&navigation=station", "<")
+                    @NextBackButton(nextBackLookup[NextBackForMeter].Item1, "meter-back", postedURLQueryString + "&navigation=meter", "<")
+                    @NextBackButton(nextBackLookup[NextBackForLine].Item1, "line-back", postedURLQueryString + "&navigation=line", "<")
+                    <select id="next-back-selection">
+                        <option value="system" selected>System</option>
+                        <option value="station">Station</option>
+                        <option value="meter">Meter</option>
+                        <option value="line">Line</option>
+                    </select>
+                    @NextBackButton(nextBackLookup[NextBackForSystem].Item2, "system-next", postedURLQueryString + "&navigation=system", ">")
+                    @NextBackButton(nextBackLookup[NextBackForStation].Item2, "station-next", postedURLQueryString + "&navigation=station", ">")
+                    @NextBackButton(nextBackLookup[NextBackForMeter].Item2, "meter-next", postedURLQueryString + "&navigation=meter", ">")
+                    @NextBackButton(nextBackLookup[NextBackForLine].Item2, "line-next", postedURLQueryString + "&navigation=line", ">")
+                </td>
 
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Tooltip" onclick="showhideTooltip(this);" id="showtooltip"/></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Phasor" onclick="showhidePhasor(this);" id="showphasor"/></td>
+                <td style="text-align: center; display: none"><input class="smallbutton" type="button" value="Export Data" onclick="exportdata(this);" id="exportdata"/></td>
             </tr>
         </table>
     </div>
 
     <div id="DockCharts"></div>
 
-<script> 
+<script>
     var SeriesList;
+    var homePath = '@Html.Raw(Url.Content("~/"))';
+
     $(function(){
         SeriesList = @Html.Raw(postedSeriesList);
-
+        $('#next-back-selection').val('@Html.Raw(navigation)');
     });
 </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>

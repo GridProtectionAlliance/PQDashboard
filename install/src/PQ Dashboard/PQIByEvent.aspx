@@ -1,4 +1,4 @@
-﻿<%@ page language="C#" autoeventwireup="true" inherits="PQIByEvent, App_Web_4er0h31i" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="PQIByEvent.aspx.cs" Inherits="PQIByEvent" %>
 <%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>

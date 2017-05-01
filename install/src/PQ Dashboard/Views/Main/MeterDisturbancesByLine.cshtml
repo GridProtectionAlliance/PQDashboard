@@ -32,7 +32,7 @@
 
     NameValueCollection parameters = Request.QueryString;
 
-    int postedEventId = int.Parse(parameters["eventId"] ?? "-1");
+    int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
 
 }
@@ -84,7 +84,7 @@
     var postedMeterId = "@theEvent.MeterID";
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
-
+    reconnectHub = false;
 
     $(document).ready(function () {
         $(window).on('hubConnected', function () {
@@ -137,6 +137,8 @@
                 ],
                 datasource: $.parseJSON(data)
             });
+
+            $.connection.hub.stop();
         });
     }
 

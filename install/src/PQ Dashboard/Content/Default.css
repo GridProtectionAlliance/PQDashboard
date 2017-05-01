@@ -327,7 +327,7 @@
         }
         .mapheader {
             display: inline;
-            font-size: 1.8em;
+            font-size: large;
         }
 
         .noselect {
@@ -550,23 +550,23 @@ box-shadow: 0 0 7px black;
 }
 
 .header-container {
-    /*width: 100px;
-    height: 100px;*/
+    width: 100%;
     position: relative;
     overflow: hidden;
 }
 
-.siteselectdropdown,
-.overlaydate {
-    width: 100%;
+.siteselectdropdown {
     height: 100%;
-    top: 0;
-    left: 0;
+    /*top: 0;
+    left: 0;*/
 
 }
 
 .overlaydate {
     z-index: 10;
+    right: 25px;
+    position: relative;
+    height: 100%;
 }
 
 .axis path,
@@ -794,3 +794,58 @@ color:#333;
     font-size: 10px;
 
 }
+
+#ui-id-1, #ui-id-2 {
+    background-color: #FCD883;
+}
+
+#ui-id-3, #ui-id-4,#ui-id-5,#ui-id-6 {
+    background-color: #92F1F9;
+}
+
+#ui-id-7, #ui-id-8 {
+    background-color: #A4CCFD;
+}
+
+#ui-id-9,#ui-id-10 {
+    background-color: #FDD2BB;
+}
+
+#ui-id-11, #ui-id-12 {
+    background-color: #DDDDDD;
+}
+
+.grid {
+    max-width: 100%
+}
+
+.grid-item {
+    width: 375px;
+    float: left;
+}
+
+.note {
+    position: relative;
+}
+.note:after { /* Magic Happens Here!!! */
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0; 
+    height: 0; 
+    display: block;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+
+    border-top: 20px solid #f00;
+} /* </magic> */
+
+  .portlet-content {
+      z-index: 100;
+  }
+
+  .myjqstooltip {
+      width: 100%;
+      height: 100%;
+  }
