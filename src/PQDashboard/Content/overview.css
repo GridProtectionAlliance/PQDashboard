@@ -35,17 +35,22 @@
 
 .grid2-sizer,
 .grid2-item {
-    width: 300px;
+    width: 292px;
 }
 
-.grid2-item {
+.grid2-item,
+.grid2-item-large {
     float: left;
     border-color: black;
     border: 2px solid black;
     border-radius: 0px;
     text-align: center;
-    /*background-color: #fee6b0;*/
     margin-bottom: 0px;
+}
+
+/* a large grid2 item is twice (2x) the width of a grid2 item*/
+.grid2-item-large {
+    width: 584px;
 }
 
 html {
