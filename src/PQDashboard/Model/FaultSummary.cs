@@ -78,5 +78,20 @@ namespace PQDashboard.Model
     }
 
     [TableName("FaultSummaryOverview")]
-    public class FaultSummarysForOverview : FaultSummaryView { }
+    public class FaultSummarysForOverview
+    {
+        public int EventID { get; set; }
+
+        public DateTime StartTime { get; set; }
+
+        public string Algorithm { get; set; }
+
+        public string MeterName { get; set; }
+
+        public string LineName { get; set; }
+
+        public string FaultType { get; set; }
+
+        public float DurationSeconds { get; set; }
+    }
 }

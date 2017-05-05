@@ -25,6 +25,7 @@
 
 var cache_OverviewLog_Data = null;
 var cache_Overview_Disturbance_Data = null;
+var cache_Overview_Severity_Data = null;
 
 var cache_Overview_ThirtyDay_AllAlarms = null;
 var cache_Overview_ThirtyDay_OffNormalAlarms = null;
@@ -32,6 +33,14 @@ var cache_Overview_ThirtyDay_Disturbances = null;
 var cache_Overview_ThirtyDay_Faults = null;
 
 function showOverviewPage(tab) {
+    var whichday = 'history';
+    var whichGrid = 'Yesterday';
+
+    if (currentTab === 'Overview-Today' && currentTab != 'Overview-Yesterday') {
+        whichday = 'today';
+        whichGrid = 'Today';
+    }
+
     $('#overviewYesterdayDate').text(moment().subtract(1,'days').format('dddd, MMMM Do YYYY'));
     $('#overviewTodayDate').text(moment().format('LLLL'));
 
@@ -40,104 +49,8 @@ function showOverviewPage(tab) {
         columnWidth: '.grid2-sizer'
     });
 
-    var heightNew = 0;
-    var ovtodayHeight = $('#tabs-Overview-Today').height();
-    var ovyesterdayHeight = $('#tabs-Overview-Yesterday').height();
-    var whichday = 'history';
-
-    if (currentTab != 'Overview-Today' && currentTab === 'Overview-Yesterday') {
-        heightNew = ovyesterdayHeight;
-        if (ovtodayHeight > 1 & ovyesterdayHeight <= ovtodayHeight) {
-            heightNew = ovtodayHeight;
-        }
-        $('#tabs-' + tab).css('height', heightNew);
-
-        whichday = 'history';
-    }
-    else if (currentTab === 'Overview-Today' && currentTab != 'Overview-Yesterday') {
-        heightNew = ovtodayHeight;
-        $('#tabs-' + 'Overview-Today').css('height', heightNew);
-
-        whichday = 'today';
-    }
-
     $(window).resize(function () {
         $('.grid2').masonry('layout');
-
-        var myheightNew = 0;
-
-        if (currentTab === 'Overview-Today') {
-            var ovtodayWidth = $('#tabs-Overview-Today').width();
-            var leftrightoffset = $('#grid2Today').offset().left * 2.0;
-            var grid2width = $('#grid2Today').width();
-
-            myheightNew = ($('#tabs-Overview-Today').offset().top) + 60;
-
-            if (ovtodayWidth > (1197 + leftrightoffset)) {
-                var iterator = 1;
-                while (iterator <= 4) {
-
-                    if (myheightNew <= $('#grid2-item-Today-' + iterator).height()) {
-                        myheightNew += $('#grid2-item-Today-' + iterator).height();
-                    }
-                    iterator++;
-                }
-            }
-            else if (ovtodayWidth <= (1197 + leftrightoffset) & ovtodayWidth > (597 + leftrightoffset)) {
-                var iterator = 2;
-                while (iterator <= 4) {
-                    myheightNew += $('#grid2-item-Today-' + iterator).height();
-                    iterator++;
-                }
-            }
-            else if (ovtodayWidth <= (597 + leftrightoffset)) {
-                var iterator = 1;
-                while (iterator <= 4) {
-                    myheightNew += $('#grid2-item-Today-' + iterator).height();
-                    iterator++;
-                }
-            }
-        }
-
-        if (currentTab === 'Overview-Yesterday') {
-            var ovyesterdayWidth = $('#tabs-Overview-Yesterday').width();
-            var leftrightoffset = $('#grid2Yesterday').offset().left * 2.0;
-            var grid2width = $('#grid2Yesterday').width();
-
-            myheightNew = ($('#tabs-Overview-Yesterday').offset().top) + 60;
-
-            if (ovyesterdayWidth > (1197 + leftrightoffset)) {
-                var iterator = 4;
-                while (iterator <= 6) {
-                    if (myheightNew <= $('#grid2-item-Yesterday-' + iterator).height()) {
-                        myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-                    }
-                    iterator++;
-                }
-            }
-            else if (ovyesterdayWidth <= (1197 + leftrightoffset) & ovyesterdayWidth > (897 + leftrightoffset)) {
-                var iterator = 3;
-                while (iterator <= 5) {
-                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-                    iterator++;
-                }
-            }
-            else if (ovyesterdayWidth <= (897 + leftrightoffset) & ovyesterdayWidth > (597 + leftrightoffset)) {
-                var iterator = 2;
-                while (iterator <= 6) {
-                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-                    iterator++;
-                }
-            }
-            else if (ovyesterdayWidth <= (597 + leftrightoffset)/* & ovyesterdayWidth > (299 + leftrightoffset)*/) {
-                var iterator = 1;
-                while (iterator <= 6) {
-                    myheightNew += $('#grid2-item-Yesterday-' + iterator).height();
-                    iterator++;
-                }
-            }
-        }
-        $('#tabs-' + currentTab).css('height', myheightNew);
     });
 
     // add charts and graphs
@@ -145,14 +58,17 @@ function showOverviewPage(tab) {
 
     function buildDashboardCharts(whichday) {
 
+        var sourcedate = null;
+        sourcedate = new Date(new Date().setDate(new Date().getDate()));
+
+        // test dev - remove after test dev
+        var testDate = null;
+        testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+        testDate = null;
+        testDate = new Date(2014, 6, 10);
+        sourcedate = testDate.getFullYear().toString() + '-' + (testDate.getMonth().toString().length < 2 ? '0' + testDate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (testDate.getDate().toString().length < 2 ? '0' + testDate.getDate().toString() : testDate.getDate().toString());
+
         if (currentTab === 'Overview-Today') {
-
-            var testDate = '2014-06-10';
-            var sourcedate = new Date(new Date().setDate(new Date().getDate()));
-            testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
-
-            sourcedate = new Date(2014, 6, 10);
-            testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
             $('#today-downloads').children().remove();
             $('#today-faults').children().remove();
@@ -161,26 +77,25 @@ function showOverviewPage(tab) {
         
             // add charts and graphs to each Masonry.GridItem...
             //$('#today-downloads') // *
-            buildOverviewDownloads(testDate, whichday);
+            buildOverviewDownloads(sourcedate, whichday);
 
             //$('#today-faults') // **
-            buildOverviewFaults(testDate, whichday);
+            buildOverviewFaults(sourcedate, whichday);
 
             //$('#today-log')
-            buildOverviewLog(testDate, whichday);
+            buildOverviewLog(sourcedate, whichday);
 
             //$('#today-voltages') // ***
-            buildOverviewVoltages(testDate, whichday);
+            buildOverviewVoltages(sourcedate, whichday);
         };
 
         if (currentTab === 'Overview-Yesterday') {
 
-            var testDate = '2014-06-10';
-            var sourcedate = new Date(new Date().setDate(new Date().getDate() - 1));
-            testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+            sourcedate = null;
+            sourcedate = new Date(new Date().setDate(new Date().getDate() - 1));
 
-            sourcedate = new Date(2014, 6, 10);
-            testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+            // test dev - remove after test dev
+            sourcedate = testDate.getFullYear().toString() + '-' + (testDate.getMonth().toString().length < 2 ? '0' + testDate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (testDate.getDate().toString().length < 2 ? '0' + testDate.getDate().toString() : testDate.getDate().toString());
 
             $('#history-downloads').children().remove();
             $('#history-alarms').children().remove();
@@ -191,37 +106,70 @@ function showOverviewPage(tab) {
 
             // add charts and graphs to each Masonry.GridItem...
             //$('#history-downloads') // *
-            buildOverviewDownloads(testDate, whichday);
+            buildOverviewDownloads(sourcedate, whichday);
 
             //$('#history-alarms')
-            buildOverviewAlarms(testDate, whichday);
+            buildOverviewAlarms(sourcedate, whichday);
             //$('#history-offnormal')
-            buildOverviewOffNormal(testDate, whichday)
+            buildOverviewOffNormal(sourcedate, whichday)
             //$('#history-thirtyday')
-            buildOverviewThiryDay(testDate, whichday)
+            buildOverviewThiryDay(sourcedate, whichday)
 
             //$('#history-voltages') // ***
-            buildOverviewVoltages(testDate, whichday);
+            buildOverviewVoltages(sourcedate, whichday);
 
             //$('#history-faults') // **
-            buildOverviewFaults(testDate, whichday);
+            buildOverviewFaults(sourcedate, whichday);
         };
     }
 
-    function buildOverviewDownloads(testDate, whichday) {
+    //function buildOverviewDownloads(sourcedate, whichday) {
+
+    //    //$('#' + whichday + '-downloads') // * // history OR today
+    //    // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
+    //    // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
+    //    $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
+    //    $('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
+    //    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
+    //    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+
+    //    dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
+    //        var element = $('#' + whichday + '-downloads span').first();
+    //        if (data === undefined) {
+    //        }
+    //        else {
+    //            $(element).append(data);
+    //        }
+    //        // last thing - resize
+    //        $(window).resize();
+    //    });
+
+    //    dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
+    //        $('#' + whichday + '-meters').append(data);
+    //    });
+
+    //    dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
+    //        $('#' + whichday + '-lines').append(data);
+    //    });
+    //}
+
+    function buildOverviewDownloads(sourcedate, whichday) {
 
         //$('#' + whichday + '-downloads') // * // history OR today
-        $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
-        $('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
-        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+        // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
+        $('#' + whichday + '-downloads').puidatatable({
+            columns: [
+                { field: 'Meters', headerText: 'Meters' },
+                { field: 'Lines', headerText: 'Lines' }
+            ],
+            datasource: []
 
-        dataHub.queryFileGroupCount(testDate, 'dd', 1).done(function (data) {
+        });
+
+        dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
             var element = $('#' + whichday + '-downloads span').first();
             if (data === undefined) {
-                //$(element).append('Query Failed!');
-                //showInfoMessage('Query Failed!', 10000);
-                //showErrorMessage('Query Failed!', 10000);
             }
             else {
                 $(element).append(data);
@@ -230,58 +178,44 @@ function showOverviewPage(tab) {
             $(window).resize();
         });
 
-        dataHub.queryMeterCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-meters').append(data);
-
-            // last thing - resize
-            $(window).resize();
         });
 
-        dataHub.queryLineCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-lines').append(data);
-
-            // last thing - resize
-            $(window).resize();
         });
     }
 
-    function buildOverviewFaults(testDate, whichday) {
+    function buildOverviewFaults(sourcedate, whichday) {
 
         //$('#' + whichday + '-faults') // * // history OR today
+        // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-2 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-6
         $('#' + whichday + '-faults').append('<h3 style="text-allign: left; color: #640701">Faults: <span></span></h3>');
         $('#' + whichday + '-faults').append('<table class="table table-striped table-condensed" id="' + whichday + '-faults-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
         $('#' + whichday + '-faults-table').append('<tr><th style="text-align: center; color: #640701"><h4>Line->Ground</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lineground"></h3></td></tr>');
         $('#' + whichday + '-faults-table').append('<tr><th style="text-align: center; color: #640701"><h4>Line->Line</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lineline"></h3></td></tr>');
         $('#' + whichday + '-faults-table').append('<tr><th style="text-align: center; color: #640701"><h4>All 3-Phase</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-threeline"></h3></td></tr>');
 
-        dataHub.queryFaultSummaryCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryFaultSummaryCount(sourcedate, 'dd', 1).done(function (data) {
             var element = $('#' + whichday + '-faults span').first();
             if (data === undefined || data === null) {
-                //$(element).append('Query Failed!');
             }
             else {
                 $(element).append(data);
             }
-
-            // last thing - resize
-            $(window).resize();
         });
 
-        dataHub.queryFaultSummaryGroundFaultCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryFaultSummaryGroundFaultCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-lineground').append(data);
-
-            // last thing - resize
-            $(window).resize();
         });
 
-        dataHub.queryFaultSummaryLineFaultCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryFaultSummaryLineFaultCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-lineline').append(data);
-
-            // last thing - resize
-            $(window).resize();
         });
 
-        dataHub.queryFaultSummaryAllPhaseFaultCount(testDate, 'dd', 1).done(function (data) {
+        dataHub.queryFaultSummaryAllPhaseFaultCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-threeline').append(data);
 
             // last thing - resize
@@ -289,63 +223,78 @@ function showOverviewPage(tab) {
         });
     }
 
-    function buildOverviewLog(testDate, whichday) {
+    function buildOverviewLog(sourcedate, whichday) {
 
         //$('#' + whichday + '-log') // * // history OR today
+        // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-3 
+        // for history this is not show in any grid2-item
         $('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
         $('#' + whichday + '-log').append('<table class="table table-condensed table-responsive table-striped" id="' + whichday + '-log-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        $('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
+        $('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
         var child = $('#' + whichday + '-log-table tbody' ).first()
 
-        dataHub.queryFaultSummaryRecords(testDate, 'dd', 1).done(function (data) {
+        //dataHub.queryFaultSummaryRecords(sourcedate, 'dd', 1).done(function (data) {
+        dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
 
             var element = $('#' + whichday + '-log span').first();
             if (data === undefined || data === null) {
-                //$(element).append('Query Failed!');
             }
             else {
                 $(element).append(data.length);
 
-                var i;
-                for (i = 0; i < data.length; i++ ){
-                    $(child).append('<tr> <td>' + (i+1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + '</td><td>' + moment(data[i].Inception).format('LT') + '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
-                }
+                $.each(data, function (i, d) {
+
+                    $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
+
+                    $('#clickable-row-' + whichday + '-' + i).click(function (event) {
+
+                        var junk = data[i];
+                    });
+                });
             }
 
             // last thing - resize
             $(window).resize();
         });
-
-        // last thing - resize
-        $(window).resize();
     }
 
-    function buildOverviewVoltages(testDate, whichday) {
+    function buildOverviewVoltages(sourcedate, whichday) {
 
         //$('#' + whichday + '-voltages') // * // history OR today
+        // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-4 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-5
         $('#' + whichday + '-voltages').append('<h3 style="text-allign: left; color: #834a05">Voltages Disturbance: <span></span></h3>');
 
         // all disturbances (no severity condition :: 
-        dataHub.queryDisturbanceSeverityRecords(testDate, 'dd', 1, 0).done(function (data) {
+        dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 0).done(function (data) {
 
             var element = $('#' + whichday + '-voltages span').first();
 
             $(element).append(data.length);
 
-            // last thing - resize
-            $(window).resize();
+            cache_Overview_Disturbance_Data = data;
+
+            //Plotly.newPlot();
+
         });
 
 
-        dataHub.queryDisturbanceSeverityCount(testDate, 'dd', 1, 4).done(function (data) {
+        dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 4).done(function (data) {
 
+            cache_Overview_Severity_Data = data;
+
+            //Plotly.newPlot();
 
             // last thing - resize
             $(window).resize();
         });
     }
 
-    function buildOverviewAlarms(testDate, whichday) {
+    function buildOverviewAlarms(sourcedate, whichday) {
+
+        //$('#' + whichday + '-voltages') // * // history OR today
+        // for today this is not displayed in any grid2-item 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-2
 
         var jeffe = 0;
         jeffe += 1;
@@ -354,7 +303,11 @@ function showOverviewPage(tab) {
         $(window).resize();
     }
 
-    function buildOverviewOffNormal(testDate, whichday) {
+    function buildOverviewOffNormal(sourcedate, whichday) {
+
+        //$('#' + whichday + '-voltages') // * // history OR today
+        // for today this is not displayed in any grid2-item 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-3
 
         var jeffe = 0;
         jeffe += 1;
@@ -363,7 +316,17 @@ function showOverviewPage(tab) {
         $(window).resize();
     }
 
-    function buildOverviewThiryDay(testDate, whichday) {
+    function buildOverviewThiryDay(sourcedate, whichday) {
+
+        //$('#' + whichday + '-voltages') // * // history OR today
+        // for today this is not displayed in any grid2-item 
+        // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-4
+
+        // four (40 small bar charts that display
+        // one)- the number of PQ meters with alarms for each day, over the past thirty days
+        // two)- the number of PQ meters with off-normal for each day, over the past thirty days
+        // three)- the the number of severity 4 & 5 disturbances for each day, over the past thirty days
+        // four)- the the number of faults for each day, over the past thirty days
 
         var jeffe = 0;
         jeffe += 1;

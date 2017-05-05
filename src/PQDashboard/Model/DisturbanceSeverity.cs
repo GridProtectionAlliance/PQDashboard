@@ -38,4 +38,17 @@ namespace PQDashboard.Model
         public int DisturbanceID { get; set; }
         public int SeverityCode { get; set; }
     }
+
+    [TableName("DisturbanceSeverity")]
+    public class DisturbanceSeverityView
+    {
+        [PrimaryKey(true)]
+        public int ID { get; set; }
+        public int VoltageEnvelopeID { get; set; }
+        public int DisturbanceID { get; set; }
+        public int SeverityCode { get; set; }
+    }
+
+    [TableName("DisturbanceSeverityOverview")]
+    public class DisturbanceSeverityOverviewView { }
 }
