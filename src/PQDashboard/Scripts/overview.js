@@ -123,49 +123,15 @@ function showOverviewPage(tab) {
         };
     }
 
-    //function buildOverviewDownloads(sourcedate, whichday) {
-
-    //    //$('#' + whichday + '-downloads') // * // history OR today
-    //    // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
-    //    // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
-    //    $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
-    //    $('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-    //    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
-    //    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
-
-    //    dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
-    //        var element = $('#' + whichday + '-downloads span').first();
-    //        if (data === undefined) {
-    //        }
-    //        else {
-    //            $(element).append(data);
-    //        }
-    //        // last thing - resize
-    //        $(window).resize();
-    //    });
-
-    //    dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
-    //        $('#' + whichday + '-meters').append(data);
-    //    });
-
-    //    dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
-    //        $('#' + whichday + '-lines').append(data);
-    //    });
-    //}
-
     function buildOverviewDownloads(sourcedate, whichday) {
 
         //$('#' + whichday + '-downloads') // * // history OR today
         // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
-        $('#' + whichday + '-downloads').puidatatable({
-            columns: [
-                { field: 'Meters', headerText: 'Meters' },
-                { field: 'Lines', headerText: 'Lines' }
-            ],
-            datasource: []
-
-        });
+        $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
+        $('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
+        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
+        $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
 
         dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
             var element = $('#' + whichday + '-downloads span').first();
@@ -186,6 +152,40 @@ function showOverviewPage(tab) {
             $('#' + whichday + '-lines').append(data);
         });
     }
+
+    //function buildOverviewDownloads(sourcedate, whichday) {
+
+    //    //$('#' + whichday + '-downloads') // * // history OR today
+    //    // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
+    //    // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
+    //    $('#' + whichday + '-downloads').puidatatable({
+    //        columns: [
+    //            { field: 'Meters', headerText: 'Meters' },
+    //            { field: 'Lines', headerText: 'Lines' }
+    //        ],
+    //        datasource: []
+
+    //    });
+
+    //    dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
+    //        var element = $('#' + whichday + '-downloads span').first();
+    //        if (data === undefined) {
+    //        }
+    //        else {
+    //            $(element).append(data);
+    //        }
+    //        // last thing - resize
+    //        $(window).resize();
+    //    });
+
+    //    dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
+    //        $('#' + whichday + '-meters').append(data);
+    //    });
+
+    //    dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
+    //        $('#' + whichday + '-lines').append(data);
+    //    });
+    //}
 
     function buildOverviewFaults(sourcedate, whichday) {
 
