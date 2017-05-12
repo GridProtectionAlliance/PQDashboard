@@ -465,15 +465,21 @@ namespace PQDashboard
             string contextWord = "";
             if(context == "day")
             {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddHours(-1);
+                eventSet.StartDate = DateTime.Parse(targetDateFrom);
+                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
                 contextWord = "Hour";
             }
-            if (context == "minute")
+            else if (context == "hour")
             {
                 eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddHours(-1);
+                eventSet.EndDate = eventSet.StartDate.AddHours(1).AddSeconds(-1);
                 contextWord = "Minute";
+            }
+            else if (context == "minute")
+            {
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                eventSet.EndDate = eventSet.StartDate.AddMinutes(1).AddSeconds(-1);
+                contextWord = "Seconds";
             }
             else
             {
@@ -520,37 +526,28 @@ namespace PQDashboard
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                sc.CommandText = "dbo.select" + tab + "ForMeterIDby" + contextWord ;
+                sc.CommandText = "dbo.select" + tab + "ForMeterIDbyDateRange" ;
                 sc.CommandType = CommandType.StoredProcedure;
-                if(context == "day")
-                {
-                    IDbDataParameter eventDate = sc.CreateParameter();
-                    eventDate.ParameterName = "@EventDate";
-                    eventDate.Value = targetDateFrom;
-                    sc.Parameters.Add(eventDate);
-                }
-                else
-                {
-                    IDbDataParameter eventDateFrom = sc.CreateParameter();
-                    eventDateFrom.ParameterName = "@EventDateFrom";
-                    eventDateFrom.Value = targetDateFrom;
-                    IDbDataParameter eventDateTo = sc.CreateParameter();
-                    eventDateTo.ParameterName = "@EventDateTo";
-                    eventDateTo.Value = targetDateTo;
-                    sc.Parameters.Add(eventDateFrom);
-                    sc.Parameters.Add(eventDateTo);
-
-                }
-
+                IDbDataParameter eventDateFrom = sc.CreateParameter();
+                eventDateFrom.ParameterName = "@EventDateFrom";
+                eventDateFrom.Value = eventSet.StartDate;
+                IDbDataParameter eventDateTo = sc.CreateParameter();
+                eventDateTo.ParameterName = "@EventDateTo";
+                eventDateTo.Value = eventSet.EndDate;
+                sc.Parameters.Add(eventDateFrom);
+                sc.Parameters.Add(eventDateTo);
                 IDbDataParameter param3 = sc.CreateParameter();
                 param3.ParameterName = "@MeterID";
                 param3.Value = siteID;
                 IDbDataParameter param4 = sc.CreateParameter();
                 param4.ParameterName = "@username";
                 param4.Value = userName;
-
+                IDbDataParameter param5 = sc.CreateParameter();
+                param5.ParameterName = "@context";
+                param5.Value = context;
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
+                sc.Parameters.Add(param5);
 
                 IDataReader rdr = sc.ExecuteReader();
                 DataTable table = new DataTable();
@@ -875,11 +872,16 @@ namespace PQDashboard
         /// <param name="userName"></param>
         /// <param name="tab"></param>
         /// <returns></returns>
-        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab, string colorScale)
+        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab, string colorScale, string context)
         {
 
             IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
             List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
+            DateTime date;
+            if (context == "day")
+                date = DateTime.Parse(targetDate);
+            else
+                date = DateTime.Parse(targetDate).ToUniversalTime();
 
             Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
             foreach (DashSettings setting in dashSettings)
@@ -896,74 +898,72 @@ namespace PQDashboard
             }
 
             string thedata = "";
-            SqlConnection conn = null;
-            SqlDataReader rdr = null;
+            DataTable table = new DataTable();
 
-            try
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                conn = new SqlConnection(connectionstring);
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.selectSites" + tab + "DetailsByDate", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
-                cmd.Parameters.Add(new SqlParameter("@MeterID", siteId));
-                cmd.Parameters.Add(new SqlParameter("@username", userName));
-                if(tab == "TrendingData") cmd.Parameters.Add(new SqlParameter("@colorScaleName", colorScale));
-                cmd.CommandTimeout = 300;
+                sc.CommandText = "dbo.selectSites" + tab + "DetailsByDate";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter eventDateFrom = sc.CreateParameter();
+                eventDateFrom.ParameterName = "@EventDate";
+                eventDateFrom.Value = date;
+                sc.Parameters.Add(eventDateFrom);
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@meterID";
+                param3.Value = siteId;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+                IDbDataParameter param5 = sc.CreateParameter();
+                param5.ParameterName = "@context";
+                param5.Value = context;
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+                sc.Parameters.Add(param5);
 
-                rdr = cmd.ExecuteReader();
-                DataTable table = new DataTable();
+                IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
-
-                List<string> skipColumns;
-                if (tab == "Events") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
-                else if (tab == "Disturbances") skipColumns = new List<string>() { "theeventid", "themeterid", "thesite" };
-                else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
-
-
-                List<string> columnsToRemove = new List<string>();
-                foreach (DataColumn column in table.Columns)
-                {
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                    {
-                        disabledFileds.Add(column.ColumnName, true);
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "Chart",
-                            Value = column.ColumnName,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                    }
-
-
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                    {
-                        columnsToRemove.Add(column.ColumnName);
-                    }
-
-                }
-                foreach (string columnName in columnsToRemove)
-                {
-                    table.Columns.Remove(columnName);
-                }
-
-
-                thedata = DataTable2JSON(table);
-                table.Dispose();
             }
-            finally
+
+
+            List<string> skipColumns;
+            if (tab == "Events") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+            else if (tab == "Disturbances") skipColumns = new List<string>() { "theeventid", "themeterid", "thesite" };
+            else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
+
+
+            List<string> columnsToRemove = new List<string>();
+            foreach (DataColumn column in table.Columns)
             {
-                if (conn != null)
+                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
                 {
-                    conn.Close();
+                    disabledFileds.Add(column.ColumnName, true);
+                    DashSettings ds = new DashSettings()
+                    {
+                        Name = "" + tab + "Chart",
+                        Value = column.ColumnName,
+                        Enabled = true
+                    };
+                    DataContext.Table<DashSettings>().AddNewRecord(ds);
+
                 }
-                if (rdr != null)
+
+
+                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
                 {
-                    rdr.Close();
+                    columnsToRemove.Add(column.ColumnName);
                 }
+
             }
+            foreach (string columnName in columnsToRemove)
+            {
+                table.Columns.Remove(columnName);
+            }
+
+
+            thedata = DataTable2JSON(table);
+            table.Dispose();
 
             return thedata;
         }
@@ -1082,139 +1082,12 @@ namespace PQDashboard
         /// </summary>
         /// <param name="targetDateFrom">Start Date</param>
         /// <param name="targetDateTo">End Date</param>
-        /// <param name="meterGroup">Meter Group</param>
-        /// <param name="tab">Current PQDashboard Tab</param>
-        /// <param name="userName">Current PQDashboard user</param>
-        /// <returns>Object with list of meters and counts for tab.</returns> 
-        public MeterLocations GetMeterLocationsOld(string targetDateFrom, string targetDateTo, int meterGroup, string tab, string userName)
-        {
-            SqlConnection conn = null;
-            SqlDataReader rdr = null;
-            MeterLocations meters = new MeterLocations();
-            DataTable table = new DataTable();
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
-            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            foreach (var color in colorSettings)
-            {
-                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
-                if (index >= 0)
-                {
-                    color.Value = userColorSettings[index].Value;
-                }
-
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            try
-            {
-                conn = new SqlConnection(connectionstring);
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + tab, conn);
-
-                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-                cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = 300;
-                rdr = cmd.ExecuteReader();
-                table.Load(rdr);
-
-                List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints"};
-                List<string> columnsToRemove = new List<string>();
-                foreach (DataColumn column in table.Columns)
-                {
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                    {
-                        disabledFileds.Add(column.ColumnName, true);
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "Chart",
-                            Value = column.ColumnName,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                    }
-
-                    if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
-                    {
-                        Random r = new Random(DateTime.UtcNow.Millisecond);
-                        string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                        colors.Add(column.ColumnName, color);
-
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "ChartColors",
-                            Value = column.ColumnName + ",#" + color,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-
-                    }
-
-
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                    {
-                        columnsToRemove.Add(column.ColumnName);
-                    }
-
-                }
-                foreach (string columnName in columnsToRemove)
-                {
-                        table.Columns.Remove(columnName);
-                }
-                
-                meters.Colors = colors;
-                meters.Data = DataTable2JSON(table);
-            }
-            finally
-            {
-                if (!rdr.IsClosed)
-                {
-                    rdr.Close();
-                }
-            }
-            return meters;
-        }
-
-        /// <summary>
-        /// getLocationsEvents 
-        /// </summary>
-        /// <param name="targetDateFrom">Start Date</param>
-        /// <param name="targetDateTo">End Date</param>
         /// <param name="meterIds">comma separated list of meterIds</param>
         /// <param name="tab">Current PQDashboard Tab</param>
         /// <param name="userName">Current PQDashboard user</param>
         /// <returns>Object with list of meters and counts for tab.</returns> 
-        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, string meterIds, string tab, string userName)
+        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, string meterIds, string tab, string userName, string context)
         {
-            SqlConnection conn = null;
-            SqlDataReader rdr = null;
             MeterLocations meters = new MeterLocations();
             DataTable table = new DataTable();
 
@@ -1253,77 +1126,112 @@ namespace PQDashboard
                 else
                     colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
             }
+            DateTime startDate;
+            DateTime endDate;
 
-            try
+            if (context == "day")
             {
-                conn = new SqlConnection(connectionstring);
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + tab, conn);
+                startDate = DateTime.Parse(targetDateFrom);
+                endDate = startDate.AddDays(1).AddSeconds(-1);
+            }
+            else if (context == "hour")
+            {
+                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                endDate = startDate.AddHours(1).AddSeconds(-1);
+            }
+            else if (context == "minute")
+            {
+                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                endDate = startDate.AddMinutes(1).AddSeconds(-1);
+            }
+            else if (context == "second")
+            {
+                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                endDate = startDate.AddSeconds(1).AddMilliseconds(-1);
+            }
+            else
+            {
+                startDate = DateTime.Parse(targetDateFrom);
+                endDate = DateTime.Parse(targetDateTo);
+            }
 
-                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-                cmd.Parameters.Add(new SqlParameter("@meterIds", meterIds));
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = 300;
-                rdr = cmd.ExecuteReader();
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectMeterLocations" + tab;
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter eventDateFrom = sc.CreateParameter();
+                eventDateFrom.ParameterName = "@EventDateFrom";
+                eventDateFrom.Value = startDate;
+                IDbDataParameter eventDateTo = sc.CreateParameter();
+                eventDateTo.ParameterName = "@EventDateTo";
+                eventDateTo.Value = endDate;
+                sc.Parameters.Add(eventDateFrom);
+                sc.Parameters.Add(eventDateTo);
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@meterIds";
+                param3.Value = meterIds;
+                IDbDataParameter param4 = sc.CreateParameter();
+                param4.ParameterName = "@username";
+                param4.Value = userName;
+                IDbDataParameter param5 = sc.CreateParameter();
+                param5.ParameterName = "@context";
+                param5.Value = context;
+                sc.Parameters.Add(param3);
+                sc.Parameters.Add(param4);
+                sc.Parameters.Add(param5);
+
+                IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
-
-                List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
-                List<string> columnsToRemove = new List<string>();
-                foreach (DataColumn column in table.Columns)
-                {
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                    {
-                        disabledFileds.Add(column.ColumnName, true);
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "Chart",
-                            Value = column.ColumnName,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                    }
-
-                    if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
-                    {
-                        Random r = new Random(DateTime.UtcNow.Millisecond);
-                        string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                        colors.Add(column.ColumnName, color);
-
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "ChartColors",
-                            Value = column.ColumnName + ",#" + color,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-
-                    }
-
-
-                    if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                    {
-                        columnsToRemove.Add(column.ColumnName);
-                    }
-
-                }
-                foreach (string columnName in columnsToRemove)
-                {
-                    table.Columns.Remove(columnName);
-                }
-
-                meters.Colors = colors;
-                meters.Data = DataTable2JSON(table);
             }
-            finally
+
+            List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
+            List<string> columnsToRemove = new List<string>();
+            foreach (DataColumn column in table.Columns)
             {
-                if (!rdr.IsClosed)
+                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
                 {
-                    rdr.Close();
+                    disabledFileds.Add(column.ColumnName, true);
+                    DashSettings ds = new DashSettings()
+                    {
+                        Name = "" + tab + "Chart",
+                        Value = column.ColumnName,
+                        Enabled = true
+                    };
+                    DataContext.Table<DashSettings>().AddNewRecord(ds);
+
                 }
+
+                if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
+                {
+                    Random r = new Random(DateTime.UtcNow.Millisecond);
+                    string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                    colors.Add(column.ColumnName, color);
+
+                    DashSettings ds = new DashSettings()
+                    {
+                        Name = "" + tab + "ChartColors",
+                        Value = column.ColumnName + ",#" + color,
+                        Enabled = true
+                    };
+                    DataContext.Table<DashSettings>().AddNewRecord(ds);
+
+
+                }
+
+
+                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
+                {
+                    columnsToRemove.Add(column.ColumnName);
+                }
+
             }
+            foreach (string columnName in columnsToRemove)
+            {
+                table.Columns.Remove(columnName);
+            }
+
+            meters.Colors = colors;
+            meters.Data = DataTable2JSON(table);
             return meters;
         }
 
@@ -1337,38 +1245,31 @@ namespace PQDashboard
         public MeterLocations GetLocationsHeatmap(string targetDateFrom, string targetDateTo, string meterIds, string type)
         {
             SqlConnection conn = null;
-            SqlDataReader rdr = null;
             MeterLocations meters = new MeterLocations();
             DataTable table = new DataTable();
 
-            try
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                conn = new SqlConnection(connectionstring);
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.selectMeterLocations" + type, conn);
+                sc.CommandText = "dbo.selectMeterLocations" + type;
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter eventDateFrom = sc.CreateParameter();
+                eventDateFrom.ParameterName = "@EventDateFrom";
+                eventDateFrom.Value = targetDateFrom;
+                IDbDataParameter eventDateTo = sc.CreateParameter();
+                eventDateTo.ParameterName = "@EventDateTo";
+                eventDateTo.Value = targetDateTo;
+                sc.Parameters.Add(eventDateFrom);
+                sc.Parameters.Add(eventDateTo);
+                IDbDataParameter param3 = sc.CreateParameter();
+                param3.ParameterName = "@meterIds";
+                param3.Value = meterIds;
+                sc.Parameters.Add(param3);
 
-                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-                cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-                cmd.Parameters.Add(new SqlParameter("@meterIds", meterIds));
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = 300;
-                rdr = cmd.ExecuteReader();
+                IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
-
-                meters.Colors = null;
-                meters.Data = DataTable2JSON(table);
             }
-            finally
-            {
-                if (conn != null)
-                {
-                    conn.Close();
-                }
-                if (rdr != null)
-                {
-                    rdr.Close();
-                }
-            }
+            meters.Colors = null;
+            meters.Data = DataTable2JSON(table);
 
             return meters;
         }

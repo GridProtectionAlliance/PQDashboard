@@ -178,7 +178,7 @@ function setMapHeaderDate(datefrom, dateto) {
 }
 
 function setGlobalContext(leftToRight) {
-    var contexts = ['custom', 'day', 'hour', 'minute'];
+    var contexts = ['custom', 'day', 'hour', 'minute', 'second'];
     if (leftToRight)
     {
         if(contexts.indexOf(globalContext) < contexts.length - 1)
@@ -289,7 +289,7 @@ function selectsitesincharts() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(thedatasource, thediv, siteID, theDate) {
-    dataHub.getDetailsForSites(siteID, theDate, userId, currentTab, $('#contourColorScaleSelect').val()).done(function (data) {
+    dataHub.getDetailsForSites(siteID, theDate, userId, currentTab, $('#contourColorScaleSelect').val(), globalContext).done(function (data) {
         var json = $.parseJSON(data)
         cache_Table_Data = json;
 
@@ -736,6 +736,8 @@ function getFormattedDate(date) {
         return moment(date).utc().format('YYYY-MM-DDTHH:mm') + 'Z';
     else if (globalContext == "minute")
         return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    else if (globalContext == "second")
+        return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     else
         return moment(date).utc().format('YYYY-MM-DD');
 }
@@ -1020,8 +1022,9 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             });
             html += "</table>";
 
+            if(width - mouse[0] < 150)
             tooltip.classed('hidden', false)
-            .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
+            .attr('style', 'left:' + (width - mouse[0] < 150? mouse[0] - 150 : mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
             .html(html);
         });
 
@@ -1556,7 +1559,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     setMapHeaderDate(datefrom, dateto);
     if (currentTab != 'TrendingData') {
         var meterIds = GetCurrentlySelectedSitesIDs();
-        dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId).done(function (data) {
+        dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId, globalContext).done(function (data) {
             data.JSON = JSON.parse(data.Data);
             cache_Map_Matrix_Data_Date_From = this.datefrom;
             cache_Map_Matrix_Data_Date_To = this.dateto;
@@ -2541,13 +2544,27 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
         $('.stepOutBtn').attr('disabled', true)
     }
     else if (globalContext == "day") {
-        $('.contextWindow').text(contextfromdate);
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "hour") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:00'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "minute") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "second") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
         $('.stepOutBtn').attr('disabled', false)
     }
 
+
+
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
     getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
-    if(tabsForDigIn.indexOf(currentTab) >= 0)
+    if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
 
@@ -2570,13 +2587,24 @@ function resizeDocklet(theparent, chartheight) {
         thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
     else if (globalContext == "day") {
-        thedatefrom = moment(contextfromdate).startOf('day').utc().format('YYYY-MM-DD') + "T00:00:00Z";
-        thedateto = moment(contexttodate).endOf('day').utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedatefrom = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        thedateto = moment(contextfromdate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
-
+    else if (globalContext == "hour") {
+        thedatefrom = moment(contextfromdate).utc().startOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        thedateto = moment(contextfromdate).utc().endOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else if (globalContext == "minute") {
+        thedatefrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        thedateto = moment(contextfromdate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else if (globalContext == "second") {
+        thedatefrom = moment(contextfromdate).utc().startOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        thedateto = moment(contextfromdate).utc().endOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
     else {
-        thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-        thedateto = moment(contexttodate).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        thedateto = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
 
     var selectedIDs = GetCurrentlySelectedSites();
