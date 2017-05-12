@@ -276,44 +276,31 @@ function selectsitesincharts() {
     }
 
     if (cache_Last_Date !== null) {
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, sitename, thesiteidlist, cache_Last_Date);
+        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, thesiteidlist, cache_Last_Date);
     } else {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    ManageLocationClick(sitename, thesiteidlist);  
+    ManageLocationClick(thesiteidlist);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
-function getTableDivData(thedatasource, thediv, siteName, siteID, theDate) {
-    var thedatasent = "{'siteID':'" + siteID + "'" +
-                    (currentTab === "TrendingData" ? ", 'colorScale': '" + $('#contourColorScaleSelect').val() + "'" : "") +
-                    ", 'targetDate':'" + theDate + "'" +
-                    ", 'userName':'" + postedUserName + "'}";
+function getTableDivData(thedatasource, thediv, siteID, theDate) {
+    dataHub.getDetailsForSites(siteID, theDate, userId, currentTab, $('#contourColorScaleSelect').val()).done(function (data) {
+        var json = $.parseJSON(data)
+        cache_Table_Data = json;
 
-    $.ajax({
-        type: "POST",
-        url: homePath +'eventService.asmx/' + thedatasource,
-        data: thedatasent,
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            var json = $.parseJSON(data.d)
-            cache_Table_Data = json;
+        var filterString = [];
+        var leg = d3.selectAll('.legend');
 
-            var filterString = [];
-            var leg = d3.selectAll('.legend');
-
-            $.each(leg[0], function (i, d) {
-                if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
-                    filterString.push($(d).children('text').text());
-            });
-            window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
-        }
+        $.each(leg[0], function (i, d) {
+            if ($(d).children('rect').css('fill') === 'rgb(128, 128, 128)')
+                filterString.push($(d).children('text').text());
+        });
+        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
     });
 }
 
@@ -743,19 +730,26 @@ function fixNumbers(data, numFields) {
 //////////////////////////////////////////////////////////////////////////
 
 function getFormattedDate(date) {
-    var newdate = new Date(date);
-    var year = newdate.getUTCFullYear();
-    var month = (1 + newdate.getUTCMonth()).toString();
-    month = month.length > 1 ? month : '0' + month;
-    var day = newdate.getUTCDate().toString();
-    day = day.length > 1 ? day : '0' + day;
-    return month + '/' + day + '/' + year;
+    if(globalContext == "day")
+        return moment(date).utc().format('YYYY-MM-DDTHH:00') + 'Z';
+    else if (globalContext == "hour")
+        return moment(date).utc().format('YYYY-MM-DDTHH:mm') + 'Z';
+    else if (globalContext == "minute")
+        return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    else
+        return moment(date).utc().format('YYYY-MM-DD');
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+function stepOut() {
+    setGlobalContext(false);
+    loadDataForDate();
+    if(globalContext == 'custom')
+        $('.stepOutBtn').attr('disabled', true)
+}
 
-function populateDivWithBarChart(thediv, siteName, siteID, thedatefrom, thedateto) {
-    dataHub.getDataForPeriod(siteID, thedatefrom, thedateto, postedUserName, currentTab).done(function (data) {
+function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
+    window.dataHub['getDataForPeriod'](siteID, thedatefrom, thedateto, postedUserName, currentTab, globalContext).done(function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
@@ -788,7 +782,7 @@ function populateDivWithBarChart(thediv, siteName, siteID, thedatefrom, thedatet
             } else if (thediv === "TrendingData") {
 
             } else
-                buildBarChart(graphData, thediv, siteName, siteID, data.StartDate, data.EndDate);
+                buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate);
         }
     });
 
@@ -801,54 +795,7 @@ function populateDivWithBarChart(thediv, siteName, siteID, thedatefrom, thedatet
     
 }
 
-function populateDivWithBarChartHour(thediv, siteName, siteID, thedate) {
-    dataHub.getDataForPeriodHour(siteID, thedate, postedUserName, currentTab).done(function (data) {
-        if (data !== null) {
-
-            var graphData = { graphData: [], keys: [], colors: [] };
-
-            var dates = $.map(data.Types[0].Data, function (d) { return d.Item1 });
-
-            $.each(dates, function (i, date) {
-                var obj = {};
-                var total = 0;
-                obj["Date"] = date;
-                $.each(data.Types, function (j, type) {
-                    obj[type.Name] = type.Data[i].Item2;
-                    total += type.Data[i].Item2;
-                });
-                obj["Total"] = total;
-                graphData.graphData.push(obj);
-
-            });
-
-            data.Types.forEach(function (d) {
-                graphData.keys.push(d.Name);
-                graphData.colors.push(d.Color);
-            });
-
-
-            cache_Graph_Data = graphData;
-
-            if (thediv === "Overview") {
-
-            } else if (thediv === "TrendingData") {
-
-            } else
-                buildBarChart(graphData, thediv, siteName, siteID, data.StartDate, data.EndDate);
-        }
-    });
-
-    if (currentTab == "Disturbances") {
-        dataHub.getVoltageMagnitudeData(siteID, thedate, thedate).done(function (data) {
-            cache_MagDur_Data = data;
-            buildMagDurChart(data, thediv + "MagDur")
-        })
-    }
-
-}
-
-function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
+function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     $('#' + thediv).children().remove();
     $('#' + thediv + 'Overview').children().remove();
     var YaxisLabel = "";
@@ -984,15 +931,15 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
     function buildMainGraph(data, startDate, endDate) {
         var xAxis;
         if (globalContext == 'day') {
-            numSamples = moment.duration(endDate.diff(startDate)).hours();
+            numSamples = moment.duration(endDate.diff(startDate)).asHours();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%H'));
         }
         else if (globalContext == 'hour') {
-            numSamples = moment.duration(endDate.diff(startDate)).minutes();
+            numSamples = moment.duration(endDate.diff(startDate)).asMinutes();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         }
         else if (globalContext == 'minute') {
-            numSamples = moment.duration(endDate.diff(startDate)).seconds();
+            numSamples = moment.duration(endDate.diff(startDate)).asSeconds();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
         else {
@@ -1092,9 +1039,8 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
                     filter.push(element[0].__data__);
             });
             
-            manageTabsByDateForClicks(currentTab, thedate, thedate, filter, siteName);
+            manageTabsByDateForClicks(currentTab, thedate, thedate, filter);
             cache_Last_Date = thedate;
-            getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
         });
 
 
@@ -1142,7 +1088,7 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
             .enter().append("g")
             .attr("id", "chartLegend")
             .attr("class", "legend")
-            .attr("transform", function (d, i) { return "translate(140," + i * 20 + ")"; });
+            .attr("transform", function (d, i) { return "translate(140," + (i + 1) * 20 + ")"; });
 
         var disabledLegendFields = [];
 
@@ -1327,16 +1273,16 @@ function buildBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-function populateDivWithErrorBarChart(thedatasource, thediv, siteName, siteID, thedatefrom, thedateto) {
+function populateDivWithErrorBarChart(thedatasource, thediv,  siteID, thedatefrom, thedateto) {
     dataHub.getTrendingDataForPeriod(siteID, $('#contourColorScaleSelect').val(), thedatefrom, thedateto, postedUserName).done(function (data) {
         cache_ErrorBar_Data = data;
-        buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto);
+        buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
     }).fail(function (msg) {
         alert(msg);
     });
 }
 
-function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedateto) {
+function buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     function drawCap(ctx, x, y, radius) {
         ctx.beginPath();
         ctx.lineTo(x + radius, y);
@@ -1447,9 +1393,8 @@ function buildErrorBarChart(data, thediv, siteName, siteID, thedatefrom, thedate
             $('.contourControl').show();
             cache_Contour_Data = null;
             var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
-            manageTabsByDateForClicks(currentTab,thedate, thedate, null, siteName);
+            manageTabsByDateForClicks(currentTab,thedate, thedate, null);
             cache_Last_Date = thedate;
-            getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, siteName, siteID, thedate);
 
         }
     });
@@ -1592,20 +1537,62 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     cache_Map_Matrix_Data = null;
     cache_Map_Matrix_Data_Date_From = null;
     cache_Map_Matrix_Data_Date_To = null;
+    var url = homePath + "mapService.asmx/getLocations" + currentTab;
+
+    var thedatasent;
+    if (currentTab == "TrendingData") {
+        thedatasent = {
+            contourQuery: {
+                StartDate: datefrom,
+                EndDate: dateto,
+                DataType: $('#trendingDataTypeSelection').val(),
+                ColorScaleName: $('#contourColorScaleSelect').val(),
+                UserName: postedUserName,
+                MeterIds: GetCurrentlySelectedSitesIDs()
+            }
+        };
+    }
 
     setMapHeaderDate(datefrom, dateto);
-    var meterIds = GetCurrentlySelectedSitesIDs();
-    dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId).done(function (data) {
-        data.JSON = JSON.parse(data.Data);
-        cache_Map_Matrix_Data_Date_From = this.datefrom;
-        cache_Map_Matrix_Data_Date_To = this.dateto;
-        cache_Map_Matrix_Data = data;
+    if (currentTab != 'TrendingData') {
+        var meterIds = GetCurrentlySelectedSitesIDs();
+        dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId).done(function (data) {
+            data.JSON = JSON.parse(data.Data);
+            cache_Map_Matrix_Data_Date_From = this.datefrom;
+            cache_Map_Matrix_Data_Date_To = this.dateto;
+            cache_Map_Matrix_Data = data;
 
-        plotMapLocations(data, currentTab, this.datefrom, this.dateto);
-        plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
-    }).fail(function (msg) {
-        alert(msg);
-    });
+            plotMapLocations(data, currentTab, this.datefrom, this.dateto);
+            plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+        }).fail(function (msg) {
+            alert(msg);
+        });
+    }
+    else {
+        $.ajax({
+            datefrom: datefrom,
+            dateto: dateto,
+            type: "POST",
+            url: url,
+            data: JSON.stringify(thedatasent),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            success: function (data) {
+                cache_Map_Matrix_Data_Date_From = this.datefrom;
+                cache_Map_Matrix_Data_Date_To = this.dateto;
+                cache_Map_Matrix_Data = data;
+                data.d.JSON = data.d.Locations;
+                plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+                plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+
+            },
+            failure: function (msg) {
+                alert(msg);
+            },
+            async: true
+        });
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2327,7 +2314,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
                     DataType: $('#trendingDataTypeSelection').val(),
                     ColorScaleName: $('#contourColorScaleSelect').val(),
                     UserName: postedUserName,
-                    MeterGroup: $('#meterGroupSelect').val()
+                    //MeterIds: GetCurrentlySelectedSitesIDs()
                 }
             };
 
@@ -2417,10 +2404,15 @@ function showHeatmap(thecontrol) {
         if(cache_Map_Matrix_Data != null)
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
-            dataHub.getMeterLocations(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), currentTab, userId).done(function (data) {
-                data.JSON = JSON.parse(data.Data);
-                LoadHeatmapLeaflet(data);
-            });
+            if (currentTab != "TrendingData") {
+                dataHub.getMeterLocations(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), currentTab, userId).done(function (data) {
+                    data.JSON = JSON.parse(data.Data);
+                    LoadHeatmapLeaflet(data);
+                });
+            }
+            else {
+
+            }
         }
     }
 
@@ -2503,7 +2495,7 @@ function highlightDaysInCalendar(date) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function ManageLocationClick(siteName, siteID) {
+function ManageLocationClick(siteID) {
     var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
@@ -2511,14 +2503,10 @@ function ManageLocationClick(siteName, siteID) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     if (currentTab == "TrendingData")
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
     else
     {
-        if (globalContext == "custom" || tabsForDigIn.indexOf(currentTab) < 0)
-            populateDivWithBarChart('Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
-        else if(globalContext == "day")
-            populateDivWithBarChartHour('Overview' + currentTab, siteName, siteID, thedatefrom);
-
+        populateDivWithBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
     }
 
 }
@@ -2535,20 +2523,34 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     resizeMapAndMatrix(theNewTab);
     selectsitesincharts();
 
+    if (globalContext == "custom") $('.contextWindow').text('Date Range');
+    else if (globalContext == "day") $('.contextWindow').text(contextfromdate);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
     //resizeMapAndMatrix(theNewTab);
 }
 
-function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter, siteName) {
+function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     setGlobalContext(true);
     currentTab = theNewTab;
+
+    if (globalContext == "custom") {
+        $('.contextWindow').text('Date Range');
+        $('.stepOutBtn').attr('disabled', true)
+    }
+    else if (globalContext == "day") {
+        $('.contextWindow').text(contextfromdate);
+        $('.stepOutBtn').attr('disabled', false)
+    }
+
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
-    if (globalContext == 'day' && tabsForDigIn.indexOf(currentTab) >= 0)
-        populateDivWithBarChartHour('Overview' + theNewTab, siteName, GetCurrentlySelectedSitesIDs(), thedatefrom)
+    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
+    if(tabsForDigIn.indexOf(currentTab) >= 0)
+        populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
+
 }
 
 
@@ -2560,9 +2562,22 @@ function reflowContents(newTab) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function resizeDocklet( theparent , chartheight ) {
-    var thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-    var thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+function resizeDocklet(theparent, chartheight) {
+    var thedatefrom;
+    var thedateto;
+    if (globalContext == "custom") {
+        thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    }
+    else if (globalContext == "day") {
+        thedatefrom = moment(contextfromdate).startOf('day').utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedateto = moment(contexttodate).endOf('day').utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    }
+
+    else {
+        thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedateto = moment(contexttodate).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    }
 
     var selectedIDs = GetCurrentlySelectedSites();
 
@@ -2591,11 +2606,11 @@ function resizeDocklet( theparent , chartheight ) {
     firstChild.css("height", chartheight - 100);
     if (currentTab === "TrendingData") {
         if ($('#Overview' + currentTab).children().length > 0 && cache_ErrorBar_Data !== null)
-            buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+            buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, siteID, thedatefrom, thedateto);
     }
     else {
         if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null)
-            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteName, siteID, thedatefrom, thedateto);
+            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteID, thedatefrom, thedateto);
     }
 
     if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
@@ -3671,9 +3686,9 @@ function loadContourOverlay(contourInfo) {
     }
 
     if (contourOverlay)
-        contourOverlay.setUrl(contourInfo.URL);
+        contourOverlay.setUrl(homePath + contourInfo.URL);
     else
-        contourOverlay = L.imageOverlay(contourInfo.URL, bounds).addTo(leafletMap[currentTab]);
+        contourOverlay = L.imageOverlay(homePath + contourInfo.URL, bounds).addTo(leafletMap[currentTab]);
 }
 
 function showType(thecontrol) {
@@ -3764,7 +3779,7 @@ function loadContourAnimationData() {
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val(),
             IncludeWeather: $('#weatherCheckbox:checked').length > 0,
-            MeterGroup: $('#meterGroupSelect').val()
+            MeterIds: GetCurrentlySelectedSitesIDs()
         }
     };
 

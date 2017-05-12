@@ -105,18 +105,18 @@ public class mapService : WebService
 
     public class TrendingDataLocation
     {
-        public int id;
-        public string name;
+        public int ID;
+        public string Name;
         public double Latitude;
         public double Longitude;
         public double? Maximum;
         public double? Minimum;
         public double? Average;
-        public List<double?> data;
+        public List<double?> Data;
 
         public TrendingDataLocation()
         {
-            data = new List<double?>();
+            Data = new List<double?>();
         }
 
         public void Aggregate(double average)
@@ -147,7 +147,7 @@ public class mapService : WebService
         public int Resolution { get; set; }
         public int StepSize { get; set; }
         public bool IncludeWeather { get; set; }
-        public int MeterGroup { get; set; }
+        public string MeterIds { get; set; }
         private Lazy<DateTime> m_startDate;
         private Lazy<DateTime> m_endDate;
 
@@ -278,6 +278,80 @@ public class mapService : WebService
     }
 
     /// <summary>
+    /// getLocationsTrendingData 
+    /// </summary>
+    /// <param name="targetDateFrom"></param>
+    /// <param name="measurementType"></param>
+    /// <param name="targetDateTo"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [WebMethod]
+    public ContourInfo getLocationsTrendingData(ContourQuery contourQuery)
+    {
+        List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
+        DataTable colorScale;
+
+        using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+        using (IDbCommand cmd = conn.Connection.CreateCommand())
+        {
+            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
+            cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
+            cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
+            //cmd.Parameters.Add(new SqlParameter("@meterIds", contourQuery.MeterIds));
+            cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 300;
+
+            using (IDataReader rdr = cmd.ExecuteReader())
+            {
+                while (rdr.Read())
+                {
+                    TrendingDataLocation ourStatus = new TrendingDataLocation();
+                    ourStatus.Latitude = (double)rdr["Latitude"];
+                    ourStatus.Longitude = (double)rdr["Longitude"];
+                    ourStatus.Name = (string)rdr["Name"];
+                    ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
+                    ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
+                    ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
+                    ourStatus.ID = (int)rdr["id"];
+                    ourStatus.Data.Add(ourStatus.Average);
+                    ourStatus.Data.Add(ourStatus.Maximum);
+                    ourStatus.Data.Add(ourStatus.Minimum);
+                    locations.Add(ourStatus);
+                }
+            }
+
+            string query =
+                "SELECT " +
+                "    ContourColorScalePoint.Value, " +
+                "    ContourColorScalePoint.Color " +
+                "FROM " +
+                "    ContourColorScale JOIN " +
+                "    ContourColorScalePoint ON ContourColorScalePoint.ContourColorScaleID = ContourColorScale.ID " +
+                "WHERE ContourColorScale.Name = {0} " +
+                "ORDER BY ContourColorScalePoint.OrderID";
+
+            colorScale = conn.RetrieveData(query, contourQuery.ColorScaleName);
+        }
+
+        double[] colorDomain = colorScale
+            .Select()
+            .Select(row => row.ConvertField<double>("Value"))
+            .ToArray();
+
+        double[] colorRange = colorScale
+            .Select()
+            .Select(row => (double)(uint)row.ConvertField<int>("Color"))
+            .ToArray();
+
+        return new ContourInfo()
+        {
+            Locations = locations,
+            ColorDomain = colorDomain,
+            ColorRange = colorRange,
+        };
+    }
+    /// <summary>
     /// getMeterIDsForArea (Dragged Rect on Map)
     /// </summary>
     /// <param name="ax"></param>
@@ -288,7 +362,7 @@ public class mapService : WebService
     /// <returns></returns>
 
     [WebMethod]
-    public List<String> getMeterIDsForArea(double ax, double ay, double bx, double by, string userName)
+    public List<string> getMeterIDsForArea(double ax, double ay, double bx, double by, string userName)
     {
         SqlConnection conn = null;
         SqlDataReader rdr = null;
@@ -332,598 +406,6 @@ public class mapService : WebService
         return (theMeterIDs);
     }
 
-
-    /// <summary>
-    /// getLocationsHeatmapSags 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsHeatmapSwell(string targetDateFrom, string targetDateTo, string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList { };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMaximumSwell", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (string)rdr["Name"];
-                ourStatus.status = (int)rdr["Count"];
-                ourStatus.id = (int)rdr["ID"];
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsHeatmapSags 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsHeatmapSags(string targetDateFrom, string targetDateTo, string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList { };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (string)rdr["Name"];
-                ourStatus.status = (int)rdr["Count"];
-                ourStatus.id = (int)rdr["ID"];
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsEvents 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod (EnableSession = true)]
-    public LocationStatusList getLocationsEvents(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList { };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsEvents", conn);
-            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
-
-                IDictionary < string, string> dict = new Dictionary<string, string>();
-                dict["Interruption"] = "#C00000";
-                dict["Fault"] = "#FF2800";
-                dict["Sag"] = "#FF9600";
-                dict["Transient"] = "#FFFF00";
-                dict["Swell"] = "#00FFF4";
-                dict["Other"] = "#0000FF";
-
-
-                string severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
-                string[] codes = severityFilter.Split(',');
-                int sum = 0;
-                foreach (string s in codes)
-                {
-                    if (s != "")
-                    {
-                        sum += (int)rdr[s];
-                        ourStatus.data.Add((int)rdr[s]);
-                    }
-                }
-                ourStatus.status = sum;
-
-
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsEventsHeatmapCounts 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <param name="severityFilter"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsEventsHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsEvents", conn);
-            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-
-                IDictionary<string, int> dict = new Dictionary<string, int>();
-                dict["Interruption"] = 1;
-                dict["Fault"] = 1;
-                dict["Sag"] = 1;
-                dict["Transient"] = 1;
-                dict["Swell"] = 1;
-                dict["Other"] = 1;
-
-
-                if (severityFilter == "undefined")
-                    severityFilter = "Interruption,Fault,Sag,Transient,Swell,Other";
-                string[] codes = severityFilter.Split(',');
-                int sum = 0;
-                foreach (string s in codes)
-                {
-                    if (s != "")
-                    {
-                        sum += (int)rdr[s] * dict[s];
-                        ourStatus.data.Add((int)rdr[s]);
-                    }
-                }
-                ourStatus.status = sum;
-
-                ourStatus.id = (int)rdr["id"];
-
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-
-    /// <summary>
-    /// getLocationsDisturbances 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsDisturbances(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorRange = new double[] { 4278190335, 4294905584, 0, 4294912000, 0, 4294940160, 0, 4294967040, 0, 4278241294, 4278255604 };
-        locationStates.ColorDomain = new double[] { 0, 0, 49, 50, 69, 70, 89, 90, 97, 98, 100 };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsDisturbances", conn);
-            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = 0;
-                ourStatus.id = (int)rdr["id"];
-                ourStatus.data.Add((int)rdr["0"]);
-                ourStatus.data.Add((int)rdr["1"]);
-                ourStatus.data.Add((int)rdr["2"]);
-                ourStatus.data.Add((int)rdr["3"]);
-                ourStatus.data.Add((int)rdr["4"]);
-                ourStatus.data.Add((int)rdr["5"]);
-                for(int i = 0; i < ourStatus.data.Count; ++i)
-                {
-                    ourStatus.status += ourStatus.data[i]*(i+1);
-                }
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsDisturbancesHeatmapCounts 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <param name="severityFilter"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsDisturbancesHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter )
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsDisturbances", conn);
-            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-
-                if (severityFilter == "undefined")
-                    severityFilter = "5,4,3,2,1,0";
-                string[] codes = severityFilter.Split(',');
-                int sum = 0;
-                foreach (string s in codes)
-                {
-                    if(s != "")
-                        sum += (int)rdr[s] * (int.Parse(s) + 1);
-                }
-                ourStatus.status = sum;
-                ourStatus.id = (int)rdr["id"];
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-
-    /// <summary>
-    /// getHeatmapLocationsTrending 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod]
-    public LocationStatusList getHeatmapLocationsTrending(string targetDateFrom, string meterIDs, string userName)
-    {
-
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        Random rand = new Random();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectHeatmapMeterLocationsTrending", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDate", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@MeterID", meterIDs));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.id = (int)rdr["MeterID"];
-                ourStatus.status = (int)rdr["Value"];
-                ourStatus.datetime = (String)((DateTime)rdr["thedate"]).ToString("MM/dd/yy HH:mm:ss");
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsTrending 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod]
-    public LocationStatusList getLocationsTrending(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList { };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrending", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.id = (int)rdr["id"];
-
-                string severityFilter = "Alarm,Offnormal";
-                string[] codes = severityFilter.Split(',');
-                int sum = 0;
-                foreach (string s in codes)
-                {
-                    if (s != "")
-                    {
-                        sum += (int)rdr[s];
-                        ourStatus.data.Add((int)rdr[s]);
-                    }
-                }
-                ourStatus.status = sum;
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
-    }
-    
-    /// <summary>
-    /// getLocationsTrendingData 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="measurementType"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod]
-    public ContourInfo getLocationsTrendingData(ContourQuery contourQuery)
-    {
-        List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
-        DataTable colorScale;
-
-        using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
-        using (IDbCommand cmd = conn.Connection.CreateCommand())
-        {
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
-            cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", contourQuery.MeterGroup));
-            cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-
-            using (IDataReader rdr = cmd.ExecuteReader())
-            {
-                while (rdr.Read())
-                {
-                    TrendingDataLocation ourStatus = new TrendingDataLocation();
-                    ourStatus.Latitude = (double)rdr["Latitude"];
-                    ourStatus.Longitude = (double)rdr["Longitude"];
-                    ourStatus.name = (string)rdr["Name"];
-                    ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
-                    ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
-                    ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                    ourStatus.id = (int)rdr["id"];
-                    ourStatus.data.Add(ourStatus.Average);
-                    ourStatus.data.Add(ourStatus.Maximum);
-                    ourStatus.data.Add(ourStatus.Minimum);
-                    locations.Add(ourStatus);
-                }
-            }
-
-            string query =
-                "SELECT " +
-                "    ContourColorScalePoint.Value, " +
-                "    ContourColorScalePoint.Color " +
-                "FROM " +
-                "    ContourColorScale JOIN " +
-                "    ContourColorScalePoint ON ContourColorScalePoint.ContourColorScaleID = ContourColorScale.ID " +
-                "WHERE ContourColorScale.Name = {0} " +
-                "ORDER BY ContourColorScalePoint.OrderID";
-
-            colorScale = conn.RetrieveData(query, contourQuery.ColorScaleName);
-        }
-
-        double[] colorDomain = colorScale
-            .Select()
-            .Select(row => row.ConvertField<double>("Value"))
-            .ToArray();
-
-        double[] colorRange = colorScale
-            .Select()
-            .Select(row => (double)(uint)row.ConvertField<int>("Color"))
-            .ToArray();
-
-        return new ContourInfo()
-        {
-            Locations = locations,
-            ColorDomain = colorDomain,
-            ColorRange = colorRange,
-        };
-    }
-
     [WebMethod]
     public void getContourTile()
     {
@@ -934,8 +416,7 @@ public class mapService : WebService
             ColorScaleName = HttpContext.Current.Request.QueryString["ColorScaleName"],
             DataType = HttpContext.Current.Request.QueryString["DataType"],
             UserName = HttpContext.Current.Request.QueryString["Username"],
-            Meters = HttpContext.Current.Request.QueryString["Meters"],
-            MeterGroup = Convert.ToInt32(HttpContext.Current.Request.QueryString["MeterGroup"])
+            Meters = HttpContext.Current.Request.QueryString["Meters"]
         };
 
         ContourTileData contourTileData = GetContourTileData(contourQuery);
@@ -988,132 +469,6 @@ public class mapService : WebService
         }
     }
 
-    /// <summary>
-    /// getLocationsDisturbancesHeatmapCounts 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <param name="severityFilter"></param>
-    /// <returns></returns>
-    [WebMethod(EnableSession = true)]
-    public LocationStatusList getLocationsTrendingHeatmapCounts(string targetDateFrom, string targetDateTo, int meterGroup, string severityFilter)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList { };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsTrending", conn);
-            //SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsMinimumSags", conn);
-
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-
-                if (severityFilter == "undefined")
-                    severityFilter = "Alarm,Offnormal";
-                string[] codes = severityFilter.Split(',');
-                int sum = 0;
-                foreach (string s in codes)
-                {
-                    if (s != "")
-                    {
-                        sum += (int)rdr[s];
-                        ourStatus.data.Add((int)rdr[s]);
-                    }
-                }
-
-                ourStatus.status = sum;
-                ourStatus.id = (int)rdr["ID"];
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (locationStates);
-    }
-
-    /// <summary>
-    /// getLocationsBreakers 
-    /// </summary>
-    /// <param name="targetDateFrom"></param>
-    /// <param name="targetDateTo"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-    [WebMethod]
-    public LocationStatusList getLocationsBreakers(string targetDateFrom, string targetDateTo, int meterGroup)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        LocationStatusList locationStates = new LocationStatusList();
-        locationStates.ColorRange = new double[] { 4278190335, 4294905584, 0, 4294912000, 0, 4294940160, 0, 4294967040, 0, 4278241294, 4278255604 };
-        locationStates.ColorDomain = new double[] { 0, 0, 49, 50, 69, 70, 89, 90, 97, 98, 100 };
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterLocationsBreakers", conn);
-            cmd.Parameters.Add(new SqlParameter("@EventDateFrom", targetDateFrom));
-            cmd.Parameters.Add(new SqlParameter("@EventDateTo", targetDateTo));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", meterGroup));
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                locationStatus ourStatus = new locationStatus();
-                ourStatus.location = new siteGeocoordinates();
-                ourStatus.location.latitude = ourStatus.Latitude = (double)rdr["Latitude"];
-                ourStatus.location.longitude = ourStatus.Longitude = (double)rdr["Longitude"];
-                ourStatus.name = (String)rdr["name"];
-                ourStatus.status = (int)rdr["Event_Count"];
-                ourStatus.id = (int)rdr["id"];
-                ourStatus.data.Add((int)rdr["Normal"]);
-                ourStatus.data.Add((int)rdr["Late"]);
-                ourStatus.data.Add((int)rdr["Indeterminate"]);
-                locationStates.Locations.Add(ourStatus);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-        return (locationStates);
-    }
-
     private List<TrendingDataLocation> GetFrameFromDailySummary(ContourQuery contourQuery)
     {
         List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
@@ -1124,7 +479,7 @@ public class mapService : WebService
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            cmd.Parameters.Add(new SqlParameter("@meterGroup", contourQuery.MeterGroup));
+            //cmd.Parameters.Add(new SqlParameter("@meterIds", contourQuery.MeterIds));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
@@ -1136,11 +491,11 @@ public class mapService : WebService
                     TrendingDataLocation ourStatus = new TrendingDataLocation();
                     ourStatus.Latitude = (double)rdr["Latitude"];
                     ourStatus.Longitude = (double)rdr["Longitude"];
-                    ourStatus.name = (string)rdr["Name"];
+                    ourStatus.Name = (string)rdr["Name"];
                     ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
                     ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
                     ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                    ourStatus.id = (int)rdr["id"];
+                    ourStatus.ID = (int)rdr["id"];
                     locations.Add(ourStatus);
                 }
             }
@@ -1159,7 +514,7 @@ public class mapService : WebService
             // In order to properly interpret the bytes, we must first order the data by meter ID to determine the location of
             // each meter's bitflag. Then we can filter out the unwanted data from the original list of meters
             locations = locations
-                .OrderBy(location => location.id)
+                .OrderBy(location => location.ID)
                 .Where((location, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) > 0)
                 .ToList();
         }
@@ -1248,12 +603,12 @@ public class mapService : WebService
         List<Dictionary<int, TrendingDataLocation>> frames = Enumerable.Repeat(meterRows, frameCount)
             .Select(rows => rows.Select(row => new TrendingDataLocation()
             {
-                id = row.ConvertField<int>("MeterID"),
-                name = row.ConvertField<string>("MeterName"),
+                ID = row.ConvertField<int>("MeterID"),
+                Name = row.ConvertField<string>("MeterName"),
                 Latitude = row.ConvertField<double>("Latitude"),
                 Longitude = row.ConvertField<double>("Longitude")
             }))
-            .Select(locations => locations.ToDictionary(location => location.id))
+            .Select(locations => locations.ToDictionary(location => location.ID))
             .ToList();
 
         Dictionary<int, double?> nominalLookup = idTable

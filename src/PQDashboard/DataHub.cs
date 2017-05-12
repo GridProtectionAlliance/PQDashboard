@@ -22,6 +22,7 @@
 //******************************************************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -458,11 +459,28 @@ namespace PQDashboard
             public double Average;
         }
 
-        public EventSet GetDataForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab)
+        public EventSet GetDataForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab, string context)
         {
             EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDateFrom);
-            eventSet.EndDate = DateTime.Parse(targetDateTo);
+            string contextWord = "";
+            if(context == "day")
+            {
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddHours(-1);
+                contextWord = "Hour";
+            }
+            if (context == "minute")
+            {
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddHours(-1);
+                contextWord = "Minute";
+            }
+            else
+            {
+                eventSet.StartDate = DateTime.Parse(targetDateFrom);
+                eventSet.EndDate = DateTime.Parse(targetDateTo);
+                contextWord = "DateRange";
+            }
             Dictionary<string, string> colors = new Dictionary<string, string>();
             Random r = new Random(DateTime.UtcNow.Millisecond);
 
@@ -502,14 +520,28 @@ namespace PQDashboard
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                sc.CommandText = "dbo.select" + tab + "ForMeterIDbyDateRange";
+                sc.CommandText = "dbo.select" + tab + "ForMeterIDby" + contextWord ;
                 sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDateFrom";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EventDateTo";
-                param2.Value = targetDateTo;
+                if(context == "day")
+                {
+                    IDbDataParameter eventDate = sc.CreateParameter();
+                    eventDate.ParameterName = "@EventDate";
+                    eventDate.Value = targetDateFrom;
+                    sc.Parameters.Add(eventDate);
+                }
+                else
+                {
+                    IDbDataParameter eventDateFrom = sc.CreateParameter();
+                    eventDateFrom.ParameterName = "@EventDateFrom";
+                    eventDateFrom.Value = targetDateFrom;
+                    IDbDataParameter eventDateTo = sc.CreateParameter();
+                    eventDateTo.ParameterName = "@EventDateTo";
+                    eventDateTo.Value = targetDateTo;
+                    sc.Parameters.Add(eventDateFrom);
+                    sc.Parameters.Add(eventDateTo);
+
+                }
+
                 IDbDataParameter param3 = sc.CreateParameter();
                 param3.ParameterName = "@MeterID";
                 param3.Value = siteID;
@@ -517,8 +549,6 @@ namespace PQDashboard
                 param4.ParameterName = "@username";
                 param4.Value = userName;
 
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
 
@@ -625,11 +655,33 @@ namespace PQDashboard
             return eventSet;
         }
 
-        public EventSet GetDataForPeriodHour(string siteID, string targetDate, string userName, string tab)
+        public EventSet GetDataForPeriodTrending(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab, string context)
         {
             EventSet eventSet = new EventSet();
-            eventSet.StartDate = DateTime.Parse(targetDate);
-            eventSet.EndDate = eventSet.StartDate.AddDays(1).AddHours(-1);
+            eventSet.Types.Add(new EventSet.EventDetail() { Name = "Normal", Color = "" , Data = new List<Tuple<DateTime, int>>() });
+            eventSet.Types.Add(new EventSet.EventDetail() { Name = "OffNormal", Color = "", Data = new List<Tuple<DateTime, int>>() });
+
+            string contextWord = "";
+            if (context == "day")
+            {
+                eventSet.StartDate = DateTime.Parse(targetDateFrom);
+                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
+                for(int i = 0; i < 24; ++i)
+                {
+                    eventSet.Types[0].Data.Add(Tuple.Create( eventSet.StartDate.AddHours(i), 0));
+                    eventSet.Types[1].Data.Add(Tuple.Create(eventSet.StartDate.AddHours(i), 0));
+                }
+            }
+            else
+            {
+                return GetDataForPeriod(siteID, targetDateFrom, targetDateTo, userName, tab, context);
+            }
+
+            string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
+            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            IEnumerable<Channel> channelIds = DataContext.Table<Channel>().QueryRecordsWhere("MeterID IN (SELECT * FROM String_To_Int_Table({0}, ','))", siteID);
+
+            DateTime epoch = new DateTime(1970, 1, 1);
             Dictionary<string, string> colors = new Dictionary<string, string>();
             Random r = new Random(DateTime.UtcNow.Millisecond);
 
@@ -667,127 +719,74 @@ namespace PQDashboard
                     colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
             }
 
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            foreach (EventSet.EventDetail column in eventSet.Types)
             {
-                sc.CommandText = "dbo.select" + tab + "ForMeterIDbyHour";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@EventDate";
-                param1.Value = targetDate;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@MeterID";
-                param2.Value = siteID;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@username";
-                param3.Value = userName;
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-
-                IDataReader rdr = sc.ExecuteReader();
-                DataTable table = new DataTable();
-                table.Load(rdr);
-
-                try
+                if (!disabledFileds.ContainsKey(column.Name))
                 {
-                    foreach (DataRow row in table.Rows)
+                    disabledFileds.Add(column.Name, true);
+                    DashSettings ds = new DashSettings()
                     {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "" + tab + "Chart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "" + tab + "ChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "" + tab + "Chart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "" + tab + "ChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-                                    }
-                                }
-                            }
-                        }
-
-                    }
+                        Name = "" + tab + "Chart",
+                        Value = column.Name,
+                        Enabled = true
+                    };
+                    DataContext.Table<DashSettings>().AddNewRecord(ds);
 
                 }
-                finally
+
+                if (disabledFileds[column.Name])
                 {
-                    if (!rdr.IsClosed)
+                    if (colors.ContainsKey(column.Name))
+                        eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.Name)].Color = colors[column.Name];
+                    else
                     {
-                        rdr.Close();
+                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
+                        DashSettings ds = new DashSettings()
+                        {
+                            Name = "" + tab + "ChartColors",
+                            Value = column.Name + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
+                            Enabled = true
+                        };
+                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                    }
+                    
+                }
+            }
+            IEnumerable<AlarmRangeLimit> alarmLimits = DataContext.Table<AlarmRangeLimit>().QueryRecordsWhere("ChannelID IN ({0})", string.Join(",", channelIds.Select(x => x.ToString())));
+            IEnumerable<DefaultAlarmRangeLimit> defaultAlarmLimits = DataContext.Table<DefaultAlarmRangeLimit>().QueryRecords();
+
+            using (Historian historian = new Historian(historianServer, historianInstance))
+            {
+                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIds.Select(x => x.ID), eventSet.StartDate, eventSet.EndDate))
+                {
+                    Channel channel = channelIds.First(x => x.ID == point.ChannelID);
+
+                    if (point.SeriesID == SeriesID.Average) {
+                        if (alarmLimits.Where(x => x.ChannelID == point.ChannelID).Any())
+                        {
+                            AlarmRangeLimit limit = alarmLimits.Where(x => x.ChannelID == point.ChannelID).First();
+                            if (CheckAlarm(channel, point, limit))
+                            {
+                                //eventSet.Types[eventSet.Types.IndexOf(x => x.Name == "Alarm")].Data.First(x => x.Item1 >= point.Timestamp && x.Item1 < point)
+                            }
+                        }
+                        else
+                        {
+                            int measurmentTypeID = channel.MeasurementTypeID;
+                            int measurementCharacteristicID = channel.MeasurementCharacteristicID;
+
+                            if (defaultAlarmLimits.Where(x => x.MeasurementTypeID == measurmentTypeID && x.MeasurementCharacteristicID == measurementCharacteristicID).Any())
+                            {
+                                DefaultAlarmRangeLimit limit = defaultAlarmLimits.Where(x => x.MeasurementTypeID == measurmentTypeID && x.MeasurementCharacteristicID == measurementCharacteristicID).First();
+
+                            }
+                        }
                     }
                 }
             }
+
             return eventSet;
         }
-
         public List<TrendingData> GetTrendingDataForPeriod(string siteID, string colorScale, string targetDateFrom, string targetDateTo, string userName)
         {
             List<TrendingData> eventSet = new List<TrendingData>();
@@ -876,7 +875,7 @@ namespace PQDashboard
         /// <param name="userName"></param>
         /// <param name="tab"></param>
         /// <returns></returns>
-        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab)
+        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab, string colorScale)
         {
 
             IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
@@ -896,7 +895,7 @@ namespace PQDashboard
 
             }
 
-            String thedata = "";
+            string thedata = "";
             SqlConnection conn = null;
             SqlDataReader rdr = null;
 
@@ -909,13 +908,19 @@ namespace PQDashboard
                 cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
                 cmd.Parameters.Add(new SqlParameter("@MeterID", siteId));
                 cmd.Parameters.Add(new SqlParameter("@username", userName));
+                if(tab == "TrendingData") cmd.Parameters.Add(new SqlParameter("@colorScaleName", colorScale));
                 cmd.CommandTimeout = 300;
 
                 rdr = cmd.ExecuteReader();
                 DataTable table = new DataTable();
                 table.Load(rdr);
 
-                List<string> skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+                List<string> skipColumns;
+                if (tab == "Events") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+                else if (tab == "Disturbances") skipColumns = new List<string>() { "theeventid", "themeterid", "thesite" };
+                else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
+
+
                 List<string> columnsToRemove = new List<string>();
                 foreach (DataColumn column in table.Columns)
                 {
@@ -1999,6 +2004,32 @@ namespace PQDashboard
             JavaScriptSerializer js = new JavaScriptSerializer();
             string JSON = js.Serialize(RowList);
             return JSON;
+        }
+
+        private bool CheckAlarm(Channel channel, openHistorian.XDALink.TrendingDataPoint trendingPoint, AlarmRangeLimit rangeLimit)
+        {
+            double perUnitValue;
+
+            double highLimit = 0.0D;
+            double lowLimit = 0.0D;
+            bool highValid = true;
+            bool lowValid = true;
+
+            perUnitValue = channel.PerUnitValue ?? 1.0D;
+
+            if (rangeLimit.High != null)
+            {
+                highLimit = Convert.ToBoolean(rangeLimit.PerUnit) ? (rangeLimit.High.GetValueOrDefault() * perUnitValue) : rangeLimit.High.GetValueOrDefault();
+                highValid = Convert.ToBoolean(rangeLimit.RangeInclusive) ^ (trendingPoint.Value <= highLimit);
+            }
+
+            if (rangeLimit.Low != null)
+            {
+                lowLimit = Convert.ToBoolean(rangeLimit.PerUnit) ? (rangeLimit.Low.GetValueOrDefault() * perUnitValue) : rangeLimit.Low.GetValueOrDefault();
+                lowValid = Convert.ToBoolean(rangeLimit.RangeInclusive) ^ (trendingPoint.Value >= lowLimit);
+            }
+
+            return !lowValid || !highValid;
         }
 
 

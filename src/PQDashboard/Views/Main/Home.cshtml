@@ -65,6 +65,7 @@
         defaulMeterGroupID = meterGroups.First().ID;
     }
 
+    string[] tabs = new[] { "Events", "Disturbances", "Faults", "Breakers", "Trending", "Completeness", "Correctness" };
 }
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -248,732 +249,392 @@
     </div>
 
     <div id="application-tabs" class="noselect">
-    <ul>
-        <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
-        <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
-        <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
-        <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
-        <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
-        <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
-        <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
-        <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
-        <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
-        <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
-        <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
-        <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
-    </ul>
+        <ul>
+            <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
+            <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
+            <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
+            <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
+            <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
+            <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
+            <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
+            <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
+            <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
+            <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
+            <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
+            <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
+        </ul>
 
-    <div id="tabs-Overview-Today" style="background-color: #feeec8; width: 100%; height: 100%">
-        @*<div id="overviewContainer" class="container" style="background-color: #feeec8; width: 100%; height: 100%; text-align: center">*@
-        <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-            @* background-color: #FCD883; *@
-            <div style="text-align: center; color: black">
-                <h3>PQ Overview for <span id="overviewTodayDate"></span>.</h3>
-            </div>
-            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-            <div class="grid2" id="grid2Today">
-                <div class="grid2-sizer"></div>
-                <div class="grid2-item" id="grid2-item-Today-1" style="left: 0px; top: 0px">
-                    <div style="background-color:#f2f3fc; border-color: black; color: darkblue; text-align: left; margin-bottom: 0px" class="well well-sm">
-                        <h3>DOWNLOADS</h3>
-                        <div style="height: 2px; width: 100%; display: inline-block; background-color: darkblue"></div>
-                        <div id="today-downloads" style="background-color: #f2f3fc; border-color: black"></div>
-                    </div>
+        <div id="tabs-Overview-Today" style="background-color: #feeec8; width: 100%; height: 100%">
+            @*<div id="overviewContainer" class="container" style="background-color: #feeec8; width: 100%; height: 100%; text-align: center">*@
+            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
+                @* background-color: #FCD883; *@
+                <div style="text-align: center; color: black">
+                    <h3>PQ Overview for <span id="overviewTodayDate"></span>.</h3>
                 </div>
-                <div class="grid2-item" id="grid2-item-Today-2" style="top: 0px">
-                    <div style="background-color: #ffeae9; border-color: black; color:#640701; text-align: left; margin-bottom: 0px" class="well well-sm">
-                        <h3>FAULTS</h3>
-                        <div style="height: 2px; width: 100%; display: inline-block; background-color: #640701"></div>
-                        <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+                <div class="grid2" id="grid2Today">
+                    <div class="grid2-sizer"></div>
+                    <div class="grid2-item" id="grid2-item-Today-1" style="left: 0px; top: 0px">
+                        <div style="background-color:#f2f3fc; border-color: black; color: darkblue; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>DOWNLOADS</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: darkblue"></div>
+                            <div id="today-downloads" style="background-color: #f2f3fc; border-color: black"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="grid2-item-large" id="grid2-item-Today-3" style="top: 0">
-                    <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                        <h3>DISTURBANCE LOG</h3>
-                        <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
-                        <div id="today-log" style="background-color: white; border-color: black"></div>
+                    <div class="grid2-item" id="grid2-item-Today-2" style="top: 0px">
+                        <div style="background-color: #ffeae9; border-color: black; color:#640701; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>FAULTS</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #640701"></div>
+                            <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%; height: 625px;">
-                    <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px" class="well well-sm">
-                        <h3>VOLTAGE DISTURBANCES</h3>
-                        <div style="height: 2px; width: 100%; display: inline-block; background-color: #834a05"></div>
-                        <div id="today-voltages" style="background-color: #f1e5da; border-color: black"></div>
+                    <div class="grid2-item-large" id="grid2-item-Today-3" style="top: 0">
+                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>DISTURBANCE LOG</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                            <div id="today-log" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>
+                    <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%; height: 625px;">
+                        <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>VOLTAGE DISTURBANCES</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #834a05"></div>
+                            <div id="today-voltages" style="background-color: #f1e5da; border-color: black"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-        <!-- Modal -->
-    <div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
-        <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
+            <!-- Modal -->
+        <div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
+            <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
 
-            <!-- Modal content-->
-            <div class="modal-content" style="z-index: 300">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
-                </div>
-                <div class="modal-body" style="height: 95%; overflow-y: scroll">
-                    <div style="position: relative">
-                        <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
-                        <div class="grid">
-                            <div class="grid-item">
-                                <h4><u>Tabs</u></h4>
-                                <div class="well">
-                                    <table>
-                                        @foreach (DashSettings setting in dashSettings)
-                                        {
-                                            if (setting.Name == "DashTab")
+                <!-- Modal content-->
+                <div class="modal-content" style="z-index: 300">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
+                    </div>
+                    <div class="modal-body" style="height: 95%; overflow-y: scroll">
+                        <div style="position: relative">
+                            <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
+                            <div class="grid">
+                                <div class="grid-item">
+                                    <h4><u>Tabs</u></h4>
+                                    <div class="well">
+                                        <table>
+                                            @foreach (DashSettings setting in dashSettings)
                                             {
-                                                <tr>
-                                                    <td>
-                                                        @setting.Value
-                                                    </td>
-                                                    <td>
-                                                        <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "")/>
-                                                    </td>
-                                                </tr>
+                                                if (setting.Name == "DashTab")
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @setting.Value
+                                                        </td>
+                                                        <td>
+                                                            <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "")/>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
-                                        }
-                                    </table>
+                                        </table>
+                                    </div>
                                 </div>
+
+                                @foreach (DashSettings setting in dashSettings)
+                                {
+                                    if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() {"#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData"}).IndexOf(setting.Value) < 0)
+                                    {
+                                        <div class="grid-item">
+
+                                            <h4><u>@setting.Value.Substring(5)</u></h4>
+                                            <div class="well">
+                                                <table>
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Field</th>
+                                                        <th>Color</th>
+                                                        <th>Enabled</th>
+                                                    </tr>
+                                                    </thead>
+                                                    @foreach (DashSettings innerSetting in dashSettings)
+                                                    {
+                                                        if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @innerSetting.Value
+                                                                </td>
+                                                                <td>
+                                                                    @{
+                                                                        DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
+
+                                                                    }
+                                                                    <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
+                                                                </td>
+                                                                <td>
+                                                                    <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "")/>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
+                        <button type="button" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="tabs-Overview-Yesterday" style="background-color: #FCD883; width: 100%; height: 100%">
+
+            @*<div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">*@
+            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
+
+                <div style="text-align: center; color: black">
+                    <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
+                </div>
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+
+                <div class="grid2" id="grid2Yesterday">
+                    <div class="grid2-sizer"></div>
+                    <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
+                        <h5> DOWNLOADS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-downloads">
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
+                        <h5> ALARMS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-alarms">
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
+                        <h5> OFF-NORMAL </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-offnormal">
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
+                        <h5> PREVIOUS 30 DAYS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll">
+                            <div id="history-thirtyday">
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="grid2-item-large" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
+                        <h5> VOLTAGE DISTURBANCES </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-voltages">
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
+                        <h5> FAULTS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-faults">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="tabs-ModbusData">
+            <iframe id="modbusFrame"></iframe>
+        </div>
+
+        <div id="tabs-HistorianData">
+            <iframe id="historianFrame"></iframe>
+        </div>
+
+        <div id="tabs-TrendingData">
+            <div id="column_5" class="column resizeable">
+                <div class="portlet" id="Portlet1TrendingData">
+                    <div class="portlet-header">
+                        <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
+                    </div>
+                    <div id="DockOverviewTrendingData" class="portlet-content">
+                        <div id="OverviewTrendingData" class="docklet">
+                        </div>
+                    </div>
+                </div>
+                <div class="portlet" id="Portlet2TrendingData">
+                    <div class="portlet-header">
+                        <div class="portlet-header-text" style="display: inline">
+                            Trending Data Detail for
+                            <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
+                            &nbsp;(24 Hours)
+                        </div>
+                    </div>
+                    <div id="DockDetailTrendingData" class="portlet-content">
+                        <div id="DetailTrendingData" class="docklet">
+                            <div id="DetailTrendingDataTable"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="column_6" class="column">
+                <div class="portlet">
+                    <div class="portlet-header portlet-header-text">
+                        <div class="header-container">
+                            <div class="siteselectdropdown" style="position: absolute;">
+                                <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
+                                    <option value="Map">Map</option>
+                                    <option value="Grid">Grid</option>
+                                </select>
+                                <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
+                                    <option value="All">All Sites</option>
+                                    <option value="RecievedData">Recieved Data</option>
+                                    <option value="NoData">No Data</option>
+                                    <option value="SelectedSites">Selected Sites</option>
+                                    <option value="None">None</option>
+                                </select>
+                                <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
+                                    <option value="Average">Average</option>
+                                    <option value="Maximum">Maximum</option>
+                                    <option value="Minimum">Minimum</option>
+                                </select>
+                                <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
+                                </select>
+                            </div>
+                            <div class="overlaydate pull-right">
+                                <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
+                                <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
+                                <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
                             </div>
 
-                            @foreach (DashSettings setting in dashSettings)
+
+                        </div>
+                    </div>
+                    <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
+                        <div class="theMapStyle" id="theMapTrendingData">
+                        </div>
+                        <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @foreach (string tab in tabs)
+        {
+            <div id="tabs-@(tab)">
+                <div id="column_1" class="column resizeable">
+                    <div class="portlet" id="Portlet1@(tab)">
+                        <div class="portlet-header">
+                            <div class="portlet-header-text" style="display: inline">@(tab) Overview (<span class="contextWindow"></span>)</div>
+                            @if (tab == "Disturbances")
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() {"#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData"}).IndexOf(setting.Value) < 0)
-                                {
-                                    <div class="grid-item">
-
-                                        <h4><u>@setting.Value.Substring(5)</u></h4>
-                                        <div class="well">
-                                            <table>
-                                                <thead>
-                                                <tr>
-                                                    <th>Field</th>
-                                                    <th>Color</th>
-                                                    <th>Enabled</th>
-                                                </tr>
-                                                </thead>
-                                                @foreach (DashSettings innerSetting in dashSettings)
-                                                {
-                                                    if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                @innerSetting.Value
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-
-                                                                }
-                                                                <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
-                                                            </td>
-                                                            <td>
-                                                                <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "")/>
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                }
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                }
+                                <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
+                                    <option value="0">Bar Chart</option>
+                                    <option value="1">Mag/Dur Chart</option>
+                                </select>
+                            }
+                            <button class="btn btn-xs btn-default pull-right stepOutBtn" style="height: 24px;margin-right: 20px" onclick="stepOut()" disabled>Step Out</button>
+                        </div>
+                        <div id="DockOverview@(tab)" class="portlet-content">
+                            <div id="Overview@(tab)" style="height: auto" class="docklet chart-container"></div>
+                            <div id="Overview@(tab)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
+                            @if (tab == "Disturbances")
+                            {
+                                <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
                             }
                         </div>
                     </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
-                    <button type="button" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="tabs-Overview-Yesterday" style="background-color: #FCD883; width: 100%; height: 100%">
-
-        @*<div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">*@
-        <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-
-            <div style="text-align: center; color: black">
-                <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
-            </div>
-            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-
-            <div class="grid2" id="grid2Yesterday">
-                <div class="grid2-sizer"></div>
-                <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
-                    <h5> DOWNLOADS </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black">
-                        <div id="history-downloads">
-
+                    <div class="portlet" id="Portlet2@(tab)">
+                        <div class="portlet-header">
+                            <div class="portlet-header-text" style="display: inline">
+                                @tab Detail for <span class="contextWindow"></span>
+                            </div>
+                            @if (tab == "Faults")
+                            {
+                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
+                            }
+                        </div>
+                        <div id="DockDetail@(tab)" class="portlet-content noselect">
+                            <div id="Detail@(tab)" class="docklet">
+                                <div id="Detail@(tab)Table"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div id="column_2" class="column">
+                    <div class="portlet">
+                        <div class="portlet-header portlet-header-text">
+                            <div class="header-container">
+                                <div class="siteselectdropdown" style="position: absolute;">
+                                    <select class="smallbutton mapGrid" id="map@(tab)Grid" onchange="selectmapgrid(this);">
+                                        <option value="Map">Map</option>
+                                        <option value="Grid">Grid</option>
+                                    </select>
+                                    <select class="smallbutton" id="selectSiteSet@(tab)" onchange="showSiteSet(this);">
+                                        <option value="All">All Sites</option>
+                                        <option value="Events">@(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
+                                        <option value="NoEvents">No @(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
+                                        <option value="SelectedSites">Selected Sites</option>
+                                        <option value="None">None</option>
+                                    </select>
+                                    @if (tab == "Events")
+                                    {
+                                    <select class="smallbutton" id="selectHeatmap@(tab)" onchange="showHeatmap(this);">
+                                        <option value="EventCounts">Event Counts</option>
+                                        <option value="MinimumSags">Sag Minimum</option>
+                                        <option value="MaximumSwell">Swell Maximum</option>
+                                    </select>
+                                    }
+                                </div>
 
-                <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
-                    <h5> ALARMS </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black">
-                        <div id="history-alarms">
+                                <div class="overlaydate pull-right">
+                                    <div id="mapHeader@(tab)From" class="mapheader"></div>
+                                    <div id="mapHeader@(tab)Divider" class="mapheader">&nbsp;-&nbsp;</div>
+                                    <div id="mapHeader@(tab)To" class="mapheader"></div>
+                                </div>
 
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
-                    <h5> OFF-NORMAL </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black">
-                        <div id="history-offnormal">
-
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="grid2-item" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
-                    <h5> PREVIOUS 30 DAYS </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll">
-                        <div id="history-thirtyday">
-
-
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="grid2-item-large" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
-                    <h5> VOLTAGE DISTURBANCES </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black">
-                        <div id="history-voltages">
-
+                            </div>
 
                         </div>
-                    </div>
-                </div>
 
-                <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
-                    <h5> FAULTS </h5>
-                    <div class="well well-sm" style="background-color: white; border-color: black">
-                        <div id="history-faults">
-
+                        <div id="MapMatrix@(tab)" class="portlet-content portlet-header-text">
+                            <div class="theMapStyle" id="theMap@(tab)"></div>
+                            <div class="theMatrixStyle noselect" id="theMatrix@(tab)"></div>
                         </div>
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
-
-    <div id="tabs-ModbusData">
-        <iframe id="modbusFrame"></iframe>
-    </div>
-
-    <div id="tabs-HistorianData">
-        <iframe id="historianFrame"></iframe>
-    </div>
-
-    <div id="tabs-Events">
-        <div id="column_1" class="column resizeable">
-            <div class="portlet" id="Portlet1Events">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Events Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewEvents" class="portlet-content">
-                    <div id="OverviewEvents" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewEventsOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Events">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Events Detail for&nbsp;
-                        <div style="display: inline;" id="eventsDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailEvents" class="portlet-content noselect">
-                    <div id="DetailEvents" class="docklet">
-                        <div id="DetailEventsTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_2" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapEventsGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetEvents" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapEvents" onchange="showHeatmap(this);">
-                                <option value="EventCounts">Event Counts</option>
-                                <option value="MinimumSags">Sag Minimum</option>
-                                <option value="MaximumSwell">Swell Maximum</option>
-                            </select>
-                        </div>
-
-                        <div class="overlaydate pull-right">
-                                <div id="mapHeaderEventsFrom" class="mapheader"></div>
-                                <div id="mapHeaderEventsDivider" class="mapheader">&nbsp;-&nbsp;</div>
-                                <div id="mapHeaderEventsTo" class="mapheader"></div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div id="MapMatrixEvents" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapEvents"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixEvents"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Disturbances">
-        <div id="column_13" class="column resizeable">
-            <div class="portlet" id="Portlet1Disturbances">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Disturbances Overview (For Date Range)</div>
-                    <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
-                        <option value="0">Bar Chart</option>
-                        <option value="1">Mag/Dur Chart</option>
-                    </select>
-                </div>
-                <div id="DockOverviewDisturbances" class="portlet-content">
-                    <div id="OverviewDisturbances" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewDisturbancesOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                    <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Disturbances">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Disturbances Detail for&nbsp;
-                        <div style="display: inline;" id="DisturbancesDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailDisturbances" class="portlet-content noselect">
-                    <div id="DetailDisturbances" class="docklet">
-                        <div id="DetailDisturbancesTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_14" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapDisturbancesGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetDisturbances" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Disturbances">Disturbances</option>
-                                <option value="NoDisturbances">No Disturbances</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
-                                <option value="DisturbanceCounts">Disturbance Counts</option>
-                            </select>
-                        </div>
-
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderDisturbancesFrom" class="mapheader"></div>
-                            <div id="mapHeaderDisturbancesDivider" class="mapheader">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderDisturbancesTo" class="mapheader"></div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div id="MapMatrixDisturbances" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapDisturbances"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixDisturbances"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Trending">
-        <div id="column_3" class="column resizeable">
-            <div class="portlet" id="Portlet1Trending">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Trending Overview (Past 30 Days)</div>
-                </div>
-                <div id="DockOverviewTrending" class="portlet-content">
-                    <div id="OverviewTrending" style="height: auto" class="docklet"></div>
-                    <div id="OverviewTrendingOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Trending">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Trending Detail for
-                        <div style="display: inline;" id="trendingDetailHeader">Date</div>
-                        &nbsp;(24 Hours)
-                        @*<%--<div style="height: 18px; display: block; float: right; margin-right: 30px; margin-top: 5px;"><input type="image" src="~/Images/fileexport.png" id="excelExportTrending" title="Export To Excel"/></div>--%>*@
-                    </div>
-                </div>
-                <div id="DockDetailTrending" class="portlet-content">
-                    <div id="DetailTrending" class="docklet">
-                        <div id="DetailTrendingTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_4" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapTrendingGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetTrending" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
-                                <option value="TrendingCounts">Alarm Counts</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderTrendingFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderTrendingDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderTrendingTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixTrending" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapTrending"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixTrending"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-TrendingData">
-        <div id="column_5" class="column resizeable">
-            <div class="portlet" id="Portlet1TrendingData">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
-                </div>
-                <div id="DockOverviewTrendingData" class="portlet-content">
-                    <div id="OverviewTrendingData" class="docklet">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2TrendingData">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Trending Data Detail for
-                        <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
-                        &nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailTrendingData" class="portlet-content">
-                    <div id="DetailTrendingData" class="docklet">
-                        <div id="DetailTrendingDataTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_6" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="RecievedData">Recieved Data</option>
-                                <option value="NoData">No Data</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
-                                <option value="Average">Average</option>
-                                <option value="Maximum">Maximum</option>
-                                <option value="Minimum">Minimum</option>
-                            </select>
-                            <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
-                        </div>
-
-
-                    </div>
-                </div>
-                <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapTrendingData">
-                    </div>
-                    <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Faults">
-        <div id="Div3" class="column resizeable">
-            <div class="portlet" id="Portlet1Faults">
-                <div class="portlet-header portlet-header-text">Faults Overview</div>
-                <div id="DockOverviewFaults" class="portlet-content">
-                    <div id="OverviewFaults" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewFaultsOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Faults">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Faults Summary for&nbsp;
-                        <div style="display: inline;" id="faultsDetailHeader">Date</div>&nbsp;(24 Hours)
-                        <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
-                    </div>
-                </div>
-                <div id="DockDetailFaults" class="portlet-content noselect">
-                    <div id="DetailFaults" class="docklet">
-                        <div id="DetailFaultsTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div4" class="column">
-            <div class="portlet" id="Portlet3Faults">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapFaultsGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetFaults" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderFaultsFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderFaultsDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderFaultsTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixFaults" class="portlet-content">
-                    <div class="theMapStyle" id="theMapFaults"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixFaults"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Breakers">
-        <div id="Div1" class="column resizeable">
-            <div class="portlet" id="Portlet1Breakers">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Breaker Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewBreakers" class="portlet-content">
-                    <div id="OverviewBreakers" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewBreakersOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Breakers">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Breaker Detail for&nbsp;
-                        <div style="display: inline;" id="breakersDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailBreakers" class="portlet-content noselect">
-                    <div id="DetailBreakers" class="docklet">
-                        <div id="DetailBreakersTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div2" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapBreakersGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetBreakers" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderBreakersFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderBreakersDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderBreakersTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixBreakers" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapBreakers"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixBreakers"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Completeness">
-        <div id="Div5" class="column resizeable">
-            <div class="portlet" id="Portlet1Completeness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Completeness Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewCompleteness" class="portlet-content">
-                    <div id="OverviewCompleteness" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewCompletenessOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Completeness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Completeness Detail for&nbsp;
-                        <div style="display: inline;" id="CompletenessDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailCompleteness" class="portlet-content noselect">
-                    <div id="DetailCompleteness" class="docklet chart-container">
-                        <div id="DetailCompletenessTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div6" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapCompletenessGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetCompleteness" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderCompletenessFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderCompletenessDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderCompletenessTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixCompleteness" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapCompleteness"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixCompleteness"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Correctness">
-        <div id="Div7" class="column resizeable">
-            <div class="portlet" id="Portlet1Correctness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Correctness Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewCorrectness" class="portlet-content">
-                    <div id="OverviewCorrectness" style="height: auto" class="docklet chart-container"></div>
-                    <div id="OverviewCorrectnessOverview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Correctness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Correctness Detail for&nbsp;
-                        <div style="display: inline;" id="CorrectnessDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailCorrectness" class="portlet-content noselect">
-                    <div id="DetailCorrectness" class="docklet">
-                        <div id="DetailCorrectnessTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div8" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapCorrectnessGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetCorrectness" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderCorrectnessFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderCorrectnessDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderCorrectnessTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixCorrectness" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapCorrectness"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixCorrectness"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+        }
     </div>
 
 </div>
