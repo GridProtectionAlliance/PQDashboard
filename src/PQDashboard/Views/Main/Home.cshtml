@@ -791,12 +791,12 @@
     }
 
     function OpenWindowToMeterEventsByLine(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id, id + "MeterEventsByLine");
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterEventsByLine");
         return false;
     }
 
     function OpenWindowToMeterDisturbancesByLine(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterDisturbancesByLine"))?eventid=" + id, id + "MeterDisturbancesByLine");
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterDisturbancesByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterDisturbancesByLine");
         return false;
     }
 

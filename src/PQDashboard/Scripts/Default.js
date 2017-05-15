@@ -164,17 +164,37 @@ Array.prototype.remove = function (from, to) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function setMapHeaderDate(datefrom, dateto) {
-
-    if (datefrom == dateto) {
-        $("#mapHeader" + currentTab + "From").hide();
-        $("#mapHeader" + currentTab + "Divider").hide();
-    } else {
+    if (globalContext == "custom") {
         $("#mapHeader" + currentTab + "From").show();
         $("#mapHeader" + currentTab + "Divider").show();
+        $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
+        $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY'));
     }
-        
-    $("#mapHeader" + currentTab + "From")[0].innerHTML = (new  Date(datefrom).getMonth() + 1)+ '/' + new Date(datefrom).getDate() + '/' + new Date(datefrom).getFullYear() ;
-    $("#mapHeader" + currentTab + "To")[0].innerHTML = (new Date(dateto).getMonth() + 1) + '/' + new Date(dateto).getDate() + '/' + new Date(dateto).getFullYear();
+    else if (globalContext == "day") {
+        $("#mapHeader" + currentTab + "From").hide();
+        $("#mapHeader" + currentTab + "Divider").hide();
+        $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
+        $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY'));
+    }
+    else if (globalContext == "hour") {
+        $("#mapHeader" + currentTab + "From").hide();
+        $("#mapHeader" + currentTab + "Divider").hide();
+        $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
+        $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:00'));
+    }
+    else if (globalContext == "minute") {
+        $("#mapHeader" + currentTab + "From").hide();
+        $("#mapHeader" + currentTab + "Divider").hide();
+        $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
+        $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:mm'));
+    }
+    else if (globalContext == "second") {
+        $("#mapHeader" + currentTab + "From").hide();
+        $("#mapHeader" + currentTab + "Divider").hide();
+        $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
+        $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:mm:ss'));
+    }
+
 }
 
 function setGlobalContext(leftToRight) {
@@ -579,7 +599,7 @@ function populateDisturbancesDivWithGrid(data) {
         $.each(data, function (i, d) {
             var sum = 0;
             $.each(Object.keys(d), function (index, key) {
-                if (key != "themeterid" && key != "theeventid" && key != "thesite" && !disabledList[currentTab][key]) {
+                if (key != "MeterID" && key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
                     sum += parseInt(d[key]);
                 }
             });
@@ -591,14 +611,14 @@ function populateDisturbancesDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'theeventid', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.theeventid + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.thesite + '</button>' } },
+                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         }
 
         if (data.length > 0) {
             $.each(Object.keys(data[0]), function (i, d) {
-                if (d != "themeterid" && d != "theeventid" && d != "thesite" && !disabledList[currentTab][d]) {
+                if (d != "MeterID" && d != "EventID" && d != "Site" && !disabledList[currentTab][d]) {
                     tableObject.columns.push({
                         field: d,
                         headerText: d,
@@ -1022,9 +1042,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             });
             html += "</table>";
 
-            if(width - mouse[0] < 150)
             tooltip.classed('hidden', false)
-            .attr('style', 'left:' + (width - mouse[0] < 150? mouse[0] - 150 : mouse[0] + 15) + 'px; top:' + (height / 2) + 'px')
+            .attr('style', 'left:' + (width - mouse[0] < 150? mouse[0] - 150 : mouse[0] + 15) + 'px; bottom:' + (height - mouse[1]) + 'px')
             .html(html);
         });
 
@@ -2758,6 +2777,10 @@ function moveDateBackward() {
     var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
     var duration = moment.duration(endDate.diff(startDate));
 
+    // Move global context back to custom range
+    for (var i = 0; i < 5; ++i)
+        setGlobalContext(false);
+
     $('#dateRange').data('daterangepicker').setEndDate(startDate);
     $('#dateRange').data('daterangepicker').setStartDate(startDate.subtract(duration.asDays() - 1, 'days'));
 
@@ -2769,6 +2792,10 @@ function moveDateForward() {
     var startDate = $('#dateRange').data('daterangepicker').startDate.clone().startOf('day');
     var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
     var duration = moment.duration(endDate.diff(startDate));
+
+    // Move global context back to custom range
+    for (var i = 0; i < 5; ++i)
+        setGlobalContext(false);
 
     $('#dateRange').data('daterangepicker').setStartDate(endDate);
     $('#dateRange').data('daterangepicker').setEndDate(endDate.add(duration.asDays() - 1, 'days'));

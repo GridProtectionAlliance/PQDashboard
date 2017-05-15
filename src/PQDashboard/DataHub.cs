@@ -542,12 +542,18 @@ namespace PQDashboard
                 IDbDataParameter param4 = sc.CreateParameter();
                 param4.ParameterName = "@username";
                 param4.Value = userName;
-                IDbDataParameter param5 = sc.CreateParameter();
-                param5.ParameterName = "@context";
-                param5.Value = context;
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
-                sc.Parameters.Add(param5);
+
+                // Use next two fields only on Event based tabs that allow context picking.
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                if (tabList.Contains(tab))
+                {
+                    IDbDataParameter param5 = sc.CreateParameter();
+                    param5.ParameterName = "@context";
+                    param5.Value = context;
+                    sc.Parameters.Add(param5);
+                }
 
                 IDataReader rdr = sc.ExecuteReader();
                 DataTable table = new DataTable();
@@ -915,12 +921,18 @@ namespace PQDashboard
                 IDbDataParameter param4 = sc.CreateParameter();
                 param4.ParameterName = "@username";
                 param4.Value = userName;
-                IDbDataParameter param5 = sc.CreateParameter();
-                param5.ParameterName = "@context";
-                param5.Value = context;
                 sc.Parameters.Add(param3);
                 sc.Parameters.Add(param4);
-                sc.Parameters.Add(param5);
+
+                // Use next two fields only on Event based tabs that allow context picking.
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                if (tabList.Contains(tab))
+                {
+                    IDbDataParameter param5 = sc.CreateParameter();
+                    param5.ParameterName = "@context";
+                    param5.Value = context;
+                    sc.Parameters.Add(param5);
+                }
 
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
@@ -928,8 +940,7 @@ namespace PQDashboard
 
 
             List<string> skipColumns;
-            if (tab == "Events") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
-            else if (tab == "Disturbances") skipColumns = new List<string>() { "theeventid", "themeterid", "thesite" };
+            if (tab == "Events" || tab == "Disturbances") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
             else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
 
 
@@ -974,31 +985,37 @@ namespace PQDashboard
         /// <param name="siteID"></param>
         /// <param name="targetDate"></param>
         /// <returns></returns>
-        public string GetSiteLinesDetailsByDate(string siteID, string targetDate)
+        public string GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
             string thedata = "";
-            string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
-            DataTable dt;
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            using (SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDetailsByDate", conn))
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
-                conn.Open();
+                DataTable table = new DataTable();
+                sc.CommandText = "dbo.selectSiteLines" + tab + "DetailsByDate";
+                sc.CommandType = CommandType.StoredProcedure;
 
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@EventDate", targetDate));
-                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
-                cmd.CommandTimeout = 300;
 
-                using (SqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    dt = new DataTable();
-                    dt.Load(rdr);
-                }
+                IDbDataParameter date = sc.CreateParameter();
+                date.ParameterName = "@EventDate";
+                date.Value = targetDate;
+                sc.Parameters.Add(date);
+
+                IDbDataParameter meter = sc.CreateParameter();
+                meter.ParameterName = "@MeterID";
+                meter.Value = siteID;
+                sc.Parameters.Add(meter);
+
+
+                IDbDataParameter window = sc.CreateParameter();
+                window.ParameterName = "@context";
+                window.Value = context;
+                sc.Parameters.Add(window);
+                IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+                thedata = DataTable2JSON(table);
+
             }
-
-            thedata = DataTable2JSON(dt);
-            dt.Dispose();
 
             return thedata;
         }
@@ -1170,15 +1187,21 @@ namespace PQDashboard
                 IDbDataParameter param3 = sc.CreateParameter();
                 param3.ParameterName = "@meterIds";
                 param3.Value = meterIds;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-                IDbDataParameter param5 = sc.CreateParameter();
-                param5.ParameterName = "@context";
-                param5.Value = context;
                 sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-                sc.Parameters.Add(param5);
+
+                // Use next two fields only on Event based tabs that allow context picking.
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                if (tabList.Contains(tab))
+                {
+                    IDbDataParameter param4 = sc.CreateParameter();
+                    param4.ParameterName = "@username";
+                    param4.Value = userName;
+                    IDbDataParameter param5 = sc.CreateParameter();
+                    param5.ParameterName = "@context";
+                    param5.Value = context;
+                    sc.Parameters.Add(param4);
+                    sc.Parameters.Add(param5);
+                }
 
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);

@@ -36,6 +36,7 @@
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string context = parameters["context"] ?? "day";
 
 }
 
@@ -86,6 +87,8 @@
     var postedMeterId = "@theEvent.MeterID";
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
+    var context = "@context";
+
     reconnectHub = false;
 
 
@@ -105,7 +108,7 @@
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
     function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {        
-        dataHub.getSiteLinesDetailsByDate(siteID, theDate).done(function (data) {
+        dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "").done(function (data) {
             json = $.parseJSON(data);
 
             $.each(json, function (_, obj) {
