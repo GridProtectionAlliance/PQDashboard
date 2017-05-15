@@ -487,7 +487,7 @@
                     <div class="portlet-header">
                         <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
                     </div>
-                    <div id="DockOverviewTrendingData" class="portlet-content">
+                    <div id="DockOverviewTrendingData" class="portlet-content theDockOverviewStyle">
                         <div id="OverviewTrendingData" class="docklet">
                         </div>
                     </div>
@@ -500,7 +500,7 @@
                             &nbsp;(24 Hours)
                         </div>
                     </div>
-                    <div id="DockDetailTrendingData" class="portlet-content">
+                    <div id="DockDetailTrendingData" class="portlet-content theDockDetailStyle">
                         <div id="DetailTrendingData" class="docklet">
                             <div id="DetailTrendingDataTable"></div>
                         </div>
@@ -563,9 +563,8 @@
                                     <option value="1">Mag/Dur Chart</option>
                                 </select>
                             }
-                            <button class="btn btn-xs btn-default pull-right stepOutBtn" style="height: 24px;margin-right: 20px" onclick="stepOut()" disabled>Step Out</button>
                         </div>
-                        <div id="DockOverview@(tab)" class="portlet-content">
+                        <div id="DockOverview@(tab)" class="portlet-content theDockOverviewStyle">
                             <div id="Overview@(tab)" style="height: auto" class="docklet chart-container"></div>
                             <div id="Overview@(tab)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
                             @if (tab == "Disturbances")
@@ -584,7 +583,7 @@
                                 <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
                             }
                         </div>
-                        <div id="DockDetail@(tab)" class="portlet-content noselect">
+                        <div id="DockDetail@(tab)" class="portlet-content noselect theDockDetailStyle">
                             <div id="Detail@(tab)" class="docklet">
                                 <div id="Detail@(tab)Table"></div>
                             </div>
@@ -821,7 +820,7 @@
 
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
-            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate)
+            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
         }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////

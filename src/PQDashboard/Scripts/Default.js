@@ -550,7 +550,7 @@ function populateEventsDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (data != null) {
+    if (data != null && data != []) {
 
         $.each(data, function (i, d) {
             var sum = 0;
@@ -595,7 +595,7 @@ function populateDisturbancesDivWithGrid(data) {
     }
 
     var filteredData = [];
-    if (data != null) {
+    if (data != null && data != []) {
         $.each(data, function (i, d) {
             var sum = 0;
             $.each(Object.keys(d), function (index, key) {
@@ -952,15 +952,17 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     //// d3 Helper Functions
     function buildMainGraph(data, startDate, endDate) {
         var xAxis;
-        if (globalContext == 'day') {
+        var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
+
+        if (globalContext == 'day' && eventDataTabs.indexOf(currentTab) >= 0) {
             numSamples = moment.duration(endDate.diff(startDate)).asHours();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%H'));
         }
-        else if (globalContext == 'hour') {
+        else if (globalContext == 'hour' && eventDataTabs.indexOf(currentTab) >= 0) {
             numSamples = moment.duration(endDate.diff(startDate)).asMinutes();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         }
-        else if (globalContext == 'minute') {
+        else if (globalContext == 'minute' && eventDataTabs.indexOf(currentTab) >= 0) {
             numSamples = moment.duration(endDate.diff(startDate)).asSeconds();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
@@ -969,7 +971,11 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
         }
 
-        y.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
+        y.domain([0, d3.max(data, function (d) {
+            return d3.max(d, function (e) {
+                return e[1]
+            });
+        })]);
 
         main = svg.append("g")
             .attr("class", "main")
@@ -985,6 +991,36 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                     .attr("y1", y)
                     .attr("y2", y);
 
+        if (globalContext != "custom" && eventDataTabs.indexOf(currentTab) >= 0) {
+            d3.select("#" + thediv).append("button")
+                .attr("id", "graphMoveBackwardBtn")
+                .attr("class", "btn btn-xs btn-default")
+                .style("position", "absolute")
+                .style("top", "0")
+                .style("left", ($('#Overview' + currentTab).width() / 2 - 24) + "px")
+                .attr("onclick", "moveGraphBackward()")
+                .append("span")
+                .attr("class", "glyphicon glyphicon-backward");
+
+            d3.select("#" + thediv).append("button")
+                .attr("id", "stepOutBtn")
+                .attr("class", "btn btn-xs btn-default")
+                .style("position", "absolute")
+                .style("top", "0")
+                .style("left", ($('#Overview' + currentTab).width() / 2) + "px")
+                .attr("onclick", "stepOut()")
+                .text("Undo");
+
+            d3.select("#" + thediv).append("button")
+                .attr("id", "graphMoveForwardBtn")
+                .attr("class", "btn btn-xs btn-default")
+                .style("position", "absolute")
+                .style("top", "0")
+                .style("left", ($('#Overview' + currentTab).width() / 2 + 42) + "px")
+                .attr("onclick", "moveGraphForward()")
+                .append("span")
+                .attr("class", "glyphicon glyphicon-forward");
+            }
         var layersArea = main.append("g")
             .attr("class", "layers");
 
@@ -1264,13 +1300,42 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         });
 
+        var thedatefrom;
+        var thedateto;
+
+        if (globalContext == "custom") {
+            thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc();
+            thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
+        }
+        else if (globalContext == "day") {
+            thedatefrom = moment(contextfromdate).utc().startOf('day');
+            thedateto = moment(contextfromdate).utc().endOf('day');
+        }
+        else if (globalContext == "hour") {
+            thedatefrom = moment(contextfromdate).utc().startOf('hour');
+            thedateto = moment(contextfromdate).utc().endOf('hour');
+        }
+        else if (globalContext == "minute") {
+            thedatefrom = moment(contextfromdate).utc().startOf('minute');
+            thedateto = moment(contextfromdate).utc().endOf('minute');
+        }
+        else if (globalContext == "second") {
+            thedatefrom = moment(contextfromdate).utc().startOf('second');
+            thedateto = moment(contextfromdate).utc().endOf('second');
+        }
+        else {
+            thedatefrom = moment(contextfromdate).utc();
+            thedateto = moment(contextfromdate).utc();
+        }
+
+
         var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0); }) : newData));
         var overviewStackedData = stack(newData);
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
         main.selectAll("g").remove();
-        buildMainGraph(stackedData);
+        buildMainGraph(stackedData, thedatefrom, thedateto);
         overview.selectAll("g").remove();
-        buildOverviewGraph(overviewStackedData);
+        buildOverviewGraph(overviewStackedData, thedatefrom, thedateto);
     }
 
     // Deep copies an obj
@@ -1291,6 +1356,14 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         }
         return obj;
     }
+
+}
+
+function moveGraphBackward() {
+
+}
+
+function moveGraphForward() {
 
 }
 
@@ -2540,6 +2613,26 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     currentTab = theNewTab;
+    if (globalContext == "custom") {
+        $('.contextWindow').text('Date Range');
+        $('.stepOutBtn').attr('disabled', true)
+    }
+    else if (globalContext == "day") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "hour") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:00'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "minute") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
+    else if (globalContext == "second") {
+        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
+        $('.stepOutBtn').attr('disabled', false)
+    }
 
     //reflowContents(theNewTab);
     resizeMapAndMatrix(theNewTab);

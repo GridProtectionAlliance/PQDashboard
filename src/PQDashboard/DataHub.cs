@@ -984,6 +984,9 @@ namespace PQDashboard
         /// </summary>
         /// <param name="siteID"></param>
         /// <param name="targetDate"></param>
+        /// <param name="context"></param>
+        /// <param name="tab"></param>
+
         /// <returns></returns>
         public string GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
@@ -1020,69 +1023,6 @@ namespace PQDashboard
             return thedata;
         }
 
-
-        /// <summary>
-        /// getSiteLinesDetailsByDate
-        /// </summary>
-        /// <param name="siteID"></param>
-        /// <param name="targetDate"></param>
-        /// <returns></returns>
-        [WebMethod]
-        public string GetSiteLinesDisturbanceDetailsByDate(string siteID, string targetDate)
-        {
-
-            string thedata = "";
-            string connectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
-            SqlConnection conn = null;
-            SqlDataReader rdr = null;
-            SqlConnection conn2 = null;
-            SqlDataReader rdr2 = null;
-
-            DateTime date = DateTime.Parse(targetDate);
-
-            try
-            {
-                conn = new SqlConnection(connectionString);
-                conn.Open();
-
-                SqlCommand cmd = new SqlCommand("dbo.selectSiteLinesDisturbanceDetailsByDate", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@EventDate", date.Date));
-                cmd.Parameters.Add(new SqlParameter("@MeterID", siteID));
-                cmd.CommandTimeout = 300;
-
-                rdr = cmd.ExecuteReader();
-                DataTable dt;
-
-                dt = new DataTable();
-                dt.Load(rdr);
-
-
-                thedata = DataTable2JSON(dt);
-                dt.Dispose();
-            }
-            finally
-            {
-                if (conn != null)
-                {
-                    conn.Close();
-                }
-                if (rdr != null)
-                {
-                    rdr.Close();
-                }
-                if (conn2 != null)
-                {
-                    conn2.Close();
-                }
-                if (rdr2 != null)
-                {
-                    rdr2.Close();
-                }
-            }
-
-            return thedata;
-        }
 
         #endregion
 
