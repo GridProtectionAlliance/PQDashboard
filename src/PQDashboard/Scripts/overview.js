@@ -154,7 +154,6 @@ function showOverviewPage(tab) {
     }
 
     //function buildOverviewDownloads(sourcedate, whichday) {
-
     //    //$('#' + whichday + '-downloads') // * // history OR today
     //    // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
     //    // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
@@ -164,9 +163,7 @@ function showOverviewPage(tab) {
     //            { field: 'Lines', headerText: 'Lines' }
     //        ],
     //        datasource: []
-
     //    });
-
     //    dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
     //        var element = $('#' + whichday + '-downloads span').first();
     //        if (data === undefined) {
@@ -177,11 +174,9 @@ function showOverviewPage(tab) {
     //        // last thing - resize
     //        $(window).resize();
     //    });
-
     //    dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
     //        $('#' + whichday + '-meters').append(data);
     //    });
-
     //    dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
     //        $('#' + whichday + '-lines').append(data);
     //    });
@@ -225,33 +220,51 @@ function showOverviewPage(tab) {
 
     function buildOverviewLog(sourcedate, whichday) {
 
-        //$('#' + whichday + '-log') // * // history OR today
-        // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-3 
-        // for history this is not show in any grid2-item
+        ////$('#' + whichday + '-log') // * // history OR today
+        //// for today this is the contents of - grid2.grid2-item id = grid2-item-Today-3 
+        //// for history this is not show in any grid2-item
+
+        // ** MANUAL BOOTSTRAP TABLE IMPLEMENTATION **
+        // ********************************************************************************************************************
+        //$('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
+        //$('#' + whichday + '-log').append('<table class="table table-condensed table-responsive table-striped" id="' + whichday + '-log-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
+        //$('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
+        //var child = $('#' + whichday + '-log-table tbody' ).first()
+        ////dataHub.queryFaultSummaryRecords(sourcedate, 'dd', 1).done(function (data) {
+        //dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
+        //    var element = $('#' + whichday + '-log span').first();
+        //    if (data === undefined || data === null) {
+        //    }
+        //    else {
+        //        $(element).append(data.length);
+        //        $.each(data, function (i, d) {
+        //            $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
+        //            $('#clickable-row-' + whichday + '-' + i).click(function (event) {
+        //                var junk = data[i];
+        //            });
+        //        });
+        //    }
+        // ********************************************************************************************************************
+
+        // -- PRIME UI IMPLEMENTATION --
+        // --------------------------------------------------------------------------------------------------------------------
         $('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
-        $('#' + whichday + '-log').append('<table class="table table-condensed table-responsive table-striped" id="' + whichday + '-log-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        $('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
-        var child = $('#' + whichday + '-log-table tbody' ).first()
-
-        //dataHub.queryFaultSummaryRecords(sourcedate, 'dd', 1).done(function (data) {
+        $('#' + whichday + '-log').append('<div id="' + whichday + '-log-table"> </div>');
         dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
-
-            var element = $('#' + whichday + '-log span').first();
-            if (data === undefined || data === null) {
-            }
-            else {
-                $(element).append(data.length);
-
-                $.each(data, function (i, d) {
-
-                    $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
-
-                    $('#clickable-row-' + whichday + '-' + i).click(function (event) {
-
-                        var junk = data[i];
-                    });
-                });
-            }
+            // PRIME UI
+            $('#' + whichday + '-log-table').puidatatable({
+                caption: 'Disturbance Log',
+                columns: [
+                    { field: 'EventID', headerText: 'Event' },
+                    { field: 'FaultType', headerText: 'Type' },
+                    { field: 'StartTime', headerText: 'Time' },
+                    { field: 'MeterName', headerText: 'Meter' },
+                    { field: 'LineName', headerText: 'Line' },
+                    { field: 'DurationSeconds', headerText: 'Duration' }
+                ],
+                datasource: data
+            });
+            // --------------------------------------------------------------------------------------------------------------------
 
             // last thing - resize
             $(window).resize();
@@ -274,7 +287,7 @@ function showOverviewPage(tab) {
 
             cache_Overview_Disturbance_Data = data;
 
-            //Plotly.newPlot();
+            //Plotly.newPlot('jsObjectReference','data','layout);
 
         });
 
@@ -288,6 +301,28 @@ function showOverviewPage(tab) {
             // last thing - resize
             $(window).resize();
         });
+
+        //Plotly.d3.json('https://plot.ly/~DanielCarrera/13.json', function(figure){
+        //    var trace = {
+        //        x: figure.data[0].x, y: figure.data[0].y, z: figure.data[0].z,
+        //        type: 'contour', autocolorscale: false,
+        //        colorscale: [[0,"rgb(  0,  0,  0)"],[0.3,"rgb(230,  0,  0)"],[0.6,"rgb(255,210,  0)"],[1,"rgb(255,255,255)"]],
+        //        reversescale: true, zmax: 2.5, zmin: -2.5
+        //};
+        //var layout = {
+        //    xaxis: { title: 'Disturbances' },
+        //    yaxis: { title: 'Hours' }
+        //};
+        //Plotly.newPlot('jsObjectReference','data','layout);
+        //Plotly.plot('jsObjectReference','data','layout);
+        //Plotly.purge(thediv);
+        //var layout = {
+        //    xaxis: { title: 'Disturbances' },
+        //    yaxis: { title: 'Hours' }
+        //};
+        //Plotly.newPlot('jsObjectReference','data','layout);
+        //Plotly.plot('jsObjectReference','data','layout);
+        //Plotly.purge(thediv);
     }
 
     function buildOverviewAlarms(sourcedate, whichday) {

@@ -1710,8 +1710,16 @@ namespace PQDashboard
             {
                 using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
                 {
-                    sc.CommandText = "SELECT Event.ID AS EventID, [Event].StartTime, [FaultSummary].Algorithm, Meter.AssetKey AS MeterName, Line.AssetKey AS LineName, [FaultSummary].FaultType, [FaultSummary].DurationSeconds " +
-                    "FROM [FaultSummary] JOIN [Event] ON[FaultSummary].EventID = [Event].ID JOIN Line ON[Event].LineID = [Line].ID JOIN Meter ON Event.MeterID = Meter.ID " +
+                    sc.CommandText = "SELECT Event.ID AS EventID, " + 
+                                            "[Event].StartTime, " + 
+                                            "[FaultSummary].Algorithm, " + 
+                                            "Meter.AssetKey AS MeterName, " + 
+                                            "Line.AssetKey AS LineName, " + 
+                                            "[FaultSummary].FaultType, " + 
+                                            "[FaultSummary].DurationSeconds " +
+                    "FROM [FaultSummary] JOIN [Event] ON [FaultSummary].EventID = [Event].ID " + 
+                                        "JOIN Line ON [Event].LineID = [Line].ID " + 
+                                        "JOIN Meter ON Event.MeterID = Meter.ID " +
                     "WHERE ([Event].StartTime >= @startDateRange AND [Event].StartTime < DATEADD( " + timeSpanUnit + ", @spanValue, @startDateRange)) " +
                     "AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed = 0) " +
                     "ORDER BY[Event].ID";
