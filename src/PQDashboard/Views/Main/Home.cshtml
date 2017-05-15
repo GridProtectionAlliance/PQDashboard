@@ -821,7 +821,7 @@
 
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
-            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate)
+            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
         }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////
