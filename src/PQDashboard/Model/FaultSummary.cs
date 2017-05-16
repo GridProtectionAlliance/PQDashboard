@@ -84,11 +84,11 @@ namespace PQDashboard.Model
 
         public DateTime StartTime { get; set; }
 
-        public string Algorithm { get; set; }
-
         public string MeterName { get; set; }
 
         public string LineName { get; set; }
+
+        public string Description { get; set; }
 
         public string FaultType { get; set; }
 

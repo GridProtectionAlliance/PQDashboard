@@ -228,7 +228,7 @@ function showOverviewPage(tab) {
         // ********************************************************************************************************************
         //$('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
         //$('#' + whichday + '-log').append('<table class="table table-condensed table-responsive table-striped" id="' + whichday + '-log-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        //$('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
+        //$('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Descr</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
         //var child = $('#' + whichday + '-log-table tbody' ).first()
         ////dataHub.queryFaultSummaryRecords(sourcedate, 'dd', 1).done(function (data) {
         //dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
@@ -238,7 +238,9 @@ function showOverviewPage(tab) {
         //    else {
         //        $(element).append(data.length);
         //        $.each(data, function (i, d) {
-        //            $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
+        //            $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + 
+        //                              '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>' + data[i].Description + 
+        //                              '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
         //            $('#clickable-row-' + whichday + '-' + i).click(function (event) {
         //                var junk = data[i];
         //            });
@@ -260,6 +262,7 @@ function showOverviewPage(tab) {
                     { field: 'StartTime', headerText: 'Time' },
                     { field: 'MeterName', headerText: 'Meter' },
                     { field: 'LineName', headerText: 'Line' },
+                    { field: 'Description', headerText: 'Descr' },
                     { field: 'DurationSeconds', headerText: 'Duration' }
                 ],
                 datasource: data

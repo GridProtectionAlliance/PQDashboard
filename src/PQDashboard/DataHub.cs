@@ -1634,7 +1634,9 @@ namespace PQDashboard
         {//**
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                return DataContext.Table<Model.FaultSummary>().QueryRecords(restriction: new RecordRestriction("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime));
+                return DataContext.Table<Model.FaultSummary>().QueryRecords(restriction: new RecordRestriction("[FaultSummary].EventID IN " +
+                                            "(SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0})))" +
+                                            " AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime));
             }
             else
             {
@@ -1652,12 +1654,13 @@ namespace PQDashboard
                 {
                     sc.CommandText = "SELECT Event.ID AS EventID, " + 
                                             "[Event].StartTime, " + 
-                                            "[FaultSummary].Algorithm, " + 
                                             "Meter.AssetKey AS MeterName, " + 
-                                            "Line.AssetKey AS LineName, " + 
+                                            "Line.AssetKey AS LineName, " +
+                                            "[EventType].[Description]," +
                                             "[FaultSummary].FaultType, " + 
                                             "[FaultSummary].DurationSeconds " +
-                    "FROM [FaultSummary] JOIN [Event] ON [FaultSummary].EventID = [Event].ID " + 
+                    "FROM [FaultSummary] JOIN [Event] ON [FaultSummary].EventID = [Event].ID " +
+                                        "JOIN [EventType] ON [EventType].[ID] = [Event].EventTypeID " +
                                         "JOIN Line ON [Event].LineID = [Line].ID " + 
                                         "JOIN Meter ON Event.MeterID = Meter.ID " +
                     "WHERE ([Event].StartTime >= @startDateRange AND [Event].StartTime < DATEADD( " + timeSpanUnit + ", @spanValue, @startDateRange)) " +
