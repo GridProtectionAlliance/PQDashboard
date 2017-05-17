@@ -465,7 +465,7 @@ namespace PQDashboard
             string contextWord = "";
             if(context == "day")
             {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom);
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
                 eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
                 contextWord = "Hour";
             }
@@ -667,7 +667,7 @@ namespace PQDashboard
             string contextWord = "";
             if (context == "day")
             {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom);
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
                 eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
                 for(int i = 0; i < 24; ++i)
                 {
@@ -883,11 +883,7 @@ namespace PQDashboard
 
             IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
             List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-            DateTime date;
-            if (context == "day")
-                date = DateTime.Parse(targetDate);
-            else
-                date = DateTime.Parse(targetDate).ToUniversalTime();
+            DateTime date = DateTime.Parse(targetDate).ToUniversalTime();
 
             Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
             foreach (DashSettings setting in dashSettings)
@@ -1088,7 +1084,7 @@ namespace PQDashboard
 
             if (context == "day")
             {
-                startDate = DateTime.Parse(targetDateFrom);
+                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
                 endDate = startDate.AddDays(1).AddSeconds(-1);
             }
             else if (context == "hour")
