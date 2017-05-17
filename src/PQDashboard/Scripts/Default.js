@@ -795,7 +795,11 @@ function stepOut() {
 }
 
 function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
-    window.dataHub['getDataForPeriod'](siteID, thedatefrom, thedateto, postedUserName, currentTab, globalContext).done(function (data) {
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
+
+    
+    window.dataHub['getDataForPeriod'](siteID, thedatefrom, thedateto, postedUserName, currentTab, context).done(function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
@@ -842,6 +846,9 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
 }
 
 function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+
     $('#' + thediv).children().remove();
     $('#' + thediv + 'Overview').children().remove();
     var YaxisLabel = "";
@@ -883,21 +890,21 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     var color = d3.scale.ordinal().range(data.colors.reverse()).domain(data.keys.reverse());
     var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2d"));
 
-    if (globalContext == 'day') {
+    if (context == 'day') {
         numSamples = 24;
         x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%H'));
         XaxisLabel = 'Hours';
     }
-    else if (globalContext == 'hour') {
+    else if (context == 'hour') {
         numSamples = 60;
         x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         XaxisLabel = 'Minutes';
     }
-    else if (globalContext == 'minute') {
+    else if (context == 'minute') {
         numSamples = 60;
         x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
@@ -976,17 +983,18 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     //// d3 Helper Functions
     function buildMainGraph(data, startDate, endDate) {
         var xAxis;
-        var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
-        if (globalContext == 'day' && eventDataTabs.indexOf(currentTab) >= 0) {
+        if (context == 'day' ) {
             numSamples = moment.duration(endDate.diff(startDate)).asHours();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%H'));
         }
-        else if (globalContext == 'hour' && eventDataTabs.indexOf(currentTab) >= 0) {
+        else if (context == 'hour' ) {
             numSamples = moment.duration(endDate.diff(startDate)).asMinutes();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         }
-        else if (globalContext == 'minute' && eventDataTabs.indexOf(currentTab) >= 0) {
+        else if (context == 'minute' ) {
             numSamples = moment.duration(endDate.diff(startDate)).asSeconds();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
@@ -1015,7 +1023,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                     .attr("y1", y)
                     .attr("y2", y);
 
-        if (globalContext != "custom" && eventDataTabs.indexOf(currentTab) >= 0) {
+        if (context != "custom" && tabsForDigIn.indexOf(currentTab) >= 0) {
             d3.select("#" + thediv).append("button")
                 .attr("id", "graphMoveBackwardBtn")
                 .attr("class", "btn btn-xs btn-default")
@@ -1023,7 +1031,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .style("top", "0")
                 .style("left", ($('#Overview' + currentTab).width() / 2 - 24) + "px")
                 .attr("onclick", "moveGraphBackward()")
-                .attr("title", "Step back by 1 " + globalContext)
+                .attr("title", "Step back by 1 " + context)
                 .append("span")
                 .attr("class", "glyphicon glyphicon-backward");
 
@@ -1043,7 +1051,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .style("top", "0")
                 .style("left", ($('#Overview' + currentTab).width() / 2 + 59) + "px")
                 .attr("onclick", "moveGraphForward()")
-                .attr("title", "Step forward by 1 " + globalContext)
+                .attr("title", "Step forward by 1 " + context)
                 .append("span")
                 .attr("class", "glyphicon glyphicon-forward");
         }
@@ -1225,6 +1233,9 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //called when selection is chosen on overview map
     function brushed() {
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+
         var startDate;
         var endDate;
 
@@ -1237,7 +1248,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             endDate = moment(brush.extent()[1]);
         }
 
-        if (globalContext == 'day') {
+        if (context == 'day') {
             if (startDate.minutes() > 29)
                 startDate.add(1, 'hour').startOf('hour');
             else
@@ -1248,7 +1259,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             else
                 endDate.startOf('hour');
         }
-        else if (globalContext == 'hour') {
+        else if (context == 'hour') {
             if (startDate.seconds() > 29)
                 startDate.add(1, 'minute').startOf('minute');
             else
@@ -1259,7 +1270,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             else
                 endDate.startOf('minute');
         }
-        else if (globalContext == 'minute') {
+        else if (context == 'minute') {
             if (startDate.milliseconds() > 500)
                 startDate.add(1, 'second').startOf('second');
             else
@@ -1312,6 +1323,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //Toggles a certain series.
     function toggleSeries(seriesName, isDisabling) {
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         var newData = deepCopy(cache_Graph_Data.graphData);
 
@@ -1330,23 +1343,23 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         var thedatefrom;
         var thedateto;
 
-        if (globalContext == "custom") {
+        if (context == "custom") {
             thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc();
             thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
         }
-        else if (globalContext == "day") {
+        else if (context == "day") {
             thedatefrom = moment(contextfromdate).utc().startOf('day');
             thedateto = moment(contextfromdate).utc().endOf('day');
         }
-        else if (globalContext == "hour") {
+        else if (context == "hour") {
             thedatefrom = moment(contextfromdate).utc().startOf('hour');
             thedateto = moment(contextfromdate).utc().endOf('hour');
         }
-        else if (globalContext == "minute") {
+        else if (context == "minute") {
             thedatefrom = moment(contextfromdate).utc().startOf('minute');
             thedateto = moment(contextfromdate).utc().endOf('minute');
         }
-        else if (globalContext == "second") {
+        else if (context == "second") {
             thedatefrom = moment(contextfromdate).utc().startOf('second');
             thedateto = moment(contextfromdate).utc().endOf('second');
         }
@@ -1844,9 +1857,16 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
         updateGridWithSelectedSites();
 
+        if ($('#deviceFilterList').val() != 'ClickEvent') {
+            $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+            $('#deviceFilterList').val('ClickEvent');
+        }
+
+        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
         if (e.ctrlKey) {
             if (selectiontimeout != null) clearTimeout(selectiontimeout);
-            selectiontimeout = setTimeout('selectsitesincharts()', 1500);
+            selectiontimeout = setTimeout('selectsitesincharts()', 100);
         } else {
             selectsitesincharts();
         }
@@ -2293,6 +2313,14 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
                     });
 
+                    if ($('#deviceFilterList').val() != 'ClickEvent') {
+                        $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                        $('#deviceFilterList').val('ClickEvent');
+                    }
+
+                    $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
+
                     selectsitesincharts();
 
                 } else {
@@ -2345,6 +2373,13 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
                 }
             });
+
+            if ($('#deviceFilterList').val() != 'ClickEvent') {
+                $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                $('#deviceFilterList').val('ClickEvent');
+            }
+
+            $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
 
             clearTimeout(timeoutVal);
             timeoutVal = setTimeout(function () {
@@ -2727,28 +2762,27 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     currentTab = theNewTab;
     if (globalContext == "custom") {
         $('.contextWindow').text('Date Range');
-        $('.stepOutBtn').attr('disabled', true)
     }
     else if (globalContext == "day") {
         $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY'));
-        $('.stepOutBtn').attr('disabled', false)
     }
     else if (globalContext == "hour") {
         $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:00'));
-        $('.stepOutBtn').attr('disabled', false)
     }
     else if (globalContext == "minute") {
         $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm'));
-        $('.stepOutBtn').attr('disabled', false)
     }
     else if (globalContext == "second") {
         $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
-        $('.stepOutBtn').attr('disabled', false)
     }
+    
+    var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
 
-    //reflowContents(theNewTab);
+    if (eventDataTabs.indexOf(currentTab) < 0) {
+        thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+    }
     resizeMapAndMatrix(theNewTab);
-    //selectsitesincharts();
 
     if (globalContext != "custom")
         getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
@@ -2763,7 +2797,6 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
-    //resizeMapAndMatrix(theNewTab);
 }
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
@@ -3425,6 +3458,8 @@ function getMeters(meterGroup) {
 
 function selectMeterGroup(thecontrol) {
     mg = thecontrol.value;
+    $('#deviceFilterList option[value="ClickEvent"]').remove()
+
     $('#siteList').children().remove();
     $('#siteList').multiselect('refresh');
     getMeters(mg);
@@ -3635,7 +3670,6 @@ function buildPage() {
         return (true);
     });
 
-    $.ech.multiselect.prototype.options.selectedText = "# of # selected";
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
 
