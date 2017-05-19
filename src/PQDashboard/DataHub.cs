@@ -1748,6 +1748,50 @@ namespace PQDashboard
             }
         }
 
+        public string GetDisturbanceSeverityByHourOfDayJSON(DateTime CurrrentDaysDate)
+        {
+            string thedata = "";
+            DataTable table = new DataTable();
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectDisturbanceSeverityByHourOfDay";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter startDateRange = sc.CreateParameter();
+                startDateRange.ParameterName = "@startDateRange";
+                startDateRange.Value = CurrrentDaysDate;
+                sc.Parameters.Add(startDateRange);
+
+                IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+            }
+
+            thedata = DataTable2JSON(table);
+            table.Dispose();
+            return thedata;
+         }
+
+        public DataTable GetDisturbanceSeverityByHourOfDay(DateTime CurrrentDaysDate)
+        {
+            DataTable table = new DataTable();
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "dbo.selectDisturbanceSeverityByHourOfDay";
+                sc.CommandType = CommandType.StoredProcedure;
+                IDbDataParameter startDateRange = sc.CreateParameter();
+                startDateRange.ParameterName = "@startDateRange";
+                startDateRange.Value = CurrrentDaysDate;
+                sc.Parameters.Add(startDateRange);
+
+                IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+            }
+
+            return table;
+        }
+
+
         // public int
         // public IEnumerable<>
         // public string

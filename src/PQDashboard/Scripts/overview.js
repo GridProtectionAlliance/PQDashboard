@@ -61,12 +61,15 @@ function showOverviewPage(tab) {
         var sourcedate = null;
         sourcedate = new Date(new Date().setDate(new Date().getDate()));
 
+        //=======================================================================================
         // test dev - remove after test dev
         var testDate = null;
         testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
         testDate = null;
         testDate = new Date(2014, 6, 10);
         sourcedate = testDate.getFullYear().toString() + '-' + (testDate.getMonth().toString().length < 2 ? '0' + testDate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (testDate.getDate().toString().length < 2 ? '0' + testDate.getDate().toString() : testDate.getDate().toString());
+        // test dev - remove after test dev
+        //=======================================================================================
 
         if (currentTab === 'Overview-Today') {
 
@@ -200,6 +203,9 @@ function showOverviewPage(tab) {
             else {
                 $(element).append(data);
             }
+
+            // last thing - resize
+            $(window).resize();
         });
 
         dataHub.queryFaultSummaryGroundFaultCount(sourcedate, 'dd', 1).done(function (data) {
@@ -212,9 +218,6 @@ function showOverviewPage(tab) {
 
         dataHub.queryFaultSummaryAllPhaseFaultCount(sourcedate, 'dd', 1).done(function (data) {
             $('#' + whichday + '-threeline').append(data);
-
-            // last thing - resize
-            $(window).resize();
         });
     }
 
@@ -223,30 +226,6 @@ function showOverviewPage(tab) {
         ////$('#' + whichday + '-log') // * // history OR today
         //// for today this is the contents of - grid2.grid2-item id = grid2-item-Today-3 
         //// for history this is not show in any grid2-item
-
-        // ** MANUAL BOOTSTRAP TABLE IMPLEMENTATION **
-        // ********************************************************************************************************************
-        //$('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
-        //$('#' + whichday + '-log').append('<table class="table table-condensed table-responsive table-striped" id="' + whichday + '-log-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-        //$('#' + whichday + '-log-table').append('<thead><tr> <th>ID</th><th>Event</th><th>Type</th><th>Time</th><th>Meter</th><th>Line</th><th>Descr</th><th>Severity</th><th>Duration</th> </tr><thead><tbody></tbody>');
-        //var child = $('#' + whichday + '-log-table tbody' ).first()
-        ////dataHub.queryFaultSummaryRecords(sourcedate, 'dd', 1).done(function (data) {
-        //dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
-        //    var element = $('#' + whichday + '-log span').first();
-        //    if (data === undefined || data === null) {
-        //    }
-        //    else {
-        //        $(element).append(data.length);
-        //        $.each(data, function (i, d) {
-        //            $(child).append('<tr class="clickable-row" id="clickable-row-' + whichday + '-' + i + '" ><td>' + (i + 1) + '</td><td>' + data[i].EventID + '</td><td>' + data[i].FaultType + 
-        //                              '</td><td>' + moment(data[i].StartTime).format('LT') + '</td><td>' + data[i].MeterName + '</td><td>' + data[i].LineName + '</td><td>' + data[i].Description + 
-        //                              '</td><td>severity</td><td>' + data[i].DurationSeconds + '</td> </tr>');
-        //            $('#clickable-row-' + whichday + '-' + i).click(function (event) {
-        //                var junk = data[i];
-        //            });
-        //        });
-        //    }
-        // ********************************************************************************************************************
 
         // -- PRIME UI IMPLEMENTATION --
         // --------------------------------------------------------------------------------------------------------------------
@@ -259,7 +238,7 @@ function showOverviewPage(tab) {
                 columns: [
                     { field: 'EventID', headerText: 'Event' },
                     { field: 'FaultType', headerText: 'Type' },
-                    { field: 'StartTime', headerText: 'Time' },
+                    { field: 'StartTime', headerText: 'Time', content: function (row) { return moment(row.StartTime).format('HH:mm') } },
                     { field: 'MeterName', headerText: 'Meter' },
                     { field: 'LineName', headerText: 'Line' },
                     { field: 'Description', headerText: 'Descr' },
@@ -267,6 +246,8 @@ function showOverviewPage(tab) {
                 ],
                 datasource: data
             });
+            //{ field: 'StartTime', headerText: 'Time', content: function (row) { return moment(row.StartTime).format('LT')} },
+            //{ field: 'StartTime', headerText: 'Time', content: function (row) { return moment(row.StartTime).format('HH:mm:ss')} },
             // --------------------------------------------------------------------------------------------------------------------
 
             // last thing - resize
@@ -275,14 +256,16 @@ function showOverviewPage(tab) {
     }
 
     function buildOverviewVoltages(sourcedate, whichday) {
-
         //$('#' + whichday + '-voltages') // * // history OR today
         // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-4 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-5
+        var severityTrace;
+
         $('#' + whichday + '-voltages').append('<h3 style="text-allign: left; color: #834a05">Voltages Disturbance: <span></span></h3>');
 
         // all disturbances (no severity condition :: 
-        dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 0).done(function (data) {
+        //dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 0).done(function (data) {
+        dataHub.getDisturbanceSeverityByHourOfDay(sourcedate).done(function (data) {
 
             var element = $('#' + whichday + '-voltages span').first();
 
@@ -290,8 +273,121 @@ function showOverviewPage(tab) {
 
             cache_Overview_Disturbance_Data = data;
 
-            //Plotly.newPlot('jsObjectReference','data','layout);
+            var mycounter = 0;
+            var trace1b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level0;
+                }),
+                name: 'ZERO',
+                type: 'bar'
+            };
 
+            mycounter = 0;
+            var trace2b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level1;
+                }),
+                name: 'ONE',
+                type: 'bar'
+            };
+
+            mycounter = 0;
+            var trace3b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level2;
+                }),
+                name: 'TWO',
+                type: 'bar'
+            };
+            mycounter = 0;
+            var trace4b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level3;
+                }),
+                name: 'THREE',
+                type: 'bar'
+            };
+            mycounter = 0;
+            var trace5b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level4;
+                }),
+                name: 'FOUR',
+                type: 'bar'
+            };
+            mycounter = 0;
+            var trace6b = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Level5;
+                }),
+                name: 'FIVE',
+                type: 'bar'
+            };
+
+            var d3 = Plotly.d3;
+            var WIDTH_IN_PERCENT_OF_PARENT = 98,
+                HEIGHT_IN_PERCENT_OF_PARENT = 98;
+            var gd3 = d3.select('#' + whichday + '-voltages')
+                .append('div')
+                .style({
+                    width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+                    'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+
+                    height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+                    'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+                });
+            var gd = gd3.node();
+
+            var chartdatab = [trace1b, trace2b, trace3b, trace4b, trace5b, trace6b];
+
+            var chartlayout = { barmode: 'stack',
+                                title: 'Showing Mock Data for Voltage Disturbances',
+                                font: { size: 10 },
+                                xaxis: {
+                                    title: 'Hours',
+                                    tickmode: 'auto',
+                                    nticks: '24',
+                                    tickfont: { size: 8 }
+                                    
+                                },
+                                yaxis: {
+                                    title: 'Quanty.',
+                                    tickmode: 'auto',
+                                    nticks: '10',
+                                    tickfont: { size: 8}}
+            };
+
+            Plotly.plot(gd, chartdatab, chartlayout);
+
+            window.onresize = function () {
+                Plotly.Plots.resize(gd);
+            };
+            // last thing - resize
+            $(window).resize();
         });
 
 
