@@ -385,12 +385,20 @@ function populateFaultsDivWithGrid(data) {
                 { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                 { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
                 { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
-                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
-
-            ],
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } },
+                //{
+                //    headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) {
+                //        return '<button onclick="openResultsModal(row)"><span class="glyphicon glyphicon-option-horizontal" title="Add Notes."></span></button>';
+                //    }
+                //}
+],
             datasource: filteredData
         });
     }
+}
+
+function openResultsModal(row){
+
 }
 
 function openNoteModal(faultId) {
@@ -904,7 +912,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         XaxisLabel = 'Minutes';
     }
-    else if (context == 'minute') {
+    else if (context == 'minute' || context == 'second') {
         numSamples = 60;
         x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
@@ -994,7 +1002,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             numSamples = moment.duration(endDate.diff(startDate)).asMinutes();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         }
-        else if (context == 'minute' ) {
+        else if (context == 'minute' || context == 'second') {
             numSamples = moment.duration(endDate.diff(startDate)).asSeconds();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
@@ -1270,7 +1278,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             else
                 endDate.startOf('minute');
         }
-        else if (context == 'minute') {
+        else if (context == 'minute' || context == 'second') {
             if (startDate.milliseconds() > 500)
                 startDate.add(1, 'second').startOf('second');
             else
@@ -2849,29 +2857,35 @@ function reflowContents(newTab) {
 function resizeDocklet(theparent, chartheight) {
     var thedatefrom;
     var thedateto;
+    var barDateFrom;
+    var barDateTo;
+
     if (globalContext == "custom") {
-        thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-        thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        barDateFrom = thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        barDateTo = thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
     else if (globalContext == "day") {
-        thedatefrom = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
-        thedateto = moment(contextfromdate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateTo = thedateto = moment(contextfromdate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
     else if (globalContext == "hour") {
-        thedatefrom = moment(contextfromdate).utc().startOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
-        thedateto = moment(contextfromdate).utc().endOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateTo = thedateto = moment(contextfromdate).utc().endOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
     else if (globalContext == "minute") {
-        thedatefrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
-        thedateto = moment(contextfromdate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateTo = thedateto = moment(contextfromdate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
     else if (globalContext == "second") {
         thedatefrom = moment(contextfromdate).utc().startOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         thedateto = moment(contextfromdate).utc().endOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateTo = moment(contextfromdate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+
     }
     else {
-        thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
-        thedateto = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateTo = thedateto = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
 
     var selectedIDs = GetCurrentlySelectedSites();
@@ -2905,7 +2919,7 @@ function resizeDocklet(theparent, chartheight) {
     }
     else {
         if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null)
-            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteID, barDateFrom, barDateTo);
     }
 
     if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
