@@ -803,7 +803,7 @@ function stepOut() {
 }
 
 function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
 
     
@@ -854,7 +854,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
 }
 
 function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
     $('#' + thediv).children().remove();
@@ -991,7 +991,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     //// d3 Helper Functions
     function buildMainGraph(data, startDate, endDate) {
         var xAxis;
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         if (context == 'day' ) {
@@ -1032,36 +1032,51 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                     .attr("y2", y);
 
         if (context != "custom" && tabsForDigIn.indexOf(currentTab) >= 0) {
-            d3.select("#" + thediv).append("button")
-                .attr("id", "graphMoveBackwardBtn")
-                .attr("class", "btn btn-xs btn-default")
+            d3.select("#" + thediv).append("div")
+                .attr("id", "btnBar")
+                .attr("class", "modebar modebar--hover")
                 .style("position", "absolute")
+                .style("display", "table-row")
                 .style("top", "0")
-                .style("left", ($('#Overview' + currentTab).width() / 2 - 24) + "px")
+                .style("left", ($('#Overview' + currentTab).width() / 2 ) + "px");
+
+            d3.select("#btnBar").append("div")
+                .attr("class", "modebar-group")
+                .style("display", "table-cell")
+                .style("padding", "2px")
+                .append("a")
+                .attr("id", "graphMoveBackwardBtn")
+                .attr("class", "modebar-btn")
                 .attr("onclick", "moveGraphBackward()")
                 .attr("title", "Step back by 1 " + context)
+                .style("cursor", "pointer")
                 .append("span")
                 .attr("class", "glyphicon glyphicon-backward");
 
-            d3.select("#" + thediv).append("button")
+            d3.select("#btnBar").append("div")
+                .attr("class", "modebar-group")
+                .style("display", "table-cell")
+                .style("padding", "2px")
+                .append("a")
                 .attr("id", "stepOutBtn")
-                .attr("class", "btn btn-xs btn-default")
-                .style("position", "absolute")
-                .style("top", "0")
-                .style("left", ($('#Overview' + currentTab).width() / 2) + "px")
+                .attr("class", "modebar-btn")
                 .attr("onclick", "stepOut()")
-                .text("Step Out");
+                .style("cursor", "pointer")
+                .text("Step Out ");
 
-            d3.select("#" + thediv).append("button")
+            d3.select("#btnBar").append("div")
+                .attr("class", "modebar-group")
+                .style("display", "table-cell")
+                .style("padding", "2px")
+                .append("a")
                 .attr("id", "graphMoveForwardBtn")
-                .attr("class", "btn btn-xs btn-default")
-                .style("position", "absolute")
-                .style("top", "0")
-                .style("left", ($('#Overview' + currentTab).width() / 2 + 59) + "px")
+                .attr("class", "modebar-btn")
                 .attr("onclick", "moveGraphForward()")
                 .attr("title", "Step forward by 1 " + context)
+                .style("cursor", "pointer")
                 .append("span")
-                .attr("class", "glyphicon glyphicon-forward");
+                .attr("class", "glyphicon glyphicon-forward")
+
         }
 
         var layersArea = main.append("g")
@@ -1241,7 +1256,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //called when selection is chosen on overview map
     function brushed() {
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         var startDate;
@@ -1331,7 +1346,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //Toggles a certain series.
     function toggleSeries(seriesName, isDisabling) {
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         var newData = deepCopy(cache_Graph_Data.graphData);
@@ -2748,7 +2763,7 @@ function ManageLocationClick(siteID) {
         thedateto = moment(contextfromdate).utc();
     }
 
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -2837,7 +2852,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
 
 
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breaker'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
     getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
     if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
