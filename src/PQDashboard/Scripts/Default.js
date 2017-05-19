@@ -845,7 +845,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     });
 
     if (currentTab == "Disturbances") {
-        dataHub.getVoltageMagnitudeData(siteID, thedatefrom, thedateto).done(function (data) {
+        dataHub.getVoltageMagnitudeData(siteID, thedatefrom, thedateto, context).done(function (data) {
             cache_MagDur_Data = data;
             buildMagDurChart(data, thediv + "MagDur")
         })

@@ -850,14 +850,37 @@ namespace PQDashboard
             return (eventSet);
         }
 
-        public IEnumerable<DisturbanceView> GetVoltageMagnitudeData(string meterIds,DateTime startDate, DateTime endDate)
+        public IEnumerable<DisturbanceView> GetVoltageMagnitudeData(string meterIds,string startDate, string endDate, string context)
         {
+
+            DateTime beginDate;
+            DateTime finishDate;
+            if (context == "day")
+            {
+                beginDate = DateTime.Parse(startDate).ToUniversalTime();
+                finishDate = beginDate.AddDays(1).AddSeconds(-1);
+            }
+            else if (context == "hour")
+            {
+                beginDate = DateTime.Parse(startDate).ToUniversalTime();
+                finishDate = beginDate.AddHours(1).AddSeconds(-1);
+            }
+            else if (context == "minute")
+            {
+                beginDate = DateTime.Parse(startDate).ToUniversalTime();
+                finishDate = beginDate.AddMinutes(1).AddSeconds(-1);
+            }
+            else
+            {
+                beginDate = DateTime.Parse(startDate);
+                finishDate = DateTime.Parse(endDate);
+            }
 
             DataTable table = DataContext.Connection.RetrieveData(
                 " SELECT * " +
                 " FROM DisturbanceView  " +
                 " WHERE (MeterID IN (Select * FROM String_To_Int_Table({0},','))) " +
-                " AND StartTime >= {1} AND StartTime <= {2} AND PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') ", meterIds, startDate, endDate);
+                " AND StartTime >= {1} AND StartTime <= {2} AND PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') ", meterIds, beginDate, finishDate);
             return table.Select().Select(row => DataContext.Table<DisturbanceView>().LoadRecord(row));
         }
 
