@@ -2442,9 +2442,11 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["50% - 69%"];
         } else if (percentage < 50 && percentage > 0) {
             color = colors[">0% - 49%"];
-        } else {
+        } else if (percentage < 0) {
             color = colors["0%"];
         }
+        else
+            color = '#0000FF';
     }
     else if (currentTab == "Completeness") {
         var percentage = ((parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) / parseFloat(dataPoint.ExpectedPoints) * 100).toFixed(2);
@@ -2463,20 +2465,29 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["50% - 69%"];
         } else if (percentage < 50 && percentage > 0) {
             color = colors[">0% - 49%"];
-        } else {
+        } else if(percentage < 0){
             color = colors["0%"];
         }
+        else
+            color = '#0000FF';
+
     }
     else if (currentTab === "Breakers") {
-        if (dataPoint.Count == 0) {
+        if (dataPoint["No Operation"] > 0)
+            color = colors["No Operation"];
+        else if (dataPoint["Normal"] > 0)
+            color = colors["Normal"];
+        else if (dataPoint["Late"] > 0)
+            color = colors["Late"];
+        else if (dataPoint["Indeterminate"] > 0)
+            color = colors["Indeterminate"];
+        else
             color = '#0E892C';
-        } else {
-            color = '#CC3300';
-        }
+
 
     }
     else if (currentTab === "Trending") {
-        if (dataPoint.Count == 0) 
+        if (dataPoint.AlarmCount == 0) 
             color = '#0E892C';
         else if(dataPoint.Alarm > 0)
             color = colors['Alarm'];
