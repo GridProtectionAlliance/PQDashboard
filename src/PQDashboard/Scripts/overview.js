@@ -236,11 +236,10 @@ function showOverviewPage(tab) {
             $('#' + whichday + '-log-table').puidatatable({
                 caption: 'Disturbance Log',
                 columns: [
-                    { field: 'EventID', headerText: 'Event' },
-                    { field: 'FaultType', headerText: 'Type' },
                     { field: 'StartTime', headerText: 'Time', content: function (row) { return moment(row.StartTime).format('HH:mm') } },
                     { field: 'MeterName', headerText: 'Meter' },
                     { field: 'LineName', headerText: 'Line' },
+                    { field: 'FaultType', headerText: 'Type' },
                     { field: 'Description', headerText: 'Descr' },
                     { field: 'DurationSeconds', headerText: 'Duration' }
                 ],
@@ -259,12 +258,8 @@ function showOverviewPage(tab) {
         //$('#' + whichday + '-voltages') // * // history OR today
         // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-4 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-5
-        var severityTrace;
-
         $('#' + whichday + '-voltages').append('<h3 style="text-allign: left; color: #834a05">Voltages Disturbance: <span></span></h3>');
 
-        // all disturbances (no severity condition :: 
-        //dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 0).done(function (data) {
         dataHub.getDisturbanceSeverityByHourOfDay(sourcedate).done(function (data) {
 
             var element = $('#' + whichday + '-voltages span').first();
@@ -360,13 +355,15 @@ function showOverviewPage(tab) {
                     height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
                     'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
                 });
+
             var gd = gd3.node();
 
             var chartdatab = [trace1b, trace2b, trace3b, trace4b, trace5b, trace6b];
 
             var chartlayout = { barmode: 'stack',
-                                title: 'Showing Mock Data for Voltage Disturbances',
+                                title: 'Data for Voltage Disturbances',
                                 font: { size: 10 },
+                                orientation: 'v',
                                 xaxis: {
                                     title: 'Hours',
                                     tickmode: 'auto',
@@ -386,17 +383,6 @@ function showOverviewPage(tab) {
             window.onresize = function () {
                 Plotly.Plots.resize(gd);
             };
-            // last thing - resize
-            $(window).resize();
-        });
-
-
-        dataHub.queryDisturbanceSeverityRecords(sourcedate, 'dd', 1, 4).done(function (data) {
-
-            cache_Overview_Severity_Data = data;
-
-            //Plotly.newPlot();
-
             // last thing - resize
             $(window).resize();
         });
@@ -430,10 +416,8 @@ function showOverviewPage(tab) {
         // for today this is not displayed in any grid2-item 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-2
 
-        var jeffe = 0;
-        jeffe += 1;
 
-    // last thing - resize
+        // last thing - resize
         $(window).resize();
     }
 
@@ -443,8 +427,6 @@ function showOverviewPage(tab) {
         // for today this is not displayed in any grid2-item 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-3
 
-        var jeffe = 0;
-        jeffe += 1;
 
         // last thing - resize
         $(window).resize();
@@ -452,16 +434,57 @@ function showOverviewPage(tab) {
 
     function buildOverviewThiryDay(sourcedate, whichday) {
 
-        //$('#' + whichday + '-voltages') // * // history OR today
+        //$('#' + whichday + '-thirtyday') // * // history OR today
         // for today this is not displayed in any grid2-item 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-4
 
-        // four (40 small bar charts that display
+        // four (4) small bar charts that display
         // one)- the number of PQ meters with alarms for each day, over the past thirty days
+        //$('#' + whichday + '-thirtyday-Alarms') // * // history OR today
+        buildOverviewThirtyDayAlarmsChart(sourcedate, whichday);
         // two)- the number of PQ meters with off-normal for each day, over the past thirty days
+        //$('#' + whichday + '-thirtyday-OffNormal') // * // history OR today
+        buildOverviewThirtyDayOffNormalChart(sourcedate, whichday);
         // three)- the the number of severity 4 & 5 disturbances for each day, over the past thirty days
+        //$('#' + whichday + '-thirtyday-Disturbances') // * // history OR today
+        buildOverviewThirtyDayDisturbanceChart(sourcedate, whichday);
         // four)- the the number of faults for each day, over the past thirty days
+        //$('#' + whichday + '-thirtyday-Faults') // * // history OR today
+        buildOverviewThirtyDayFaultChart(sourcedate, whichday);
 
+        // last thing - resize
+        $(window).resize();
+    }
+
+    function buildOverviewThirtyDayAlarmsChart(sourcedate, whichday) {
+
+        // data query method
+        // inside chart creation
+
+        var jeffe = 0;
+        jeffe += 1;
+
+        // last thing - resize
+        $(window).resize();
+    }
+
+    function buildOverviewThirtyDayOffNormalChart(sourcedate, whichday) {
+        var jeffe = 0;
+        jeffe += 1;
+
+        // last thing - resize
+        $(window).resize();
+    }
+
+    function buildOverviewThirtyDayDisturbanceChart(sourcedate, whichday) {
+        var jeffe = 0;
+        jeffe += 1;
+
+        // last thing - resize
+        $(window).resize();
+    }
+
+    function buildOverviewThirtyDayFaultChart(sourcedate, whichday) {
         var jeffe = 0;
         jeffe += 1;
 

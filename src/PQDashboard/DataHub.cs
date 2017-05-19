@@ -1814,11 +1814,6 @@ namespace PQDashboard
             return table;
         }
 
-
-        // public int
-        // public IEnumerable<>
-        // public string
-
         #endregion
 
         #region [ Data Subscription Operations ]

@@ -266,11 +266,11 @@
             <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
         </ul>
 
-        <div id="tabs-Overview-Today" style="background-color: #feeec8; width: 100%; height: 100%">
+        <div id="tabs-Overview-Today" style="background-color: #064e1b; width: 100%; height: 100%">
             @*<div id="overviewContainer" class="container" style="background-color: #feeec8; width: 100%; height: 100%; text-align: center">*@
             <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
                 @* background-color: #FCD883; *@
-                <div style="text-align: center; color: black">
+                <div style="text-align: center; color: white">
                     <h3>PQ Overview for <span id="overviewTodayDate"></span>.</h3>
                 </div>
                 <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
@@ -297,7 +297,7 @@
                             <div id="today-log" style="background-color: white; border-color: black"></div>
                         </div>
                     </div>
-                    @*<div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%; height: 625px;">*@
+                    @*<div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%; height: 400px;">*@
                     <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%;">
                         <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px; height:100%; width: 100%" class="well well-sm">
                             <h3>VOLTAGE DISTURBANCES</h3>
@@ -402,12 +402,12 @@
             </div>
         </div>
 
-        <div id="tabs-Overview-Yesterday" style="background-color: #FCD883; width: 100%; height: 100%">
+        <div id="tabs-Overview-Yesterday" style="background-color: #1b48d9; width: 100%; height: 100%">
 
             @*<div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">*@
             <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
 
-                <div style="text-align: center; color: black">
+                <div style="text-align: center; color: white">
                     <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
                 </div>
                 <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
@@ -446,8 +446,22 @@
                         <h5> PREVIOUS 30 DAYS </h5>
                         <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll">
                             <div id="history-thirtyday">
+                                <div id="history-thirtyday-Alarms">
 
 
+                                </div>
+                                <div id="history-thirtyday-OffNormal">
+
+
+                                </div>
+                                <div id="history-thirtyday-Disturbances">
+
+
+                                </div>
+                                <div id="history-thirtyday-Faults">
+
+
+                                </div>
                             </div>
                         </div>
                     </div>
