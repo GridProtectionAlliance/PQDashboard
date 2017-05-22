@@ -693,7 +693,15 @@ function populateBreakersDivWithGrid(data) {
                 {
                     field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
                                   function (row) {
-                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.energized + "</a>"
+                                      var title = "";
+                                      var bgColor = "initial";
+
+                                      if (row.chatter != 0) {
+                                          title = "title='Status bit chatter detected'";
+                                          bgColor = "yellow";
+                                      }
+
+                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
                                   }
                 },
                 { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
