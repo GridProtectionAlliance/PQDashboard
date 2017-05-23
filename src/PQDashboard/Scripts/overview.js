@@ -416,7 +416,6 @@ function showOverviewPage(tab) {
         // for today this is not displayed in any grid2-item 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-2
 
-
         // last thing - resize
         $(window).resize();
     }
@@ -426,7 +425,6 @@ function showOverviewPage(tab) {
         //$('#' + whichday + '-voltages') // * // history OR today
         // for today this is not displayed in any grid2-item 
         // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-3
-
 
         // last thing - resize
         $(window).resize();
@@ -460,33 +458,97 @@ function showOverviewPage(tab) {
 
         // data query method
         // inside chart creation
+        dataHub.getAlarmsForLast30Days(sourcedate).done(function (data) {
+            //<div id="history-thirtyday-Alarms"> //'#history-thirtyday-Alarms'
 
-        var jeffe = 0;
-        jeffe += 1;
+            var mycounter = 0;
+            var trace1 = {
+                x: $.map(data, function (dat) {
+                    mycounter = mycounter + 1;
+                    return mycounter;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Alarms;
+                }),
+                name: 'Alarms',
+                type: 'bar'
+            };
+
+            var d3 = Plotly.d3;
+            var WIDTH_IN_PERCENT_OF_PARENT = 98,
+                HEIGHT_IN_PERCENT_OF_PARENT = 98;
+            var gd31 = d3.select('#history-thirtyday')
+                .append('div')
+                .style({
+                    width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+                    'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+
+                    height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+                    'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+                });
+
+            var gd1 = gd31.node();
+
+            var chartdatab = [trace1];
+
+            var chartlayout = {
+                barmode: 'stack',
+                title: 'Alarms',
+                font: { size: 10 },
+                orientation: 'v',
+                xaxis: {
+                    title: 'Days',
+                    tickmode: 'auto',
+                    nticks: '30',
+                    tickfont: { size: 8 }
+
+                },
+                yaxis: {
+                    title: 'Amount.',
+                    tickmode: 'auto',
+                    nticks: '8',
+                    tickfont: { size: 8 }
+                }
+            };
+
+            Plotly.plot(gd1, chartdatab, chartlayout);
+
+            window.onresize = function () {
+                Plotly.Plots.resize(gd1);
+            };
+            // last thing - resize
+            $(window).resize();
+        });
 
         // last thing - resize
         $(window).resize();
     }
 
     function buildOverviewThirtyDayOffNormalChart(sourcedate, whichday) {
-        var jeffe = 0;
-        jeffe += 1;
+        
+        dataHub.getOffNormalForLast30Days(sourcedate).done(function (data) {
+
+        });
 
         // last thing - resize
         $(window).resize();
     }
 
     function buildOverviewThirtyDayDisturbanceChart(sourcedate, whichday) {
-        var jeffe = 0;
-        jeffe += 1;
+        
+        dataHub.getLevel4_5DisturbancesForLast30Days(sourcedate).done(function (data) {
+
+        });
 
         // last thing - resize
         $(window).resize();
     }
 
     function buildOverviewThirtyDayFaultChart(sourcedate, whichday) {
-        var jeffe = 0;
-        jeffe += 1;
+        
+        dataHub.getAllFaultsForLast30Days(sourcedate).done(function (data) {
+
+        });
 
         // last thing - resize
         $(window).resize();
