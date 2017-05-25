@@ -367,28 +367,36 @@ function showOverviewPage(tab) {
                     nticks: '5',
                     tickfont: { size: 8 }
                 },
-                bargap: 0.00
+                bargap: 0.05,
+                margin: {
+                    l: 50,
+                    r: 5,
+                    t: 30,
+                    b: 40,
+                    pad: 5,
+                    autoexpand: true
+                }
             };
 
-            var d3 = Plotly.d3;
+            //var d3 = Plotly.d3;
 
-            var WIDTH_IN_PERCENT_OF_PARENT = 96,
-                HEIGHT_IN_PERCENT_OF_PARENT = 96;
+            //var WIDTH_IN_PERCENT_OF_PARENT = 96,
+            //    HEIGHT_IN_PERCENT_OF_PARENT = 96;
 
-            var gd3 = d3.select('#' + whichday + '-voltages-chart')
-                .append('div')
-                .style({
-                    width: WIDTH_IN_PERCENT_OF_PARENT + '%',
-                    'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+            //var gd3 = d3.select('#' + whichday + '-voltages-chart')
+            //    .append('div')
+            //    .style({
+            //        width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+            //        'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
 
-                    height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
-                    'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
-                });
+            //        height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+            //        'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+            //    });
 
-            var gd = gd3.node();
+            //var gd = gd3.node();
 
-            //Plotly.plot(whichday + '-voltages-chart', chartdatab, chartlayout, { displayModeBar: false });
-            Plotly.plot(gd, chartdatab, chartlayout, { displayModeBar: false });
+            Plotly.plot(whichday + '-voltages-chart', chartdatab, chartlayout, { displayModeBar: false });
+            //Plotly.plot(gd, chartdatab, chartlayout, { displayModeBar: false });
 
             // last thing - resize
             $(window).resize();

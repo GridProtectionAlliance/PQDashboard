@@ -1658,18 +1658,6 @@ namespace PQDashboard
             }
         }
 
-        public int QueryFaultSummaryCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
-        {
-            int recordCount = -1;
-
-            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
-            {
-                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
-            }
-
-            return recordCount;
-        }
-
         public int QueryFaultSummaryGroundFaultCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             int recordCount = -1;
