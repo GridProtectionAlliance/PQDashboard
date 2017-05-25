@@ -77,6 +77,7 @@ function showOverviewPage(tab) {
             $('#today-faults').children().remove();
             $('#today-log').children().remove();
             $('#today-voltages').children().remove();
+            $('#today-voltages-chart').children().remove();
         
             // add charts and graphs to each Masonry.GridItem...
             //$('#today-downloads') // *
@@ -105,6 +106,7 @@ function showOverviewPage(tab) {
             $('#history-offnormal').children().remove();
             $('#history-thirtyday').children().remove();
             $('#history-voltages').children().remove();
+            $('#history-voltages-chart').children().remove();
             $('#history-faults').children().remove();
 
             // add charts and graphs to each Masonry.GridItem...
@@ -263,13 +265,11 @@ function showOverviewPage(tab) {
         dataHub.getDisturbanceSeverityByHourOfDay(sourcedate).done(function (data) {
 
             var element = $('#' + whichday + '-voltages span').first();
-
             $(element).append(data.length);
-
             cache_Overview_Disturbance_Data = data;
 
             var mycounter = 0;
-            var trace1b = {
+            var trace1 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -282,7 +282,7 @@ function showOverviewPage(tab) {
             };
 
             mycounter = 0;
-            var trace2b = {
+            var trace2 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -295,7 +295,7 @@ function showOverviewPage(tab) {
             };
 
             mycounter = 0;
-            var trace3b = {
+            var trace3 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -306,8 +306,9 @@ function showOverviewPage(tab) {
                 name: 'TWO',
                 type: 'bar'
             };
+
             mycounter = 0;
-            var trace4b = {
+            var trace4 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -318,8 +319,9 @@ function showOverviewPage(tab) {
                 name: 'THREE',
                 type: 'bar'
             };
+
             mycounter = 0;
-            var trace5b = {
+            var trace5 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -330,8 +332,9 @@ function showOverviewPage(tab) {
                 name: 'FOUR',
                 type: 'bar'
             };
+
             mycounter = 0;
-            var trace6b = {
+            var trace6 = {
                 x: $.map(data, function (dat) {
                     mycounter = mycounter + 1;
                     return mycounter;
@@ -343,10 +346,36 @@ function showOverviewPage(tab) {
                 type: 'bar'
             };
 
+            var chartdatab = [trace1, trace2, trace3, trace4, trace5, trace6];
+
+            var chartlayout = {
+                barmode: 'stack',
+                title: 'Data for Voltage Disturbances',
+                height: 400,
+                font: { size: 10 },
+                orientation: 'v',
+                xaxis: {
+                    title: 'Hours',
+                    tickmode: 'auto',
+                    nticks: '24',
+                    tickfont: { size: 8 },
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Quanty.',
+                    tickmode: 'auto',
+                    nticks: '5',
+                    tickfont: { size: 8 }
+                },
+                bargap: 0.00
+            };
+
             var d3 = Plotly.d3;
-            var WIDTH_IN_PERCENT_OF_PARENT = 98,
-                HEIGHT_IN_PERCENT_OF_PARENT = 98;
-            var gd3 = d3.select('#' + whichday + '-voltages')
+
+            var WIDTH_IN_PERCENT_OF_PARENT = 96,
+                HEIGHT_IN_PERCENT_OF_PARENT = 96;
+
+            var gd3 = d3.select('#' + whichday + '-voltages-chart')
                 .append('div')
                 .style({
                     width: WIDTH_IN_PERCENT_OF_PARENT + '%',
@@ -358,56 +387,14 @@ function showOverviewPage(tab) {
 
             var gd = gd3.node();
 
-            var chartdatab = [trace1b, trace2b, trace3b, trace4b, trace5b, trace6b];
+            //Plotly.plot(whichday + '-voltages-chart', chartdatab, chartlayout, { displayModeBar: false });
+            Plotly.plot(gd, chartdatab, chartlayout, { displayModeBar: false });
 
-            var chartlayout = { barmode: 'stack',
-                                title: 'Data for Voltage Disturbances',
-                                font: { size: 10 },
-                                orientation: 'v',
-                                xaxis: {
-                                    title: 'Hours',
-                                    tickmode: 'auto',
-                                    nticks: '24',
-                                    tickfont: { size: 8 }
-                                    
-                                },
-                                yaxis: {
-                                    title: 'Quanty.',
-                                    tickmode: 'auto',
-                                    nticks: '10',
-                                    tickfont: { size: 8}}
-            };
-
-            Plotly.plot(gd, chartdatab, chartlayout);
-
-            window.onresize = function () {
-                Plotly.Plots.resize(gd);
-            };
             // last thing - resize
             $(window).resize();
         });
 
-        //Plotly.d3.json('https://plot.ly/~DanielCarrera/13.json', function(figure){
-        //    var trace = {
-        //        x: figure.data[0].x, y: figure.data[0].y, z: figure.data[0].z,
-        //        type: 'contour', autocolorscale: false,
-        //        colorscale: [[0,"rgb(  0,  0,  0)"],[0.3,"rgb(230,  0,  0)"],[0.6,"rgb(255,210,  0)"],[1,"rgb(255,255,255)"]],
-        //        reversescale: true, zmax: 2.5, zmin: -2.5
-        //};
-        //var layout = {
-        //    xaxis: { title: 'Disturbances' },
-        //    yaxis: { title: 'Hours' }
-        //};
-        //Plotly.newPlot('jsObjectReference','data','layout);
-        //Plotly.plot('jsObjectReference','data','layout);
-        //Plotly.purge(thediv);
-        //var layout = {
-        //    xaxis: { title: 'Disturbances' },
-        //    yaxis: { title: 'Hours' }
-        //};
-        //Plotly.newPlot('jsObjectReference','data','layout);
-        //Plotly.plot('jsObjectReference','data','layout);
-        //Plotly.purge(thediv);
+
     }
 
     function buildOverviewAlarms(sourcedate, whichday) {
@@ -464,8 +451,7 @@ function showOverviewPage(tab) {
             var mycounter = 0;
             var trace1 = {
                 x: $.map(data, function (dat) {
-                    mycounter = mycounter + 1;
-                    return mycounter;
+                    return dat.DayIndex;
                 }),
                 y: $.map(data, function (dat) {
                     return dat.Alarms;
@@ -474,48 +460,32 @@ function showOverviewPage(tab) {
                 type: 'bar'
             };
 
-            var d3 = Plotly.d3;
-            var WIDTH_IN_PERCENT_OF_PARENT = 98,
-                HEIGHT_IN_PERCENT_OF_PARENT = 98;
-            var gd31 = d3.select('#history-thirtyday')
-                .append('div')
-                .style({
-                    width: WIDTH_IN_PERCENT_OF_PARENT + '%',
-                    'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
-
-                    height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
-                    'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
-                });
-
-            var gd1 = gd31.node();
-
             var chartdatab = [trace1];
 
             var chartlayout = {
                 barmode: 'stack',
-                title: 'Alarms',
-                font: { size: 10 },
+                font: { size: 8 },
                 orientation: 'v',
                 xaxis: {
-                    title: 'Days',
-                    tickmode: 'auto',
-                    nticks: '30',
-                    tickfont: { size: 8 }
-
+                    title: 'Alarms',
                 },
                 yaxis: {
-                    title: 'Amount.',
-                    tickmode: 'auto',
-                    nticks: '8',
-                    tickfont: { size: 8 }
+                    y0: 0,
+                    dy: 1,
+                },
+                bargap: 0.05,
+                margin: {
+                    l: 25,
+                    r: 5,
+                    t: 5,
+                    b: 20,
+                    pad: 5,
+                    autoexpand: true
                 }
             };
 
-            Plotly.plot(gd1, chartdatab, chartlayout);
+            Plotly.plot('history-thirtyday-a', chartdatab, chartlayout, { displayModeBar: false });
 
-            window.onresize = function () {
-                Plotly.Plots.resize(gd1);
-            };
             // last thing - resize
             $(window).resize();
         });
@@ -528,6 +498,46 @@ function showOverviewPage(tab) {
         
         dataHub.getOffNormalForLast30Days(sourcedate).done(function (data) {
 
+            var mycounter = 0;
+            var trace1 = {
+                x: $.map(data, function (dat) {
+                    return dat.DayIndex;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.OffNormalAlarms;
+                }),
+                name: 'Off Norm',
+                type: 'bar'
+            };
+
+            var chartdatab = [trace1];
+
+            var chartlayout = {
+                barmode: 'stack',
+                font: { size: 8 },
+                orientation: 'v',
+                xaxis: {
+                    title: 'Off Norms',
+                },
+                yaxis: {
+                },
+                y0: 0,
+                dy: 1,
+                bargap: 0.05,
+                margin: {
+                    l: 25,
+                    r: 5,
+                    t: 5,
+                    b: 20,
+                    pad: 5,
+                    autoexpand: true
+                }
+            };
+
+            Plotly.plot('history-thirtyday-offnormal', chartdatab, chartlayout, { displayModeBar: false });
+
+            // last thing - resize
+            $(window).resize();
         });
 
         // last thing - resize
@@ -538,6 +548,46 @@ function showOverviewPage(tab) {
         
         dataHub.getLevel4_5DisturbancesForLast30Days(sourcedate).done(function (data) {
 
+            var mycounter = 0;
+            var trace1 = {
+                x: $.map(data, function (dat) {
+                    return dat.DayIndex;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.Disturbance_Count;
+                }),
+                name: 'Dists',
+                type: 'bar'
+            };
+
+            var chartdatab = [trace1];
+
+            var chartlayout = {
+                barmode: 'stack',
+                font: { size: 8 },
+                orientation: 'v',
+                xaxis: {
+                    title: 'Disturbances',
+                },
+                yaxis: {
+                },
+                y0: 0,
+                dy: 1,
+                bargap: 0.05,
+                margin: {
+                    l: 25,
+                    r: 5,
+                    t: 5,
+                    b: 25,
+                    pad: 5,
+                    autoexpand: true
+                }
+            };
+
+            Plotly.plot('history-thirtyday-disturbances', chartdatab, chartlayout, { displayModeBar: false });
+
+            // last thing - resize
+            $(window).resize();
         });
 
         // last thing - resize
@@ -548,6 +598,46 @@ function showOverviewPage(tab) {
         
         dataHub.getAllFaultsForLast30Days(sourcedate).done(function (data) {
 
+            var mycounter = 0;
+            var trace1 = {
+                x: $.map(data, function (dat) {
+                    return dat.DayIndex;
+                }),
+                y: $.map(data, function (dat) {
+                    return dat.FaultCount;
+                }),
+                name: 'Dists',
+                type: 'bar'
+            };
+
+            var chartdatab = [trace1];
+
+            var chartlayout = {
+                barmode: 'stack',
+                font: { size: 8 },
+                orientation: 'v',
+                xaxis: {
+                    title: 'Faults',
+                },
+                yaxis: {
+                },
+                y0: 0,
+                dy: 1,
+                bargap: 0.05,
+                margin: {
+                    l: 25,
+                    r: 5,
+                    t: 5,
+                    b: 20,
+                    pad: 5,
+                    autoexpand: true
+                }
+            };
+
+            Plotly.plot('history-thirtyday-faults', chartdatab, chartlayout, { displayModeBar: false });
+
+            // last thing - resize
+            $(window).resize();
         });
 
         // last thing - resize
