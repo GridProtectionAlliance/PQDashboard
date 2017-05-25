@@ -985,11 +985,15 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     
     buildMainGraph(series, moment(thedatefrom), moment(thedateto));
     buildOverviewGraph(overviewSeries);
-    buildLegend();
 
 
     //// d3 Helper Functions
     function buildMainGraph(data, startDate, endDate) {
+        $('#' + thediv).children().remove();
+        svg = d3.select("#" + thediv).append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+
         var xAxis;
         var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
@@ -1159,7 +1163,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             cache_Last_Date = thedate;
         });
 
-
+        buildLegend();
     }
 
     function buildOverviewGraph(data) {
