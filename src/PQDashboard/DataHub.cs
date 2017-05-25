@@ -1550,6 +1550,18 @@ namespace PQDashboard
             return recordCount;
         }
 
+        public IEnumerable<PQDashboard.Model.Meter> QueryMeterRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        {//**
+            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            {
+                return DataContext.Table<Model.Meter>().QueryRecords(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public int QueryLineCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             int recordCount = -1;
@@ -1560,6 +1572,44 @@ namespace PQDashboard
             }
 
             return recordCount;
+        }
+
+        public IEnumerable<PQDashboard.Model.Line> QueryLineRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        {//**
+            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            {
+                return DataContext.Table<Model.Line>().QueryRecords(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public int QueryFaultSummaryCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        {
+            int recordCount = -1;
+
+            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            {
+                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
+            }
+
+            return recordCount;
+        }
+
+        public IEnumerable<PQDashboard.Model.FaultSummary> QueryFaultSummaryRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        {//**
+            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            {
+                return DataContext.Table<Model.FaultSummary>().QueryRecords(restriction: new RecordRestriction("[FaultSummary].EventID IN " +
+                                            "(SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0})))" +
+                                            " AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime));
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public IEnumerable<FaultSummarysForOverview> QueryFaultSummarysForOverviewRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
@@ -1755,11 +1805,6 @@ namespace PQDashboard
 
             return table;
         }
-
-
-        // public int
-        // public IEnumerable<>
-        // public string
 
         #endregion
 
