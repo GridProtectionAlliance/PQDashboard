@@ -885,8 +885,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     // D3
     var chartData = deepCopy(data.graphData);
-    var date1 = Date.parse(thedatefrom);
-    var date2 = Date.parse(thedateto);
+    var date1 = moment(thedatefrom);
+    var date2 = moment(thedateto);
     var numSamples;
     var x;
     var xOverview;
@@ -928,7 +928,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         XaxisLabel = 'Seconds';
     }
     else {
-        numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+        numSamples = Math.floor(moment.duration(date2.diff(date1)).asDays());
         x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
@@ -937,8 +937,6 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
 
     // graph initialization
-    var tooltip = d3.select('#' + thediv).append('div')
-                .attr('class', 'hidden tooltip');
 
     var svg = d3.select("#" + thediv).append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -991,7 +989,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
     var overviewSeries = stack(chartData);
     
-    buildMainGraph(series, moment(thedatefrom), moment(thedateto));
+    buildMainGraph(series, date1, date2);
     buildOverviewGraph(overviewSeries);
 
 
@@ -1019,7 +1017,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
         else {
-            numSamples = (date2 - date1) / 1000 / 60 / 60 / 24;
+            numSamples = Math.ceil(moment.duration(endDate.diff(startDate)).asDays());
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
         }
 
@@ -1136,6 +1134,9 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             .attr("x", -height / 2)
             .attr("dy", ".71em")
             .text(YaxisLabel);
+
+        var tooltip = d3.select('#' + thediv).append('div')
+            .attr('class', 'hidden tooltip');
 
         bar.on('mousemove', function (d, f, g) {
             var mouse = d3.mouse(svg.node()).map(function (e) {
