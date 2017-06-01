@@ -356,42 +356,54 @@ function populateFaultsDivWithGrid(data) {
     $('#DockDetailFaults').css('width', '100%');
 
     var filteredData = [];
+    var includeCauseCode = false;
     if (data != null) {
 
         $.each(data, function (i, d) {
-            if (!disabledList[currentTab][d.voltage + ' kV'])
+            if (!disabledList[currentTab][d.voltage + ' kV']) {
                 filteredData.push(d);
+
+                if (d.causecode !== undefined)
+                    includeCauseCode = true;
+            }
         });
 
+        var columns = [];
+
+        columns.push({
+            field: 'theinceptiontime',
+            headerText: 'Start Time',
+            headerStyle: 'width: 15%',
+            bodyStyle: 'width: 15%; height: 20px',
+            bodyClass: '',
+            sortable: true,
+            content: function (row, options, td) {
+                if (row.notecount > 0)
+                    td.addClass('note');
+
+                return "<a href='" + xdaInstance + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>";
+            }
+        });
+
+        columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true });
+
+        if (includeCauseCode)
+            columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+
+        columns.push({ field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+        columns.push({ field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+        columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+        columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
+        columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html });
+        columns.push({ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html });
+        columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
 
         fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
         $('#Detail' + currentTab + "Table").puidatatable({
             scrollable: true,
             scrollHeight: '100%',
-            columns: [
-                {
-                    field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', bodyClass: '', sortable: true, content:
-                                function (row, options, td) {
-                                    if (row.notecount > 0)
-                                        td.addClass('note')
-                                    return "<a href='" + xdaInstance + "/Workbench/Event.cshtml?EventID=" + row.theeventid + "' style='color: blue' target='_blank'>" + row.theinceptiontime + "</a>"
-                                }
-                },
-                { field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true },
-                { field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                { field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                { field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                { field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                { field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                { field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html },
-                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } },
-                //{
-                //    headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) {
-                //        return '<button onclick="openResultsModal(row)"><span class="glyphicon glyphicon-option-horizontal" title="Add Notes."></span></button>';
-                //    }
-                //}
-],
+            columns: columns,
             datasource: filteredData
         });
     }
