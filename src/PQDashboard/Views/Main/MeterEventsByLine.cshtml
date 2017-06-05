@@ -37,7 +37,6 @@
     EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
     string context = parameters["context"] ?? "day";
-
 }
 
 <!DOCTYPE html>
@@ -67,6 +66,8 @@
             width: 100%;
             border: 1px solid black;
             border-collapse: collapse;
+            padding: 0;
+            margin: 0;
         }
     </style>
 
@@ -97,11 +98,10 @@
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
-
     reconnectHub = false;
 
 
-    $(document).ready(function () {    
+    $(document).ready(function () {
         $(window).on('hubConnected', function () {
             populateMeterEventsDivWithGrid('getSiteLinesDetailsByDate', "MeterDetailsByDate", postedMeterName, postedMeterId, postedDate);
         })
@@ -116,7 +116,7 @@
 
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
-    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {        
+    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
         dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "").done(function (data) {
             json = $.parseJSON(data);
 
@@ -142,54 +142,57 @@
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    {
-                        headerText: '', headerStyle: 'width: 20%', content: function (row) {                           
+                    { headerStyle: 'width: 60px', content: function (data) { return makeOpenSEEButton_html(data); }},
+                    { headerText: '', headerStyle: 'width: 50px', content: function (row) {
                             return '<button onclick="openResultsModal(\'' + JSON.stringify(row).replace(/"/g, '\\\'') + '\')"><span class="glyphicon glyphicon-option-horizontal" title=""></span></button>';
                         }
                     }
                 ],
                 datasource: $.parseJSON(data)
             });
-            $.connection.hub.stop();
 
         });
     }
 
     function openResultsModal(row) {
-        var data = JSON.parse(row.replace(/'/g, '"'));
-        var key = Object.keys(data).filter(function (a) {
-            return a !== 'thecurrentdistance' &&
-                    a !== 'theeventid' &&
-                    a !== 'theeventtype' &&
-                    a !== 'thefaulttype' &&
-                    a !== 'theinceptiontime' &&
-                    a !== 'thelineid' &&
-                    a !== 'thelinename' &&
-                    a !== 'pqiexists' &&
-                    a !== 'voltage' &&
-                    a !== 'UpdatedBy';
-        });
-        var html = '<table class="jsPanelTable"><tr class="gridheader"><th colspan="2">Get results from Extended Analytics ...</th></th></tr>';
+        var data = JSON.parse(row.replace(/\\/g, '\\\\').replace(/'/g, '"'));
 
-        html += '<tr><td style="width: 50%;">openSEE</td><td style="width: 50%;">' + makeOpenSEEButton_html(data) + '</td></tr>';
+        var html = '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">More Info Available...</th></tr>';
+        if (data.theeventtype == "Fault")
+            html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td><td></td></tr>';
 
-        if (row.theeventtype == "Fault")
-            html += '<tr><td style="width: 50%;">Fault Specifics </td><td style="width: 50%;">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
-
-        if (row.pqiexists !== '0')
-            html += '<tr><td style="width: 50%;">PQI</td><td style="width: 50%;">'+ makePQIButton_html(data) + '</td></tr>';
-
-        $.each(key, function (i, k) {
-            if (row[k] !== '0')
-                html += '<tr><td style="width: 50%;">' + k + '</td><tds tyle="width: 50%;">' + makeEASDetailsButton_html(row, row[k], k + '.aspx', '~/Images/' + k + '.png', 'Launch ' + k + ' Page', 300, 450) + '</td></tr>';
-
-        });
+        html += '<tr><td style="width: 50%">List Simultaneous events (+/- 5 sec)</td><td colspan="2" style="width: auto">' + data.SimultaneousCount + ' Events Found</td></tr>';
+        html += '<tr><td style="width: 50%">List events for this line (last 60 days)</td><td colspan="2"style="width: auto">' + data.SixtyDayCount + ' Events Found</td></tr></table>';
 
 
-        html += '</table>';
+        html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Add/Edit Event Data</th></tr>';
+        html += '<tr><td style="width: 50%;">Edit Event Data</td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit('+ data.theeventid +')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
+        html += '<tr><td style="width: 50%;">Add/Edit Notes for this event</td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick=""><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"></td></tr></table>';
 
+
+        if (testForStuff(data)) {
+            html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Get Results From Enabled Extended Analytics</th></tr>';
+
+
+            if (data.pqiexists !== '0') {
+                html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> devices impacted</td></tr>';
+            }
+
+            dataHub.getPQICount(data.theeventid).done(function (count) {
+                $('#' + data.theeventid + 'pqicount').text(count);
+            });
+
+            $.each(data.ServiceList.split(','), function (i, k) {
+                if (data[k] !== null)
+                    html += '<tr><td style="width: 50%">' + k + '</td><td style="width: 5%; padding: 0">' + makeEASDetailsButton_html(data, data[k], '@Html.Raw(Url.Content("~/"))' + k + '.aspx', '@Html.Raw(Url.Content("~/Images/"))' + k + '.png', 'Launch ' + k + ' Page') + '</td><td style="width: auto">Confidence: ' + data[k] + '</td></tr>';
+
+            });
+
+
+            html += '</table>';
+        }
         var myPanel = $.jsPanel({
-            headerTitle: "Preview Meter List",
+            headerTitle: "",
             content: html,
             contentSize: '500 auto',
             callback: function (panel) {
@@ -198,16 +201,28 @@
         });
 
     }
+    function testForStuff(data) {
+        if (data.pqiexists !== '0') return true;
+        $.each(data.ServiceList.split(','), function (i, k) {
+            if (data[k] !== null)
+                return true;
+        });
+        return false;
+    }
 
-    function makeEASDetailsButton_html(row, value, url, imagepath, title, width, height) {
+    function OpenWindowToXDAEdit(id) {
+        var popup = window.open('@xdaInstance' + "/Workbench/Event.cshtml?EventID=" + id);
+    }
+
+    function makeEASDetailsButton_html(data, value, url, imagepath, title) {
         var return_html = "";
 
-        url += "?eventid=" + row.theeventid;
+        url += "?eventid=" + data.theeventid;
 
         if (value != "" && value != "0" && value != null) {
 
             //return_html += '<div style="cursor: pointer;">';
-            return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'" + "," + width + "," + height + ');"  title="' + title + '">';
+            return_html += '<button style="height: 33px" onClick="OpenWindowToEAS(\'' + url + '\');"  title=\'' + title + '\'>';
             return_html += '<img src="' +imagepath + '" /></button>';
             //return_html += '</div>';
         }
@@ -215,8 +230,8 @@
     }
 
 
-    function OpenWindowToEAS(url, width, height) {
-        var popup = window.open(url, url, "left=0,top=0,width=" + width + ",height=" + height + ",status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    function OpenWindowToEAS(url) {
+        var popup = window.open(url, url, "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
 
@@ -245,12 +260,9 @@
     function makePQIButton_html(id) {
         var return_html = "";
 
-        if (id.pqiexists == "1") {
-            //return_html += '<div style="cursor: pointer;">';
-            return_html += '<button onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
-            return_html += '<img src="@Html.Raw(Url.Content("~/Images/pqiButton.png"))" /></button>';
-            //return_html += '</div>';
-        }
+        return_html += '<button style="height: 33px" onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/pqiButton.png"))" /></button>';
+
         return (return_html);
     }
 
@@ -260,7 +272,7 @@
     }
 
     function OpenWindowToFaultSpecifics(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
 

@@ -30,9 +30,9 @@ public partial class ICFDetails: System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            if (Request["eventId"] != null)
+            if (Request["eventid"] != null)
             {
-                String postedEventId = Request["eventId"];
+                String postedEventId = Request["eventid"];
 
                     try
                     {

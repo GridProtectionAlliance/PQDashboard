@@ -999,14 +999,14 @@ namespace PQDashboard
         }
 
         /// <summary>
-        /// getSiteLinesDetailsByDate
+        /// GetSiteLinesDetailsByDate
         /// </summary>
         /// <param name="siteID"></param>
         /// <param name="targetDate"></param>
         /// <param name="context"></param>
         /// <param name="tab"></param>
 
-        /// <returns></returns>
+        /// <returns>JSON string</returns>
         public string GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
             string thedata = "";
@@ -1418,6 +1418,43 @@ namespace PQDashboard
         public void DeleteSavedViews(int id)
         {
             DataContext.Table<SavedViews>().DeleteRecordWhere("ID = {0}", id);
+        }
+
+        #endregion
+
+        #region [ PQI Operations ]
+
+        public int GetPQICount(int eventId)
+        {
+            SqlConnection conn = null;
+            SqlDataReader rdr = null;
+            DataTable dt = new DataTable();
+
+            try
+            {
+                conn = new SqlConnection(connectionstring);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("dbo.GetAllImpactedComponents", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@eventID", eventId));
+                cmd.CommandTimeout = 300;
+
+                rdr = cmd.ExecuteReader();
+                dt.Load(rdr);
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+            return dt.Rows.Count;
+
         }
 
         #endregion
@@ -1892,7 +1929,6 @@ namespace PQDashboard
         {
             return UserInfo.UserNameToSID(Thread.CurrentPrincipal.Identity.Name);
         }
-
 
 
         /// <summary>

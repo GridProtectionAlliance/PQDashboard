@@ -325,6 +325,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Content Include="Content\fonts\jsglyph.svg" />
     <Content Include="ICFService.aspx.cs">
       <DependentUpon>ICFService.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -481,6 +482,9 @@
     <Content Include="fonts\fontawesome-webfont.woff2" />
     <Content Include="fonts\FontAwesome.otf" />
     <Content Include="Content\graphics\outlines\Outlines.psd" />
+    <Content Include="Content\fonts\jsglyph.eot" />
+    <Content Include="Content\fonts\jsglyph.ttf" />
+    <Content Include="Content\fonts\jsglyph.woff" />
     <None Include="Properties\PublishProfiles\desktop.pubxml" />
     <None Include="Properties\PublishProfiles\dev.pubxml" />
     <Content Include="Scripts\D3\LICENSE" />
@@ -1246,7 +1250,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Content\fonts\" />
     <Folder Include="Images\playericons\" />
     <Folder Include="Images\StatusLights\" />
     <Folder Include="Views\Home\" />
