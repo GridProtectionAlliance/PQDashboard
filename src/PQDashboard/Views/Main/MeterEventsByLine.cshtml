@@ -79,6 +79,7 @@
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
 
 </head>
@@ -92,12 +93,39 @@
     <div style="height: 100%; display: inline-block" id="MeterDetailsByDate"></div>
 </div>
 
+<!-- Modals -->
+<div id="notesModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add a note to event record <span id="eventId"></span></h4>
+            </div>
+            <div id="previousNotesDiv">
+
+            </div>
+            <div class="modal-body">
+                <textarea id="note" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveNote()">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
 <script>
 
     var postedMeterId = "@theEvent.MeterID";
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
+    var userId = '@ViewBag.username'
     reconnectHub = false;
 
 
@@ -144,13 +172,13 @@
                     { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                     { headerStyle: 'width: 60px', content: function (data) { return makeOpenSEEButton_html(data); }},
                     { headerText: '', headerStyle: 'width: 50px', content: function (row) {
-                            return '<button onclick="openResultsModal(\'' + JSON.stringify(row).replace(/"/g, '\\\'') + '\')"><span class="glyphicon glyphicon-option-horizontal" title=""></span></button>';
+                            return '<button style="height: 30px" onclick="openResultsModal(\'' + JSON.stringify(row).replace(/"/g, '\\\'') + '\')"><span class="glyphicon glyphicon-option-horizontal" title=""></span><span id="' +row.theeventid + 'asterisk" style="color: green; position: sticky; bottom: 0">'+(testForAllStuff(row) ? '*' : '') +'</span></button>';
                         }
                     }
                 ],
                 datasource: $.parseJSON(data)
             });
-
+            
         });
     }
 
@@ -159,7 +187,7 @@
 
         var html = '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">More Info Available...</th></tr>';
         if (data.theeventtype == "Fault")
-            html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td><td></td></tr>';
+            html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
 
         html += '<tr><td style="width: 50%">List Simultaneous events (+/- 5 sec)</td><td colspan="2" style="width: auto">' + data.SimultaneousCount + ' Events Found</td></tr>';
         html += '<tr><td style="width: 50%">List events for this line (last 60 days)</td><td colspan="2"style="width: auto">' + data.SixtyDayCount + ' Events Found</td></tr></table>';
@@ -167,7 +195,7 @@
 
         html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Add/Edit Event Data</th></tr>';
         html += '<tr><td style="width: 50%;">Edit Event Data</td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit('+ data.theeventid +')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
-        html += '<tr><td style="width: 50%;">Add/Edit Notes for this event</td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick=""><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"></td></tr></table>';
+        html += '<tr><td style="width: 50%;">Add/Edit Notes for this event</td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal('+data.theeventid+')"><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto">' + data.Note + ' Notes Created</td></tr></table>';
 
 
         if (testForStuff(data)) {
@@ -175,7 +203,7 @@
 
 
             if (data.pqiexists !== '0') {
-                html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> devices impacted</td></tr>';
+                html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
             }
 
             dataHub.getPQICount(data.theeventid).done(function (count) {
@@ -183,7 +211,7 @@
             });
 
             $.each(data.ServiceList.split(','), function (i, k) {
-                if (data[k] !== null)
+                if (data[k] !== null && data[k] !== undefined)
                     html += '<tr><td style="width: 50%">' + k + '</td><td style="width: 5%; padding: 0">' + makeEASDetailsButton_html(data, data[k], '@Html.Raw(Url.Content("~/"))' + k + '.aspx', '@Html.Raw(Url.Content("~/Images/"))' + k + '.png', 'Launch ' + k + ' Page') + '</td><td style="width: auto">Confidence: ' + data[k] + '</td></tr>';
 
             });
@@ -207,6 +235,18 @@
             if (data[k] !== null)
                 return true;
         });
+        return false;
+    }
+
+    function testForAllStuff(data) {
+        if (data.UpdatedBy !== null) return true;
+        if (data.Note > 0) return true;
+        if (data.pqiexists !== '0') return true;
+        $.each(data.ServiceList.split(','), function (i, k) {
+            if (data[k] !== null)
+                return true;
+        });
+
         return false;
     }
 
@@ -280,6 +320,37 @@
         var popup = window.open("@Html.Raw(Url.Content("~/PQIByEvent.aspx"))?eventid=" + id, id + "PQI", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
+
+    function openNoteModal(eventId) {
+        $('#previousNotes').remove();
+        dataHub.getNotesForEvent(eventId).done(function (data) {
+            $('#eventId').text(eventId);
+            if (data.length > 0)
+                $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
+            $.each(data, function (i, d) {
+                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+            });
+
+            $('#note').val('');
+            $('#notesModal').modal('show');
+        });
+    }
+
+    function saveNote() {
+        dataHub.saveNoteForEvent($('#eventId').text(), $('#note').val(), userId);
+    }
+
+    function removeNote(id) {
+        dataHub.removeEventNote(id);
+        $('#row' + id).remove()
+    }
+
+    function editNote(id) {
+        $('#note').val($('#note' + id).text());
+        dataHub.removeEventNote(id);
+    }
+
+
 
 </script>
 

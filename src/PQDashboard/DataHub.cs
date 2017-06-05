@@ -42,6 +42,7 @@ using GSF.Web.Model;
 using GSF.Web.Security;
 using PQDashboard.Model;
 using openHistorian.XDALink;
+using Newtonsoft.Json;
 
 namespace PQDashboard
 {
@@ -1280,6 +1281,31 @@ namespace PQDashboard
         public void RemoveNote(int id)
         {
             DataContext.Table<FaultNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
+        }
+
+        #endregion
+
+        #region [ Event Notes ]
+
+        public IEnumerable<EventNote> GetNotesForEvent(int id)
+        {
+            return DataContext.Table<EventNote>().QueryRecords(restriction: new RecordRestriction("EventID = {0}", id));
+        }
+
+        public void SaveNoteForEvent(int id, string note, string userId)
+        {
+            DataContext.Table<EventNote>().AddNewRecord(new EventNote()
+            {
+                EventID = id,
+                Note = note,
+                UserAccount = userId,
+                TimeStamp = DateTime.UtcNow
+            });
+        }
+
+        public void RemoveEventNote(int id)
+        {
+            DataContext.Table<EventNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
         }
 
 

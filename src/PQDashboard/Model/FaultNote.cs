@@ -15,4 +15,15 @@ namespace PQDashboard.Model
         public Guid UserAccountID { get; set; }
         public DateTime TimeStamp { get; set; }
     }
+
+    public class EventNote
+    {
+        [PrimaryKey(true)]
+        public int ID { get; set; }
+        public int EventID { get; set; }
+        public string Note { get; set; }
+        public string UserAccount { get; set; }
+        public DateTime TimeStamp { get; set; }
+    }
+
 }
