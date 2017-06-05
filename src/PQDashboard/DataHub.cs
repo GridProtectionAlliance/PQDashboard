@@ -42,6 +42,7 @@ using GSF.Web.Model;
 using GSF.Web.Security;
 using PQDashboard.Model;
 using openHistorian.XDALink;
+using Newtonsoft.Json;
 
 namespace PQDashboard
 {
@@ -1938,21 +1939,7 @@ namespace PQDashboard
         /// <returns></returns>
         public string DataTable2JSON(DataTable dt)
         {
-            List<Object> RowList = new List<Object>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                Dictionary<Object, Object> ColList = new Dictionary<Object, Object>();
-                foreach (DataColumn dc in dt.Columns)
-                {
-                    string t = (string)((string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString());
-
-                    ColList.Add(dc.ColumnName, t);
-                }
-                RowList.Add(ColList);
-            }
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            string JSON = js.Serialize(RowList);
-            return JSON;
+            return JsonConvert.SerializeObject(dt);
         }
 
         private bool CheckAlarm(Channel channel, openHistorian.XDALink.TrendingDataPoint trendingPoint, AlarmRangeLimit rangeLimit)
