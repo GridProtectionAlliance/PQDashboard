@@ -110,7 +110,7 @@
                 <textarea id="note" class="form-control"></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveNote()">Save</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveNote()">Save</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -125,7 +125,7 @@
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
-    var userId = '@ViewBag.username'
+    var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     reconnectHub = false;
 
 
@@ -202,7 +202,7 @@
             html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Get Results From Enabled Extended Analytics</th></tr>';
 
 
-            if (data.pqiexists !== '0') {
+            if (data.pqiexists > 0) {
                 html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
             }
 
@@ -230,7 +230,7 @@
 
     }
     function testForStuff(data) {
-        if (data.pqiexists !== '0') return true;
+        if (data.pqiexists > 0) return true;
         $.each(data.ServiceList.split(','), function (i, k) {
             if (data[k] !== null)
                 return true;
@@ -241,7 +241,7 @@
     function testForAllStuff(data) {
         if (data.UpdatedBy !== null) return true;
         if (data.Note > 0) return true;
-        if (data.pqiexists !== '0') return true;
+        if (data.pqiexists > 0) return true;
         $.each(data.ServiceList.split(','), function (i, k) {
             if (data[k] !== null)
                 return true;
@@ -326,9 +326,9 @@
         dataHub.getNotesForEvent(eventId).done(function (data) {
             $('#eventId').text(eventId);
             if (data.length > 0)
-                $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
+                $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
             $.each(data, function (i, d) {
-                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>'+ d.UserAccount +'</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
             });
 
             $('#note').val('');
