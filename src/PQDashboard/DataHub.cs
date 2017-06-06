@@ -1311,6 +1311,22 @@ namespace PQDashboard
 
         #endregion
 
+        #region [ MeterEventsByLine Operations ]
+
+        public IEnumerable<EventView> GetSimultaneousEvents(int eventId)
+        {
+            DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -5, {0}) and  DateAdd(SECOND, 5, {0})", time);
+        }
+
+        public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
+        {
+            Event record = DataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.LineID);
+        }
+
+        #endregion
+
         #region [ PageSettings ]
 
         public void UpdateDashSettings(int id, string field, string value, string userId)

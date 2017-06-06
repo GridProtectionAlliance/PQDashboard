@@ -288,6 +288,7 @@
     <Content Include="Content\graphics\scrollarrows.png" />
     <Content Include="Content\graphics\zoomin.cur" />
     <Content Include="Content\graphics\zoomout.cur" />
+    <Content Include="Content\jquery.jspanel.css" />
     <Content Include="Content\jquery.jspanel.min.css" />
     <Content Include="Content\overview.css" />
     <Content Include="Content\themes\redmond\images\animated-overlay.gif" />
@@ -560,7 +561,10 @@
     <Content Include="Scripts\jquery-2.2.3.min.js" />
     <Content Include="Scripts\jquery-ui.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
+    <Content Include="Scripts\jquery.jspanel-compiled.js" />
     <Content Include="Scripts\jquery.jspanel-compiled.min.js" />
+    <Content Include="Scripts\jquery.jspanel.js" />
+    <Content Include="Scripts\jquery.jspanel.min.js" />
     <Content Include="Scripts\jquery.multiselect.filter.js" />
     <Content Include="Scripts\jquery.multiselect.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.js" />
