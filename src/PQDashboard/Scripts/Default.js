@@ -1273,10 +1273,6 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 return d;
         });
 
-        $.each(Object.keys(disabledList[currentTab]), function (i, field) {
-            if(disabledList[currentTab][field])
-                toggleSeries(field, true);
-        });
     }
 
     //called when selection is chosen on overview map
