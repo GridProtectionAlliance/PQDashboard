@@ -388,7 +388,7 @@ function populateFaultsDivWithGrid(data) {
         columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true });
 
         if (includeCauseCode)
-            columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+            columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
 
         columns.push({ field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
         columns.push({ field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
