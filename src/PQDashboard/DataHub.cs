@@ -1606,6 +1606,41 @@ namespace PQDashboard
             return false;
         }
 
+        public IEnumerable<FileGroupsForOverview> QueryFileGroupsForOverview(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        {
+            DataTable table = new DataTable();
+
+            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            {
+                using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+                {
+                    sc.CommandText = "SELECT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error " +
+                        "FROM DataFile DF join FileGroup FG on DF.FileGroupID=FG.ID " +
+                        "WHERE (DataStartTime >= @startDateRange AND DataStartTime < DATEADD( " + timeSpanUnit + ", @spanValue, @startDateRange))";
+
+                    sc.CommandType = CommandType.Text;
+                    IDbDataParameter param1 = sc.CreateParameter();
+                    param1.ParameterName = "@spanValue";
+                    param1.Value = timeSpanValue;
+                    IDbDataParameter param2 = sc.CreateParameter();
+                    param2.ParameterName = "@startDateRange";
+                    param2.Value = startTime;
+
+                    sc.Parameters.Add(param1);
+                    sc.Parameters.Add(param2);
+
+                    IDataReader rdr = sc.ExecuteReader();
+                    table.Load(rdr);
+
+                    return table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row)).OrderBy(row => row.DataStartTime);
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public int QueryFileGroupCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             int recordCount = -1;

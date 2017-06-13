@@ -55,5 +55,8 @@ namespace PQDashboard.Model
     }
 
     [TableName("FileGroupOverview")]
-    public class FileGroupsForOverview : FileGroupView { }
+    public class FileGroupsForOverview : FileGroupView
+    {
+        public string FilePath { get; set; }
+    }
 }
