@@ -86,6 +86,9 @@ function showOverviewPage(tab) {
             //$('#today-faults') // **
             buildOverviewFaults(sourcedate, whichday);
 
+            //$('today-files')
+            buildOverviewFiles(sourcedate, whichday);
+
             //$('#today-log')
             buildOverviewLog(sourcedate, whichday);
 
@@ -223,6 +226,27 @@ function showOverviewPage(tab) {
         });
     }
 
+    function buildOverviewFiles(sourcedate, whichday) {
+        $('#' + whichday + '-files').append('<h3 style="text-allign: left; color: black">Files: <span></span></h3>');
+        $('#' + whichday + '-files').append('<div id="' + whichday + '-files-table"> </div>');
+
+        dataHub.queryFileGroupsForOverview(sourcedate, 'dd', 1).done(function (data) {
+            // Filter out multiple files from FileGroup, I just need one file per FileGroup
+            data = data.filter(function (file) { return data.findIndex(function (thing) { return thing.ID == file.ID }) == data.indexOf(file) });
+            $('#' + whichday + '-files-table').puidatatable({
+                caption: 'Files',
+                columns: [
+                    { field: 'DataStartTime', headerText: 'Data Start Time', content: function (row) { return moment(row.DataStartTime).format('MM/DD HH:mm') }, headerStyle: 'width: 30%' },
+                    { field: 'FilePath', headerText: 'File', content: function (row) { var strings = row.FilePath.split('\\'); return strings[strings.length - 1].split('.')[0];}} //Filter out filepath and extension
+                ],
+                datasource: data,
+            });
+
+            // last thing - resize
+            $(window).resize();
+        });
+    }
+
     function buildOverviewLog(sourcedate, whichday) {
 
         ////$('#' + whichday + '-log') // * // history OR today
@@ -231,7 +255,7 @@ function showOverviewPage(tab) {
 
         // -- PRIME UI IMPLEMENTATION --
         // --------------------------------------------------------------------------------------------------------------------
-        $('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Disturbance Log: <span></span></h3>');
+        $('#' + whichday + '-log').append('<h3 style="text-allign: left; color: black">Event Log: <span></span></h3>');
         $('#' + whichday + '-log').append('<div id="' + whichday + '-log-table"> </div>');
         dataHub.queryFaultSummarysForOverviewRecords(sourcedate, 'dd', 1).done(function (data) {
             // PRIME UI
