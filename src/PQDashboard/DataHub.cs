@@ -1641,6 +1641,24 @@ namespace PQDashboard
             }
         }
 
+        public IEnumerable<EventView> QueryFileGroupEvents(int FileGroupID)
+        {
+            DataTable table = new DataTable();
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = "SELECT * " +
+                    "FROM EventView " +
+                    "WHERE FileGroupID=" + FileGroupID.ToString();
+
+                IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+
+                return table.Select().Select(row => DataContext.Table<EventView>().LoadRecord(row));
+            }
+        }
+
+
         public int QueryFileGroupCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             int recordCount = -1;
