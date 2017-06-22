@@ -496,6 +496,7 @@
     <Content Include="Scripts\flot\NEWS.md" />
     <Content Include="Scripts\flot\PLUGINS.md" />
     <Content Include="Scripts\flot\README.md" />
+    <None Include="Properties\PublishProfiles\GPAWEB.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-2.2.3.intellisense.js" />
     <Content Include="Scripts\ChannelDataCompleteness.js" />
