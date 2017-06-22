@@ -25,6 +25,7 @@
     width: 100%;
     height: 100%;
     max-width: 100%;
+    column-width: 600px;
 }
 
 .grid2:after {
@@ -35,7 +36,15 @@
 
 .grid2-sizer,
 .grid2-item {
-    width: 292px;
+    width: 25%;
+}
+
+.grid2-item-wide {
+    width: 50%;
+}
+
+.grid2-item-tall {
+    height: 100%;
 }
 
 .grid2-item,
@@ -50,7 +59,7 @@
 
 /* a large grid2 item is twice (2x) the width of a grid2 item*/
 .grid2-item-large {
-    width: 584px;
+    width: 50%;
 }
 
 html {
