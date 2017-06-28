@@ -269,9 +269,6 @@
 
         <div id="tabs-Overview-Today" style="background-color: #064e1b; width: 100%; height: 100%">
             <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-                <div style="text-align: center; color: white">
-                    <h3>PQ Overview for <span id="overviewTodayDate"></span>.</h3>
-                </div>
                 <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
                 <div class="grid2" id="grid2Today">
                     <div class="grid2-sizer"></div>
@@ -289,20 +286,28 @@
                             <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
                         </div>
                     </div>
-                    <div class="grid2-item-large" id="grid2-item-today-5" style="top: 0;">
-                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">FILES PROCESSED</h3>
-                            <span style="float: right; color: silver">Expand row to view events</span>
-                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
-                            <div id="today-files" style="background-color: white; border-color: black"></div>
+                    <div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">METER ACTIVITY</h3>
+                            <span style="float: right; color: silver">Click on event count to view events</span>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                            <div id="today-meter-activity" style="background-color: white; border-color: black"></div>
                         </div>
                     </div>
-                    <div class="grid2-item-large" id="grid2-item-Today-3" style="top: 0;">
+                    @*<div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;" hidden="hidden">
                         <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
                             <h3 style="display:inline">EVENT LOG</h3>
                             <span style="float: right; color: silver">Click on time to display waveform</span>
                             <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
                             <div id="today-log" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>*@
+                    <div class="grid2-item-wide" id="grid2-item-today-5" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">FILES PROCESSED LAST 24 HOURS</h3>
+                            <span style="float: right; color: silver" id="files-hint">Expand row to view events</span>
+                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
+                            <div id="today-files" style="background-color: white; border-color: black"></div>
                         </div>
                     </div>
                     <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%;" hidden="hidden">
@@ -419,55 +424,58 @@
 
                 <div class="grid2" id="grid2Yesterday">
                     <div class="grid2-sizer"></div>
-                        <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
-                            <h5> DOWNLOADS </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black">
-                                <div id="history-downloads"></div>
-                            </div>
-                        </div>
+                    <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
+                        <h5> DOWNLOADS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="downloadsChart" style="width: 50%; height: 100%"></div>
 
-                        <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
-                            <h5> ALARMS </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black">
-                                <div id="history-alarms"></div>
-                            </div>
-                        </div>
+                            <div id="history-downloads" style="width: 50%; height: 100%">
 
-                        <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
-                            <h5> OFF-NORMAL </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black">
-                                <div id="history-offnormal"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid2-item" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
-                            <h5> PREVIOUS 30 DAYS </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll; height:90%; width: 100%">
-                                <div id="history-thirtyday-a" style="height:25%" ></div>
-                                <div id="history-thirtyday-offnormal" style="background-color: white; height:25%"></div>
-                                <div id="history-thirtyday-disturbances" style="background-color: white; height:25%"></div>
-                                <div id="history-thirtyday-faults" style="background-color: white; height:25%"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid2-item-large" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
-                            <h5> VOLTAGE DISTURBANCES </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black">
-                                <div id="history-voltages"></div>
-                                <div id="history-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
-                            </div>
-                        </div>
-
-                        <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
-                            <h5> FAULTS </h5>
-                            <div class="well well-sm" style="background-color: white; border-color: black">
-                                <div id="history-faults"></div>
                             </div>
                         </div>
                     </div>
 
+                    <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
+                        <h5> ALARMS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-alarms"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
+                        <h5> OFF-NORMAL </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-offnormal"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item grid2-item-tall" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
+                        <h5> PREVIOUS 30 DAYS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll; height:90%; width: 100%">
+                            <div id="history-thirtyday-a" style="height:25%"></div>
+                            <div id="history-thirtyday-offnormal" style="background-color: white; height:25%"></div>
+                            <div id="history-thirtyday-disturbances" style="background-color: white; height:25%"></div>
+                            <div id="history-thirtyday-faults" style="background-color: white; height:25%"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item-wide" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
+                        <h5> VOLTAGE DISTURBANCES </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-voltages"></div>
+                            <div id="history-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
+                        <h5> FAULTS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-faults"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
         <div id="tabs-ModbusData">
             <iframe id="modbusFrame"></iframe>
@@ -787,6 +795,11 @@
 
     function OpenWindowToMeterEventsByLine(id) {
         var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterEventsByLine");
+        return false;
+    }
+
+    function OpenWindowToMeterEventsByLineTwo(id, context) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+context, id + "MeterEventsByLine");
         return false;
     }
 

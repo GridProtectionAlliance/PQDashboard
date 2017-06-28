@@ -1670,6 +1670,73 @@ namespace PQDashboard
             return recordCount;
         }
 
+        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false)
+        {
+            string order;
+            order = ascending ? "ASC" : "DESC";
+
+            if (orderBy == null || orderBy.IndexOf("24h", StringComparison.OrdinalIgnoreCase) >= 0)
+                orderBy = "Events24Hours";
+            else if (orderBy.IndexOf("7d", StringComparison.OrdinalIgnoreCase) >= 0)
+                orderBy = "Events7Days";
+            else
+                orderBy = "Events30Days";
+
+            DataTable table = new DataTable();
+
+            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
+            {
+                sc.CommandText = @" SELECT	TOP " + numberOfResults + @" m.*, 
+		                                    (CASE WHEN E24H.EventCount IS NULL THEN 0 ELSE E24H.EventCount END) AS Events24Hours,
+		                                    (CASE WHEN E7D.EventCount IS NULL THEN 0 ELSE E7D.EventCount END) AS Events7Days,
+		                                    (CASE WHEN E30D.EventCount IS NULL THEN 0 ELSE E30D.EventCount END) AS Events30Days,
+                                            FirstEvent.EventID AS FirstEventID
+
+                                    FROM	Meter AS m LEFT OUTER JOIN
+		                                    (SELECT m.ID, COUNT(e.ID) AS EventCount
+		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
+		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(HH,-24,@StartTime)
+		                                    GROUP BY m.ID) AS E24H ON m.ID=E24H.ID LEFT OUTER JOIN
+	
+	                                        (SELECT m.ID, COUNT(e.ID) AS EventCount
+		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
+		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-7,@StartTime)
+		                                    GROUP BY m.ID) AS E7D ON E24H.ID=E7D.ID LEFT OUTER JOIN
+
+                                        	(SELECT m.ID, COUNT(e.ID) AS EventCount
+		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
+		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-30,@StartTime)
+		                                    GROUP BY m.ID) AS E30D ON E24H.ID=E30D.ID LEFT OUTER JOIN
+
+                                            (SELECT Meter.ID, FirstEvent.EventID
+                                            FROM Meter LEFT OUTER JOIN
+                                                (SELECT e.MeterID, MIN(e.ID) AS EventID
+                                                FROM Event e JOIN
+                                                    (SELECT e.MeterID, MAX(e.StartTime) AS MinStartTime
+                                                    FROM Event e
+                                                    WHERE e.StartTime<=@StartTime 
+                                                    GROUP BY e.MeterID) AS MinStartTime ON MinStartTime.MeterID=e.MeterID AND MinStartTime.MinStartTime=e.StartTime
+                                                GROUP BY e.MeterID) AS FirstEvent ON FirstEvent.MeterID=Meter.ID) AS FirstEvent ON FirstEvent.ID=m.ID
+
+                                    ORDER BY " + orderBy + " " + order;
+
+                sc.CommandType = CommandType.Text;
+
+                IDbDataParameter param1 = sc.CreateParameter();
+                param1.ParameterName = "@StartTime";
+                param1.Value = startTime;
+                sc.Parameters.Add(param1);
+
+                IDataReader rdr = sc.ExecuteReader();
+                table.Load(rdr);
+
+                if (ascending)
+                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+                else
+                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+            }
+        }
+
         public int QueryMeterCount(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             int recordCount = -1;
@@ -1678,6 +1745,15 @@ namespace PQDashboard
             {
                 recordCount = DataContext.Table<Model.Meter>().QueryRecordCountWhere("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
             }
+
+            return recordCount;
+        }
+
+        public int QueryTotalMeterCount()
+        {
+            int recordCount;
+
+            recordCount = DataContext.Table<Meter>().QueryRecordCount();
 
             return recordCount;
         }

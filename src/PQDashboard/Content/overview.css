@@ -39,22 +39,21 @@
     width: 25%;
 }
 
-.grid2-item-wide {
-    width: 50%;
-}
-
-.grid2-item-tall {
-    height: 100%;
-}
-
-.grid2-item,
-.grid2-item-large {
+.grid2-item {
     float: left;
     border-color: black;
     border: 2px solid black;
     border-radius: 0px;
     text-align: center;
     margin-bottom: 0px;
+}
+
+.grid2-item-wide {
+    width: 50%;
+}
+
+.grid2-item-tall {
+    height: 100%;
 }
 
 /* a large grid2 item is twice (2x) the width of a grid2 item*/

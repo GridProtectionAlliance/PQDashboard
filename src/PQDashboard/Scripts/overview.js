@@ -34,7 +34,7 @@ var cache_Overview_ThirtyDay_Faults = null;
 
 // Settings
 var updateInterval = 300000;
-var rowsPerPage = 18;
+var rowsPerPage = 23;
 
 function showOverviewPage(tab) {
     var whichday = 'history';
@@ -55,7 +55,8 @@ function showOverviewPage(tab) {
         horizontalOrder: true
     });
 
-    $('#overviewContainer').css('min-height', $(window).height() - $('#tabs-' + currentTab).offset().top);
+    // Select all divs with id=overviewContainer since both overview-today and overview-yesterday have divs with the same id's
+    $('div[id^="overviewContainer"]').css('min-height', $(window).height() - $('#tabs-' + currentTab).offset().top);
 
     $(window).resize(function () {
         $('.grid2').masonry('layout');
@@ -107,6 +108,8 @@ function buildDashboardCharts(whichday) {
 
         //$('#today-voltages') // ***
         buildOverviewVoltages(sourcedate, whichday);
+
+        buildOverviewMeterActivity(sourcedate, whichday);
     };
 
     if (currentTab === 'Overview-Yesterday') {
@@ -149,29 +152,76 @@ function buildOverviewDownloads(sourcedate, whichday) {
     //$('#' + whichday + '-downloads') // * // history OR today
     // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-1 
     // for history this is the contents of - grid2.grid2-item id = grid2-item-Yesterday-1
-    $('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
-    $('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"> </table>');
-    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
-    $('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+    //$('#' + whichday + '-downloads').append('<h3 style="text-allign: left; color: darkblue">Event Files: <span></span> </h3>');
+    //$('#' + whichday + '-downloads').append('<table class="table table-striped table-condensed" id="' + whichday + '-downloads-table" style="width: 100%; border: 2px; padding: 5px; border-spacing: 5px"></table>');
+    //$('#' + whichday + '-downloads-table').append('</tr><tr><th style="text-align: center; color: darkblue"><h4>Meters</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-meters"></h3></td></tr>');
+    //$('#' + whichday + '-downloads-table').append('<tr><th style="text-align: center; color: darkblue"><h4>Lines</h4></th><td style="text-align: center;color: black"><h3 id="' + whichday + '-lines"></h3></td></tr>');
+
+    var filegroupCount;
+    var metersDownloadedFromCount;
+    var totalMeterCount;
+    var lineCount;
 
     dataHub.queryFileGroupCount(sourcedate, 'dd', 1).done(function (data) {
-        var element = $('#' + whichday + '-downloads span').first();
-        if (data === undefined) {
-        }
-        else {
-            $(element).append(data);
-        }
-        // last thing - resize
-        $(window).resize();
+        filegroupCount = data;
+        dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
+            metersDownloadedFromCount = data;
+            dataHub.queryTotalMeterCount().done(function (data) {
+                totalMeterCount = data;
+                dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
+                    lineCount = data;
+                    var data = [{
+                        values: [metersDownloadedFromCount, totalMeterCount - metersDownloadedFromCount],
+                        labels: ['Download', 'No Download'],
+                        marker: {
+                            colors: ['orange', 'silver']
+                        },
+                        showlegend: false,
+                        sort: false,
+                        direction: "clockwise",
+                        rotation: 90,
+                        name: 'Download Percentage',
+                        hoverinfo: 'label+percent+value',
+                        textinfo: 'none',
+                        hole: .65,
+                        type: 'pie'
+                    }];
+
+                    var layout = {
+                        annotations: [
+                            {
+                                font: {
+                                    size: 20
+                                },
+                                showarrow: false,
+                                text: Math.round(metersDownloadedFromCount / totalMeterCount * 1000) / 10 + '%',
+                                xref: 'paper',
+                                xanchor: 'center',
+                                x: 0.5,
+                                yref: 'paper',
+                                yanchor: 'center',
+                                y: 0.5
+                            }
+                        ],
+                        margin: {
+                            l: 0,
+                            r: 0,
+                            t: 0,
+                            b: 0
+                        }
+                    };
+
+                    Plotly.newPlot('downloadsChart', data, layout);
+
+                    var text = filegroupCount + ' event files downloaded from ' + metersDownloadedFromCount + ' meters, from a total of ' + totalMeterCount + ' meters on ' + lineCount + ' electrical elements.'
+                    $('#' + whichday + '-downloads').append('<h3 style="text-allign: left;">' + text + '<span></span> </h3>');
+                    $(window).resize();
+                });
+            })
+        });
     });
 
-    dataHub.queryMeterCount(sourcedate, 'dd', 1).done(function (data) {
-        $('#' + whichday + '-meters').append(data);
-    });
 
-    dataHub.queryLineCount(sourcedate, 'dd', 1).done(function (data) {
-        $('#' + whichday + '-lines').append(data);
-    });
 }
 
 function buildOverviewFaults(sourcedate, whichday) {
@@ -218,13 +268,14 @@ function buildOverviewFiles(sourcedate, whichday) {
         // Filter out multiple files from FileGroup, I just need one file per FileGroup
         data = data.filter(function (file) { return data.findIndex(function (thing) { return thing.ID == file.ID }) == data.indexOf(file) });
         $('#' + whichday + '-files-table').puidatatable({
+            responsive: true,
             paginator: {
                 rows: rowsPerPage
             },
             columns: [
-                { rowToggler: true, bodyStyle: 'width:24px', headerStyle: 'width:24px' },
+                { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
                 { field: 'DataStartTime', headerText: 'Start Time', content: function (row) { return moment(row.DataStartTime).format('MM/DD HH:mm') }, headerStyle: 'width: 100px' },
-                { field: 'FilePath', headerText: 'File Group', content: function (row) { return buildFileGroupContent(row) } },
+                { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } },
             ],
             datasource: data,
             rowExpand: function (event, data) {
@@ -249,8 +300,23 @@ function buildOverviewFiles(sourcedate, whichday) {
 
 function buildFileGroupContent(row) {
     var filepath = row.FilePath.split('\\');
-    var filename = filepath[filepath.length - 1].split('.')[0];
-    var html = '<a href="' + xdaInstance + '/Workbench/DataFiles.cshtml" style="color: Blue" target="_blank">' + filename + '</a>';
+    var fullFilename = filepath[filepath.length - 1].split('.')[0];
+    var filenameParts = fullFilename.split(',');
+    var shortFilename = "";
+    var inTimestamp = true;
+    for (var i = 0; i < filenameParts.length; i++) {
+        if (inTimestamp) {
+            if (!(/^-?\d/.test(filenameParts[i]))) {
+                inTimestamp = false;
+                shortFilename += filenameParts[i];
+            }
+        }
+        else {
+            shortFilename += filenameParts[i];
+        }
+    }
+    
+    var html = '<a href="' + xdaInstance + '/Workbench/DataFiles.cshtml" title="' + fullFilename + '" style="color: Blue" target="_blank">' + shortFilename + '</a>';
 
     return html;
 }
@@ -307,6 +373,73 @@ function buildOverviewLog(sourcedate, whichday) {
     });
 }
 
+function buildOverviewMeterActivity(sourcedate, whichday) {
+    $('#' + whichday + '-meter-activity').append('<div id="' + whichday + '-most-active-meters-table"> </div>');
+    $('#' + whichday + '-meter-activity').append('<div id="' + whichday + '-least-active-meters-table"> </div>');
+
+    $('#' + whichday + '-most-active-meters-table').puidatatable({
+        caption: 'Most Active Meters',
+        lazy: true,
+        responsive: true,
+        columns: [
+            { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row) } },
+            { field: 'Events24Hours', headerText: 'Events 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'day') } },
+            { field: 'Events7Days', headerText: 'Events 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'week') } },
+            { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'month') } },
+        ],
+
+        datasource: function (callback, ui) {
+            $this = this;
+            dataHub.queryMeterActivity(sourcedate, ui.sortField, 11, false).done(function (data) {
+                callback.call($this, data);
+            })
+        }
+    });
+
+    $('#' + whichday + '-least-active-meters-table').puidatatable({
+        caption: 'Least Active Meters',
+        lazy: true,
+        responsive: true,
+        columns: [
+            { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row); } },
+            { field: 'Events24Hours', headerText: 'Events 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'day') } },
+            { field: 'Events7Days', headerText: 'Events 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'week') } },
+            { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'month') } },
+        ],
+
+        datasource: function (callback, ui) {
+            var $this = this;
+            dataHub.queryMeterActivity(sourcedate, ui.sortField, 11, true).done(function (data) {
+                callback.call($this, data);
+            })
+        }
+    });
+
+    $(window).resize();
+}
+
+function createMeterActivityAssetKeyContent(row) {
+    var tooltip = 'Name: ' + row.Name + '; ID: ' + row.ID;
+    return '<span title="' + tooltip + '">' + row.AssetKey + '</span>'
+}
+
+function createMeterActivityEventsContent(row, context) {
+    var events
+
+    if (context == 'day')
+        events = row.Events24Hours;
+    else if (context == 'week')
+        events = row.Events7Days;
+    else
+        events = row.Events30Days;
+
+    if (events > 0) {
+        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context +'\')" style="color: blue">' + events + '<a>'
+    }
+    else {
+        return '<a>' + events + '</a>';
+    }
+}
 function buildOverviewVoltages(sourcedate, whichday) {
     //$('#' + whichday + '-voltages') // * // history OR today
     // for today this is the contents of - grid2.grid2-item id = grid2-item-Today-4 
@@ -429,7 +562,7 @@ function buildOverviewVoltages(sourcedate, whichday) {
             }
         };
 
-        Plotly.plot(whichday + '-voltages-chart', chartdatab, chartlayout, { displayModeBar: false });
+        Plotly.newPlot(whichday + '-voltages-chart', chartdatab, chartlayout, { displayModeBar: false });
         //Plotly.plot(gd, chartdatab, chartlayout, { displayModeBar: false });
 
         // last thing - resize
