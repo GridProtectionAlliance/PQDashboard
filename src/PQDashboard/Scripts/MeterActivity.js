@@ -24,6 +24,10 @@
 // Settings
 var updateInterval = 300000;
 var rowsPerPage = 23;
+var autoUpdate = setInterval(
+    function () {
+        buildMeterActivityTables();
+    }, updateInterval);
 
 function showMeterActivity() {
     $('.grid2').masonry({
@@ -42,12 +46,6 @@ function showMeterActivity() {
 
     // add charts and graphs
     buildMeterActivityTables();
-
-    // Add auto refresh functionality
-    refresh = setInterval(
-    function () {
-        buildMeterActivityTables();
-    }, updateInterval);
 }
 
 function buildMeterActivityTables() {
@@ -113,8 +111,6 @@ function buildMeterActivity(sourcedate) {
             })
         }
     });
-
-    $(window).resize();
 }
 
 function createMeterActivityAssetKeyContent(row) {
@@ -173,7 +169,6 @@ function buildMeterActivityFiles(sourcedate) {
             responsive: true,
         });
 
-        // last thing - resize
         $(window).resize();
     });
 }
