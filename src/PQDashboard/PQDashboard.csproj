@@ -597,6 +597,7 @@
     <Content Include="Scripts\Leaflet\leaflet1.0.css" />
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
     <Content Include="Scripts\masonry.pkdg.min.js" />
+    <Content Include="Scripts\MeterActivity.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\moment.min.js" />

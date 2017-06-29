@@ -73,7 +73,7 @@ var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
-var leafletMap = {'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
+var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
 var contourOverlay = null;
@@ -3540,6 +3540,9 @@ function selectMeterGroup(thecontrol) {
         $('#headerStrip').hide();
         showOverviewPage(currentTab);
     }
+    else if (newTab === "MeterActivity") {
+        showMeterActivity()
+    }
     else if (newTab === "ModbusData") {
         showModbusData();
     }
@@ -3813,6 +3816,9 @@ function buildPage() {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
             }
+            else if (newTab === "MeterActivity") {
+                showMeterActivity();
+            }
             else if (newTab === "ModbusData") {
                 showModbusData();
             }
@@ -3860,7 +3866,11 @@ function buildPage() {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
 
-            } else if (currentTab === "ModbusData") {
+            }
+            else if (currentTab === "MeterActivity") {
+                showMeterActivity();
+            }
+            else if (currentTab === "ModbusData") {
                 showModbusData();
             }
             else if (currentTab === "HistorianData") {

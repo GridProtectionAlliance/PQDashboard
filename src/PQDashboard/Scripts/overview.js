@@ -92,6 +92,8 @@ function buildDashboardCharts(whichday) {
         $('#today-log').children().remove();
         $('#today-voltages').children().remove();
         $('#today-voltages-chart').children().remove();
+        $('#today-meter-activity').children().remove();
+        $('#today-files').children().remove();
 
         // add charts and graphs to each Masonry.GridItem...
         //$('#today-downloads') // *
