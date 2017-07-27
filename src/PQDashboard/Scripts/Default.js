@@ -860,7 +860,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
             } else if (thediv === "TrendingData") {
 
             } else
-                buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate);
+                buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate, context);
         }
     });
 
@@ -871,6 +871,171 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
         })
     }
     
+}
+
+function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+
+    if (brush === null) {
+        brush = d3.svg.brush()
+    }
+
+    buildChart(data, thediv, thedatefrom, thedateto);
+    buildOverChart(data, thediv, thedatefrom, thedateto);
+
+
+    function buildChart(data, thediv, thedatefrom, thedateto) {
+        var fields = [];
+        var startDate = new Date(thedatefrom);
+        var endDate = new Date(thedateto);
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Days" : globalContext);
+
+        $.each(data.keys, function (i, key) {
+            fields.push({
+                x: data.graphData.map(function (a) {
+                    var now = new Date(a.Date);
+                    var utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+                    return utc
+                }),
+                y: data.graphData.map(function (a) { return a[key] }),
+                name: key,
+                marker: {
+                    color: data.colors[i],
+                },
+                type: 'bar'
+            });
+        });
+
+        var tickFormat;
+        var xAxisLabel;
+        if (context == 'day') {
+            tickFormat = Plotly.d3.time.format.utc("%H");
+            xAxisLabel = 'Hours';
+        }
+        else if (context == 'hour') {
+            tickFormat = Plotly.d3.time.format.utc("%M");
+            xAxisLabel = 'Minutes';
+        }
+        else if (context == 'minute' || context == 'second') {
+            tickFormat = Plotly.d3.time.format.utc("%S");
+            xAxisLabel = 'Seconds';
+        }
+        else {
+            tickFormat = Plotly.d3.time.format.utc("%b-%d");
+            xAxisLabel = 'Days';
+        }
+        var layout = {
+            xaxis: {
+                title: xAxisLabel,
+                type: 'date',
+                tickFormat: tickFormat,
+                range: [new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000).getTime(), new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000).getTime()]
+            },
+            yaxis: {
+                title: currentTab + ' Counts',
+                range: [0]
+            },
+            barmode: 'stack'
+        };
+        $('#' + thediv).children().remove();
+        Plotly.newPlot(thediv, fields.reverse(), layout);
+
+        $('#' + thediv).off('plotly_click');
+        $('#' + thediv).on('plotly_click', function (event, data) {
+            var thedate = getFormattedDate(data.Date);
+            contextfromdate = thedate;
+            contexttodate = thedate;
+            var filter = [];
+            //$.each(legend.selectAll("rect"), function (i, element) {
+            //    if ($(this).css('fill') !== 'rgb(128, 128, 128)')
+            //        filter.push(element[0].__data__);
+            //});
+
+            manageTabsByDateForClicks(currentTab, thedate, thedate, null);
+            cache_Last_Date = thedate;
+        });
+    }
+    function buildOverChart(data, thediv, thedatefrom, thedateto) {
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Days" : globalContext);
+        var startDate = new Date(thedatefrom);
+        var endDate = new Date(thedateto);
+        var chartData = [{
+            x: data.graphData.map(function (a) {
+                var now = new Date(a.Date);
+                var utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+                return utc
+            }),
+            y: data.graphData.map(function (a) {
+                var total = 0;
+                $.each(Object.keys(a), function (index, key) {
+                    if(key != 'Date')
+                        total += parseInt(a[key]);
+                });
+                return total;
+            }),
+            type: 'bar',
+            hoverinfo: 'none',
+            marker: {
+                color: 'black'
+            }
+        }];
+
+        var layout = {
+            autosize: false,
+            width: $('#' + thediv + 'Overview').width(),
+            height: $('#' + thediv + 'Overview').height() - 15,
+            margin: {
+                l: 50,
+                r: 50,
+                b: 15,
+                t: 0,
+                pad: 0
+            },
+            xaxis: {
+                type: 'date',
+                showline: true,
+                tickFormat: Plotly.d3.time.format.utc("%b-%d"),
+                range: [new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000).getTime(), new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000).getTime()],
+                fixedrange: true
+
+            },
+            yaxis: {
+                autorange: true,
+                showgrid: false,
+                zeroline: false,
+                showline: false,
+                autotick: true,
+                ticks: '',
+                showticklabels: false,
+                fixedrange: true
+            }
+        };
+        $('#' + thediv + 'Overview').children().remove();
+        Plotly.newPlot(thediv + 'Overview', chartData, layout, { displayModeBar: false });
+
+        //$('#' + thediv + 'Overview').off('plotly_selected');
+        //$('#' + thediv + 'Overview').on('plotly_selected', function (event, clickData) {
+        //    if (clickData == undefined)
+        //        buildChart(data, thediv, thedatefrom, thedateto)
+        //    else {
+        //        var newGraphData = {
+        //            colors: data.colors,
+        //            graphData: $.grep(data.graphData, function (a) { if (a.Date >= Date.parse(clickData.range.x[0]) && a.Date < Date.parse(clickData.range.x[1])) return a; }),
+        //            keys: data.keys
+        //        }
+        //        buildChart(newGraphData, thediv, clickData.range.x[0], clickData.range.x[1])
+        //    }
+        //});
+        brush.on("brush", brushed);
+
+        var svg = d3.select("#" + thediv + 'Overview').select('svg');
+        svg.append("g").attr("class", "x brush").call(brush).selectAll("rect").attr("y", -6).attr("height", $("#" + thediv + 'Overview').height() + 7);  // +7 is magic number for styling
+
+        function brushed() {
+
+        }
+    }
+
 }
 
 function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
@@ -920,29 +1085,28 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     if (context == 'day') {
         numSamples = 24;
-        x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
-        xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1,date2]).range([0, width]);
+        xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%H'));
         XaxisLabel = 'Hours';
     }
     else if (context == 'hour') {
         numSamples = 60;
-        x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
-        xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1, thedateto]).range([0, width]);
+        xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         XaxisLabel = 'Minutes';
     }
     else if (context == 'minute' || context == 'second') {
         numSamples = 60;
-        x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
-        xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto)]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1, thedateto]).range([0, width]);
+        xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         XaxisLabel = 'Seconds';
     }
     else {
-        numSamples = Math.floor(moment.duration(date2.diff(date1)).asDays());
-        x = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
-        xOverview = d3.time.scale.utc().domain([Date.parse(thedatefrom), Date.parse(thedateto) + 1000 * 60 * 60 * 24]).range([0, width]);
+        numSamples = Math.ceil(moment.duration(date2.utc().endOf('day').diff(date1.utc())).asDays());
+        x = xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
         XaxisLabel = 'Days';
     }
@@ -984,9 +1148,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         $.each(tempKeys, function (j, k) {
             if (disabledList[currentTab][k] === true)
                 chartData[i][k] = 0;
-
         });
-
     });
 
 
@@ -1029,7 +1191,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         }
         else {
-            numSamples = Math.ceil(moment.duration(endDate.diff(startDate)).asDays());
+            numSamples = Math.ceil(moment.duration(endDate.utc().endOf('day').diff(startDate.utc())).asDays());
+            x = d3.time.scale.utc().domain([startDate, endDate]).range([0, width]);
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 10 ? numSamples : 10)).tickFormat(d3.time.format.utc('%m/%d'));
         }
 
@@ -1054,7 +1217,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                     .attr("y2", y);
 
         if (context != "custom" && tabsForDigIn.indexOf(currentTab) >= 0) {
-            d3.select("#" + thediv).append("div")
+            var btnBar = d3.select("#" + thediv).append("div")
                 .attr("id", "btnBar")
                 .attr("class", "modebar modebar--hover")
                 .style("position", "absolute")
@@ -1062,7 +1225,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .style("top", "0")
                 .style("left", ($('#Overview' + currentTab).width() / 2 ) + "px");
 
-            d3.select("#btnBar").append("div")
+            btnBar.append("div")
                 .attr("class", "modebar-group")
                 .style("display", "table-cell")
                 .style("padding", "2px")
@@ -1075,7 +1238,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .append("span")
                 .attr("class", "glyphicon glyphicon-backward");
 
-            d3.select("#btnBar").append("div")
+            btnBar.append("div")
                 .attr("class", "modebar-group")
                 .style("display", "table-cell")
                 .style("padding", "2px")
@@ -1086,7 +1249,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .style("cursor", "pointer")
                 .text("Step Out ");
 
-            d3.select("#btnBar").append("div")
+            btnBar.append("div")
                 .attr("class", "modebar-group")
                 .style("display", "table-cell")
                 .style("padding", "2px")

@@ -484,8 +484,8 @@ namespace PQDashboard
             }
             else
             {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom);
-                eventSet.EndDate = DateTime.Parse(targetDateTo);
+                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                eventSet.EndDate = DateTime.Parse(targetDateTo).ToUniversalTime();
                 contextWord = "DateRange";
             }
             Dictionary<string, string> colors = new Dictionary<string, string>();
@@ -873,8 +873,8 @@ namespace PQDashboard
             }
             else
             {
-                beginDate = DateTime.Parse(startDate);
-                finishDate = DateTime.Parse(endDate);
+                beginDate = DateTime.Parse(startDate).ToUniversalTime();
+                finishDate = DateTime.Parse(endDate).ToUniversalTime();
             }
 
             DataTable table = DataContext.Connection.RetrieveData(
@@ -1128,8 +1128,8 @@ namespace PQDashboard
             }
             else
             {
-                startDate = DateTime.Parse(targetDateFrom);
-                endDate = DateTime.Parse(targetDateTo);
+                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
+                endDate = DateTime.Parse(targetDateTo).ToUniversalTime();
             }
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
