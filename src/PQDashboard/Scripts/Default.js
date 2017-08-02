@@ -1092,14 +1092,14 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
     else if (context == 'hour') {
         numSamples = 60;
-        x = d3.time.scale.utc().domain([date1, thedateto]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         XaxisLabel = 'Minutes';
     }
     else if (context == 'minute' || context == 'second') {
         numSamples = 60;
-        x = d3.time.scale.utc().domain([date1, thedateto]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%S'));
         XaxisLabel = 'Seconds';
@@ -2978,6 +2978,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     currentTab = theNewTab;
+    var barChartStartDate = thedatefrom;
     if (globalContext == "custom") {
         $('.contextWindow').text('Date Range');
     }
@@ -2992,6 +2993,9 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     }
     else if (globalContext == "second") {
         $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
+        var thing = thedatefrom.split('');
+        thing.splice(thedatefrom.length - 3, 2, '0', '0');
+        barChartStartDate = thing.join('');
     }
     
     var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
@@ -3013,7 +3017,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     }
 
-    populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
+    populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), barChartStartDate, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
 

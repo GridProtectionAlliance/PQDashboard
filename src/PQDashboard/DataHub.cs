@@ -476,7 +476,7 @@ namespace PQDashboard
                 eventSet.EndDate = eventSet.StartDate.AddHours(1).AddSeconds(-1);
                 contextWord = "Minute";
             }
-            else if (context == "minute")
+            else if (context == "minute" || context =="second")
             {
                 eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
                 eventSet.EndDate = eventSet.StartDate.AddMinutes(1).AddSeconds(-1);
