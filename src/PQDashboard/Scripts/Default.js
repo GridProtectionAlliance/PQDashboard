@@ -1785,7 +1785,7 @@ function buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         if (item) {            
             $('.contourControl').show();
             cache_Contour_Data = null;
-            var thedate = $.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y");
+            var thedate = getFormattedDate($.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y"));
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
             cache_Last_Date = thedate;
 
@@ -2931,7 +2931,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
         globalContext = "day";
 
     currentTab = theNewTab;
-    var barChartStartDate = thedatefrom;
+    var barChartStartDate = thedatefrom, tableDate = thedatefrom;
 
     setMapHeaderDate(thedatefrom, thedateto);
     if (globalContext == "second") {
@@ -2948,7 +2948,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     resizeMapAndMatrix(theNewTab);
 
     if (globalContext != "custom")
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
+        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), tableDate);
     else {
         if ($('#Detail' + currentTab + 'Table').children().length > 0) {
             var parent = $('#Detail' + currentTab + 'Table').parent();
