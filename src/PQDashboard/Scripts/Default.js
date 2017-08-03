@@ -1543,25 +1543,25 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc();
             thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
         }
-        else if (context == "day") {
+        else if (tabsForDigIn.indexOf(currentTab) >= 0 && context == "day") {
             thedatefrom = moment(contextfromdate).utc().startOf('day');
             thedateto = moment(contextfromdate).utc().endOf('day');
         }
-        else if (context == "hour") {
+        else if (tabsForDigIn.indexOf(currentTab) >= 0 && context == "hour") {
             thedatefrom = moment(contextfromdate).utc().startOf('hour');
             thedateto = moment(contextfromdate).utc().endOf('hour');
         }
-        else if (context == "minute") {
+        else if (tabsForDigIn.indexOf(currentTab) >= 0 && context == "minute") {
             thedatefrom = moment(contextfromdate).utc().startOf('minute');
             thedateto = moment(contextfromdate).utc().endOf('minute');
         }
-        else if (context == "second") {
+        else if (tabsForDigIn.indexOf(currentTab) >= 0 && context == "second") {
             thedatefrom = moment(contextfromdate).utc().startOf('second');
             thedateto = moment(contextfromdate).utc().endOf('second');
         }
         else {
-            thedatefrom = moment(contextfromdate).utc();
-            thedateto = moment(contextfromdate).utc();
+            thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc();
+            thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
         }
 
 
@@ -2880,46 +2880,6 @@ function LoadHeatmapLeaflet(thedata) {
     L.control.layers().addOverlay(heatmap, "Heatmap layer");
 }
 
-function highlightDaysInCalendar(date) {
-    var i = -1;
-
-    //if ((i = $.inArray(date.toString().substr(0, 16), calendardatesEvents)) > -1) {
-
-        switch ( currentTab ) {
-        
-            case "Events":
-                if ((i = $.inArray(date.toString().substr(0, 16), calendardatesEvents)) > -1) {
-                    return [true, 'highlight', calendartipsEvents[i]];
-                }
-
-                break;
-
-            case "Faults":
-                if ((i = $.inArray(date.toString().substr(0, 16), calendardatesEvents)) > -1) {
-                    if (calendartipsEvents[i].indexOf("Fault") > -1) {
-                        return [true, 'highlight', calendartipsEvents[i]];
-                    }
-                }
-                break;
-
-            case "Trending":
-                if ((i = $.inArray(date.toString().substr(0, 16), calendardatesTrending)) > -1) {
-                    return [true, 'highlight', calendartipsTrending[i]];
-                }
-                break;
-
-            case "Breakers":
-                if ((i = $.inArray(date.toString().substr(0, 16), calendardatesBreakers)) > -1) {
-                    return [true, 'highlight', calendartipsBreakers[i]];
-                }
-                break;
-        }
-    
-    return [true, ''];
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function ManageLocationClick(siteID) {
     if (globalContext == "custom") {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -2982,7 +2942,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     
 
     if (eventDataTabs.indexOf(currentTab) < 0) {
-        thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        barChartStartDate = thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
         thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
     resizeMapAndMatrix(theNewTab);
@@ -3013,6 +2973,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
         setGlobalContext(true);
 
     currentTab = theNewTab;
+    var barChartStartDate = thedatefrom;
 
     setMapHeaderDate(thedatefrom, thedateto);
 
@@ -3037,24 +2998,26 @@ function resizeDocklet(theparent, chartheight) {
     var thedateto;
     var barDateFrom;
     var barDateTo;
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+
 
     if (globalContext == "custom") {
         barDateFrom = thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
         barDateTo = thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
-    else if (globalContext == "day") {
+    else if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext == "day") {
         barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         barDateTo = thedateto = moment(contextfromdate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
-    else if (globalContext == "hour") {
+    else if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext == "hour") {
         barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         barDateTo = thedateto = moment(contextfromdate).utc().endOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
-    else if (globalContext == "minute") {
+    else if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext == "minute") {
         barDateFrom = thedatefrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         barDateTo = thedateto = moment(contextfromdate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
-    else if (globalContext == "second") {
+    else if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext == "second") {
         thedatefrom = moment(contextfromdate).utc().startOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         thedateto = moment(contextfromdate).utc().endOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         barDateFrom = moment(contextfromdate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
@@ -3062,8 +3025,8 @@ function resizeDocklet(theparent, chartheight) {
 
     }
     else {
-        barDateFrom = thedatefrom = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
-        barDateTo = thedateto = moment(contextfromdate).utc().format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        barDateFrom = thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        barDateTo = thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
 
     var selectedIDs = GetCurrentlySelectedSites();
