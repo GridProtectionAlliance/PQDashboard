@@ -953,7 +953,13 @@ namespace PQDashboard
                     param5.Value = context;
                     sc.Parameters.Add(param5);
                 }
-
+                else if(tab == "TrendingData")
+                {
+                    IDbDataParameter param5 = sc.CreateParameter();
+                    param5.ParameterName = "@colorScaleName";
+                    param5.Value = colorScale;
+                    sc.Parameters.Add(param5);
+                }
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
             }

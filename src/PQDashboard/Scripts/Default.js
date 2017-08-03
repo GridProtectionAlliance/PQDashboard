@@ -24,31 +24,9 @@
 
 var base64Map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 
-var globalcolorsBreakers = ['#90ed7d', '#434348', '#ff0000'];
-var globalcolorsTrending = ['#434348', '#ff0000'];
 
 var globalcolors = ['#90ed7d', '#434348', '#ff0000', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
-var globalcolorsFaults = [ '#2b908f', '#e4d354', '#f15c80', '#8085e9', '#f7a35c', '#90ed7d', '#434348', '#ff0000'];
-//var globalcolorsEvents = ['#C00000', '#FF2800', '#FF9600', '#FFFF00', '#00FFF4', '#0000FF'];
 var globalcolorsEvents = ['#0000FF', '#00FFF4', '#FFFF00', '#FF9600', '#FF2800', '#C00000'];
-
-var d3Colors = {
-    Interruption: '#C00000',
-    Fault: '#FF2800',
-    Sag: '#FF9600',
-    Transient: '#FFFF00',
-    Swell: '#00FFF4',
-    Other: '#0000FF',
-    5: '#C00000',
-    4: '#FF2800',
-    3: '#FF9600',
-    2: '#FFFF00',
-    1: '#00FFF4',
-    0: '#0000FF'
-}
-
-//var globalcolorsDQ = ['#00FFF4', '#00C80E', '#FFFF00', '#FF9600', '#FF2800', '#FF0EF0', '#0000FF'];
-var globalcolorsDQ = ['#0000FF', '#FF0EF0', '#FF2800', '#FF9600', '#FFFF00', '#00C80E', '#00FFF4'];
 
 var javascriptversion = "13";
 
@@ -169,30 +147,41 @@ function setMapHeaderDate(datefrom, dateto) {
         $("#mapHeader" + currentTab + "Divider").show();
         $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
         $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY'));
+        $('.contextWindow').text('Date Range');
+        $('.stepOutBtn').attr('disabled', true)
     }
     else if (globalContext == "day") {
         $("#mapHeader" + currentTab + "From").hide();
         $("#mapHeader" + currentTab + "Divider").hide();
         $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
         $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY'));
+        $('.contextWindow').text(moment(datefrom).utc().format('MM/DD/YY'));
+        $('.stepOutBtn').attr('disabled', false)
     }
     else if (globalContext == "hour") {
         $("#mapHeader" + currentTab + "From").hide();
         $("#mapHeader" + currentTab + "Divider").hide();
         $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
         $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:00'));
+        $('.contextWindow').text(moment(datefrom).utc().format('MM/DD/YY HH:00'));
+        $('.stepOutBtn').attr('disabled', false)
+
     }
     else if (globalContext == "minute") {
         $("#mapHeader" + currentTab + "From").hide();
         $("#mapHeader" + currentTab + "Divider").hide();
         $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
         $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:mm'));
+        $('.contextWindow').text(moment(datefrom).utc().format('MM/DD/YY HH:mm'));
+        $('.stepOutBtn').attr('disabled', false)
     }
     else if (globalContext == "second") {
         $("#mapHeader" + currentTab + "From").hide();
         $("#mapHeader" + currentTab + "Divider").hide();
         $("#mapHeader" + currentTab + "From").text(moment(datefrom).utc().format('MM/DD/YY'));
         $("#mapHeader" + currentTab + "To").text(moment(dateto).utc().format('MM/DD/YY  HH:mm:ss'));
+        $('.contextWindow').text(moment(datefrom).utc().format('MM/DD/YY HH:mm:ss'));
+        $('.stepOutBtn').attr('disabled', false)
     }
 
 }
@@ -1957,7 +1946,6 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         };
     }
 
-    setMapHeaderDate(datefrom, dateto);
     if (currentTab != 'TrendingData') {
         var meterIds = GetCurrentlySelectedSitesIDs();
         dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId, globalContext).done(function (data) {
@@ -2975,30 +2963,23 @@ function ManageLocationClick(siteID) {
 
 function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
+    var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
+
     if ((thedatefrom == "") || (thedateto == "")) return;
+
+    if (eventDataTabs.indexOf(theNewTab) < 0 && globalContext != "custom" && globalContext != "day")
+        globalContext = "day";
 
     currentTab = theNewTab;
     var barChartStartDate = thedatefrom;
-    if (globalContext == "custom") {
-        $('.contextWindow').text('Date Range');
-    }
-    else if (globalContext == "day") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY'));
-    }
-    else if (globalContext == "hour") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:00'));
-    }
-    else if (globalContext == "minute") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm'));
-    }
-    else if (globalContext == "second") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
+
+    setMapHeaderDate(thedatefrom, thedateto);
+    if (globalContext == "second") {
         var thing = thedatefrom.split('');
         thing.splice(thedatefrom.length - 3, 2, '0', '0');
         barChartStartDate = thing.join('');
     }
     
-    var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
 
     if (eventDataTabs.indexOf(currentTab) < 0) {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -3017,41 +2998,24 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     }
 
-    populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), barChartStartDate, thedateto);
+    if(currentTab != "TrendingData")
+        populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), barChartStartDate, thedateto);
+    else
+        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto)
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
-
     if ((thedatefrom == "") || (thedateto == "")) return;
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    
+    if (tabsForDigIn.indexOf(theNewTab) >= 0 || globalContext == "custom")
+        setGlobalContext(true);
 
-    setGlobalContext(true);
     currentTab = theNewTab;
 
-    if (globalContext == "custom") {
-        $('.contextWindow').text('Date Range');
-        $('.stepOutBtn').attr('disabled', true)
-    }
-    else if (globalContext == "day") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY'));
-        $('.stepOutBtn').attr('disabled', false)
-    }
-    else if (globalContext == "hour") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:00'));
-        $('.stepOutBtn').attr('disabled', false)
-    }
-    else if (globalContext == "minute") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm'));
-        $('.stepOutBtn').attr('disabled', false)
-    }
-    else if (globalContext == "second") {
-        $('.contextWindow').text(moment(thedatefrom).utc().format('MM/DD/YY HH:mm:ss'));
-        $('.stepOutBtn').attr('disabled', false)
-    }
+    setMapHeaderDate(thedatefrom, thedateto);
 
-
-
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
     getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
     if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
