@@ -294,10 +294,33 @@ public class mapService : WebService
         using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         using (IDbCommand cmd = conn.Connection.CreateCommand())
         {
+            DataTable meterIds;
+            string meters;
+            string filterExpression = "";
+            if (contourQuery.MeterIds == 0.ToString())
+            {
+                meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+            }
+            else
+            {
+                int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
+                filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+
+                if (meterGroupId == 0)
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                else
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+            }
+
+            if (filterExpression != "")
+                meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
+            else
+                meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
+
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            //cmd.Parameters.Add(new SqlParameter("@meterIds", contourQuery.MeterIds));
+            cmd.Parameters.Add(new SqlParameter("@meterIds", meters));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
@@ -416,7 +439,9 @@ public class mapService : WebService
             ColorScaleName = HttpContext.Current.Request.QueryString["ColorScaleName"],
             DataType = HttpContext.Current.Request.QueryString["DataType"],
             UserName = HttpContext.Current.Request.QueryString["Username"],
-            Meters = HttpContext.Current.Request.QueryString["Meters"]
+            Meters = HttpContext.Current.Request.QueryString["Meters"],
+            MeterIds = HttpContext.Current.Request.QueryString["MeterIds"]
+
         };
 
         ContourTileData contourTileData = GetContourTileData(contourQuery);
@@ -476,10 +501,34 @@ public class mapService : WebService
         using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         using (IDbCommand cmd = conn.Connection.CreateCommand())
         {
+
+            DataTable meterIds;
+            string meters;
+            string filterExpression = "";
+            if (contourQuery.MeterIds == 0.ToString())
+            {
+                meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+            }
+            else
+            {
+                int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
+                filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+
+                if (meterGroupId == 0)
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                else
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+            }
+
+            if (filterExpression != "")
+                meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
+            else
+                meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
+
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            //cmd.Parameters.Add(new SqlParameter("@meterIds", contourQuery.MeterIds));
+            cmd.Parameters.Add(new SqlParameter("@meterIds", meters));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
@@ -530,6 +579,29 @@ public class mapService : WebService
 
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
+            DataTable meterIds;
+            string meters;
+            string filterExpression = "";
+            if (contourQuery.MeterIds == 0.ToString())
+            {
+                meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+            }
+            else
+            {
+                int meterGroupId = connection.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
+                filterExpression = connection.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+
+                if (meterGroupId == 0)
+                    meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                else
+                    meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+            }
+
+            if (filterExpression != "")
+                meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
+            else
+                meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
+
             string query =
                 "SELECT " +
                 "    Channel.ID AS ChannelID, " +
@@ -544,7 +616,7 @@ public class mapService : WebService
                 "    Channel ON " +
                 "        Channel.MeterID = Meter.ID AND " +
                 "        Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1}) " +
-                "WHERE Meter.ID IN (SELECT * FROM authMeters({0}))";
+                "WHERE Meter.ID IN ("+meters+")";
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";

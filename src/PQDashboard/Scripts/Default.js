@@ -255,7 +255,7 @@ function selectmapgrid(thecontrol) {
             $("#theMatrix" + currentTab).show();
             $("#theMap" + currentTab).hide();
             if (cache_Map_Matrix_Data != null) {
-                plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
+                plotGridLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
         }
@@ -1941,7 +1941,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName,
-                MeterIds: GetCurrentlySelectedSitesIDs()
+                MeterIds: $('#deviceFilterList').val()
             }
         };
     }
@@ -2739,7 +2739,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
                     DataType: $('#trendingDataTypeSelection').val(),
                     ColorScaleName: $('#contourColorScaleSelect').val(),
                     UserName: postedUserName,
-                    //MeterIds: GetCurrentlySelectedSitesIDs()
+                    MeterIds: $('#deviceFilterList').val()
                 }
             };
 
@@ -4248,7 +4248,7 @@ function loadContourAnimationData() {
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val(),
             IncludeWeather: $('#weatherCheckbox:checked').length > 0,
-            MeterIds: GetCurrentlySelectedSitesIDs()
+            MeterIds: $('#deviceFilterList').val()
         }
     };
 
@@ -4321,6 +4321,7 @@ function runContourAnimation(contourData) {
         info.MaxLatitude = contourData.MaxLatitude;
         info.MinLongitude = contourData.MinLongitude;
         info.MaxLongitude = contourData.MaxLongitude;
+        info.JSON = info.Locations;
     });
 
     var index = 0
