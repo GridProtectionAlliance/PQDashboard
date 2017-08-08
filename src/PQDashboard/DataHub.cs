@@ -1684,9 +1684,12 @@ namespace PQDashboard
                 orderBy = "Events24Hours";
             else if (orderBy.IndexOf("7d", StringComparison.OrdinalIgnoreCase) >= 0)
                 orderBy = "Events7Days";
-            else
+            else if (orderBy.IndexOf("30d", StringComparison.OrdinalIgnoreCase) > 0)
                 orderBy = "Events30Days";
-
+            else if (orderBy.IndexOf("90d", StringComparison.OrdinalIgnoreCase) > 0)
+                orderBy = "Events90Days";
+            else if (orderBy.IndexOf("180d", StringComparison.OrdinalIgnoreCase) > 0)
+                orderBy = "Events180Days";
             DataTable table = new DataTable();
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
@@ -1695,6 +1698,8 @@ namespace PQDashboard
 		                                    (CASE WHEN E24H.EventCount IS NULL THEN 0 ELSE E24H.EventCount END) AS Events24Hours,
 		                                    (CASE WHEN E7D.EventCount IS NULL THEN 0 ELSE E7D.EventCount END) AS Events7Days,
 		                                    (CASE WHEN E30D.EventCount IS NULL THEN 0 ELSE E30D.EventCount END) AS Events30Days,
+		                                    (CASE WHEN E90D.EventCount IS NULL THEN 0 ELSE E90D.EventCount END) AS Events90Days,
+		                                    (CASE WHEN E180D.EventCount IS NULL THEN 0 ELSE E180D.EventCount END) AS Events180Days,
                                             FirstEvent.EventID AS FirstEventID
 
                                     FROM	Meter AS m LEFT OUTER JOIN
@@ -1712,6 +1717,16 @@ namespace PQDashboard
 		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
 		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-30,@StartTime)
 		                                    GROUP BY m.ID) AS E30D ON E24H.ID=E30D.ID LEFT OUTER JOIN
+
+	                                        (SELECT m.ID, COUNT(e.ID) AS EventCount
+		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
+		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-90,@StartTime)
+		                                    GROUP BY m.ID) AS E90D ON E30D.ID=E90D.ID LEFT OUTER JOIN
+
+                                        	(SELECT m.ID, COUNT(e.ID) AS EventCount
+		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
+		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-180,@StartTime)
+		                                    GROUP BY m.ID) AS E180D ON E30D.ID=E180D.ID LEFT OUTER JOIN
 
                                             (SELECT Meter.ID, FirstEvent.EventID
                                             FROM Meter LEFT OUTER JOIN
@@ -1736,7 +1751,9 @@ namespace PQDashboard
                 table.Load(rdr);
 
                 if (ascending)
+                {
                     return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+                }
                 else
                     return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
             }

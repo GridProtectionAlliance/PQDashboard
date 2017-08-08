@@ -99,14 +99,14 @@ function buildMeterActivity(sourcedate) {
         responsive: true,
         columns: [
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row); } },
-            { field: 'Events24Hours', headerText: 'Events 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'day') } },
-            { field: 'Events7Days', headerText: 'Events 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'week') } },
             { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'month') } },
+            { field: 'Events90Days', headerText: 'Events 90D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '90d') } },
+            { field: 'Events180Days', headerText: 'Events 180D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '180d') } },
         ],
 
         datasource: function (callback, ui) {
             var $this = this;
-            dataHub.queryMeterActivity(sourcedate, ui.sortField, 11, true).done(function (data) {
+            dataHub.queryMeterActivity(sourcedate, ui.sortField, 10, true).done(function (data) {
                 callback.call($this, data);
             })
         }
@@ -125,8 +125,14 @@ function createMeterActivityEventsContent(row, context) {
         events = row.Events24Hours;
     else if (context == 'week')
         events = row.Events7Days;
-    else
+    else if (context == 'month')
         events = row.Events30Days;
+    else if (context == '90d')
+        events = row.Events90Days;
+    else if (context == '180d')
+        events = row.Events180Days;
+    else
+        events = 0;
 
     if (events > 0) {
         return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\')" style="color: blue">' + events + '<a>'
@@ -134,6 +140,22 @@ function createMeterActivityEventsContent(row, context) {
     else {
         return '<a>' + events + '</a>';
     }
+}
+
+function createLeastActiveMetersEventsContent(row, context) {
+    var events
+
+    if (context == 'month')
+        events = row.Events30Days;
+    else if (context == '90d')
+        events = row.Events90Days;
+    else
+        events = row.Events180Days;
+
+    if (events > 0)
+        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\')" style="color: blue">' + events + '</a>';
+    else
+        return '<a>' + events + '</a>';
 }
 
 function buildMeterActivityFiles(sourcedate) {
