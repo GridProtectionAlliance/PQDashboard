@@ -24,6 +24,8 @@ namespace PQDashboard.Model
         public int Events24Hours { get; set; }
         public int Events7Days { get; set; }
         public int Events30Days { get; set; }
+        public int Events90Days { get; set; }
+        public int Events180Days { get; set; }
         public int FirstEventID { get; set; }
     }
 }
