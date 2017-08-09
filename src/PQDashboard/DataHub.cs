@@ -1299,13 +1299,16 @@ namespace PQDashboard
 
         public void SaveNoteForEvent(int id, string note, string userId)
         {
-            DataContext.Table<EventNote>().AddNewRecord(new EventNote()
+            if (note.Trim().Length > 0)
             {
-                EventID = id,
-                Note = note,
-                UserAccount = userId,
-                TimeStamp = DateTime.UtcNow
-            });
+                DataContext.Table<EventNote>().AddNewRecord(new EventNote()
+                {
+                    EventID = id,
+                    Note = note,
+                    UserAccount = userId,
+                    TimeStamp = DateTime.UtcNow
+                });
+            }
         }
 
         public void RemoveEventNote(int id)
@@ -1755,7 +1758,7 @@ namespace PQDashboard
                     return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
                 }
                 else
-                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).Where(row => row.Events30Days != 0).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
             }
         }
 
