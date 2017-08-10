@@ -357,81 +357,142 @@
                 <div class="modal-content" style="z-index: 300">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
                     </div>
                     <div class="modal-body" style="height: 95%; overflow-y: scroll">
                         <div style="position: relative">
-                            <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
-                            <div class="grid">
-                                <div class="grid-item">
-                                    <h4><u>Tabs</u></h4>
-                                    <div class="well">
-                                        <table>
-                                            @foreach (DashSettings setting in dashSettings)
-                                            {
-                                                if (setting.Name == "DashTab")
+                            <h3><b>The Open PQDashboard version 2.0.0</b></h3>
+                            <div class="navbar">
+                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
+                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'about')"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></button>
+                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
+                            </div>
+                            <div id="config" class="nav-tabs">
+                                <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
+                                <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
+                                <div class="grid">
+                                    <div class="grid-item">
+                                        <h4><u>Tabs</u></h4>
+                                        <div class="well">
+                                            <table>
+                                                @foreach (DashSettings setting in dashSettings)
                                                 {
-                                                    <tr>
-                                                        <td>
-                                                            @setting.Value
-                                                        </td>
-                                                        <td>
-                                                            <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "")/>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </table>
-                                    </div>
-                                </div>
-
-                                @foreach (DashSettings setting in dashSettings)
-                                {
-                                    if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() {"#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData"}).IndexOf(setting.Value) < 0)
-                                    {
-                                        <div class="grid-item">
-
-                                            <h4><u>@setting.Value.Substring(5)</u></h4>
-                                            <div class="well">
-                                                <table>
-                                                    <thead>
-                                                    <tr>
-                                                        <th>Field</th>
-                                                        <th>Color</th>
-                                                        <th>Enabled</th>
-                                                    </tr>
-                                                    </thead>
-                                                    @foreach (DashSettings innerSetting in dashSettings)
+                                                    if (setting.Name == "DashTab")
                                                     {
-                                                        if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
-                                                        {
-                                                            <tr>
-                                                                <td>
-                                                                    @innerSetting.Value
-                                                                </td>
-                                                                <td>
-                                                                    @{
-                                                                        DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-
-                                                                    }
-                                                                    <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
-                                                                </td>
-                                                                <td>
-                                                                    <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "")/>
-                                                                </td>
-                                                            </tr>
-                                                        }
+                                                        <tr>
+                                                            <td>
+                                                                @setting.Value
+                                                            </td>
+                                                            <td>
+                                                                <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                                            </td>
+                                                        </tr>
                                                     }
-                                                </table>
-                                            </div>
+                                                }
+                                            </table>
                                         </div>
+                                    </div>
 
-                                    }
-                                }
+                                    @foreach (DashSettings setting in dashSettings)
+                                    {
+                                        if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
+                                        {
+                                            <div class="grid-item">
+
+                                                <h4><u>@setting.Value.Substring(5)</u></h4>
+                                                <div class="well">
+                                                    <table>
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Field</th>
+                                                                <th>Color</th>
+                                                                <th>Enabled</th>
+                                                            </tr>
+                                                        </thead>
+                                                        @foreach (DashSettings innerSetting in dashSettings)
+                                                        {
+                                                            if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                                            {
+                                                                <tr>
+                                                                    <td>
+                                                                        @innerSetting.Value
+                                                                    </td>
+                                                                    <td>
+                                                                        @{
+                                                                            DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
+                                                                        }
+                                                                        <input id="color@(color.ID)" class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <input id="enable@(innerSetting.ID)" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                                    </td>
+                                                                </tr>
+                                                                                }
+                                                                            }
+                                                    </table>
+                                                </div>
+                                            </div>
+                                                                                }
+                                                                            }
+                                </div>
+                            </div>
+                            <div id="about" class="nav-tabs" style="display:none">
+                                <p>
+                                    The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s openXDA solution. <br />
+                                    Development of the PQ Dashboard has been largely funded by the Electric Power Research Institute (EPRI).
+                                </p>
+                                <p>
+                                    For information on updates and to log issues and make suggestions for improvements, go to the <a href="http://github.com/GridProtectionAlliance/PQDashboard">PQ Dashboard GitHub repository.</a>
+                                </p>
+                                <p>
+                                    GPA offers annual product support agreements for the Open PQ Dashboard and openXDA as well as customized services that are tailored to meet the needs of individual utilities. <br />
+                                    For more information about GPA’s support and maintenance services, please contact us.
+                                </p>
+                            </div>
+                            <div id="help" class="nav-tabs" style="display:none;">
+                                <h4 class="modal-title">PQDashboard FAQ</h4>
+                                <p>
+                                    <b>What if I need more help than I can find online?</b><br />
+                                    &nbsp;&nbsp; You can always ask a question in the <a href="http://discussions.gridprotectionalliance.org/">GPA user forum.</a>
+                                </p>
+                                <p>
+                                    <b>What’s the difference between the “events” and “faults” tab</b> <br />
+                                    &nbsp;&nbsp; Not all events are faults. Only faults show up in the faults tab, all events show up in the events tab.
+                                </p>
+                                <p>
+                                    <b>Why do I sometimes see the same event more than once?</b><br />
+                                    &nbsp;&nbsp; Not sure.
+                                </p>
+                                <p>
+                                    <b>Why can’t I see trending data?</b><br />
+                                    &nbsp;&nbsp; Not sure. Maybe you don’t have trending data?
+                                </p>
+                                <p>
+                                    <b>Why do most events seem to be classified as a “swell”?</b><br />
+                                    &nbsp;&nbsp; That’s the default way of classifying things.
+                                </p>
+                                <p>
+                                    <b>Why are there no events for some sites?</b><br />
+                                    &nbsp;&nbsp; Maybe you need to pick a different time range to see events for it??
+                                </p>
+                                <p>
+                                    <b>Do I need to do anything to configure the PQ Dashboard as new monitors are added to openXDA?</b><br />
+                                    &nbsp;&nbsp; I don’t think so, not sure though???
+                                </p>
+                                <p>
+                                    <b>How can I add new charts and displays to the dashboard?</b><br />
+                                    &nbsp;&nbsp; PQDashboard is open source and is <a href="https://github.com/GridProtectionAlliance/PQDashboard">posted on GitHub</a>, you are welcome to add more things there. <br />
+                                    &nbsp;&nbsp; Please follow the guidelines in the <a href="https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf">contributing guide.</a>
+                                </p>
+                                <p>
+                                    <b>Why do some waveforms identified as “faults” in the COMTRADE file not show up as faults in the dashboard?</b><br />
+                                    &nbsp;&nbsp; Because PQDashboard/openXDA implements its own logic for classifying faults, which may be different than your specific DFR.
+                                </p>
+
+
                             </div>
                         </div>
-                    </div>
 
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
                         <button type="button" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
@@ -857,6 +918,18 @@
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
             window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
+        }
+    }
+
+    function changeConfigScreen(evt, screen) {
+        tabcontent = document.getElementsByClassName("nav-tabs");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        document.getElementById(screen).style.display = "block";
+
+        if (evt != null){
+            evt.currentTarget.className += " active";
         }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////

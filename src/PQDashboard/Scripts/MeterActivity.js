@@ -51,14 +51,12 @@ function showMeterActivity() {
 function buildMeterActivityTables() {
     var sourcedate = null;
     sourcedate = new Date(new Date().setDate(new Date().getDate()));
+    sourcedate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
 
     //=======================================================================================
     // test dev - remove after test dev
-    var testDate = null;
-    testDate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
-    testDate = null;
-    testDate = new Date(2014, 6, 10);
-    sourcedate = testDate.getFullYear().toString() + '-' + (testDate.getMonth().toString().length < 2 ? '0' + testDate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (testDate.getDate().toString().length < 2 ? '0' + testDate.getDate().toString() : testDate.getDate().toString());
+    //testDate = new Date(2014, 6, 10);
+    //sourcedate = testDate.getFullYear().toString() + '-' + (testDate.getMonth().toString().length < 2 ? '0' + testDate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (testDate.getDate().toString().length < 2 ? '0' + testDate.getDate().toString() : testDate.getDate().toString());
     // test dev - remove after test dev
     //=======================================================================================
 
@@ -78,6 +76,7 @@ function buildMeterActivity(sourcedate) {
         caption: 'Most Active Meters',
         lazy: true,
         responsive: true,
+        emptyMessage: "No Meters with events in the last 30 days",
         columns: [
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row) } },
             { field: 'Events24Hours', headerText: 'Events 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'day') } },
@@ -97,6 +96,7 @@ function buildMeterActivity(sourcedate) {
         caption: 'Least Active Meters',
         lazy: true,
         responsive: true,
+        emptyMessage: "No meters found",
         columns: [
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row); } },
             { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, 'month') } },
@@ -189,6 +189,7 @@ function buildMeterActivityFiles(sourcedate) {
                 return fileGroupExpandableContent(row);
             },
             responsive: true,
+            emptyMessage: "No files processed within the last 24 hours",
         });
 
         $(window).resize();

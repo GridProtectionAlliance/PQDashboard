@@ -3635,12 +3635,15 @@ function selectMeterGroup(thecontrol) {
         showOverviewPage(currentTab);
     }
     else if (newTab === "MeterActivity") {
+        $('#headerStrip').hide();
         showMeterActivity()
     }
     else if (newTab === "ModbusData") {
+        $('#headerStrip').hide();
         showModbusData();
     }
     else if (newTab === "HistorianData") {
+        $('#headerStrip').hide();
         showHistorianData();
     }
     else {
@@ -3911,9 +3914,11 @@ function buildPage() {
                 showOverviewPage(currentTab);
             }
             else if (newTab === "MeterActivity") {
+                $('#headerStrip').hide();
                 showMeterActivity();
             }
             else if (newTab === "ModbusData") {
+                $('#headerStrip').hide();
                 showModbusData();
             }
             else if (newTab === "HistorianData") {
@@ -3962,12 +3967,15 @@ function buildPage() {
 
             }
             else if (currentTab === "MeterActivity") {
+                $('#headerStrip').hide();
                 showMeterActivity();
             }
             else if (currentTab === "ModbusData") {
+                $('#headerStrip').hide();
                 showModbusData();
             }
             else if (currentTab === "HistorianData") {
+                $('#headerStrip').hide();
                 showHistorianData();
             }
             else {
@@ -3980,6 +3988,8 @@ function buildPage() {
                         $(a).click();
                 })
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
+                $('#headerStrip').show();
+
             }
 
 
