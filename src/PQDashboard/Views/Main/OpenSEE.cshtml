@@ -78,6 +78,7 @@
 
     string postedSeriesList = "";
 
+    string postedSystemFrequency = "";
     string postedStationName = "";
     string postedMeterId = "";
     string postedMeterName = "";
@@ -93,6 +94,7 @@
     string postedPhase = "";
     string postedMagnitude = "";
     string postedDurationPeriod = "";
+    string postedCalculationCycle = "";
 
     string postedBreakerNumber = "";
     string postedBreakerPhase = "";
@@ -109,6 +111,7 @@
 
         EventView theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", eventID)).First();
 
+        postedSystemFrequency = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? "60.0";
         postedStationName = theEvent.StationName;
         postedMeterId = theEvent.MeterID.ToString();
         postedMeterName = theEvent.MeterName;
@@ -181,6 +184,7 @@
                     postedPhase = thesummary.FaultType;
                     postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
                     postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
+                    postedCalculationCycle = thesummary.CalculationCycle.ToString();
                 }
             }
             else if (new[] { "Sag", "Swell" }.Contains(postedEventName))
@@ -284,6 +288,7 @@ else
 </head>
 <body>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedSystemFrequency">@postedSystemFrequency</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedStationName">@postedStationName</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterId">@postedMeterId</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterName">@postedMeterName</div>
@@ -296,6 +301,7 @@ else
     <div style="visibility:hidden; width: 0; height: 0;" id="postedStartTime">@postedStartTime</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedPhase">@postedPhase</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedDurationPeriod">@postedDurationPeriod</div>
+    <div style="visibility:hidden; width: 0; height: 0;" id="postedCalculationCycle">@postedCalculationCycle</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedMagnitude">@postedMagnitude</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerNumber">@postedBreakerNumber</div>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerPhase">@postedBreakerPhase</div>
