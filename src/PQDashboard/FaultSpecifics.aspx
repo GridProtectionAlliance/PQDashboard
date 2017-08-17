@@ -52,17 +52,17 @@
         <div>
 	        <table>
                 <tr><td colspan="2" style="text-align: center"><%=postedMeterName %></td></tr>
-	            <tr><td style="text-align: right">Fault Type:</td><td =><%=postedFaultType %></td></tr>
-                <tr><td style="text-align: right">Start Time:</td><td><%=postedStartTime %></td></tr>
-	            <tr><td style="text-align: right">Inception Time:</td><td><%=postedInceptionTime %></td></tr>
-	            <tr><td style="text-align: right">Delta Time:</td><td><%=postedDeltaTime %></td></tr>
-	            <tr><td style="text-align: right">Fault Duration:</td><td><%=postedDurationPeriod %></td></tr>
-	            <tr><td style="text-align: right">Fault Current:</td><td><%=postedFaultCurrent %></td></tr>
-	            <tr><td style="text-align: right">Distance Method:</td><td><%=postedDistanceMethod %></td></tr>
-	            <tr><td style="text-align: right">Single-ended Distance:</td><td><%=postedSingleEndedDistance %></td></tr>
-	            <tr><td style="text-align: right">Double-ended Distance:</td><td><%=postedDoubleEndedDistance %></td></tr>
-                <tr><td style="text-align: right">Double-ended Angle:</td><td><%=postedDoubleEndedConfidence %></td></tr>
-	            <tr><td style="text-align: right">OpenXDA EventID:</td><td><%=postedEventId %></td></tr>
+	            <tr><td style="text-align: right">Fault Type:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedFaultType %></td></tr>
+                <tr><td style="text-align: right">Start Time:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedStartTime %></td></tr>
+	            <tr><td style="text-align: right">Inception Time:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedInceptionTime %></td></tr>
+	            <tr><td style="text-align: right">Delta Time:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedDeltaTime %></td></tr>
+	            <tr><td style="text-align: right">Fault Duration:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedDurationPeriod %></td></tr>
+	            <tr><td style="text-align: right">Fault Current:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedFaultCurrent %></td></tr>
+	            <tr><td style="text-align: right">Distance Method:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedDistanceMethod %></td></tr>
+	            <tr><td style="text-align: right">Single-ended Distance:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedSingleEndedDistance %></td></tr>
+	            <tr><td style="text-align: right">Double-ended Distance:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedDoubleEndedDistance %></td></tr>
+                <tr><td style="text-align: right">Double-ended Angle:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedDoubleEndedConfidence %></td></tr>
+	            <tr><td style="text-align: right">OpenXDA EventID:&nbsp;&nbsp;</td><td>&nbsp;&nbsp;<%=postedEventId %></td></tr>
             </table>
         </div>
 	</body>

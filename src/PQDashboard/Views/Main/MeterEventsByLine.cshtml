@@ -107,10 +107,10 @@
 
             </div>
             <div class="modal-body">
-                <textarea id="note" class="form-control"></textarea>
+                <textarea wrap="hard" id="note" class="form-control"></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveNote()">Save</button>
+                <button type="button" class="btn btn-primary" onclick="saveNote()">Add Note</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -189,7 +189,7 @@
         if (data.theeventtype == "Fault")
             html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
 
-        html += '<tr><td style="width: 50%">List Simultaneous events (+/- 5 sec)</td><td colspan="2" style="width: auto"><button id="simultaneousEvents" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button></td></tr>';
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> events (+/- 5 sec)</td><td colspan="2" style="width: auto"><button id="simultaneousEvents" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button></td></tr>';
         dataHub.getSimultaneousEvents(data.theeventid).done(function (data) {
             //console.log(data);
 
@@ -228,7 +228,7 @@
             });
         });
 
-        html += '<tr><td style="width: 50%">List events for this line (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default" >' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
+        html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default" >' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
         dataHub.getEventsForLineLastSixtyDays(data.theeventid).done(function (data) {
             //console.log(data);
 
@@ -268,8 +268,8 @@
 
 
         html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Add/Edit Event Data</th></tr>';
-        html += '<tr><td style="width: 50%;">Edit Event Data</td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit('+ data.theeventid +')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
-        html += '<tr><td style="width: 50%;">Add/Edit Notes for this event</td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal('+data.theeventid+')"><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"><span id="noteCount">' + data.Note + '</span> Notes Created</td></tr></table>';
+        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="OpenWindowToXDAEdit(' + data.theeventid + ')">Edit Event Data</span></a></td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit(' + data.theeventid + ')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
+        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="openNoteModal(' + data.theeventid + ')">Add/Edit Notes for this event</span></a></td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"><span id="noteCount">' + data.Note + '</span> Notes Created</td></tr></table>';
 
 
         if (testForStuff(data)) {
@@ -402,7 +402,7 @@
             if (data.length > 0)
                 $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
             $.each(data, function (i, d) {
-                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>'+ d.UserAccount +'</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
             });
 
             $('#note').val('');
@@ -418,7 +418,7 @@
                 if (data.length > 0)
                     $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
                 $.each(data, function (i, d) {
-                    $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+                    $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
                 });
 
                 $('#note').val('');

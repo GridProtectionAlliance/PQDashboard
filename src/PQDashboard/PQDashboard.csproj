@@ -363,6 +363,14 @@
     <Compile Include="Model\TrendingData.cs" />
     <Compile Include="Model\ValueList.cs" />
     <Compile Include="Model\ValueListGroup.cs" />
+    <Content Include="Images\ConfigImages\configure.png" />
+    <Content Include="Images\ConfigImages\contactUs.png" />
+    <Content Include="Images\ConfigImages\doc.png" />
+    <Content Include="Images\ConfigImages\documentation.png" />
+    <Content Include="Images\ConfigImages\help.png" />
+    <Content Include="Images\ConfigImages\lock.png" />
+    <Content Include="Images\ConfigImages\qmark.png" />
+    <Content Include="Images\ConfigImages\tools.png" />
     <Content Include="OpenSEE.aspx.cs">
       <DependentUpon>OpenSEE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
