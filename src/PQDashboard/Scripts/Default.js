@@ -255,7 +255,7 @@ function selectmapgrid(thecontrol) {
             $("#theMatrix" + currentTab).show();
             $("#theMap" + currentTab).hide();
             if (cache_Map_Matrix_Data != null) {
-                plotGridLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
+                plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
         }
