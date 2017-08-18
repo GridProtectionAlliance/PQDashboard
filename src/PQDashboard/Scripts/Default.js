@@ -702,6 +702,11 @@ function populateBreakersDivWithGrid(data) {
                                           bgColor = "yellow";
                                       }
 
+                                      if (row.dcoffset != 0) {
+                                          title = "title='DC offset logic applied'";
+                                          bgColor = "aqua";
+                                      }
+
                                       return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
                                   }
                 },
