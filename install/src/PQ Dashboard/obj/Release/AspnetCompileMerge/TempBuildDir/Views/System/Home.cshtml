@@ -1,0 +1,51 @@
+﻿@**//******************************************************************************************************
+//  Home.cshtml - Gbtc
+//
+//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+//  not use this file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  08/31/2016 - Billy Ernest
+//       Generated original version of source code.
+//
+//********************************************************************************************************@
+
+
+@using PQDashboard.Model
+@model AppModel
+<div class="alert alert-danger" role="alert">These system settings control application appearance and behavior - edit with care.</div>
+<p>
+    By clicking on the menu items to the left, the following system elements can be configured:
+</p>
+<ol>
+    <li>
+        The <b>System Pages</b>. This is the list of pages that are configured in the system. You can edit pages to control it's title, page location,
+        server and client key/value pair configuration, as well as included and excluded roles that will control if a page is allowed to show up in a
+        menu based on a user's defined roles.
+        <em>Note that adding a new MVC based page will require a route be placed into the corresponding view controller.</em>
+    </li>
+    <li>
+        The <b>System Menus</b>. This is the list of menus that are defined in the system. You can edit the menu details as well as control the
+        menu items (i.e., the <em>system pages</em> or external links) that will appear in the menu. For each menu item you can edit the image,
+        menu item text and the order of items for the menu.
+    </li>
+    <li>
+        The <b>System Value Lists</b>. This is the list of enumerations and values defined for the system that most often appear in drop-downs through-out
+        the system. You can edit the value list group details as well as control the list items that will appear in the group. For each value item you can
+        edit the primary key value and various enumeration options for the list item as well as its sort order.
+    </li>
+</ol>
+<p>
+    Click on "Settings" to go back to the primary PQDashboard settings.
+</p>

@@ -255,7 +255,7 @@ function selectmapgrid(thecontrol) {
             $("#theMatrix" + currentTab).show();
             $("#theMap" + currentTab).hide();
             if (cache_Map_Matrix_Data != null) {
-                plotGridLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
+                plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
         }
@@ -700,6 +700,11 @@ function populateBreakersDivWithGrid(data) {
                                       if (row.chatter != 0) {
                                           title = "title='Status bit chatter detected'";
                                           bgColor = "yellow";
+                                      }
+
+                                      if (row.dcoffset != 0) {
+                                          title = "title='DC offset logic applied'";
+                                          bgColor = "aqua";
                                       }
 
                                       return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
