@@ -362,23 +362,23 @@
                         <div style="position: relative">
                             <h3><b>The Open PQDashboard version 2.0.0</b></h3>
                             <div class="navbar">
-                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'about')"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></button>
-                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
-                                <button class="navbar-btn" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
+                                <button class="btn btn-link" onclick="changeConfigScreen(event, 'about')"><a href="https://github.com/GridProtectionAlliance/PQDashboard/wiki/Operation-Instructions" target="_blank"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></a></button>
+                                <button class="btn btn-default" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
+                                <button class="btn btn-default" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
                             </div>
                             <div id="about" class="nav-tabs">
 
-                                <h3 class="modal-title"><img src="~/Images/ConfigImages/doc.png" style="height:30px" />&nbsp;&nbsp;About the Open PQDashboard</h3>
+                                <h3 class="modal-title"><a href="http://gridprotectionalliance.org/default.asp" target="_blank"><img src="~/Images/ConfigImages/lock.png" style="height:30px" /></a>&nbsp;&nbsp;About the Open PQDashboard</h3>
                                 <p>
-                                    The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s <a href="http://github.com/GridProtectionAlliance/openXDA" style="color:blue;">openXDA solution.</a><br />
+                                    The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s <a href="http://github.com/GridProtectionAlliance/openXDA" target="_blank" style="color:blue;">openXDA solution.</a><br />
                                     Development of the PQ Dashboard has been largely funded by the Electric Power Research Institute (EPRI).
                                 </p>
                                 <p>
-                                    For information on updates and to log issues and make suggestions for improvements, go to the <a href="http://github.com/GridProtectionAlliance/PQDashboard" style="color:blue;">PQ Dashboard GitHub repository.</a>
+                                    For information on updates and to log issues and make suggestions for improvements, go to the <a href="http://github.com/GridProtectionAlliance/PQDashboard" target="_blank" style="color:blue;">PQ Dashboard GitHub repository.</a>
                                 </p>
                                 <p>
                                     GPA offers annual product support agreements for the Open PQ Dashboard and openXDA as well as customized services that are tailored to meet the needs of individual utilities. <br />
-                                    For more information about GPA’s support and maintenance services, please contact us.
+                                    For more information about GPA’s support and maintenance services, please <a href="http://gridprotectionalliance.org/contactus.asp" style="color:blue;" target="_blank">contact us.</a>
                                 </p>
                             </div>
                             <div id="config" class="nav-tabs" style="display:none">
@@ -497,7 +497,7 @@
                                 <h4><b>FAQs</b></h4>
                                 <p>
                                     <b>What if I need more help than I can find online?</b><br />
-                                    &nbsp;&nbsp; You can always ask a question in the <a href="http://discussions.gridprotectionalliance.org/">GPA user forum.</a>
+                                    &nbsp;&nbsp; You can always ask a question in the <a href="http://discussions.gridprotectionalliance.org/" target="_blank" style="color: blue;">GPA user forum.</a>
                                 </p>
                                 <p>
                                     <b>What’s the difference between the “events” and “faults” tab</b> <br />
@@ -525,8 +525,8 @@
                                 </p>
                                 <p>
                                     <b>How can I add new charts and displays to the dashboard?</b><br />
-                                    &nbsp;&nbsp; PQDashboard is open source and is <a href="https://github.com/GridProtectionAlliance/PQDashboard">posted on GitHub</a>, you are welcome to add more things there. <br />
-                                    &nbsp;&nbsp; Please follow the guidelines in the <a href="https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf">contributing guide.</a>
+                                    &nbsp;&nbsp; PQDashboard is open source and is <a href="https://github.com/GridProtectionAlliance/PQDashboard" target="_blank" style="color:blue;">posted on GitHub</a>, you are welcome to add more things there. <br />
+                                    &nbsp;&nbsp; Please follow the guidelines in the <a href="https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf" target="_blank" style="color:blue;">contributing guide.</a>
                                 </p>
                                 <p>
                                     <b>Why do some waveforms identified as “faults” in the COMTRADE file not show up as faults in the dashboard?</b><br />
@@ -967,6 +967,8 @@
     }
 
     function changeConfigScreen(evt, screen) {
+        if (screen == 'about')
+            return;
         tabcontent = document.getElementsByClassName("nav-tabs");
         for (i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
