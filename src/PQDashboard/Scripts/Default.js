@@ -2474,17 +2474,25 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 
 function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
     var selectedIDs = GetCurrentlySelectedSites();
-    if (leafletMap[currentTab] !== null){
-        $.each(locationdata.JSON, function (index, data) {
-            $('#' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + ' circle').attr('fill', getColorsForTab(data, locationdata.Colors));
-            $.each(mapMarkers[currentTab], function (mmIndex, object) {
-                if(object.id === data.ID)
-                    object.marker.getPopup().setContent(getLeafletLocationPopup(data))
-            });
-        });
-    }
-    else {
+    if (leafletMap[currentTab] == null)
         loadLeafletMap('theMap' + currentTab);
+
+    if (mapMarkers[currentTab].length !== 0) {
+        $.each(mapMarkers[currentTab], function (i, m) { leafletMap[currentTab].removeLayer(m.marker) });
+        mapMarkers[currentTab] = [];
+    }
+
+
+    //if (markerMap[currentTab] !== null){
+    //    $.each(locationdata.JSON, function (index, data) {
+    //        $('#' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + ' circle').attr('fill', getColorsForTab(data, locationdata.Colors));
+    //        $.each(mapMarkers[currentTab], function (mmIndex, object) {
+    //            if(object.id === data.ID)
+    //                object.marker.getPopup().setContent(getLeafletLocationPopup(data))
+    //        });
+    //    });
+    //}
+    //else {
 
         $.each(locationdata.JSON, function (index, data) {
             var color = getColorsForTab(data, locationdata.Colors);
@@ -2589,7 +2597,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
         });
 
 
-    }
+    //}
     showSiteSet($('#selectSiteSet' + currentTab)[0]);
     plotMapPoints(locationdata, thedatefrom, thedateto);
 };
@@ -3617,7 +3625,7 @@ function getMeters(meterGroup) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectMeterGroup(thecontrol) {
-    mg = thecontrol.value;
+    mg = $('#deviceFilterList').val();
     $('#deviceFilterList option[value="ClickEvent"]').remove()
 
     $('#siteList').children().remove();
@@ -3935,7 +3943,7 @@ function buildPage() {
                 cache_Sparkline_Data = null;
                 var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
-                manageTabsByDate(newTab, contextfromdate, contexttodate);
+                selectMeterGroup(null);
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
 
@@ -4665,13 +4673,15 @@ function selectView(theControl) {
     if($(theControl).val() != 0){
         dataHub.querySavedViewsRecord($(theControl).val()).done(function (record) {
             $('#deviceFilterList').val(record.DeviceFilterID);
-            $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
+            //selectMeterGroup(null);
+            //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             $('#map' + record.Tab + 'Grid').val(record.MapGrid);
+            contextfromdate = moment(record.FromDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
+            contexttodate = moment(record.ToDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
             $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
             $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
             $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-            selectMeterGroup(document.getElementById("deviceFilterList"));
-            loadDataForDate();
+            $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
         });
     }
 }
