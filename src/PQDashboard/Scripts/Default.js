@@ -51,11 +51,11 @@ var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
-var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
+var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
 var contourOverlay = null;
-var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: []};
+var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: [], Extensions: []};
 var currentTab = null;
 var disabledList = {
     Events: { "Interruption": false, "Fault": false, "Sag": false, "Transient": false, "Swell": false, "Other": false },
@@ -65,7 +65,8 @@ var disabledList = {
     Faults: { "500 kV": false, "300 kV": false, "230 kV": false, "135 kV": false, "115 kV": false, "69 kV": false, "46 kV": false, "0 kV": false},
     Breakers: {"Normal" : false, "Late": false, "Indeterminate": false},
     Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
-    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false}
+    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
+    Extensions: {}
 };
 
 var yearBeginMoment = moment().month(yearBegin.split(' ')[0]).startOf('month').date(yearBegin.split(' ')[1]).utc();
@@ -622,6 +623,53 @@ function populateEventsDivWithGrid(data) {
     }
 }
 
+function populateExtensionsDivWithGrid(data) {
+    if ($('#Detail' + currentTab + 'Table').children().length > 0) {
+        var parent = $('#Detail' + currentTab + 'Table').parent();
+        $('#Detail' + currentTab + 'Table').remove();
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
+    }
+
+    var filteredData = [];
+    if (data != null) {
+
+        $.each(data, function (i, d) {
+            var sum = 0;
+            $.each(Object.keys(d), function (index, key) {
+                if (key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
+                    sum += parseInt(d[key]);
+                }
+            });
+            if (sum > 0)
+                filteredData.push(d);
+        });
+
+        var tableObject = {
+            scrollable: true,
+            scrollHeight: '100%',
+            columns: [
+                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterExtensionsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+            ],
+            datasource: filteredData
+        };
+        if (data.length > 0) {
+            $.each(Object.keys(data[0]), function (i, d) {
+                if (d != "MeterID" && d != "EventID" && d != "Site" && !disabledList[currentTab][d]) {
+                    tableObject.columns.push({
+                        field: d,
+                        headerText: d,
+                        headerStyle: 'width: 12%; ',
+                        bodyStyle: 'width: 12%; height: 20px; ',
+                        sortable: true
+                    });
+                }
+            });
+        }
+
+        $('#Detail' + currentTab + "Table").puidatatable(tableObject);
+    }
+}
+
 function populateDisturbancesDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
@@ -817,7 +865,7 @@ function stepOut() {
 }
 
 function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
 
     
@@ -868,7 +916,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
 }
 
 function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
 
     if (brush === null) {
         brush = d3.svg.brush()
@@ -1033,7 +1081,7 @@ function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
 }
 
 function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
     $('#' + thediv).children().remove();
@@ -1169,7 +1217,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         .attr("height", height + margin.top + margin.bottom);
 
         var xAxis;
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         if (context == 'day' ) {
@@ -1434,7 +1482,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //called when selection is chosen on overview map
     function brushed() {
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         var startDate;
@@ -1524,7 +1572,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     //Toggles a certain series.
     function toggleSeries(seriesName, isDisabling) {
-        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+        var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
         var newData = deepCopy(cache_Graph_Data.graphData);
@@ -2718,6 +2766,13 @@ function getColorsForTab(dataPoint, colors) {
         else 
             color = '#0E892C';
     }
+    else if (currentTab === "Extensions") {
+        if (dataPoint.Count == 0)
+            color = '#0E892C';
+        else
+            color = '#CC3300';
+    }
+
     return color;
 
 }
@@ -2919,7 +2974,7 @@ function ManageLocationClick(siteID) {
         thedateto = moment(contextfromdate).utc();
     }
 
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -2936,7 +2991,7 @@ function ManageLocationClick(siteID) {
 
 function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
-    var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers"];
+    var eventDataTabs = ["Events", "Disturbances", "Faults", "Breakers", 'Extensions'];
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -2980,7 +3035,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
     if ((thedatefrom == "") || (thedateto == "")) return;
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     
     if (tabsForDigIn.indexOf(theNewTab) >= 0 || globalContext == "custom")
         setGlobalContext(true);
@@ -3011,7 +3066,7 @@ function resizeDocklet(theparent, chartheight) {
     var thedateto;
     var barDateFrom;
     var barDateTo;
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers'];
+    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
 
 
     if (globalContext == "custom") {

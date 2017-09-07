@@ -547,7 +547,7 @@ namespace PQDashboard
                 sc.Parameters.Add(param4);
 
                 // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
                 if (tabList.Contains(tab))
                 {
                     IDbDataParameter param5 = sc.CreateParameter();
@@ -944,7 +944,7 @@ namespace PQDashboard
                 sc.Parameters.Add(param4);
 
                 // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
                 if (tabList.Contains(tab))
                 {
                     IDbDataParameter param5 = sc.CreateParameter();
@@ -1156,7 +1156,7 @@ namespace PQDashboard
                 sc.CommandTimeout = 60;
 
                 // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers" };
+                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
                 if (tabList.Contains(tab))
                 {
                     IDbDataParameter param4 = sc.CreateParameter();
