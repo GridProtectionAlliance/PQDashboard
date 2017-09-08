@@ -371,6 +371,7 @@
     <Content Include="Images\ConfigImages\lock.png" />
     <Content Include="Images\ConfigImages\qmark.png" />
     <Content Include="Images\ConfigImages\tools.png" />
+    <Content Include="Images\PQI.png" />
     <Content Include="OpenSEE.aspx.cs">
       <DependentUpon>OpenSEE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -379,11 +380,16 @@
       <DependentUpon>OpenSTE.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Compile Include="Model\WorkbenchVoltageCurveView.cs" />
+    <Content Include="PQI.aspx.cs">
+      <DependentUpon>PQI.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
