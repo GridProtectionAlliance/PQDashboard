@@ -360,15 +360,16 @@
                     </div>
                     <div class="modal-body" style="height: 95%; overflow-y: scroll">
                         <div style="position: relative">
-                            <h3><b>The Open PQDashboard version 2.0.0</b></h3>
+                            <h3><b>The Open PQDashboard version 2.0</b></h3>
                             <div class="navbar">
-                                <button class="btn btn-link" onclick="changeConfigScreen(event, 'about')"><a href="https://github.com/GridProtectionAlliance/PQDashboard/wiki/Operation-Instructions" target="_blank"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></a></button>
-                                <button class="btn btn-default" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
-                                <button class="btn btn-default" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
+                                <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'about')"><a href="https://github.com/GridProtectionAlliance/PQDashboard/wiki/Operation-Instructions" target="_blank"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></a></button>
+                                <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
+                                <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
                             </div>
                             <div id="about" class="nav-tabs">
 
                                 <h3 class="modal-title"><a href="http://gridprotectionalliance.org/default.asp" target="_blank"><img src="~/Images/ConfigImages/lock.png" style="height:30px" /></a>&nbsp;&nbsp;About the Open PQDashboard</h3>
+                                <br />
                                 <p>
                                     The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s <a href="http://github.com/GridProtectionAlliance/openXDA" target="_blank" style="color:blue;">openXDA solution.</a><br />
                                     Development of the PQ Dashboard has been largely funded by the Electric Power Research Institute (EPRI).
@@ -378,7 +379,13 @@
                                 </p>
                                 <p>
                                     GPA offers annual product support agreements for the Open PQ Dashboard and openXDA as well as customized services that are tailored to meet the needs of individual utilities. <br />
-                                    For more information about GPA’s support and maintenance services, please <a href="http://gridprotectionalliance.org/contactus.asp" style="color:blue;" target="_blank">contact us.</a>
+                                    For more information about GPA’s support and maintenance services, please contact us at:
+                                </p>
+                                <p>
+                                    1206 Broad Street <br />
+                                    Chattanooga, TN 34702 <br />
+                                    Phone: (423) 702-8136 <br />
+                                    Email: <a href="mailto:info@gridprotectionalliance.org?subject=Contact%20GPA" style="color:blue;">info@gridprotectionalliance.org</a>
                                 </p>
                             </div>
                             <div id="config" class="nav-tabs" style="display:none">
@@ -976,6 +983,11 @@
         document.getElementById(screen).style.display = "block";
 
         if (evt != null){
+            tablinks = document.getElementsByClassName("settings-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
             evt.currentTarget.className += " active";
         }
         
@@ -991,6 +1003,22 @@
         }
         window.location
     }
+
+    $('#settingsModal').on('shown.bs.modal', function() {
+        tablinks = document.getElementsByClassName("settings-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        tabcontent = document.getElementsByClassName("nav-tabs");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        document.getElementById('about').style.display = "block";
+
+        $('#configApply').hide();
+        $('#configDefaults').hide();
+    })
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     </script>
