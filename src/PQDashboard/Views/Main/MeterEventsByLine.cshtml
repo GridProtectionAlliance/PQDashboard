@@ -276,13 +276,13 @@
             html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Get Results From Enabled Extended Analytics</th></tr>';
 
 
-            if (data.pqiexists > 0) {
-                html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
-            }
+            //if (data.pqiexists > 0) {
+            //    html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
+            //}
 
-            dataHub.getPQICount(data.theeventid).done(function (count) {
-                $('#' + data.theeventid + 'pqicount').text(count);
-            });
+            //dataHub.getPQICount(data.theeventid).done(function (count) {
+            //    $('#' + data.theeventid + 'pqicount').text(count);
+            //});
 
             $.each(data.ServiceList.split(','), function (i, k) {
                 if (data[k] !== null && data[k] !== undefined)

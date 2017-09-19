@@ -173,6 +173,29 @@ namespace PQDashboard.Controllers
             return View();
         }
 
+        public ActionResult MeterExtensionsByLine()
+        {
+            m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
+
+            try
+            {
+                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                {
+                    ViewBag.username = "External";
+                    ViewBag.usersid = "External";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.username = "";
+            }
+
+            return View();
+        }
+
         public ActionResult MeterDisturbancesByLine()
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
