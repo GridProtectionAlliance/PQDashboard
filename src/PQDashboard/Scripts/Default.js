@@ -3503,19 +3503,19 @@ var returnvalue = "";
 switch (thetoken) {
 
     case "Today":
-        returnvalue = moment().utc().format('MM/DD/YY');
+        returnvalue = moment().utc().format('MM/DD/YYYY');
         break;
 
     case "PastWeek":
-        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YYYY');
         break;
 
     case "PastMonth":
-        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YYYY');
         break;
 
     case "PastYear":
-        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YYYY');
         break;
             
     default:
@@ -3594,10 +3594,10 @@ function initializesettings() {
     var thesetting = {};
     thesetting["Name"] = "Last Session";
     thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YY');
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
+    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
     thesetting["MapGrid"] = "Map";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "Custom Range";
@@ -3631,8 +3631,8 @@ function createupdateconfig(configname) {
     thesetting["CurrentTab"] = currentTab;
     thesetting["DataFromDate"] = $('#dateRange').data('daterangepicker').startDate._i;
     thesetting["DataToDate"] = $('#dateRange').data('daterangepicker').endDate._i;
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
     thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
     thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
     thesetting["staticPeriod"] = $('.ranges li.active').text();
