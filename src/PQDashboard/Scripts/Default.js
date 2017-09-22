@@ -1438,11 +1438,15 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         var disabledLegendFields = [];
 
+        if (!disabledList.hasOwnProperty(currentTab)) disabledList[currentTab] = {};
+
         legend.append("rect")
             .attr("x", width + -65)
             .attr("width", 18)
             .attr("height", 18)
             .style("fill", function (d, i, e) {
+                if (!disabledList[currentTab].hasOwnProperty(d)) disabledList[currentTab][d] = false;
+
                 if (disabledList[currentTab][d]) {
                     return '#808080';
                 }
@@ -3465,36 +3469,6 @@ function deleteconfirmation(item) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function configurationscopy(item) {
-    var dialog = $('#modal-dialog').dialog({
-        modal: true,
-        stack: true,
-        width: 300,
-        buttons: {
-
-            "Create": function () {
-                var theconfigname = $("#newconfigname").val();
-                $("#newconfigname")[0].value = "";
-
-                if (theconfigname.length > 0) {
-                    createupdateconfig(theconfigname);
-                    loadconfigdropdown(theconfigname);
-                }
-
-                $(this).dialog("close");
-            },
-
-            Cancel: function () {
-
-                $(this).dialog("close");
-
-            }
-
-        }
-    }).parent('.ui-dialog').css('zIndex', 1000000);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function substituteToken(thetoken) {
 
@@ -3554,19 +3528,6 @@ function getcurrentconfigsetting(configatom) {
         }
     });
     return (returnvalue);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function configurationsupdate(item) {
-    var currentconfigname = $("#Configurations :selected").text();
-    createupdateconfig(currentconfigname);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function configurationsdelete(item) {
-    deleteconfirmation(item);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
