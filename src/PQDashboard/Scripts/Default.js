@@ -4646,6 +4646,11 @@ function previewDeviceFilter() {
     });
 }
 
+function useSelectedMeters() {
+    $('#deviceFilterMeterGroup').val(0)
+    $('#filterExpression').val('ID IN ('+ GetCurrentlySelectedSitesIDs()+')');
+}
+
 function saveView() {
     $.jsPanel({
         paneltype: 'modal',
