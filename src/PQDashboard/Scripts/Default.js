@@ -1393,7 +1393,21 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
 
     function buildOverviewGraph(data) {
-        yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
+
+        $.each(data[0], function (index, element) {
+                var total = 0
+                $.each(Object.keys(element.data), function (i, a) {
+                    if (a != 'Date' && a != 'Total')
+                        total += parseInt(element.data[a])
+                })
+                element.data.newTotal = total;
+            });
+
+        yOverview.domain([0, d3.max(data, function (d) {
+            return d3.max(d, function (e) {
+                return e.data.newTotal
+            });
+        })]);
 
         overview = svgOverview.append("g")
             .attr("class", "overview")
@@ -1410,8 +1424,10 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             .enter().append("rect")
                 .attr("x", function (d) { return xOverview(moment(d.data.Date)); })
                 .attr("width", function () { return width / numSamples; })
-                .attr("y", function (d) { return yOverview(d.data.Total); })
-                .attr("height", function (d) { return heightOverview - yOverview(d.data.Total); })
+                .attr("y", function (d) {
+                    return yOverview(d.data.newTotal);
+                })
+                .attr("height", function (d) { return heightOverview - yOverview(d.data.newTotal); })
                 .style("fill", "black");
 
 
@@ -1461,7 +1477,6 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 else {
                     $(this).css('fill', color(d));
                 }
-                configurationsupdate(null);
                 toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
                 resizeMatrixCells(currentTab);
