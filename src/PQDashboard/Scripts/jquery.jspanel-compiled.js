@@ -3104,7 +3104,7 @@ var jsPanel = {
         } else {
             el = elmt;
         }
-        el.addEventListener('contextmenu', function (e) {
+        el.addEventListener((config.trigger == 'left'? 'click' :'contextmenu'), function (e) {
             e.preventDefault();
             e.stopPropagation();
             jsPanel.closePanels('contextmenu');
