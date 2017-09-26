@@ -52,9 +52,8 @@ function buildMeterActivityTables() {
     var sourcedate = null;
     var momentFormat = "YYYY/MM/DD HH:mm:ss";
     var dateTimeFormat = "yyyy/MM/dd HH:mm:ss";
-    dataHub.getXdaTime(dateTimeFormat).done(function (data) {
-        sourcedate = moment(dataHub.getXdaTime(dateTimeFormat)).format(momentFormat);
-        //sourcedate = sourcedate.getFullYear().toString() + '-' + (sourcedate.getMonth().toString().length < 2 ? '0' + sourcedate.getMonth().toString() : sourcedate.getMonth().toString()) + '-' + (sourcedate.getDate().toString().length < 2 ? '0' + sourcedate.getDate().toString() : sourcedate.getDate().toString());
+    dataHub.getXdaTime(dateTimeFormat).done(function (date) {
+        sourcedate = moment(date).format(momentFormat);
 
         //=======================================================================================
         // test dev - remove after test dev
