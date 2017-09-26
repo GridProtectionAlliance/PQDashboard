@@ -1679,6 +1679,8 @@ namespace PQDashboard
             return recordCount;
         }
 
+
+
         public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false)
         {
             string order;
@@ -2105,6 +2107,23 @@ namespace PQDashboard
                 return "";
 
             return VirtualPathUtility.ToAbsolute(path);
+        }
+
+        public DateTime GetXdaTime()
+        {
+            string xdaTimeZoneString = DataContext.Connection.ExecuteScalar<string>("Select Value FROM Setting WHERE Name = 'XDATimeZone'") ?? "Eastern Daylight Time";
+            TimeZoneInfo xdaTimeZone = TimeZoneInfo.FindSystemTimeZoneById(xdaTimeZoneString);
+            DateTime time = DateTime.UtcNow;
+            return TimeZoneInfo.ConvertTimeFromUtc(time, xdaTimeZone);
+        }
+
+        public string GetXdaTime(string format)
+        {
+            string xdaTimeZoneString = DataContext.Connection.ExecuteScalar<string>("Select Value FROM Setting WHERE Name = 'XDATimeZone'") ?? "Eastern Daylight Time";
+            TimeZoneInfo xdaTimeZone = TimeZoneInfo.FindSystemTimeZoneById(xdaTimeZoneString);
+            DateTime time = DateTime.UtcNow;
+            string returnString = TimeZoneInfo.ConvertTimeFromUtc(time, xdaTimeZone).ToString(format);
+            return returnString;
         }
 
         /// <summary>
