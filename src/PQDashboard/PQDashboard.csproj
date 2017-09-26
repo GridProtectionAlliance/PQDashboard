@@ -26,6 +26,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -569,6 +570,7 @@
     <Content Include="Scripts\flot\jquery.min.js" />
     <Content Include="Scripts\flot\LICENSE.txt" />
     <Content Include="Scripts\heatmap.js" />
+    <Content Include="Scripts\ie11-compatibility-functions.js" />
     <Content Include="Scripts\jquery-2.1.1.js" />
     <Content Include="Scripts\jquery-2.1.3.min.js" />
     <Content Include="Scripts\jquery-2.2.3.js" />

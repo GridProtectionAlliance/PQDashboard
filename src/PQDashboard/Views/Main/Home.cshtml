@@ -147,6 +147,7 @@
    	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
     <script src="https://unpkg.com/react@15/dist/react.js"></script>
     <script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
+    <script src="~/Scripts/ie11-compatibility-functions.js"></script>
 </head>
 
 <body onunload="createupdateconfig(null);">
@@ -183,10 +184,6 @@
                     <button class="smallbutton" id="editDeviceFilterBtn" onclick="showDeviceFilter('edit')">Edit</button>
 
                     <select class="smallbutton" id="Configurations" hidden="hidden"></select>
-                    <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())" hidden="hidden">Load</button>
-                    <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);" hidden="hidden">New</button>
-                    <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);" hidden="hidden">Save</button>
-                    <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);" hidden="hidden">Delete</button>
                 </td>
                 <td width="150px" align="left" nowrap>
                     <span id="meterSelected"></span> of <span id="meterCount">@meterCount</span> devices
@@ -835,6 +832,7 @@
             </div>
             <div class="modal-footer">
                 <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="previewDeviceFilter()">Preview</button>
+                <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="useSelectedMeters()">Use Selected Meters</button>
                 <button id="showDeviceFilterSaveBtn" type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveDeviceFilter('new')">Save</button>
                 <button id="showDeviceFilterEditBtn" type="button" class="btn btn-primary" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('edit')">Save</button>
                 <button id="showDeviceFilterDeleteBtn" type="button" class="btn btn-danger" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('delete')">Delete</button>

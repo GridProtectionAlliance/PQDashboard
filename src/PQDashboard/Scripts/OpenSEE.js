@@ -509,7 +509,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
         cache: true,
         success: function (data) {
             function highlightCycle(plotIndex, series) {
-                if (calculationCycle >= series.DataPoints.length)
+                if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
                     return;
 
                 var dataPointCount = Math.min(128, series.DataPoints.length - 1);
@@ -533,7 +533,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             }
 
             function highlightSample(plotIndex, series) {
-                if (calculationCycle >= series.DataPoints.length)
+                if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
                     return;
 
                 var from = series.DataPoints[calculationCycle][0];

@@ -168,7 +168,7 @@
             DisturbanceTableAdapter disturbanceAdapter = dbAdapterContainer.GetAdapter<DisturbanceTableAdapter>();
             BreakerOperationTableAdapter breakerAdapter = dbAdapterContainer.GetAdapter<BreakerOperationTableAdapter>();
 
-            if (postedEventName.Equals("Fault"))
+            if (new[] { "Fault", "RecloseIntoFault" }.Contains(postedEventName))
             {
                 FaultLocationData.FaultSummaryDataTable thesummarydatatable = summaryInfo.GetDataBy(Convert.ToInt32(eventID));
 

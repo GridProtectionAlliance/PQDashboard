@@ -1393,7 +1393,21 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
 
     function buildOverviewGraph(data) {
-        yOverview.domain([0, d3.max(data, function (d) { return d3.max(d, function (e) { return e[1] }); })]);
+
+        $.each(data[0], function (index, element) {
+                var total = 0
+                $.each(Object.keys(element.data), function (i, a) {
+                    if (a != 'Date' && a != 'Total')
+                        total += parseInt(element.data[a])
+                })
+                element.data.newTotal = total;
+            });
+
+        yOverview.domain([0, d3.max(data, function (d) {
+            return d3.max(d, function (e) {
+                return e.data.newTotal
+            });
+        })]);
 
         overview = svgOverview.append("g")
             .attr("class", "overview")
@@ -1410,8 +1424,10 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             .enter().append("rect")
                 .attr("x", function (d) { return xOverview(moment(d.data.Date)); })
                 .attr("width", function () { return width / numSamples; })
-                .attr("y", function (d) { return yOverview(d.data.Total); })
-                .attr("height", function (d) { return heightOverview - yOverview(d.data.Total); })
+                .attr("y", function (d) {
+                    return yOverview(d.data.newTotal);
+                })
+                .attr("height", function (d) { return heightOverview - yOverview(d.data.newTotal); })
                 .style("fill", "black");
 
 
@@ -1438,11 +1454,15 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         var disabledLegendFields = [];
 
+        if (!disabledList.hasOwnProperty(currentTab)) disabledList[currentTab] = {};
+
         legend.append("rect")
             .attr("x", width + -65)
             .attr("width", 18)
             .attr("height", 18)
             .style("fill", function (d, i, e) {
+                if (!disabledList[currentTab].hasOwnProperty(d)) disabledList[currentTab][d] = false;
+
                 if (disabledList[currentTab][d]) {
                     return '#808080';
                 }
@@ -1457,7 +1477,6 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 else {
                     $(this).css('fill', color(d));
                 }
-                configurationsupdate(null);
                 toggleSeries(d, $(this).css('fill') === 'rgb(128, 128, 128)');
                 window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
                 resizeMatrixCells(currentTab);
@@ -3465,36 +3484,6 @@ function deleteconfirmation(item) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function configurationscopy(item) {
-    var dialog = $('#modal-dialog').dialog({
-        modal: true,
-        stack: true,
-        width: 300,
-        buttons: {
-
-            "Create": function () {
-                var theconfigname = $("#newconfigname").val();
-                $("#newconfigname")[0].value = "";
-
-                if (theconfigname.length > 0) {
-                    createupdateconfig(theconfigname);
-                    loadconfigdropdown(theconfigname);
-                }
-
-                $(this).dialog("close");
-            },
-
-            Cancel: function () {
-
-                $(this).dialog("close");
-
-            }
-
-        }
-    }).parent('.ui-dialog').css('zIndex', 1000000);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 function substituteToken(thetoken) {
 
@@ -3503,19 +3492,19 @@ var returnvalue = "";
 switch (thetoken) {
 
     case "Today":
-        returnvalue = moment().utc().format('MM/DD/YY');
+        returnvalue = moment().utc().format('MM/DD/YYYY');
         break;
 
     case "PastWeek":
-        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YYYY');
         break;
 
     case "PastMonth":
-        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YYYY');
         break;
 
     case "PastYear":
-        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YY');
+        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YYYY');
         break;
             
     default:
@@ -3558,19 +3547,6 @@ function getcurrentconfigsetting(configatom) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function configurationsupdate(item) {
-    var currentconfigname = $("#Configurations :selected").text();
-    createupdateconfig(currentconfigname);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function configurationsdelete(item) {
-    deleteconfirmation(item);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function initializesettings() {
     var thesetting = {};
     usersettings.uisettings.length = 0;
@@ -3594,10 +3570,10 @@ function initializesettings() {
     var thesetting = {};
     thesetting["Name"] = "Last Session";
     thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YY');
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
+    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
     thesetting["MapGrid"] = "Map";
     thesetting["EventSiteDropdownSelected"] = null;
     thesetting["staticPeriod"] = "Custom Range";
@@ -3631,8 +3607,8 @@ function createupdateconfig(configname) {
     thesetting["CurrentTab"] = currentTab;
     thesetting["DataFromDate"] = $('#dateRange').data('daterangepicker').startDate._i;
     thesetting["DataToDate"] = $('#dateRange').data('daterangepicker').endDate._i;
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YY');
+    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
+    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
     thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
     thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
     thesetting["staticPeriod"] = $('.ranges li.active').text();
@@ -4683,6 +4659,11 @@ function previewDeviceFilter() {
             }
         });
     });
+}
+
+function useSelectedMeters() {
+    $('#deviceFilterMeterGroup').val(0)
+    $('#filterExpression').val('ID IN ('+ GetCurrentlySelectedSitesIDs()+')');
 }
 
 function saveView() {
