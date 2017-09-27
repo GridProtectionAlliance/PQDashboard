@@ -1366,6 +1366,8 @@ namespace PQDashboard
 
         public int AddSavedViews(SavedViews record)
         {
+            if (record.IsDefault)
+                DataContext.Connection.ExecuteNonQuery("UPDATE SavedViews SET IsDefault = 'false' WHERE UserAccount = {0}", record.UserAccount);
             DataContext.Table<SavedViews>().AddNewRecord(record);
             return DataContext.Connection.ExecuteScalar<int>("SELECT @@IDENTITY");
 

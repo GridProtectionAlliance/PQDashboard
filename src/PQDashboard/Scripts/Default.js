@@ -1636,7 +1636,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
         }
 
-
+        $.jStorage.set('disabledList', disabledList)
         var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0); }) : newData));
         var overviewStackedData = stack(newData);
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
@@ -3306,332 +3306,6 @@ function isRightClick(event) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadconfigdropdown(currentselected) {
-    $('#Configurations')[0].options.length = 0;
-    $.each(usersettings.uisettings, function (key, value) {
-        SelectAdd("Configurations", key, value.Name, (currentselected == value.Name) ? "selected" : "");
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function validatesettings(usersettings) {
-
-    if (typeof (usersettings["lastSetting"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    };
-
-    if (typeof (usersettings["javascriptversion"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    } else if (usersettings["javascriptversion"] != javascriptversion) {
-        initializesettings();
-        return (false);
-    }
-
-    if (typeof (usersettings["disabledList"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    };
-
-
-    $.each(usersettings.uisettings, function(key, value) {
-
-        if (typeof (value["Name"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["CurrentTab"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (($('#application-tabs li :visible').map(function (i, a) { return $(a).text(); }).get()).indexOf(value["CurrentTab"]) < 0) {
-            initializesettings();
-            return (false);
-        }
-        if (typeof (value["DataFromDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["DataToDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-
-        if (typeof (value["ContextFromDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["ContextToDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["MapGrid"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["EventSiteDropdownSelected"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["staticPeriod"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function configurationapply(item) {
-        
-    var currentconfigname = $("#Configurations :selected").text();
-
-    usersettings["lastSetting"] = currentconfigname;
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-    $('#dateRange').data('daterangepicker').setStartDate(moment(getcurrentconfigsetting("DataFromDate")).utc());
-    $('#dateRange').data('daterangepicker').setEndDate(moment(getcurrentconfigsetting("DataToDate")).utc());
-    contextfromdate = getcurrentconfigsetting("ContextFromDate");
-    contexttodate = getcurrentconfigsetting("ContextToDate");
-    disabledList = usersettings["disabledList"];
-    if (contextfromdate === contexttodate) {
-        cache_Last_Date = contexttodate;
-    }
-    else {
-        cache_Last_Date = null;
-        cache_Table_Data = null;
-    }
-
-    var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
-    if (selectedsites != null) {
-        $('#siteList').multiselect("uncheckAll");
-        $('#siteList').val(selectedsites);
-    }
-    else {
-        $('#siteList').multiselect("checkAll");
-    }
-
-    $('#siteList').multiselect('refresh');
-    
-    if ($("#application-tabs").tabs("option", "active") !== ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")))
-        $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")));
-    else 
-        manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
-    $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-    //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-    $.each($('.ranges li'), function (i, a) {
-        if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
-            $(a).click();
-    })
-
-
-    selectmapgrid($("#map" + currentTab + "Grid")[0]);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function deleteconfirmation(item) {
-
-    var currentconfigname = $("#Configurations :selected").text();
-
-    if (currentconfigname == "Last Session") return;
-    if (currentconfigname == "Default") return;
-
-    $('#deleteconfigname')[0].innerText = currentconfigname;
-
-    var dialog = $('#delete-dialog').dialog({
-        modal: true,
-        stack: true,
-        width: 300,
-        buttons: {
-
-            "Delete": function () {
-
-                var loc = -1;
-
-                $.each(usersettings.uisettings, function (key, value) {
-                    if (currentconfigname == value.Name) {
-
-
-                            usersettings.uisettings.remove(key, key);
-                            usersettings["lastSetting"] = "Default";
-                            $.jStorage.deleteKey("usersettings");
-                            $.jStorage.set("usersettings", usersettings);
-                            loadconfigdropdown("Default");
-                            configurationapply(item);
-                            return (false);
-                            
-                    }
-                });
-
-                $(this).dialog("close");
-            },
-
-            Cancel: function () {
-
-                $(this).dialog("close");
-
-            }
-
-        }
-    }).parent('.ui-dialog').css('zIndex', 1000000);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-function substituteToken(thetoken) {
-
-var returnvalue = "";
-
-switch (thetoken) {
-
-    case "Today":
-        returnvalue = moment().utc().format('MM/DD/YYYY');
-        break;
-
-    case "PastWeek":
-        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YYYY');
-        break;
-
-    case "PastMonth":
-        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YYYY');
-        break;
-
-    case "PastYear":
-        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YYYY');
-        break;
-            
-    default:
-        returnvalue = thetoken;
-        /// Today
-        break;
-}
-
-return (returnvalue);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function getcurrentconfigsetting(configatom) {
-    var returnvalue = null;
-    var currentconfigname = $("#Configurations :selected").text();
-
-    $.each(usersettings.uisettings, function (key, value) {
-        if (currentconfigname == value.Name) {
-
-            switch (configatom) {
-                
-                case "DataToDate":
-                case "DataFromDate":
-                case "ContextToDate":
-                case "ContextFromDate":
-                    returnvalue = substituteToken(value[configatom]);
-                    break;
-
-                default:
-                    returnvalue = value[configatom];
-                    break;
-            }
-
-            return (false);
-        }
-    });
-    return (returnvalue);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function initializesettings() {
-    var thesetting = {};
-    usersettings.uisettings.length = 0;
-
-    usersettings["javascriptversion"] = javascriptversion;
-    usersettings["disabledList"] = disabledList;
-
-    thesetting["Name"] = "Default";
-    thesetting["DataToDate"] = "Today";
-    thesetting["DataFromDate"] = "PastMonth";
-    thesetting["ContextToDate"] = "Today";
-    thesetting["ContextFromDate"] = "PastMonth";
-    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["MapGrid"] = "Grid";
-    thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "Last 30 Days";
-
-
-    usersettings["uisettings"].push(thesetting);
-
-    var thesetting = {};
-    thesetting["Name"] = "Last Session";
-    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["MapGrid"] = "Map";
-    thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "Custom Range";
-    usersettings["lastSetting"] = "Default";
-    usersettings["uisettings"].push(thesetting);
-
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function createupdateconfig(configname) {
-
-    if (configname == "Default") return;
-
-    if (configname == null) {
-        configname = "Last Session";
-    }
-
-    if (usersettings == null) {
-        usersettings = {
-            lastSetting: {},
-            uisettings: []
-        };
-    }
-
-    var thesetting = {};
-
-    thesetting["Name"] = configname;
-    thesetting["CurrentTab"] = currentTab;
-    thesetting["DataFromDate"] = $('#dateRange').data('daterangepicker').startDate._i;
-    thesetting["DataToDate"] = $('#dateRange').data('daterangepicker').endDate._i;
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
-    thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
-    thesetting["staticPeriod"] = $('.ranges li.active').text();
-
-    var loc = -1;
-
-    $.each(usersettings.uisettings, function (key, value) {
-        if (configname == value.Name) loc = key;
-    });
-
-    if (loc == -1) {
-        usersettings["uisettings"].push(thesetting);
-    } else {
-        usersettings.uisettings[loc] = thesetting;
-    }
-
-    usersettings["lastSetting"] = "Default";
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function showContent() {
 
     $("#loginContent").css("visibility", "hidden");
@@ -3697,8 +3371,6 @@ function selectMeterGroup(thecontrol) {
         var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
             manageTabsByDate(newTab, contextfromdate, contexttodate);
-            $(".mapGrid").val(mapormatrix);
-            selectmapgrid($("#map" + currentTab + "Grid")[0]);
         });
 
     }
@@ -3755,29 +3427,16 @@ function loadsitedropdown() {
         minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
     }).multiselectfilter();
 
-
-    var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
-    if (selectedsites != null) {
-        $('#siteList').multiselect("uncheckAll");
-        $('#siteList').val(selectedsites);
-    }
-    else {
-        $('#siteList').multiselect("checkAll");
-    }
-
-    $('#siteList').multiselect('refresh');
     $('.ui-multiselect').hide()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function loadSettingsAndApply() {
-    dataHub.getTabSettings(postedUserName).done(function (data) {
-        var settings = eval(data);
         // Turn Off Features
 
-        applicationsettings = settings;
+        applicationsettings = dashSettings;
 
-        $.each(settings, (function (key, value) {
+        $.each(dashSettings, (function (key, value) {
             if (value.Name == "DashTab") {
                 if (value.Enabled == true) {
                     $(value.Value).show();
@@ -3793,11 +3452,7 @@ function loadSettingsAndApply() {
 
         }));
 
-        $(window).trigger("settingsLoaded");
-
-    }).fail(function (msg) {
-        alert(msg);
-    });
+        //$(window).trigger("settingsLoaded");
 }
   
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3878,15 +3533,17 @@ function buildPage() {
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
 
-    if ($.jStorage.get("usersettings") != null) {
-        usersettings = $.jStorage.get("usersettings");
-        validatesettings(usersettings);
-    } else {
-        initializesettings();
-    }
+    var savedDisabledList = $.jStorage.get("disabledList");
 
-    disabledList = usersettings["disabledList"];
-    loadconfigdropdown(usersettings.lastSetting);
+    $.each(Object.keys(savedDisabledList), function (_, key) {
+        $.each(Object.keys(savedDisabledList[key]), function (_, key2) {
+            if (!disabledList.hasOwnProperty(key))
+                disabledList[key] = {}
+
+            disabledList[key][key2] = savedDisabledList[key][key2]
+        });
+    });
+
     $('.grid').masonry({
         itemSelector: '.grid-item',
         columnWidth: 400
@@ -3992,58 +3649,58 @@ function buildPage() {
 
     loadsitedropdown();
 
-    $(window).one("settingsLoaded", function () {
-
-        currentTab = $('#application-tabs li :visible').first().text();
+    currentTab = defaultView.Tab;
 
 
-        datafromdate = getcurrentconfigsetting("DataFromDate");
-        datatodate = getcurrentconfigsetting("DataToDate");
+    if (defaultView.DateRange < 0) {
+        datafromdate = moment(defaultView.FromDate).utc().format('MM/DD/YY');
+        datatodate = moment(defaultView.ToDate).utc().format('MM/DD/YY');
+        contextfromdate = moment(defaultView.FromDate).utc().format('MM/DD/YY');
+        contexttodate = moment(defaultView.ToDate).utc().format('MM/DD/YY');
 
-        contextfromdate = getcurrentconfigsetting("ContextFromDate");
-        contexttodate = getcurrentconfigsetting("ContextToDate");
+    }
+    else {
+        datafromdate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][0]).utc().format('MM/DD/YY');
+        datatodate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][1]).utc().format('MM/DD/YY');
+        contextfromdate = datafromdate;
+        contexttodate = datatodate;
 
-        initializeDatePickers(datafromdate, datatodate);
-        getMeters("0");
-        $(window).one("meterSelectUpdated", function () {
-            initiateTimeRangeSlider();
-            initiateColorScale();
-
-
-            resizeMapAndMatrix(currentTab);
-            if (currentTab.indexOf("Overview") > -1) {
-                $('#headerStrip').hide();
-                showOverviewPage(currentTab);
-
-            }
-            else if (currentTab === "MeterActivity") {
-                $('#headerStrip').hide();
-                showMeterActivity();
-            }
-            else if (currentTab === "ModbusData") {
-                $('#headerStrip').hide();
-                showModbusData();
-            }
-            else if (currentTab === "HistorianData") {
-                $('#headerStrip').hide();
-                showHistorianData();
-            }
-            else {
-                $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-                $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-                //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-                $.each($('.ranges li'), function (i, a) {
-                    if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
-                        $(a).click();
-                })
-                selectmapgrid($("#map" + currentTab + "Grid")[0]);
-                $('#headerStrip').show();
-
-            }
+    }
 
 
-        });
+    initializeDatePickers(datafromdate, datatodate);
+    getMeters(defaultView.DeviceFilterID);
+    $(window).one("meterSelectUpdated", function () {
+        initiateTimeRangeSlider();
+        initiateColorScale();
+
+
+        resizeMapAndMatrix(currentTab);
+        if (currentTab.indexOf("Overview") > -1) {
+            $('#headerStrip').hide();
+            showOverviewPage(currentTab);
+
+        }
+        else if (currentTab === "MeterActivity") {
+            $('#headerStrip').hide();
+            showMeterActivity();
+        }
+        else if (currentTab === "ModbusData") {
+            $('#headerStrip').hide();
+            showModbusData();
+        }
+        else if (currentTab === "HistorianData") {
+            $('#headerStrip').hide();
+            showHistorianData();
+        }
+        else {
+            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
+            $(".mapGrid").val(defaultView.MapGrid);
+
+            selectmapgrid($("#map" + currentTab + "Grid")[0]);
+            $('#headerStrip').show();
+
+        }
 
 
     });
@@ -4678,18 +4335,20 @@ function saveView() {
         headerTitle: 'Save View',
         theme: 'success',
         show: 'animated fadeInDownBig',
-        content: '<label>View Name:</label><input type="text" id="viewName" class="form-control" maxlength="10" /><button class="btn btn-primary pull-right">Submit</button>',
+        content: '<label>View Name:</label><input type="text" id="viewName" class="form-control" maxlength="10" /><input id="isDefault" type="checkbox"/>Default<button class="btn btn-primary pull-right">Submit</button>',
         callback: function (panel) {
             $("input:first", this).focus();
             $("button", this.content).click(function () {
                 record ={
                     Name: $('#viewName').val(),
                     UserAccount: postedUserName,
+                    DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
                     FromDate: contextfromdate,
                     ToDate:contexttodate,
                     Tab: currentTab,
                     DeviceFilterID: $('#deviceFilterList').val(),
-                    MapGrid: $('#map' + currentTab + 'Grid').val()
+                    MapGrid: $('#map' + currentTab + 'Grid').val(),
+                    IsDefault: $('#isDefault').prop('checked')
                 }
 
                 dataHub.addSavedViews(record).done(function (data) {
@@ -4718,12 +4377,24 @@ function selectView(theControl) {
             //selectMeterGroup(null);
             //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             $('#map' + record.Tab + 'Grid').val(record.MapGrid);
+            selectmapgrid($('#map' + record.Tab + 'Grid')[0]);
             contextfromdate = moment(record.FromDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
             contexttodate = moment(record.ToDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
-            $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
-            $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
-            $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-            $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
+            if (record.DateRange < 0) {
+                $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
+                $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
+                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+            }
+            else {
+                $('#dateRange').data('daterangepicker').setStartDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][0]);
+                $('#dateRange').data('daterangepicker').setEndDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][1]);
+                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+
+            }
+            if(record.Tab != currentTab)
+                $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
+            else
+                loadDataForDate();
         });
     }
 }
