@@ -3929,22 +3929,28 @@ function buildPage() {
     });
 
     // Settings modal jscolor and enable change events
-    $('.modal-body input').change(function(event){
+    $('.modal-body input').change(function (event) {
+        var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
+        var value = $(event.currentTarget).parent().parent().text().trim();
+        var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
         var field;
-        if ($(event.currentTarget).attr('id').indexOf('enable') > -1)
+        if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
+            tab += "Chart";
             field = "enable";
-        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1)
-            field = "tab"
-        else if ($(event.currentTarget).attr('id').indexOf('color') > -1)
-            field = "color"
+        }
+        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
+            tab = "DashTab";
+            field = "tab";
+        }
+        else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
+            tab += "ChartColors";
+            value += ',#' + $(event.currentTarget).val();
+            field = "color";
+        }
+
         var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
 
-        var value;
-        if ($(event.currentTarget).attr('type') == "checkbox")
-            value = $(event.currentTarget).prop('checked');
-        else
-            value = $(event.currentTarget).val();
-        dataHub.updateDashSettings(id, field, value, userId);
+        dataHub.updateDashSettings(id, tab, value, boolean, userId);
     });
 
     $("#application-tabs").tabs({

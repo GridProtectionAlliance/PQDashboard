@@ -569,14 +569,7 @@ namespace PQDashboard
                             if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
                             {
                                 disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "" + tab + "Chart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                                DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
                             }
 
                             if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
@@ -590,13 +583,7 @@ namespace PQDashboard
                                     else
                                     {
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "" + tab + "ChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors",column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
                                     }
                                 }
                                 eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
@@ -611,14 +598,7 @@ namespace PQDashboard
                             if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
                             {
                                 disabledFileds.Add(column.ColumnName, true);
-                                DashSettings ds = new DashSettings()
-                                {
-                                    Name = "" + tab + "Chart",
-                                    Value = column.ColumnName,
-                                    Enabled = true
-                                };
-                                DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                                DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
                             }
 
                             if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
@@ -632,14 +612,7 @@ namespace PQDashboard
                                     else
                                     {
                                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DashSettings ds = new DashSettings()
-                                        {
-                                            Name = "" + tab + "ChartColors",
-                                            Value = column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                                            Enabled = true
-                                        };
-                                        DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
                                     }
                                 }
                             }
@@ -728,14 +701,7 @@ namespace PQDashboard
                 if (!disabledFileds.ContainsKey(column.Name))
                 {
                     disabledFileds.Add(column.Name, true);
-                    DashSettings ds = new DashSettings()
-                    {
-                        Name = "" + tab + "Chart",
-                        Value = column.Name,
-                        Enabled = true
-                    };
-                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.Name, true);
                 }
 
                 if (disabledFileds[column.Name])
@@ -745,15 +711,9 @@ namespace PQDashboard
                     else
                     {
                         eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                        DashSettings ds = new DashSettings()
-                        {
-                            Name = "" + tab + "ChartColors",
-                            Value = column.Name + "," + eventSet.Types[eventSet.Types.Count - 1].Color,
-                            Enabled = true
-                        };
-                        DataContext.Table<DashSettings>().AddNewRecord(ds);
+                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.Name + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
                     }
-                    
+
                 }
             }
             IEnumerable<AlarmRangeLimit> alarmLimits = DataContext.Table<AlarmRangeLimit>().QueryRecordsWhere("ChannelID IN ({0})", string.Join(",", channelIds.Select(x => x.ToString())));
@@ -975,14 +935,7 @@ namespace PQDashboard
                 if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
                 {
                     disabledFileds.Add(column.ColumnName, true);
-                    DashSettings ds = new DashSettings()
-                    {
-                        Name = "" + tab + "Chart",
-                        Value = column.ColumnName,
-                        Enabled = true
-                    };
-                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
                 }
 
 
@@ -1180,14 +1133,7 @@ namespace PQDashboard
                 if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
                 {
                     disabledFileds.Add(column.ColumnName, true);
-                    DashSettings ds = new DashSettings()
-                    {
-                        Name = "" + tab + "Chart",
-                        Value = column.ColumnName,
-                        Enabled = true
-                    };
-                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-
+                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
                 }
 
                 if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
@@ -1195,16 +1141,7 @@ namespace PQDashboard
                     Random r = new Random(DateTime.UtcNow.Millisecond);
                     string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
                     colors.Add(column.ColumnName, color);
-
-                    DashSettings ds = new DashSettings()
-                    {
-                        Name = "" + tab + "ChartColors",
-                        Value = column.ColumnName + ",#" + color,
-                        Enabled = true
-                    };
-                    DataContext.Table<DashSettings>().AddNewRecord(ds);
-
-
+                    DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.ColumnName + "," + color, true);
                 }
 
 
@@ -1338,45 +1275,19 @@ namespace PQDashboard
 
         #region [ PageSettings ]
 
-        public void UpdateDashSettings(int id, string field, string value, string userId)
+        public void UpdateDashSettings(int id, string name, string value, bool enabled, string userId)
         {
-            DashSettings ds = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("ID = {0}", id))?.FirstOrDefault() ?? null;
-            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = {0} AND Value LIKE {1} AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {2}) ", ds.Name, ds.Value.Split(',')[0] + "%", userId))?.FirstOrDefault() ?? null;
+            Guid userAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
+            DashSettings ds = DataContext.Table<DashSettings>().QueryRecordWhere("ID = {0}", id);
+            UserDashSettings uds = DataContext.Table<UserDashSettings>().GetOrAdd(name, userAccountID, value, enabled);
 
-            if(uds != null)
-            {
-                if (field.EndsWith("enable") || field.EndsWith("tab"))
-                    uds.Enabled = !uds.Enabled;
-                else
-                    uds.Value = uds.Value.Split(',')[0] + ",#" + value;
+            uds.Value = value;
+            uds.Enabled = enabled;
 
-                if(uds.Enabled != ds.Enabled)
-                    DataContext.Table<UserDashSettings>().UpdateRecord(uds);
-                else
-                    DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
-            }
+            if((uds.Enabled != ds.Enabled) || (uds.Value != ds.Value))
+                DataContext.Table<UserDashSettings>().UpdateRecord(uds);
             else
-            {
-                uds = new UserDashSettings();
-                uds.UserAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
-                uds.Name = ds.Name;
-
-                bool result;
-                if (!bool.TryParse(value, out result))
-                {
-                    uds.Enabled = true;
-                    uds.Value = ds.Value.Split(',')[0] + ",#" + value;
-                }
-                else
-                {
-                    uds.Enabled = result;
-                    uds.Value = ds.Value;
-                }
-               
-                if(uds.Enabled != ds.Enabled)
-                    DataContext.Table<UserDashSettings>().AddNewRecord(uds);
-
-            }
+                DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
         }
 
         public void ResetDefaultSettings()
