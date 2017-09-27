@@ -936,8 +936,8 @@
         return false;
     }
 
-    function OpenWindowToMeterEventsByLineTwo(id, context) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+context, id + "MeterEventsByLine");
+    function OpenWindowToMeterEventsByLineTwo(id, context, sourcedate) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+context +"&posteddate="+sourcedate, id + "MeterEventsByLine");
         return false;
     }
 
