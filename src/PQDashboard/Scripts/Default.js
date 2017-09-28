@@ -3534,15 +3534,18 @@ function buildPage() {
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
 
     var savedDisabledList = $.jStorage.get("disabledList");
+    if (savedDisabledList != null) {
+        $.each(Object.keys(savedDisabledList), function (_, key) {
+            $.each(Object.keys(savedDisabledList[key]), function (_, key2) {
+                if (!disabledList.hasOwnProperty(key))
+                    disabledList[key] = {}
 
-    $.each(Object.keys(savedDisabledList), function (_, key) {
-        $.each(Object.keys(savedDisabledList[key]), function (_, key2) {
-            if (!disabledList.hasOwnProperty(key))
-                disabledList[key] = {}
-
-            disabledList[key][key2] = savedDisabledList[key][key2]
+                disabledList[key][key2] = savedDisabledList[key][key2]
+            });
         });
-    });
+    }
+    else
+        $.jStorage.set("disabledList", disabledList)
 
     $('.grid').masonry({
         itemSelector: '.grid-item',
