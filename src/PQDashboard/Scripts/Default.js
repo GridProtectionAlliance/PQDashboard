@@ -2028,6 +2028,8 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
 
             plotMapLocations(data, currentTab, this.datefrom, this.dateto);
             plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+            $(window).trigger('clickNow')
+
         }).fail(function (msg) {
             alert(msg);
         });
@@ -2049,7 +2051,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 data.d.JSON = data.d.Locations;
                 plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                 plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-
+                $(window).trigger('clickNow')
             },
             failure: function (msg) {
                 alert(msg);
@@ -2124,17 +2126,19 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
         updateGridWithSelectedSites();
 
-        if ($('#deviceFilterList').val() != 'ClickEvent') {
-            $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
-            $('#deviceFilterList').val('ClickEvent');
-        }
-
-        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
-
         if (e.ctrlKey) {
             if (selectiontimeout != null) clearTimeout(selectiontimeout);
             selectiontimeout = setTimeout('selectsitesincharts()', 100);
         } else {
+
+
+            if ($('#deviceFilterList').val() != 'ClickEvent') {
+                $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                $('#deviceFilterList').val('ClickEvent');
+            }
+
+            $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
             selectsitesincharts();
         }
     });
@@ -2549,17 +2553,6 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
         mapMarkers[currentTab] = [];
     }
 
-
-    //if (markerMap[currentTab] !== null){
-    //    $.each(locationdata.JSON, function (index, data) {
-    //        $('#' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + ' circle').attr('fill', getColorsForTab(data, locationdata.Colors));
-    //        $.each(mapMarkers[currentTab], function (mmIndex, object) {
-    //            if(object.id === data.ID)
-    //                object.marker.getPopup().setContent(getLeafletLocationPopup(data))
-    //        });
-    //    });
-    //}
-    //else {
 
         $.each(locationdata.JSON, function (index, data) {
             var color = getColorsForTab(data, locationdata.Colors);
@@ -3417,15 +3410,7 @@ $(document).ready(function () {
 
 function loadsitedropdown() {
 
-    $("#siteList").multiselect({
-        close: function (event, ui) {
-            showSiteSet($("#selectSiteSet" + currentTab)[0]);
-            updateGridWithSelectedSites();
-            selectsitesonmap();
-            selectsitesincharts();
-        },
-        minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
-    }).multiselectfilter();
+    $("#siteList").multiselect().multiselectfilter();
 
     $('.ui-multiselect').hide()
 }
@@ -3635,6 +3620,13 @@ function buildPage() {
                 showHistorianData();
             }
             else {
+                
+                var ids = null;
+                if ($('#deviceFilterList').val() == 'ClickEvent') {
+                    ids = GetCurrentlySelectedSitesIDs();
+                    $('#deviceFilterList').val(0)
+                }
+
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
                 cache_Sparkline_Data = null;
@@ -3644,6 +3636,18 @@ function buildPage() {
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
 
+                if (ids != null) {
+                    $(window).off('clickNow')
+                    $(window).one('clickNow', function(e){
+                        $.each(ids.split(','), function (i, id) {
+                            var me = {}
+                            if (i != 0)
+                                me.ctrlKey = true;
+
+                            $('#matrix_' + id + '_box_' + currentTab).trigger($.Event("click", me));
+                        })
+                    })
+                }
             }
 
 
