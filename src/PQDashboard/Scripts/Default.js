@@ -386,7 +386,7 @@ function populateFaultsDivWithGrid(data) {
         columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
         columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html });
         columns.push({ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html });
-        columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
+        columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
 
         fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
@@ -403,10 +403,10 @@ function openResultsModal(row){
 
 }
 
-function openNoteModal(faultId) {
+function openNoteModal(eventId) {
     $('#previousNotes').remove();
-    dataHub.getNotesForFault(faultId).done(function (data) {
-        $('#faultId').text(faultId);
+    dataHub.getNotesForEvent(eventId).done(function (data) {
+        $('#faultId').text(eventId);
         if (data.length > 0)
             $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
         $.each(data, function (i, d) {
@@ -419,17 +419,17 @@ function openNoteModal(faultId) {
 }
 
 function saveNote() {
-    dataHub.saveNoteForFault($('#faultId').text(), $('#note').val(), userId);
+    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userId);
 }
 
 function removeNote(id) {
-    dataHub.removeNote(id);
+    dataHub.removeEventNote(id);
     $('#row' +id).remove()
 }
 
 function editNote(id) {
     $('#note').val($('#note' + id).text());
-    dataHub.removeNote(id);
+    dataHub.removeEventNote(id);
 }
 
 function populateCorrectnessDivWithGrid(data) {
@@ -3656,15 +3656,15 @@ function buildPage() {
 
 
     if (defaultView.DateRange < 0) {
-        datafromdate = moment(defaultView.FromDate).utc().format('MM/DD/YY');
-        datatodate = moment(defaultView.ToDate).utc().format('MM/DD/YY');
-        contextfromdate = moment(defaultView.FromDate).utc().format('MM/DD/YY');
-        contexttodate = moment(defaultView.ToDate).utc().format('MM/DD/YY');
+        datafromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
+        datatodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
+        contextfromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
+        contexttodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
 
     }
     else {
-        datafromdate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][0]).utc().format('MM/DD/YY');
-        datatodate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][1]).utc().format('MM/DD/YY');
+        datafromdate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][0]).utc().format('MM/DD/YYYY');
+        datatodate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][1]).utc().format('MM/DD/YYYY');
         contextfromdate = datafromdate;
         contexttodate = datatodate;
 
@@ -4342,6 +4342,22 @@ function saveView() {
         callback: function (panel) {
             $("input:first", this).focus();
             $("button", this.content).click(function () {
+                if ($('#deviceFilterList').val() == 'ClickEvent')
+                {
+                    var record = {
+                        Name: $('#viewName').val() + ' Devices',
+                        UserAccount: postedUserName,
+                        FilterExpression: 'ID IN (' + GetCurrentlySelectedSitesIDs() + ')',
+                        MeterGroupID: $('#deviceFilterMeterGroup').val()
+                    }
+
+                    dataHub.addDeviceFilter(record).done(function (data) {
+                        $('#deviceFilterList').append(new Option(record.Name, data));
+                    });
+
+
+                }
+
                 record ={
                     Name: $('#viewName').val(),
                     UserAccount: postedUserName,
