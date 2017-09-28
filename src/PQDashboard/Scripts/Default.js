@@ -4342,38 +4342,57 @@ function saveView() {
         callback: function (panel) {
             $("input:first", this).focus();
             $("button", this.content).click(function () {
-                if ($('#deviceFilterList').val() == 'ClickEvent')
-                {
+                if ($('#deviceFilterList').val() == 'ClickEvent') {
                     var record = {
-                        Name: $('#viewName').val() + ' Devices',
+                        Name: $('#viewName').val(),
                         UserAccount: postedUserName,
                         FilterExpression: 'ID IN (' + GetCurrentlySelectedSitesIDs() + ')',
                         MeterGroupID: $('#deviceFilterMeterGroup').val()
                     }
 
+                    r = {
+                        Name: $('#viewName').val(),
+                        UserAccount: postedUserName,
+                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
+                        FromDate: contextfromdate,
+                        ToDate: contexttodate,
+                        Tab: currentTab,
+                        DeviceFilterID: $('#deviceFilterList').val(),
+                        MapGrid: $('#map' + currentTab + 'Grid').val(),
+                        IsDefault: $('#isDefault').prop('checked')
+                    }
+
+
                     dataHub.addDeviceFilter(record).done(function (data) {
                         $('#deviceFilterList').append(new Option(record.Name, data));
+                        r.DeviceFilterID = data;
+                        dataHub.addSavedViews(r).done(function (d) {
+                            $('#viewSelect').append(new Option(r.Name, d));
+                            panel.close()
+                        });
+
                     });
 
 
                 }
+                else {
+                    record = {
+                        Name: $('#viewName').val(),
+                        UserAccount: postedUserName,
+                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
+                        FromDate: contextfromdate,
+                        ToDate: contexttodate,
+                        Tab: currentTab,
+                        DeviceFilterID: $('#deviceFilterList').val(),
+                        MapGrid: $('#map' + currentTab + 'Grid').val(),
+                        IsDefault: $('#isDefault').prop('checked')
+                    }
 
-                record ={
-                    Name: $('#viewName').val(),
-                    UserAccount: postedUserName,
-                    DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
-                    FromDate: contextfromdate,
-                    ToDate:contexttodate,
-                    Tab: currentTab,
-                    DeviceFilterID: $('#deviceFilterList').val(),
-                    MapGrid: $('#map' + currentTab + 'Grid').val(),
-                    IsDefault: $('#isDefault').prop('checked')
+                    dataHub.addSavedViews(record).done(function (data) {
+                        $('#viewSelect').append(new Option(record.Name, data));
+                        panel.close()
+                    });
                 }
-
-                dataHub.addSavedViews(record).done(function (data) {
-                    $('#viewSelect').append(new Option(record.Name, data));
-                    panel.close()
-                });
 
             });
         }
@@ -4393,7 +4412,6 @@ function selectView(theControl) {
     if($(theControl).val() != 0){
         dataHub.querySavedViewsRecord($(theControl).val()).done(function (record) {
             $('#deviceFilterList').val(record.DeviceFilterID);
-            //selectMeterGroup(null);
             //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             $('#map' + record.Tab + 'Grid').val(record.MapGrid);
             selectmapgrid($('#map' + record.Tab + 'Grid')[0]);
@@ -4410,6 +4428,9 @@ function selectView(theControl) {
                 $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
 
             }
+
+            selectMeterGroup(null);
+
             if(record.Tab != currentTab)
                 $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             else
