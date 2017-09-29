@@ -2137,10 +2137,12 @@ function populateGridMatrix(data, siteID, siteName, colors) {
                 $('#deviceFilterList').val('ClickEvent');
             }
 
-            $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
 
             selectsitesincharts();
         }
+
+        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
     });
 }
 
@@ -3311,6 +3313,13 @@ function showContent() {
 
 function getMeters(meterGroup) {
     dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
+
+        data.sort(function (a, b) {
+            if (a.Name.toLowerCase() < b.Name.toLowerCase()) return -1;
+            if (a.Name.toLowerCase() > b.Name.toLowerCase()) return 1;
+            return 0;
+        });
+
         cache_Meters = data;
         updateMeterselect();
         $('#meterSelected').text(data.length);
