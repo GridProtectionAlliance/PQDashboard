@@ -2151,9 +2151,9 @@ function updateGridWithSelectedSites() {
     $('#siteList').multiselect("widget").find(":checkbox").each(function () {
         var matrixItemID = "#" + "matrix_" + this.value + "_box_" + currentTab;
         if (this.checked) {
-            $(matrixItemID).switchClass('matrixButtonBlack', 'matrixButton');
+            $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
         } else {
-            $(matrixItemID).switchClass('matrixButton', 'matrixButtonBlack');
+            $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
         }
     });
 }
