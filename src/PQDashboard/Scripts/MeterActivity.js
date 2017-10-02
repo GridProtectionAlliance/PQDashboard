@@ -82,14 +82,14 @@ function buildMeterActivity(sourcedate) {
         emptyMessage: "No Meters with events in the last 30 days",
         columns: [
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row) } },
-            { field: 'Events24Hours', headerText: 'Events 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '24h', sourcedate) } },
-            { field: 'Events7Days', headerText: 'Events 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '7d', sourcedate) } },
-            { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
+            { field: 'Events24Hours', headerText: 'Files (Events) 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '24h', sourcedate) } },
+            { field: 'Events7Days', headerText: 'Files (Events) 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '7d', sourcedate) } },
+            { field: 'Events30Days', headerText: 'Files (Events) 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
         ],
 
         datasource: function (callback, ui) {
             $this = this;
-            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events24Hours", 11, false).done(function (data) {
+            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events24Hours", 11, false, ui.sortOrder == 1 ? true : false).done(function (data) {
                 callback.call($this, data);
             })
         }
@@ -102,14 +102,14 @@ function buildMeterActivity(sourcedate) {
         emptyMessage: "No meters found",
         columns: [
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row); } },
-            { field: 'Events30Days', headerText: 'Events 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
-            { field: 'Events90Days', headerText: 'Events 90D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '90d', sourcedate) } },
-            { field: 'Events180Days', headerText: 'Events 180D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '180d', sourcedate) } },
+            { field: 'Events30Days', headerText: 'Files (Events) 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
+            { field: 'Events90Days', headerText: 'Files (Events) 90D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '90d', sourcedate) } },
+            { field: 'Events180Days', headerText: 'Files (Events) 180D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '180d', sourcedate) } },
         ],
 
         datasource: function (callback, ui) {
             var $this = this;
-            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events30Days", 10, true).done(function (data) {
+            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events30Days", 10, true, ui.sortOrder == 1 ? true : false).done(function (data) {
                 callback.call($this, data);
             })
         }
@@ -122,23 +122,36 @@ function createMeterActivityAssetKeyContent(row) {
 }
 
 function createMeterActivityEventsContent(row, context, sourcedate) {
-    var events
+    var events;
+    var files;
 
-    if (context == '24h')
+    if (context == '24h'){
         events = row.Events24Hours;
-    else if (context == '7d')
+        files = row.FileGroups24Hours
+    }
+    else if (context == '7d'){
         events = row.Events7Days;
-    else if (context == '30d')
+        files = row.FileGroups7Days
+    }
+    else if (context == '30d'){
         events = row.Events30Days;
-    else if (context == '90d')
+        files = row.FileGroups30Days
+    }
+    else if (context == '90d'){
         events = row.Events90Days;
-    else if (context == '180d')
+        files = row.FileGroups90Days
+    }
+    else if (context == '180d'){
         events = row.Events180Days;
-    else
+        files = row.FileGroups180Days
+    }
+    else{
         events = 0;
 
+    }
+
     if (events > 0) {
-        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\', \'' + sourcedate + '\')" style="color: blue">' + events + '<a>'
+        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\', \'' + sourcedate + '\')" style="color: blue">' + files + ' (' + events + ')<a>'
     }
     else {
         return '<a>' + events + '</a>';

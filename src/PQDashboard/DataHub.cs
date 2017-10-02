@@ -1594,7 +1594,7 @@ namespace PQDashboard
 
 
 
-        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false)
+        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false, bool sortByEvents = false)
         {
             string userSID = UserInfo.UserNameToSID(Context.User.Identity.Name);
             if (DataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", userSID) == 0)
@@ -1603,56 +1603,69 @@ namespace PQDashboard
             string order;
             order = ascending ? "ASC" : "DESC";
 
+            string sortBy;
+            sortBy = sortByEvents == true ? "Events" : "FileGroups";
+
             if (orderBy == null || orderBy.IndexOf("24h", StringComparison.OrdinalIgnoreCase) >= 0)
-                orderBy = "Events24Hours";
+                orderBy = sortBy + "24Hours";
             else if (orderBy.IndexOf("7d", StringComparison.OrdinalIgnoreCase) >= 0)
-                orderBy = "Events7Days";
+                orderBy = sortBy + "7Days";
             else if (orderBy.IndexOf("30d", StringComparison.OrdinalIgnoreCase) > 0)
-                orderBy = "Events30Days";
+                orderBy = sortBy + "30Days";
             else if (orderBy.IndexOf("90d", StringComparison.OrdinalIgnoreCase) > 0)
-                orderBy = "Events90Days";
+                orderBy = sortBy + "90Days";
             else if (orderBy.IndexOf("180d", StringComparison.OrdinalIgnoreCase) > 0)
-                orderBy = "Events180Days";
+                orderBy = sortBy + "180Days";
             DataTable table = new DataTable();
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
                 sc.CommandText = @" SELECT	TOP " + numberOfResults + @" m.*, 
-		                                    (CASE WHEN E24H.EventCount IS NULL THEN 0 ELSE E24H.EventCount END) AS Events24Hours,
-		                                    (CASE WHEN E7D.EventCount IS NULL THEN 0 ELSE E7D.EventCount END) AS Events7Days,
-		                                    (CASE WHEN E30D.EventCount IS NULL THEN 0 ELSE E30D.EventCount END) AS Events30Days,
-		                                    (CASE WHEN E90D.EventCount IS NULL THEN 0 ELSE E90D.EventCount END) AS Events90Days,
-		                                    (CASE WHEN E180D.EventCount IS NULL THEN 0 ELSE E180D.EventCount END) AS Events180Days,
+		                                    (CASE WHEN Summary24H.EventCount IS NULL THEN 0 ELSE Summary24H.EventCount END) AS Events24Hours,
+		                                    (CASE WHEN Summary24H.FileGroupCount IS NULL THEN 0 ELSE Summary24H.FileGroupCount END) AS FileGroups24Hours,
+
+		                                    (CASE WHEN Summary7D.EventCount IS NULL THEN 0 ELSE Summary7D.EventCount END) AS Events7Days,
+		                                    (CASE WHEN Summary7D.FileGroupCount IS NULL THEN 0 ELSE Summary7D.FileGroupCount END) AS FileGroups7Days,
+                                                       
+		                                    (CASE WHEN Summary30D.EventCount IS NULL THEN 0 ELSE Summary30D.EventCount END) AS Events30Days,
+		                                    (CASE WHEN Summary30D.FileGroupCount IS NULL THEN 0 ELSE Summary30D.FileGroupCount END) AS FileGroups30Days,
+                                                       
+		                                    (CASE WHEN Summary90D.EventCount IS NULL THEN 0 ELSE Summary90D.EventCount END) AS Events90Days,
+		                                    (CASE WHEN Summary90D.FileGroupCount IS NULL THEN 0 ELSE Summary90D.FileGroupCount END) AS FileGroups90Days,
+                                                       
+		                                    (CASE WHEN Summary180D.EventCount IS NULL THEN 0 ELSE Summary180D.EventCount END) AS Events180Days,
+		                                    (CASE WHEN Summary180D.FileGroupCount IS NULL THEN 0 ELSE Summary180D.FileGroupCount END) AS FileGroups180Days,
+
                                             FirstEvent.EventID AS FirstEventID
 
                                     FROM	(SELECT me.*
                                             FROM UserMeter u JOIN Meter me ON u.MeterID=me.ID
                                             WHERE u.UserName=@userSID) AS m LEFT OUTER JOIN
 
-		                                    (SELECT m.ID, COUNT(e.ID) AS EventCount
-		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
-		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(HH,-24,@StartTime)
-		                                    GROUP BY m.ID) AS E24H ON m.ID=E24H.ID LEFT OUTER JOIN
+		                                    (SELECT MeterID, COUNT(ID) AS EventCount, COUNT(DISTINCT FileGroupID) AS FileGroupCount
+		                                    FROM Event
+		                                    WHERE StartTime <= @StartTime AND StartTime >= DATEADD(HH,-24,@StartTime)
+		                                    GROUP BY MeterID) AS Summary24H ON m.ID=Summary24H.MeterID LEFT OUTER JOIN
 	
-	                                        (SELECT m.ID, COUNT(e.ID) AS EventCount
-		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
-		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-7,@StartTime)
-		                                    GROUP BY m.ID) AS E7D ON m.ID=E7D.ID LEFT OUTER JOIN
+	                                        (SELECT MeterID, COUNT(ID) AS EventCount, COUNT(DISTINCT FileGroupID) AS FileGroupCount
+		                                    FROM Event
+		                                    WHERE StartTime <= @StartTime AND StartTime >= DATEADD(DD,-7,@StartTime)
+		                                    GROUP BY MeterID) AS Summary7D ON m.ID=Summary7D.MeterID LEFT OUTER JOIN
 
-                                        	(SELECT m.ID, COUNT(e.ID) AS EventCount
-		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
-		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-30,@StartTime)
-		                                    GROUP BY m.ID) AS E30D ON m.ID=E30D.ID LEFT OUTER JOIN
+                                        	(SELECT MeterID, COUNT(ID) AS EventCount, COUNT(DISTINCT FileGroupID) AS FileGroupCount
+		                                    FROM Event
+		                                    WHERE StartTime <= @StartTime AND StartTime >= DATEADD(DD,-30,@StartTime)
+		                                    GROUP BY MeterID) AS Summary30D ON m.ID=Summary30D.MeterID LEFT OUTER JOIN
 
-	                                        (SELECT m.ID, COUNT(e.ID) AS EventCount
-		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
-		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-90,@StartTime)
-		                                    GROUP BY m.ID) AS E90D ON m.ID=E90D.ID LEFT OUTER JOIN
+	                                        (SELECT MeterID, COUNT(ID) AS EventCount, COUNT(DISTINCT FileGroupID) AS FileGroupCount
+		                                    FROM Event
+		                                    WHERE StartTime <= @StartTime AND StartTime >= DATEADD(DD,-90,@StartTime)
+		                                    GROUP BY MeterID) AS Summary90D ON m.ID=Summary90D.MeterID LEFT OUTER JOIN
 
-                                        	(SELECT m.ID, COUNT(e.ID) AS EventCount
-		                                    FROM Meter m LEFT OUTER JOIN Event e on m.ID=e.MeterID
-		                                    WHERE e.StartTime <= @StartTime AND e.StartTime >= DATEADD(DD,-180,@StartTime)
-		                                    GROUP BY m.ID) AS E180D ON m.ID=E180D.ID LEFT OUTER JOIN
+                                        	(SELECT MeterID, COUNT(ID) AS EventCount, COUNT(DISTINCT FileGroupID) AS FileGroupCount
+		                                    FROM Event
+		                                    WHERE StartTime <= @StartTime AND StartTime >= DATEADD(DD,-180,@StartTime)
+		                                    GROUP BY MeterID) AS Summary180D ON m.ID=Summary180D.MeterID LEFT OUTER JOIN
 
                                             (SELECT Meter.ID, FirstEvent.EventID
                                             FROM Meter LEFT OUTER JOIN
