@@ -386,7 +386,7 @@ function populateFaultsDivWithGrid(data) {
         columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
         columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html });
         columns.push({ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html });
-        columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.thefaultid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
+        columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
 
         fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
@@ -403,10 +403,10 @@ function openResultsModal(row){
 
 }
 
-function openNoteModal(faultId) {
+function openNoteModal(eventId) {
     $('#previousNotes').remove();
-    dataHub.getNotesForFault(faultId).done(function (data) {
-        $('#faultId').text(faultId);
+    dataHub.getNotesForEvent(eventId).done(function (data) {
+        $('#faultId').text(eventId);
         if (data.length > 0)
             $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
         $.each(data, function (i, d) {
@@ -419,17 +419,17 @@ function openNoteModal(faultId) {
 }
 
 function saveNote() {
-    dataHub.saveNoteForFault($('#faultId').text(), $('#note').val(), userId);
+    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userId);
 }
 
 function removeNote(id) {
-    dataHub.removeNote(id);
+    dataHub.removeEventNote(id);
     $('#row' +id).remove()
 }
 
 function editNote(id) {
     $('#note').val($('#note' + id).text());
-    dataHub.removeNote(id);
+    dataHub.removeEventNote(id);
 }
 
 function populateCorrectnessDivWithGrid(data) {
@@ -1636,7 +1636,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc();
         }
 
-
+        $.jStorage.set('disabledList', disabledList)
         var stackedData = stack((!brush.empty() ? newData.filter(function (d) { return d.Date > new Date(brush.extent()[0]).setHours(0, 0, 0, 0) && d.Date < new Date(brush.extent()[1]).setHours(0, 0, 0, 0); }) : newData));
         var overviewStackedData = stack(newData);
         x.domain(brush.empty() ? xOverview.domain() : brush.extent());
@@ -2028,6 +2028,8 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
 
             plotMapLocations(data, currentTab, this.datefrom, this.dateto);
             plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+            $(window).trigger('clickNow')
+
         }).fail(function (msg) {
             alert(msg);
         });
@@ -2049,7 +2051,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 data.d.JSON = data.d.Locations;
                 plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
                 plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-
+                $(window).trigger('clickNow')
             },
             failure: function (msg) {
                 alert(msg);
@@ -2124,19 +2126,23 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
         updateGridWithSelectedSites();
 
-        if ($('#deviceFilterList').val() != 'ClickEvent') {
-            $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
-            $('#deviceFilterList').val('ClickEvent');
-        }
-
-        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
-
         if (e.ctrlKey) {
             if (selectiontimeout != null) clearTimeout(selectiontimeout);
             selectiontimeout = setTimeout('selectsitesincharts()', 100);
         } else {
+
+
+            if ($('#deviceFilterList').val() != 'ClickEvent') {
+                $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                $('#deviceFilterList').val('ClickEvent');
+            }
+
+
             selectsitesincharts();
         }
+
+        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
     });
 }
 
@@ -2147,9 +2153,9 @@ function updateGridWithSelectedSites() {
     $('#siteList').multiselect("widget").find(":checkbox").each(function () {
         var matrixItemID = "#" + "matrix_" + this.value + "_box_" + currentTab;
         if (this.checked) {
-            $(matrixItemID).switchClass('matrixButtonBlack', 'matrixButton');
+            $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
         } else {
-            $(matrixItemID).switchClass('matrixButton', 'matrixButtonBlack');
+            $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
         }
     });
 }
@@ -2549,17 +2555,6 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
         mapMarkers[currentTab] = [];
     }
 
-
-    //if (markerMap[currentTab] !== null){
-    //    $.each(locationdata.JSON, function (index, data) {
-    //        $('#' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + ' circle').attr('fill', getColorsForTab(data, locationdata.Colors));
-    //        $.each(mapMarkers[currentTab], function (mmIndex, object) {
-    //            if(object.id === data.ID)
-    //                object.marker.getPopup().setContent(getLeafletLocationPopup(data))
-    //        });
-    //    });
-    //}
-    //else {
 
         $.each(locationdata.JSON, function (index, data) {
             var color = getColorsForTab(data, locationdata.Colors);
@@ -3306,332 +3301,6 @@ function isRightClick(event) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadconfigdropdown(currentselected) {
-    $('#Configurations')[0].options.length = 0;
-    $.each(usersettings.uisettings, function (key, value) {
-        SelectAdd("Configurations", key, value.Name, (currentselected == value.Name) ? "selected" : "");
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function validatesettings(usersettings) {
-
-    if (typeof (usersettings["lastSetting"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    };
-
-    if (typeof (usersettings["javascriptversion"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    } else if (usersettings["javascriptversion"] != javascriptversion) {
-        initializesettings();
-        return (false);
-    }
-
-    if (typeof (usersettings["disabledList"]) == 'undefined') {
-        initializesettings();
-        return (false);
-    };
-
-
-    $.each(usersettings.uisettings, function(key, value) {
-
-        if (typeof (value["Name"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["CurrentTab"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (($('#application-tabs li :visible').map(function (i, a) { return $(a).text(); }).get()).indexOf(value["CurrentTab"]) < 0) {
-            initializesettings();
-            return (false);
-        }
-        if (typeof (value["DataFromDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["DataToDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-
-        if (typeof (value["ContextFromDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["ContextToDate"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["MapGrid"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["EventSiteDropdownSelected"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-        if (typeof (value["staticPeriod"]) == 'undefined') {
-            initializesettings();
-            return (false);
-        };
-
-    });
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function configurationapply(item) {
-        
-    var currentconfigname = $("#Configurations :selected").text();
-
-    usersettings["lastSetting"] = currentconfigname;
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-    $('#dateRange').data('daterangepicker').setStartDate(moment(getcurrentconfigsetting("DataFromDate")).utc());
-    $('#dateRange').data('daterangepicker').setEndDate(moment(getcurrentconfigsetting("DataToDate")).utc());
-    contextfromdate = getcurrentconfigsetting("ContextFromDate");
-    contexttodate = getcurrentconfigsetting("ContextToDate");
-    disabledList = usersettings["disabledList"];
-    if (contextfromdate === contexttodate) {
-        cache_Last_Date = contexttodate;
-    }
-    else {
-        cache_Last_Date = null;
-        cache_Table_Data = null;
-    }
-
-    var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
-    if (selectedsites != null) {
-        $('#siteList').multiselect("uncheckAll");
-        $('#siteList').val(selectedsites);
-    }
-    else {
-        $('#siteList').multiselect("checkAll");
-    }
-
-    $('#siteList').multiselect('refresh');
-    
-    if ($("#application-tabs").tabs("option", "active") !== ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")))
-        $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(getcurrentconfigsetting("CurrentTab")));
-    else 
-        manageTabsByDate(currentTab, contextfromdate, contexttodate);
-
-    $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-    //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-    $.each($('.ranges li'), function (i, a) {
-        if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
-            $(a).click();
-    })
-
-
-    selectmapgrid($("#map" + currentTab + "Grid")[0]);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function deleteconfirmation(item) {
-
-    var currentconfigname = $("#Configurations :selected").text();
-
-    if (currentconfigname == "Last Session") return;
-    if (currentconfigname == "Default") return;
-
-    $('#deleteconfigname')[0].innerText = currentconfigname;
-
-    var dialog = $('#delete-dialog').dialog({
-        modal: true,
-        stack: true,
-        width: 300,
-        buttons: {
-
-            "Delete": function () {
-
-                var loc = -1;
-
-                $.each(usersettings.uisettings, function (key, value) {
-                    if (currentconfigname == value.Name) {
-
-
-                            usersettings.uisettings.remove(key, key);
-                            usersettings["lastSetting"] = "Default";
-                            $.jStorage.deleteKey("usersettings");
-                            $.jStorage.set("usersettings", usersettings);
-                            loadconfigdropdown("Default");
-                            configurationapply(item);
-                            return (false);
-                            
-                    }
-                });
-
-                $(this).dialog("close");
-            },
-
-            Cancel: function () {
-
-                $(this).dialog("close");
-
-            }
-
-        }
-    }).parent('.ui-dialog').css('zIndex', 1000000);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-function substituteToken(thetoken) {
-
-var returnvalue = "";
-
-switch (thetoken) {
-
-    case "Today":
-        returnvalue = moment().utc().format('MM/DD/YYYY');
-        break;
-
-    case "PastWeek":
-        returnvalue = moment().utc().subtract(7, 'days').format('MM/DD/YYYY');
-        break;
-
-    case "PastMonth":
-        returnvalue = moment().utc().subtract(30, 'days').format('MM/DD/YYYY');
-        break;
-
-    case "PastYear":
-        returnvalue = moment().utc().subtract(365, 'days').format('MM/DD/YYYY');
-        break;
-            
-    default:
-        returnvalue = thetoken;
-        /// Today
-        break;
-}
-
-return (returnvalue);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function getcurrentconfigsetting(configatom) {
-    var returnvalue = null;
-    var currentconfigname = $("#Configurations :selected").text();
-
-    $.each(usersettings.uisettings, function (key, value) {
-        if (currentconfigname == value.Name) {
-
-            switch (configatom) {
-                
-                case "DataToDate":
-                case "DataFromDate":
-                case "ContextToDate":
-                case "ContextFromDate":
-                    returnvalue = substituteToken(value[configatom]);
-                    break;
-
-                default:
-                    returnvalue = value[configatom];
-                    break;
-            }
-
-            return (false);
-        }
-    });
-    return (returnvalue);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function initializesettings() {
-    var thesetting = {};
-    usersettings.uisettings.length = 0;
-
-    usersettings["javascriptversion"] = javascriptversion;
-    usersettings["disabledList"] = disabledList;
-
-    thesetting["Name"] = "Default";
-    thesetting["DataToDate"] = "Today";
-    thesetting["DataFromDate"] = "PastMonth";
-    thesetting["ContextToDate"] = "Today";
-    thesetting["ContextFromDate"] = "PastMonth";
-    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["MapGrid"] = "Grid";
-    thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "Last 30 Days";
-
-
-    usersettings["uisettings"].push(thesetting);
-
-    var thesetting = {};
-    thesetting["Name"] = "Last Session";
-    thesetting["CurrentTab"] = $('#application-tabs li :visible').first().text();
-    thesetting["DataFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["DataToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["MapGrid"] = "Map";
-    thesetting["EventSiteDropdownSelected"] = null;
-    thesetting["staticPeriod"] = "Custom Range";
-    usersettings["lastSetting"] = "Default";
-    usersettings["uisettings"].push(thesetting);
-
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function createupdateconfig(configname) {
-
-    if (configname == "Default") return;
-
-    if (configname == null) {
-        configname = "Last Session";
-    }
-
-    if (usersettings == null) {
-        usersettings = {
-            lastSetting: {},
-            uisettings: []
-        };
-    }
-
-    var thesetting = {};
-
-    thesetting["Name"] = configname;
-    thesetting["CurrentTab"] = currentTab;
-    thesetting["DataFromDate"] = $('#dateRange').data('daterangepicker').startDate._i;
-    thesetting["DataToDate"] = $('#dateRange').data('daterangepicker').endDate._i;
-    thesetting["ContextFromDate"] = moment(datafromdate).utc().format('MM/DD/YYYY');
-    thesetting["ContextToDate"] = moment(datatodate).utc().format('MM/DD/YYYY');
-    thesetting["MapGrid"] = $("#map" + currentTab + "Grid")[0].value;
-    thesetting["EventSiteDropdownSelected"] = $("#siteList").val();
-    thesetting["staticPeriod"] = $('.ranges li.active').text();
-
-    var loc = -1;
-
-    $.each(usersettings.uisettings, function (key, value) {
-        if (configname == value.Name) loc = key;
-    });
-
-    if (loc == -1) {
-        usersettings["uisettings"].push(thesetting);
-    } else {
-        usersettings.uisettings[loc] = thesetting;
-    }
-
-    usersettings["lastSetting"] = "Default";
-    $.jStorage.deleteKey("usersettings");
-    $.jStorage.set("usersettings", usersettings);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function showContent() {
 
     $("#loginContent").css("visibility", "hidden");
@@ -3644,6 +3313,13 @@ function showContent() {
 
 function getMeters(meterGroup) {
     dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
+
+        data.sort(function (a, b) {
+            if (a.Name.toLowerCase() < b.Name.toLowerCase()) return -1;
+            if (a.Name.toLowerCase() > b.Name.toLowerCase()) return 1;
+            return 0;
+        });
+
         cache_Meters = data;
         updateMeterselect();
         $('#meterSelected').text(data.length);
@@ -3697,8 +3373,6 @@ function selectMeterGroup(thecontrol) {
         var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
             manageTabsByDate(newTab, contextfromdate, contexttodate);
-            $(".mapGrid").val(mapormatrix);
-            selectmapgrid($("#map" + currentTab + "Grid")[0]);
         });
 
     }
@@ -3745,39 +3419,18 @@ $(document).ready(function () {
 
 function loadsitedropdown() {
 
-    $("#siteList").multiselect({
-        close: function (event, ui) {
-            showSiteSet($("#selectSiteSet" + currentTab)[0]);
-            updateGridWithSelectedSites();
-            selectsitesonmap();
-            selectsitesincharts();
-        },
-        minWidth: 250, selectedList: 1, noneSelectedText: "Select Site", cssClass: '.multiselectText'
-    }).multiselectfilter();
+    $("#siteList").multiselect().multiselectfilter();
 
-
-    var selectedsites = getcurrentconfigsetting("EventSiteDropdownSelected");
-    if (selectedsites != null) {
-        $('#siteList').multiselect("uncheckAll");
-        $('#siteList').val(selectedsites);
-    }
-    else {
-        $('#siteList').multiselect("checkAll");
-    }
-
-    $('#siteList').multiselect('refresh');
     $('.ui-multiselect').hide()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function loadSettingsAndApply() {
-    dataHub.getTabSettings(postedUserName).done(function (data) {
-        var settings = eval(data);
         // Turn Off Features
 
-        applicationsettings = settings;
+        applicationsettings = dashSettings;
 
-        $.each(settings, (function (key, value) {
+        $.each(dashSettings, (function (key, value) {
             if (value.Name == "DashTab") {
                 if (value.Enabled == true) {
                     $(value.Value).show();
@@ -3793,11 +3446,7 @@ function loadSettingsAndApply() {
 
         }));
 
-        $(window).trigger("settingsLoaded");
-
-    }).fail(function (msg) {
-        alert(msg);
-    });
+        //$(window).trigger("settingsLoaded");
 }
   
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3878,15 +3527,20 @@ function buildPage() {
 
     $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
 
-    if ($.jStorage.get("usersettings") != null) {
-        usersettings = $.jStorage.get("usersettings");
-        validatesettings(usersettings);
-    } else {
-        initializesettings();
-    }
+    var savedDisabledList = $.jStorage.get("disabledList");
+    if (savedDisabledList != null) {
+        $.each(Object.keys(savedDisabledList), function (_, key) {
+            $.each(Object.keys(savedDisabledList[key]), function (_, key2) {
+                if (!disabledList.hasOwnProperty(key))
+                    disabledList[key] = {}
 
-    disabledList = usersettings["disabledList"];
-    loadconfigdropdown(usersettings.lastSetting);
+                disabledList[key][key2] = savedDisabledList[key][key2]
+            });
+        });
+    }
+    else
+        $.jStorage.set("disabledList", disabledList)
+
     $('.grid').masonry({
         itemSelector: '.grid-item',
         columnWidth: 400
@@ -3929,22 +3583,28 @@ function buildPage() {
     });
 
     // Settings modal jscolor and enable change events
-    $('.modal-body input').change(function(event){
+    $('.modal-body input').change(function (event) {
+        var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
+        var value = $(event.currentTarget).parent().parent().text().trim();
+        var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
         var field;
-        if ($(event.currentTarget).attr('id').indexOf('enable') > -1)
+        if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
+            tab += "Chart";
             field = "enable";
-        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1)
-            field = "tab"
-        else if ($(event.currentTarget).attr('id').indexOf('color') > -1)
-            field = "color"
+        }
+        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
+            tab = "DashTab";
+            field = "tab";
+        }
+        else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
+            tab += "ChartColors";
+            value += ',#' + $(event.currentTarget).val();
+            field = "color";
+        }
+
         var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
 
-        var value;
-        if ($(event.currentTarget).attr('type') == "checkbox")
-            value = $(event.currentTarget).prop('checked');
-        else
-            value = $(event.currentTarget).val();
-        dataHub.updateDashSettings(id, field, value, userId);
+        dataHub.updateDashSettings(id, tab, value, boolean, userId);
     });
 
     $("#application-tabs").tabs({
@@ -3969,6 +3629,13 @@ function buildPage() {
                 showHistorianData();
             }
             else {
+                
+                var ids = null;
+                if ($('#deviceFilterList').val() == 'ClickEvent') {
+                    ids = GetCurrentlySelectedSitesIDs();
+                    $('#deviceFilterList').val(0)
+                }
+
                 cache_Graph_Data = null;
                 cache_Errorbar_Data = null;
                 cache_Sparkline_Data = null;
@@ -3978,6 +3645,18 @@ function buildPage() {
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
 
+                if (ids != null) {
+                    $(window).off('clickNow')
+                    $(window).one('clickNow', function(e){
+                        $.each(ids.split(','), function (i, id) {
+                            var me = {}
+                            if (i != 0)
+                                me.ctrlKey = true;
+
+                            $('#matrix_' + id + '_box_' + currentTab).trigger($.Event("click", me));
+                        })
+                    })
+                }
             }
 
 
@@ -3986,58 +3665,58 @@ function buildPage() {
 
     loadsitedropdown();
 
-    $(window).one("settingsLoaded", function () {
-
-        currentTab = $('#application-tabs li :visible').first().text();
+    currentTab = defaultView.Tab;
 
 
-        datafromdate = getcurrentconfigsetting("DataFromDate");
-        datatodate = getcurrentconfigsetting("DataToDate");
+    if (defaultView.DateRange < 0) {
+        datafromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
+        datatodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
+        contextfromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
+        contexttodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
 
-        contextfromdate = getcurrentconfigsetting("ContextFromDate");
-        contexttodate = getcurrentconfigsetting("ContextToDate");
+    }
+    else {
+        datafromdate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][0]).utc().format('MM/DD/YYYY');
+        datatodate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][1]).utc().format('MM/DD/YYYY');
+        contextfromdate = datafromdate;
+        contexttodate = datatodate;
 
-        initializeDatePickers(datafromdate, datatodate);
-        getMeters("0");
-        $(window).one("meterSelectUpdated", function () {
-            initiateTimeRangeSlider();
-            initiateColorScale();
-
-
-            resizeMapAndMatrix(currentTab);
-            if (currentTab.indexOf("Overview") > -1) {
-                $('#headerStrip').hide();
-                showOverviewPage(currentTab);
-
-            }
-            else if (currentTab === "MeterActivity") {
-                $('#headerStrip').hide();
-                showMeterActivity();
-            }
-            else if (currentTab === "ModbusData") {
-                $('#headerStrip').hide();
-                showModbusData();
-            }
-            else if (currentTab === "HistorianData") {
-                $('#headerStrip').hide();
-                showHistorianData();
-            }
-            else {
-                $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-                $(".mapGrid").val(getcurrentconfigsetting("MapGrid"));
-                //$("#staticPeriod")[0].value = getcurrentconfigsetting("staticPeriod");
-
-                $.each($('.ranges li'), function (i, a) {
-                    if ($(a).text() == getcurrentconfigsetting("staticPeriod"))
-                        $(a).click();
-                })
-                selectmapgrid($("#map" + currentTab + "Grid")[0]);
-                $('#headerStrip').show();
-
-            }
+    }
 
 
-        });
+    initializeDatePickers(datafromdate, datatodate);
+    getMeters(defaultView.DeviceFilterID);
+    $(window).one("meterSelectUpdated", function () {
+        initiateTimeRangeSlider();
+        initiateColorScale();
+
+
+        resizeMapAndMatrix(currentTab);
+        if (currentTab.indexOf("Overview") > -1) {
+            $('#headerStrip').hide();
+            showOverviewPage(currentTab);
+
+        }
+        else if (currentTab === "MeterActivity") {
+            $('#headerStrip').hide();
+            showMeterActivity();
+        }
+        else if (currentTab === "ModbusData") {
+            $('#headerStrip').hide();
+            showModbusData();
+        }
+        else if (currentTab === "HistorianData") {
+            $('#headerStrip').hide();
+            showHistorianData();
+        }
+        else {
+            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
+            $(".mapGrid").val(defaultView.MapGrid);
+
+            selectmapgrid($("#map" + currentTab + "Grid")[0]);
+            $('#headerStrip').show();
+
+        }
 
 
     });
@@ -4672,24 +4351,61 @@ function saveView() {
         headerTitle: 'Save View',
         theme: 'success',
         show: 'animated fadeInDownBig',
-        content: '<label>View Name:</label><input type="text" id="viewName" class="form-control" maxlength="10" /><button class="btn btn-primary pull-right">Submit</button>',
+        content: '<label>View Name:</label><input type="text" id="viewName" class="form-control" maxlength="10" /><input id="isDefault" type="checkbox"/>Default<button class="btn btn-primary pull-right">Submit</button>',
         callback: function (panel) {
             $("input:first", this).focus();
             $("button", this.content).click(function () {
-                record ={
-                    Name: $('#viewName').val(),
-                    UserAccount: postedUserName,
-                    FromDate: contextfromdate,
-                    ToDate:contexttodate,
-                    Tab: currentTab,
-                    DeviceFilterID: $('#deviceFilterList').val(),
-                    MapGrid: $('#map' + currentTab + 'Grid').val()
-                }
+                if ($('#deviceFilterList').val() == 'ClickEvent') {
+                    var record = {
+                        Name: $('#viewName').val(),
+                        UserAccount: postedUserName,
+                        FilterExpression: 'ID IN (' + GetCurrentlySelectedSitesIDs() + ')',
+                        MeterGroupID: $('#deviceFilterMeterGroup').val()
+                    }
 
-                dataHub.addSavedViews(record).done(function (data) {
-                    $('#viewSelect').append(new Option(record.Name, data));
-                    panel.close()
-                });
+                    r = {
+                        Name: $('#viewName').val(),
+                        UserAccount: postedUserName,
+                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
+                        FromDate: contextfromdate,
+                        ToDate: contexttodate,
+                        Tab: currentTab,
+                        DeviceFilterID: $('#deviceFilterList').val(),
+                        MapGrid: $('#map' + currentTab + 'Grid').val(),
+                        IsDefault: $('#isDefault').prop('checked')
+                    }
+
+
+                    dataHub.addDeviceFilter(record).done(function (data) {
+                        $('#deviceFilterList').append(new Option(record.Name, data));
+                        r.DeviceFilterID = data;
+                        dataHub.addSavedViews(r).done(function (d) {
+                            $('#viewSelect').append(new Option(r.Name, d));
+                            panel.close()
+                        });
+
+                    });
+
+
+                }
+                else {
+                    record = {
+                        Name: $('#viewName').val(),
+                        UserAccount: postedUserName,
+                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
+                        FromDate: contextfromdate,
+                        ToDate: contexttodate,
+                        Tab: currentTab,
+                        DeviceFilterID: $('#deviceFilterList').val(),
+                        MapGrid: $('#map' + currentTab + 'Grid').val(),
+                        IsDefault: $('#isDefault').prop('checked')
+                    }
+
+                    dataHub.addSavedViews(record).done(function (data) {
+                        $('#viewSelect').append(new Option(record.Name, data));
+                        panel.close()
+                    });
+                }
 
             });
         }
@@ -4709,15 +4425,29 @@ function selectView(theControl) {
     if($(theControl).val() != 0){
         dataHub.querySavedViewsRecord($(theControl).val()).done(function (record) {
             $('#deviceFilterList').val(record.DeviceFilterID);
-            //selectMeterGroup(null);
             //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             $('#map' + record.Tab + 'Grid').val(record.MapGrid);
+            selectmapgrid($('#map' + record.Tab + 'Grid')[0]);
             contextfromdate = moment(record.FromDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
             contexttodate = moment(record.ToDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
-            $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
-            $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
-            $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-            $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
+            if (record.DateRange < 0) {
+                $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
+                $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
+                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+            }
+            else {
+                $('#dateRange').data('daterangepicker').setStartDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][0]);
+                $('#dateRange').data('daterangepicker').setEndDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][1]);
+                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+
+            }
+
+            selectMeterGroup(null);
+
+            if(record.Tab != currentTab)
+                $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
+            else
+                loadDataForDate();
         });
     }
 }
