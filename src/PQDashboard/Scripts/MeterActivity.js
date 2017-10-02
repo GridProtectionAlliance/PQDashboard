@@ -58,7 +58,7 @@ function buildMeterActivityTables() {
         //=======================================================================================
         // test dev - remove after test dev
         testDate = moment.utc("2014-06-10");
-        //sourcedate = testDate.format(format);
+        sourcedate = testDate.format(momentFormat);
         // test dev - remove after test dev
         //=======================================================================================
 
@@ -89,7 +89,7 @@ function buildMeterActivity(sourcedate) {
 
         datasource: function (callback, ui) {
             $this = this;
-            dataHub.queryMeterActivity(sourcedate, ui.sortField, 11, false).done(function (data) {
+            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events24Hours", 11, false).done(function (data) {
                 callback.call($this, data);
             })
         }
@@ -109,7 +109,7 @@ function buildMeterActivity(sourcedate) {
 
         datasource: function (callback, ui) {
             var $this = this;
-            dataHub.queryMeterActivity(sourcedate, ui.sortField, 10, true).done(function (data) {
+            dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events30Days", 10, true).done(function (data) {
                 callback.call($this, data);
             })
         }
