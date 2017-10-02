@@ -20,6 +20,5 @@ namespace PQDashboard.Model
         public string Model { get; set; }
         public string TimeZone { get; set; }
         public string Description { get; set; }
-        public int MeterTypeID { get; set; }
     }
 }
