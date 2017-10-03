@@ -1533,9 +1533,6 @@ namespace PQDashboard
             string userSID = GetCurrentUserSIDOrExternal();
             DataTable table = new DataTable();
 
-            startTime = DateTime.Parse("2016/02/23");
-            endTime = DateTime.Parse("2016/02/24");
-
             if (startTime <= endTime)
             {
                 using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
