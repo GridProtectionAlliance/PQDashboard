@@ -29,6 +29,9 @@ var autoUpdate = setInterval(
         buildMeterActivityTables();
     }, updateInterval);
 
+var momentFormat = "YYYY/MM/DD HH:mm:ss";
+var dateTimeFormat = "yyyy/MM/dd HH:mm:ss";
+
 function showMeterActivity() {
     $('.grid2').masonry({
         iemSelector: '.grid2-item',
@@ -50,15 +53,13 @@ function showMeterActivity() {
 
 function buildMeterActivityTables() {
     var sourcedate = null;
-    var momentFormat = "YYYY/MM/DD HH:mm:ss";
-    var dateTimeFormat = "yyyy/MM/dd HH:mm:ss";
     dataHub.getXdaTime(dateTimeFormat).done(function (date) {
-        sourcedate = moment(date).format(momentFormat);
+        sourcedate = moment(date);
 
         //=======================================================================================
         // test dev - remove after test dev
-        testDate = moment.utc("2014-06-10");
-        sourcedate = testDate.format(momentFormat);
+        //testDate = moment.utc("2014-06-10");
+        //sourcedate = testDate;
         // test dev - remove after test dev
         //=======================================================================================
 
@@ -151,7 +152,7 @@ function createMeterActivityEventsContent(row, context, sourcedate) {
     }
 
     if (events > 0) {
-        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\', \'' + sourcedate + '\')" style="color: blue">' + files + ' (' + events + ')<a>'
+        return '<a onClick="OpenWindowToMeterEventsByLineTwo(' + row.FirstEventID + ', \'' + context + '\', \'' + sourcedate.format(momentFormat) + '\')" style="color: blue">' + files + ' (' + events + ')<a>'
     }
     else {
         return '<a>' + events + '</a>';
@@ -160,10 +161,10 @@ function createMeterActivityEventsContent(row, context, sourcedate) {
 
 function buildMeterActivityFiles(sourcedate) {
     $('#meter-activity-files').append('<div id="meter-activity-files-table"> </div>');
+    begindate = sourcedate.clone();
+    begindate.subtract(1, 'd');
+    dataHub.queryFileGroupsForOverview(begindate, sourcedate).done(function (data) {
 
-    dataHub.queryFileGroupsForOverview(sourcedate, 'dd', 1).done(function (data) {
-        // Filter out multiple files from FileGroup, I just need one file per FileGroup
-        data = data.filter(function (file) { return data.findIndex(function (thing) { return thing.ID == file.ID }) == data.indexOf(file) });
         $('#meter-activity-files-table').puidatatable({
             responsive: true,
             paginator: {
@@ -171,7 +172,7 @@ function buildMeterActivityFiles(sourcedate) {
             },
             columns: [
                 { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
-                { field: 'DataStartTime', headerText: 'Start Time', content: function (row) { return moment(row.DataStartTime).format('MM/DD HH:mm') }, headerStyle: 'width: 100px' },
+                { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px' },
                 { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } },
             ],
             datasource: data,
@@ -197,9 +198,10 @@ function buildMeterActivityFiles(sourcedate) {
 }
 
 function buildFileGroupContent(row) {
-    var filepath = row.FilePath.split('\\');
-    var fullFilename = filepath[filepath.length - 1].split('.')[0];
-    var filenameParts = fullFilename.split(',');
+    var filepathParts = row.FilePath.split('\\');
+    var fullFilename = filepathParts[filepathParts.length - 1];
+    var filenameWithoutExtension = fullFilename.split('.')[0];
+    var filenameParts = filenameWithoutExtension.split(',');
     var shortFilename = "";
     var inTimestamp = true;
     for (var i = 0; i < filenameParts.length; i++) {
@@ -210,8 +212,12 @@ function buildFileGroupContent(row) {
             }
         }
         else {
-            shortFilename += filenameParts[i];
+            shortFilename += ',' + filenameParts[i];
         }
+    }
+
+    if (shortFilename == "") {
+        shortFilename = filenameWithoutExtension;
     }
 
     var html = '<a href="' + xdaInstance + '/Workbench/DataFiles.cshtml" title="' + fullFilename + '" style="color: Blue" target="_blank">' + shortFilename + '</a>';

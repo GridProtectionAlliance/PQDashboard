@@ -1528,25 +1528,26 @@ namespace PQDashboard
             return false;
         }
 
-        public IEnumerable<FileGroupsForOverview> QueryFileGroupsForOverview(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        public IEnumerable<FileGroupsForOverview> QueryFileGroupsForOverview(DateTime startTime, DateTime endTime)
         {
             DataTable table = new DataTable();
 
-            if (ValidatePassedTimeSpanUnit(timeSpanUnit))
+            if (startTime <= endTime)
             {
                 using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
                 {
-                    sc.CommandText = "SELECT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error " +
-                        "FROM DataFile DF join FileGroup FG on DF.FileGroupID=FG.ID " +
-                        "WHERE (DataStartTime >= @startDateRange AND DataStartTime < DATEADD( " + timeSpanUnit + ", @spanValue, @startDateRange))";
+                    sc.CommandText = @"SELECT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error
+                        FROM DataFile DF join FileGroup FG on DF.FileGroupID=FG.ID
+                        WHERE ProcessingStartTime BETWEEN @startTime AND @endTime";
 
                     sc.CommandType = CommandType.Text;
                     IDbDataParameter param1 = sc.CreateParameter();
-                    param1.ParameterName = "@spanValue";
-                    param1.Value = timeSpanValue;
+                    param1.ParameterName = "@startTime";
+                    param1.Value = startTime;
+
                     IDbDataParameter param2 = sc.CreateParameter();
-                    param2.ParameterName = "@startDateRange";
-                    param2.Value = startTime;
+                    param2.ParameterName = "@endTime";
+                    param2.Value = endTime;
 
                     sc.Parameters.Add(param1);
                     sc.Parameters.Add(param2);
@@ -1554,7 +1555,9 @@ namespace PQDashboard
                     IDataReader rdr = sc.ExecuteReader();
                     table.Load(rdr);
 
-                    return table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row)).OrderBy(row => row.DataStartTime);
+                    var returnValue = table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row)).DistinctBy(row => row.ID).OrderBy(row => row.ProcessingStartTime);
+
+                    return returnValue;
                 }
             }
             else
