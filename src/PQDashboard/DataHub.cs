@@ -1530,15 +1530,24 @@ namespace PQDashboard
 
         public IEnumerable<FileGroupsForOverview> QueryFileGroupsForOverview(DateTime startTime, DateTime endTime)
         {
+            string userSID = GetCurrentUserSIDOrExternal();
             DataTable table = new DataTable();
+
+            startTime = DateTime.Parse("2016/02/23");
+            endTime = DateTime.Parse("2016/02/24");
 
             if (startTime <= endTime)
             {
                 using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
                 {
-                    sc.CommandText = @"SELECT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error
-                        FROM DataFile DF join FileGroup FG on DF.FileGroupID=FG.ID
-                        WHERE ProcessingStartTime BETWEEN @startTime AND @endTime";
+                    sc.CommandText = @"SELECT DISTINCT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error
+                        FROM DataFile DF JOIN FileGroup FG on DF.FileGroupID=FG.ID JOIN Event E ON E.FileGroupID=FG.ID
+                        WHERE E.MeterID IN
+                                (SELECT MeterID
+                                FROM UserMeter
+                                WHERE UserName=@userSID
+                                ) AND
+                                ProcessingStartTime BETWEEN @startTime AND @endTime";
 
                     sc.CommandType = CommandType.Text;
                     IDbDataParameter param1 = sc.CreateParameter();
@@ -1549,8 +1558,13 @@ namespace PQDashboard
                     param2.ParameterName = "@endTime";
                     param2.Value = endTime;
 
+                    IDbDataParameter param3 = sc.CreateParameter();
+                    param3.ParameterName = "@userSID";
+                    param3.Value = userSID;
+
                     sc.Parameters.Add(param1);
                     sc.Parameters.Add(param2);
+                    sc.Parameters.Add(param3);
 
                     IDataReader rdr = sc.ExecuteReader();
                     table.Load(rdr);
@@ -1595,13 +1609,18 @@ namespace PQDashboard
             return recordCount;
         }
 
-
-
-        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false, bool sortByEvents = false)
+        public string GetCurrentUserSIDOrExternal()
         {
             string userSID = UserInfo.UserNameToSID(Context.User.Identity.Name);
             if (DataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", userSID) == 0)
                 userSID = "External";
+
+            return userSID;
+        }
+
+        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false, bool sortByEvents = false)
+        {
+            string userSID = GetCurrentUserSIDOrExternal();
 
             string order;
             order = ascending ? "ASC" : "DESC";
