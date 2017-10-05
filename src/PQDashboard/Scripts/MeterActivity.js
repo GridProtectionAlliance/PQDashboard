@@ -172,7 +172,7 @@ function buildMeterActivityFiles(sourcedate) {
             },
             columns: [
                 { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
-                { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px' },
+                { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px', sortable: true },
                 { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } },
             ],
             datasource: data,
@@ -189,7 +189,6 @@ function buildMeterActivityFiles(sourcedate) {
             expandedRowContent: function (row) {
                 return fileGroupExpandableContent(row);
             },
-            responsive: true,
             emptyMessage: "No files processed within the last 24 hours",
         });
 
@@ -203,6 +202,8 @@ function buildFileGroupContent(row) {
     var filenameWithoutExtension = fullFilename.split('.')[0];
     var filenameParts = filenameWithoutExtension.split(',');
     var shortFilename = "";
+
+    // This is to eliminate the timestamp in the fullFilename for the shortFilename
     var inTimestamp = true;
     for (var i = 0; i < filenameParts.length; i++) {
         if (inTimestamp) {

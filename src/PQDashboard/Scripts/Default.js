@@ -3525,7 +3525,7 @@ function buildPage() {
     });
 
 
-    $(window).on('resize', function () { resizeMapAndMatrix(currentTab); });
+    $(window).on('resize', function () { if (currentTab != 'MeterActivity') resizeMapAndMatrix(currentTab); });
 
     var savedDisabledList = $.jStorage.get("disabledList");
     if (savedDisabledList != null) {

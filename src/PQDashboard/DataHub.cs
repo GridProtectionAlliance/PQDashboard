@@ -1537,7 +1537,7 @@ namespace PQDashboard
             {
                 using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
                 {
-                    sc.CommandText = @"SELECT DISTINCT DF.FilePath, FG.ID, FG.DataStartTime, FG.DataEndTime, FG.ProcessingStartTime, FG.ProcessingEndTime, FG.Error
+                    sc.CommandText = @"SELECT DISTINCT DF.FilePath, FG.*
                         FROM DataFile DF JOIN FileGroup FG on DF.FileGroupID=FG.ID JOIN Event E ON E.FileGroupID=FG.ID
                         WHERE E.MeterID IN
                                 (SELECT MeterID
@@ -1566,7 +1566,9 @@ namespace PQDashboard
                     IDataReader rdr = sc.ExecuteReader();
                     table.Load(rdr);
 
-                    var returnValue = table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row)).DistinctBy(row => row.ID).OrderBy(row => row.ProcessingStartTime);
+                    var returnValue = table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row))
+                                                    .DistinctBy(row => row.ID)
+                                                    .OrderByDescending(row => row.ProcessingStartTime);
 
                     return returnValue;
                 }
