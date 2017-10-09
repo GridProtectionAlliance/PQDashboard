@@ -70,6 +70,10 @@ namespace PQDashboard
 
             bundles.Add(new StyleBundle("~/css.bundle/site").Include(
                         "~/Content/Site.css"));
+
+            bundles.Add(new ScriptBundle("~/Scripts/default").Include(
+                    "~/Scripts/default.js"
+                ));
         }
     }
 }
