@@ -30,68 +30,136 @@ var securityHub, securityHubClient;
 var hubIsConnecting = false;
 var hubIsConnected = false;
 var reconnectHub = true;
-
-//function hideSideBar() {
-//    $("#pageWrapper").removeClass("toggled");
-//}
-
-//function showSideBar() {
-//    $("#pageWrapper").addClass("toggled");
-//}
-
-//function toggleSideBar() {
-//    $("#pageWrapper").toggleClass("toggled");
-//}
+var errorPanel = null;
+var infoPanel = null;
 
 function hideErrorMessage() {
-    const wasVisible = $("#error-msg-block").is(":visible");
+    if(errorPanel)
+        errorPanel.close();
+    //const wasVisible = $("#error-msg-block").is(":visible");
 
-    $("#error-msg-block").hide();
+    //$("#error-msg-block").hide();
 
-    // Raise "messageVisibiltyChanged" event
-    if (wasVisible)
-        $(window).trigger("messageVisibiltyChanged");    
+    //// Raise "messageVisibiltyChanged" event
+    //if (wasVisible)
+    //    $(window).trigger("messageVisibiltyChanged");    
 }
 
 function hideInfoMessage() {
-    const wasVisible = $("#info-msg-block").is(":visible");
+    if(infoPanel)
+        infoPanel.close();
 
-    $("#info-msg-block").hide();
+    //const wasVisible = $("#info-msg-block").is(":visible");
 
-    // Raise "messageVisibiltyChanged" event
-    if (wasVisible)
-        $(window).trigger("messageVisibiltyChanged");
+    //$("#info-msg-block").hide();
+
+    //// Raise "messageVisibiltyChanged" event
+    //if (wasVisible)
+    //    $(window).trigger("messageVisibiltyChanged");
 }
 
 function showErrorMessage(message, timeout) {
-    const wasVisible = $("#error-msg-block").is(":visible");
+    errorPanel = $.jsPanel({
+        autoclose: timeout,
+        template: jsPanel.tplContentOnly,
+        paneltype: 'hint',
+        position: 'right-top -5 5 DOWN',
+        theme: 'red filledlight',
+        border: '2px solid',
+        contentSize: '500 auto',
+        show: 'animated slideInUp',
+        content: "<div><i class='fa fa-exclamation' style='margin:auto;'></i></div>" +
+                     "<div><p style='margin:auto;'>" + message + "</p></div>" +
+                     "<div><i class='fa fa-remove'></i></div>",
+        callback: function (panel) {
+            this.content.css({
+                display: 'flex',
+                color: 'darkred'
+            });
+            $('div:first-of-type', this.content).css({
+                borderRadius: '50%',
+                display: 'flex',
+                fontSize: '36px',
+                margin: '12px',
+                width: '60px'
+            });
+            $('div', this.content).eq(1).css({
+                display: 'flex',
+                fontSize: '16px',
+                textAlign: 'center',
+                width: 'calc(100% - 126px)'
+            });
+            $('div', this.content).eq(2).css({
+                display: 'flex',
+                flexDirection: 'row-reverse',
+                alignItems: 'flex-start',
+                fontSize: '18px',
+                width: '45px',
+                padding: '4px'
+            });
+            $('div', this.content).eq(2).find('i').css({
+                cursor: 'pointer'
+            }).click(function () { panel.close(); });
+        }
+    });
 
-    $("#error-msg-text").html(message);
-    $("#error-msg-block").show();
+    //const wasVisible = $("#error-msg-block").is(":visible");
 
-    if (timeout != undefined && timeout > 0)
-        setTimeout(hideErrorMessage, timeout);
+    //$("#error-msg-text").html(message);
+    //$("#error-msg-block").show();
 
-    // Raise "messageVisibiltyChanged" event
-    if (!wasVisible)
-        $(window).trigger("messageVisibiltyChanged");
+    //if (timeout != undefined && timeout > 0)
+    //    setTimeout(hideErrorMessage, timeout);
+
+    //// Raise "messageVisibiltyChanged" event
+    //if (!wasVisible)
+    //    $(window).trigger("messageVisibiltyChanged");
 }
 
 function showInfoMessage(message, timeout) {
-    const wasVisible = $("#info-msg-block").is(":visible");
-
-    $("#info-msg-text").html(message);
-    $("#info-msg-block").show();
-
-    if (timeout === undefined)
-        timeout = 3000;
-
-    if (timeout > 0)
-        setTimeout(hideInfoMessage, timeout);
-
-    // Raise "messageVisibiltyChanged" event
-    if (!wasVisible)
-        $(window).trigger("messageVisibiltyChanged");
+    infoPanel = $.jsPanel({
+        autoclose: timeout,
+        template: jsPanel.tplContentOnly,
+        paneltype: 'hint',
+        position: 'right-top -5 5 DOWN',
+        theme: 'green filledlight',
+        border: '2px solid',
+        contentSize: '500 auto',
+        show: 'animated slideInUp',
+        content: "<div><i class='fa fa-check' style='margin:auto;'></i></div>" +
+                     "<div><p style='margin:auto;'>" + message + "</p></div>" +
+                     "<div><i class='fa fa-remove'></i></div>",
+        callback: function (panel) {
+            this.content.css({
+                display: 'flex',
+                color: 'darkgreen'
+            });
+            $('div:first-of-type', this.content).css({
+                borderRadius: '50%',
+                display: 'flex',
+                fontSize: '36px',
+                margin: '12px',
+                width: '60px'
+            });
+            $('div', this.content).eq(1).css({
+                display: 'flex',
+                fontSize: '16px',
+                textAlign: 'center',
+                width: 'calc(100% - 126px)'
+            });
+            $('div', this.content).eq(2).css({
+                display: 'flex',
+                flexDirection: 'row-reverse',
+                alignItems: 'flex-start',
+                fontSize: '18px',
+                width: '45px',
+                padding: '4px'
+            });
+            $('div', this.content).eq(2).find('i').css({
+                cursor: 'pointer'
+            }).click(function () { panel.close(); });
+        }
+    });
 }
 
 function calculateRemainingBodyHeight() {
@@ -105,8 +173,8 @@ function calculateRemainingBodyHeight() {
 function hubConnected() {
     hideErrorMessage();
 
-    if (hubIsConnecting)
-        showInfoMessage("Reconnected to service.");
+    //if (hubIsConnecting)
+    //    showInfoMessage("Reconnected to service.");
 
     hubIsConnecting = false;
     hubIsConnected = true;
@@ -163,13 +231,13 @@ $(function () {
 
     // Initialize proxy references to the SignalR hubs
     dataHub = $.connection.dataHub.server;
-    //dataHubClient = $.connection.dataHub.client;
+    dataHubClient = $.connection.dataHub.client;
     //securityHub = $.connection.securityHub.server;
     //securityHubClient = $.connection.securityHub.client;
 
     $.connection.hub.reconnecting(function () {
         hubIsConnecting = true;
-        showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
+        //showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
 
         // Disable hub dependent controls
         updateHubDependentControlState(false);
@@ -185,8 +253,8 @@ $(function () {
     $.connection.hub.disconnected(function () {
         hubIsConnected = false;
 
-        if (hubIsConnecting)
-            showErrorMessage("Disconnected from server");
+        //if (hubIsConnecting)
+        //    showErrorMessage("Disconnected from server");
 
         // Disable hub dependent controls
         updateHubDependentControlState(false);
@@ -208,20 +276,20 @@ $(function () {
         hubConnected();
     });
 
-    //// Create hub client functions for message control
-    //dataHubClient.sendInfoMessage = function (message, timeout) {
-    //    // Html encode message
-    //    const encodedMessage = $("<div />").text(message).html();
-    //    showInfoMessage(encodedMessage, timeout);
-    //}
+    // Create hub client functions for message control
+    dataHubClient.sendInfoMessage = function (message, timeout) {
+        // Html encode message
+        const encodedMessage = $("<div />").text(message).html();
+        showInfoMessage(encodedMessage, timeout);
+    }
 
-    //dataHubClient.sendErrorMessage = function (message, timeout) {
-    //    // Html encode message
-    //    const encodedMessage = $("<div />").text(message).html();
-    //    showErrorMessage(encodedMessage, timeout);
-    //}
+    dataHubClient.sendErrorMessage = function (message, timeout) {
+        // Html encode message
+        const encodedMessage = $("<div />").text(message).html();
+        showErrorMessage(encodedMessage, timeout);
+    }
 
-    // Enable tool-tips on the page
+     //Enable tool-tips on the page
     $("[data-toggle='tooltip']").tooltip();
 
     // Keep body vertical scroll bars after nested Bootstrap modal dialogs are closed

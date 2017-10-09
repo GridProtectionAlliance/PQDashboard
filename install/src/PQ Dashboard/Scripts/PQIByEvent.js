@@ -37,45 +37,6 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, eventId) {
         cache: true,
         success: function (data) {
 
-            //$('#' + thediv).jqxGrid(
-            //{
-            //    width: '100%',
-            //    height: '100%',
-            //    source: {
-            //        localdata: data.d,
-            //        dataType: 'json',
-
-            //        datafields: [
-            //            { name: 'Facility' },
-            //            { name: 'Area' },
-            //            { name: 'SectionTitle' },
-            //            { name: 'SectionRank' },
-            //            { name: 'ComponentModel' },
-            //            { name: 'ManufacturerName' },
-            //            { name: 'SeriesName' },
-            //            { name: 'ComponentTypeName' }
-            //        ]
-
-            //    },
-            //    sortable: true,
-            //    altrows: true,
-            //    pageable: false,
-            //    theme: 'ui-redmond',
-
-            //    columns: [
-            //    { text: 'Facility', datafield: 'Facility', cellsrenderer: tooltiprenderer, renderer: columnsrenderer },
-            //    { text: 'Area', datafield: 'Area', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
-            //    { text: 'Equipment', datafield: 'SectionTitle', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-            //    { text: 'SectionRank', datafield: 'SectionRank', cellsrenderer: tooltiprenderer, width: 100, renderer: columnsrenderer },
-            //    { text: 'ComponentModel', datafield: 'ComponentModel', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-            //    { text: 'ManufacturerName', datafield: 'ManufacturerName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-            //    { text: 'SeriesName', datafield: 'SeriesName', cellsrenderer: tooltiprenderer, width: 150, renderer: columnsrenderer },
-            //    { text: 'ComponentTypeName', datafield: 'ComponentTypeName', cellsrenderer: tooltiprenderer, renderer: columnsrenderer }
-
-
-            //    ]
-            //});
-
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
@@ -94,11 +55,6 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, eventId) {
                 ],
                 datasource: $.parseJSON(data.d)
             });
-
-
-            //var localizationobj = {};
-            //localizationobj.emptydatastring = "Please Select Single Day";
-            //$('#' + thediv).jqxGrid('localizestrings', localizationobj);
         }
     });
 }

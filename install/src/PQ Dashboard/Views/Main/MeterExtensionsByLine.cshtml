@@ -1,0 +1,207 @@
+﻿@*//******************************************************************************************************
+//  MeterEventsByLine.cshtml - Gbtc
+//
+//  Copyright © 2017, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+//  not use this file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  01/10/2017 - Billy Ernest
+//       Generated original version of source code.
+//
+//*******************************************************************************************************@
+
+@using System.Collections.Specialized
+@using GSF.Data
+@using GSF.Data.Model
+@using GSF.Web.Model
+@using PQDashboard.Model
+@model AppModel
+@{
+    Layout = "";
+    DataContext dataContext = Model.DataContext;
+
+    NameValueCollection parameters = Request.QueryString;
+
+    int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
+    EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
+    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string context = parameters["context"] ?? "day";
+}
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" style="height: 100%;">
+<head id="Head1">
+    <title>MeterExtensionsByLine</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/Content/bootstrap/theme.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
+    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css" />
+    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
+    <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
+    <style>
+        .jsPanelTable,.jsPanelTable th, .jsPanelTable td{
+            width: 100%;
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+
+    <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.jspanel.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/Site.js"></script>
+
+</head>
+
+<body style="height: 100%;">
+<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy")</center>
+</div>
+
+
+<div style="height: 100%; width: 100%;">
+    <div style="height: 100%; display: inline-block" id="MeterDetailsByDate"></div>
+</div>
+
+<script>
+
+    var postedMeterId = "@theEvent.MeterID";
+    var postedDate = "@theEvent.StartTime";
+    var postedMeterName = "@theEvent.MeterName";
+    var context = "@context";
+    var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
+    reconnectHub = false;
+
+
+    $(document).ready(function () {
+        $(window).on('hubConnected', function () {
+            populateMeterEventsDivWithGrid('getSiteLinesDetailsByDate', "MeterDetailsByDate", postedMeterName, postedMeterId, postedDate);
+        })
+
+    });
+
+    var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
+
+        return '<div style="text-align: center; margin-top: 5px;">' + parseFloat(value).toFixed(4) + "m" + '</div>';
+
+    }
+
+    var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
+
+    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
+        dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "Extension").done(function (data) {
+            $('#' + thediv).puidatatable({
+                scrollable: true,
+                scrollHeight: '100%',
+                scrollWidth: '100%',
+                columns: [
+                    {
+                        field: 'StartTime', headerText: 'Start Time', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true, content:
+                          function (row) {
+                              return "<a href='" + '@xdaInstance' + "/Workbench/Event.cshtml?EventID=" + row.EventID + "' style='color: blue' target='_blank' >" + row.StartTime + "</a>"
+                          }
+                    },
+                    { field: 'ServiceType', headerText: 'Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
+                    { field: 'LineName', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
+                    { field: 'Voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                    { field: 'Confidence', headerText: 'Confidence', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
+                    { headerStyle: 'width: 60px', content: function (data) { return makeOpenSEEButton_html(data); }},
+                    { headerText: '', headerStyle: 'width: 50px', content: function (row) {
+                            return makeEASDetailsButton_html(row);
+                        }
+                    }
+                ],
+                datasource: $.parseJSON(data)
+            });
+
+        });
+    }
+
+
+
+    function makeEASDetailsButton_html(data) {
+        var return_html = "";
+
+        var url = "@Html.Raw(Url.Content("~/"))"+ data.ServiceType+".aspx?eventid=" + data.EventID;
+        var title = '';
+        return_html += '<button style="height: 33px" onClick="OpenWindowToEAS(\'' + url + '\');"  title=\'' + title + '\'>';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/"))'+ data.ServiceType +'.png" /></button>';
+        return (return_html);
+    }
+
+
+    function OpenWindowToEAS(url) {
+        var popup = window.open(url, url, "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        return false;
+    }
+
+
+    function makeOpenSEEButton_html(id) {
+        var return_html = "";
+        //return_html += '<div style="cursor: pointer;">';
+        return_html += '<button onClick="OpenWindowToOpenSEE(' + id.EventID + ');" title="Launch OpenSEE Waveform Viewer">';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/seeButton.png"))" /></button>';
+        //return_html += '</div>';
+        return (return_html);
+    }
+
+    function makePQIButton_html(id) {
+        var return_html = "";
+
+        return_html += '<button style="height: 33px" onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/pqiButton.png"))" /></button>';
+
+        return (return_html);
+    }
+
+    function OpenWindowToOpenSEE(id) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
+        return false;
+    }
+
+    function OpenWindowToFaultSpecifics(id) {
+        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        return false;
+    }
+
+    function OpenWindowToPQI(id) {
+        var popup = window.open("@Html.Raw(Url.Content("~/PQIByEvent.aspx"))?eventid=" + id, id + "PQI", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        return false;
+    }
+
+</script>
+
+</body>
+</html>
+
+

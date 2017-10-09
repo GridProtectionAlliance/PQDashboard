@@ -20,22 +20,26 @@
     //       Generated original version of source code.
     //
     //*****************************************************************************************************@
-@using GSF
-@using GSF.Data
 @using GSF.Collections;
-
 @using GSF.Data.Model
-@using GSF.Identity
 @using GSF.Web.Model
 @using PQDashboard.Model
+@using Newtonsoft.Json
 @model AppModel
 @{
     Layout = "";
     DataContext dataContext = Model.DataContext;
     string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'") ?? "127.0.0.0";
-    IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid));
+    IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecordsWhere("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
     List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+    List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+    if(!savedViews.FirstOrDefault()?.IsDefault ?? true)
+    {
+        savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
+    }
+
+    SavedViews defaultView = savedViews.First();
+
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
     int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
@@ -69,58 +73,7 @@
         defaulMeterGroupID = meterGroups.First().ID;
     }
 
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    DateTime datetimeTodayNow = DateTime.Now;
-    DateTime dateTimeToday = new DateTime(datetimeTodayNow.Year, datetimeTodayNow.Month, datetimeTodayNow.Day);
-
-    int year = 2014;
-    int month = 6;
-    int day = 20;
-    dateTimeToday = new DateTime(year, month, day);
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - DOWNLOADS - summary data
-    int totalDownloadedEventFilesToday = dataContext.Table<FileGroup>().QueryRecordCount(restriction: new RecordRestriction("[FileGroup].ID IN (SELECT [FileGroup].ID FROM [FileGroup] LEFT JOIN EVENT ON [Event].FileGroupID = [FileGroup].ID WHERE ([FileGroup].DataStartTime >= {0} AND [FileGroup].DataStartTime < DATEADD(day,1,{0})))", dateTimeToday));
-    // meters
-    int meterdDownloadedToday = dataContext.Table<Meter>().QueryRecordCount(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [EVENT].MeterID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = FaultSummary.EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-    // lines
-    int linesDownloadedToday = dataContext.Table<Line>().QueryRecordCount(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [EVENT].LineID FROM [Event] LEFT JOIN [FaultSummary] ON Event.ID = [FaultSummary].EventID WHERE ([FaultSummary].Inception >= {0} AND [FaultSummary].Inception < DATEADD(day,1,{0})))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - FAULTS - summary data
-    int totalFaultEventsToday = dataContext.Table<FaultSummary>().QueryRecordCount(restriction: new RecordRestriction("(FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)", dateTimeToday));
-
-    ////////////////////////////////////////////////////
-    //phase ground
-    int phaseToGountFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID >= 1 AND [Disturbance].PhaseID <= 3) OR ([Disturbance].PhaseID = 6) OR ([Disturbance].PhaseID >= 11 AND [Disturbance].PhaseID <= 12))", dateTimeToday));
-    //phase phase
-    int phaseToPhaseFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([Disturbance].PhaseID >= 8  AND [Disturbance].PhaseID <= 10)", dateTimeToday));
-    //all phase
-    int worstFaults = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("[Disturbance].EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND (([Disturbance].PhaseID = 7) OR ([Disturbance].PhaseID = 13) OR ([Disturbance].PhaseID = 14))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - DISTURBANCE LOG - summary data
-    int totalDistrubanceLogRecordsToday = dataContext.Table<Disturbance>().QueryRecordCount(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
-
-    IEnumerable<Disturbance> disturbanceOverviewToday = dataContext.Table<Disturbance>().QueryRecords(restriction: new RecordRestriction("EventID IN (SELECT [Disturbance].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0))", dateTimeToday));
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-    // OverviewToday - VOLT DISTURBANCE - summary data
-    int totalVoltageDisturbanceToday = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", dateTimeToday));
-
-    IEnumerable<DisturbanceSeverity> disturbanceSeverityOverviewToday = dataContext.Table<DisturbanceSeverity>().QueryRecords(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] WHERE EventID IN (SELECT [FaultSummary].EventID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)))", dateTimeToday));
-
-    int severity45VoltageDisturbance = dataContext.Table<DisturbanceSeverity>().QueryRecordCount(restriction: new RecordRestriction("[DisturbanceSeverity].DisturbanceID IN (SELECT [Disturbance].ID FROM [Disturbance] LEFT JOIN [FaultSummary] ON [Disturbance].EventID = [FaultSummary].EventID WHERE (FaultSummary.Inception >= {0} AND FaultSummary.Inception < DATEADD(day,1,{0})) AND (FaultSummary.IsSelectedAlgorithm = 1 AND FaultSummary.IsValid = 1 AND FaultSummary.IsSuppressed= 0)) AND ([DisturbanceSeverity].SeverityCode >= 4)", dateTimeToday));
-    var counter = 1;
-
-    //--------------------------------------------------
-    ////////////////////////////////////////////////////
-
+    string[] tabs = new[] { "Events", "Disturbances", "Faults", "Breakers","Extensions", "Trending", "Completeness", "Correctness" };
 }
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -138,7 +91,8 @@
     <link rel="stylesheet" href="~/Content/bootstrap/theme.css"/>
     <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
     <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css"/>
-    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css"/>
+    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/themes/flick/theme.css">
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>
     <link rel="stylesheet" href="~/Content/jquery.multiselect.css"/>
     <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/>
@@ -155,6 +109,9 @@
         var xdaInstance = '@xdaInstance';
         var yearBegin = '@yearBegin';
         var userId = '@ViewBag.usersid';
+        var defaultView = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(defaultView))');
+        var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
+
     </script>
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
@@ -162,6 +119,7 @@
     <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
     <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
     <script type="text/javascript" src="~/Scripts/overview.js"></script>
+    <script type="text/javascript" src="~/Scripts/MeterActivity.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.sparkline.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
@@ -193,9 +151,10 @@
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
    	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
+    <script src="~/Scripts/ie11-compatibility-functions.js"></script>
 </head>
 
-<body onunload="createupdateconfig(null);">
+<body>
 
 <div style="visibility: hidden; width: 0px; height: 0px;" id="postedUserName">@ViewBag.usersid</div>
 
@@ -217,7 +176,7 @@
             <tr>
                 <td width="250px" align="left" style="z-index: 999; padding-left: 5px;" nowrap>
                     Filter:
-                    <select class="smallbutton" id="deviceFilterList" onchange="selectMeterGroup(this)">
+                    <select class="smallbutton" id="deviceFilterList" onchange="selectMeterGroup()">
                         <option value="0">All (no filter)</option>
                         @foreach (DeviceFilter df in deviceFilters)
                         {
@@ -229,10 +188,6 @@
                     <button class="smallbutton" id="editDeviceFilterBtn" onclick="showDeviceFilter('edit')">Edit</button>
 
                     <select class="smallbutton" id="Configurations" hidden="hidden"></select>
-                    <button class="smallbutton" id="ConfigurationsLoad" onclick="configurationapply($('#Configurations').val())" hidden="hidden">Load</button>
-                    <button class="smallbutton" id="ConfigurationsCopy" onclick="configurationscopy(this);" hidden="hidden">New</button>
-                    <button class="smallbutton" id="ConfigurationsUpdate" onclick="configurationsupdate(this);" hidden="hidden">Save</button>
-                    <button class="smallbutton" id="ConfigurationsDelete" onclick="configurationsdelete(this);" hidden="hidden">Delete</button>
                 </td>
                 <td width="150px" align="left" nowrap>
                     <span id="meterSelected"></span> of <span id="meterCount">@meterCount</span> devices
@@ -276,7 +231,6 @@
                     </select>
                     Views:
                     <select id="viewSelect" class="smallbutton" onchange="selectView(this)">
-                        <option value="0">Home</option>
                         @foreach (SavedViews sv in savedViews)
                         {
                             <option value="@sv.ID">@sv.Name</option>
@@ -299,188 +253,372 @@
     </div>
 
     <div id="application-tabs" class="noselect">
-    <ul>
-        <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
-        <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
-        <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
-        <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
-        <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
-        <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
-        <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
-        <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
-        <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
-        <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
-        <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
-        <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
-    </ul>
+        <ul>
+            <li id="tabsMeterActivity"><a href="#tabs-MeterActivity">MeterActivity</a></li>
+            <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
+            <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
+            <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
+            <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
+            <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
+            <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
+            <li id="tabsExtensions"><a href="#tabs-Extensions">Extensions</a></li>
+            <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
+            <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
+            <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
+            <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
+            <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
+            <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
+        </ul>
 
-    <div id="tabs-Overview-Today">
-
-        <div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">@* background-color: #FCD883; *@
-
-            <div style="text-align: center; color: black">
-                <h3>PQ Overview for <span id="overviewTodayDate"></span> - TODAY </h3>
+        <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
+            <div id="meterActivityContainer" class="container" style="width: 100%; height: 100%; text-align: center">
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+                <div class="grid2" id="grid2MeterActivity">
+                    <div class="grid2-sizer"></div>
+                    <div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">METER ACTIVITY</h3>
+                            <span style="float: right; color: silver">Click on event count to view events</span>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                            <div id="meter-activity" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>
+                    <div class="grid2-item-wide" id="grid2-item-today-5" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">FILES PROCESSED LAST 24 HOURS</h3>
+                            <span style="float: right; color: silver" id="files-hint">Expand row to view events</span>
+                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
+                            <div id="meter-activity-files" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+        </div>
 
-            <div class="grid2" id="grid2Today"><a href="#grid2-Today"></a>
-                <div class="grid2-item" id="grid2-item-Today-1" style="width: 300px; left: 0px; top: 0px"><a href="#grid2-item-Today-1"></a>
-                    <h4><strong style="color: darkblue"><u>DOWNLOADS</u></strong></h4> 
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
-
-
-                        <table title="disturbance-downloads" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: left"> <h4><strong style="color: darkblue"> @totalDownloadedEventFilesToday </strong></h4>  </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkblue"> Meters </th>
-                                <td style="text-align: right"> @meterdDownloadedToday </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkblue"> Lines </th>
-                                <td style="text-align: right"> @linesDownloadedToday </td>
-                            </tr>
-                        </table>
-
-
+        <div id="tabs-Overview-Today" style="background-color: #064e1b; width: 100%; height: 100%">
+            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
+                <div class="grid2" id="grid2Today">
+                    <div class="grid2-sizer"></div>
+                    <div class="grid2-item" id="grid2-item-Today-1" style="left: 0px; top: 0px" hidden="hidden">
+                        <div style="background-color:#f2f3fc; border-color: black; color: darkblue; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>DOWNLOADS</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: darkblue"></div>
+                            <div id="today-downloads" style="background-color: #f2f3fc; border-color: black"></div>
+                        </div>
+                    </div>
+                    <div class="grid2-item" id="grid2-item-Today-2" style="top: 0px" hidden="hidden">
+                        <div style="background-color: #ffeae9; border-color: black; color:#640701; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3>FAULTS</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #640701"></div>
+                            <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
+                        </div>
+                    </div>
+                    <div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">METER ACTIVITY</h3>
+                            <span style="float: right; color: silver">Click on event count to view events</span>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                            <div id="today-meter-activity" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>
+                    @*<div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;" hidden="hidden">
+                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">EVENT LOG</h3>
+                            <span style="float: right; color: silver">Click on time to display waveform</span>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
+                            <div id="today-log" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>*@
+                    <div class="grid2-item-wide" id="grid2-item-today-5" style="top: 0;">
+                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
+                            <h3 style="display:inline">FILES PROCESSED LAST 24 HOURS</h3>
+                            <span style="float: right; color: silver" id="files-hint">Expand row to view events</span>
+                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
+                            <div id="today-files" style="background-color: white; border-color: black"></div>
+                        </div>
+                    </div>
+                    <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%;" hidden="hidden">
+                        <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px; height:100%; width: 100%" class="well well-sm">
+                            <h3>VOLTAGE DISTURBANCES</h3>
+                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #834a05"></div>
+                            <div id="today-voltages" style="background-color: #f1e5da; border-color: black"></div>
+                            <div id="today-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="grid2-item" id="grid2-item-Today-2" style="width: 300px; top: 0px"><a href="#grid2-item-Today-2"></a>
-                    <h4><strong style="color: darkred"><u>FAULTS</u></strong></h4> 
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
+        <div id="tabs-Overview-Yesterday" style="background-color: #d6dedb; width: 100%; height: 100%">
+            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
+                <div style="text-align: center; color: white">
+                    <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
+                </div>
+                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
 
+                <div class="grid2" id="grid2Yesterday">
+                    <div class="grid2-sizer"></div>
+                    <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
+                        <h5> DOWNLOADS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="downloadsChart" style="width: 50%; height: 100%"></div>
 
+                            <div id="history-downloads" style="width: 50%; height: 100%">
 
-                        <table title="disturbance-faultrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: left"> <h4><strong style="color: darkred"> @totalFaultEventsToday </strong></h4>  </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Phase to Ground </th>
-                                <td style="text-align: center"> @phaseToGountFaults </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Phase to Phase </th>
-                                <td style="text-align: center"> @phaseToPhaseFaults </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: right; color: darkred"> Three Phase </th>
-                                <td style="text-align: center"> @worstFaults </td>
-                            </tr>
-                        </table>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
+                        <h5> ALARMS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-alarms"></div>
+                        </div>
+                    </div>
 
+                    <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
+                        <h5> OFF-NORMAL </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-offnormal"></div>
+                        </div>
+                    </div>
 
+                    <div class="grid2-item grid2-item-tall" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
+                        <h5> PREVIOUS 30 DAYS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll; height:90%; width: 100%">
+                            <div id="history-thirtyday-a" style="height:25%"></div>
+                            <div id="history-thirtyday-offnormal" style="background-color: white; height:25%"></div>
+                            <div id="history-thirtyday-disturbances" style="background-color: white; height:25%"></div>
+                            <div id="history-thirtyday-faults" style="background-color: white; height:25%"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item-wide" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
+                        <h5> VOLTAGE DISTURBANCES </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-voltages"></div>
+                            <div id="history-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
+                        <h5> FAULTS </h5>
+                        <div class="well well-sm" style="background-color: white; border-color: black">
+                            <div id="history-faults"></div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="tabs-ModbusData">
+            <iframe id="modbusFrame"></iframe>
+        </div>
+
+        <div id="tabs-HistorianData">
+            <iframe id="historianFrame"></iframe>
+        </div>
+
+        <div id="tabs-TrendingData">
+            <div id="column_5" class="column resizeable">
+                <div class="portlet" id="Portlet1TrendingData">
+                    <div class="portlet-header">
+                        <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
+                    </div>
+                    <div id="DockOverviewTrendingData" class="portlet-content theDockOverviewStyle">
+                        <div id="OverviewTrendingData" class="docklet">
+                        </div>
+                    </div>
+                </div>
+                <div class="portlet" id="Portlet2TrendingData">
+                    <div class="portlet-header">
+                        <div class="portlet-header-text" style="display: inline">
+                            Trending Data Detail for
+                            <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
+                            &nbsp;(24 Hours)
+                        </div>
+                    </div>
+                    <div id="DockDetailTrendingData" class="portlet-content theDockDetailStyle">
+                        <div id="DetailTrendingData" class="docklet">
+                            <div id="DetailTrendingDataTable"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="column_6" class="column">
+                <div class="portlet">
+                    <div class="portlet-header portlet-header-text">
+                        <div class="header-container">
+                            <div class="siteselectdropdown" style="position: absolute;">
+                                <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
+                                    <option value="Map">Map</option>
+                                    <option value="Grid">Grid</option>
+                                </select>
+                                <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
+                                    <option value="All">All Sites</option>
+                                    <option value="RecievedData">Recieved Data</option>
+                                    <option value="NoData">No Data</option>
+                                    <option value="SelectedSites">Selected Sites</option>
+                                    <option value="None">None</option>
+                                </select>
+                                <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
+                                    <option value="Average">Average</option>
+                                    <option value="Maximum">Maximum</option>
+                                    <option value="Minimum">Minimum</option>
+                                </select>
+                                <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
+                                </select>
+                            </div>
+                            <div class="overlaydate pull-right">
+                                <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
+                                <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
+                                <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
+                            </div>
 
 
+                        </div>
+                    </div>
+                    <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
+                        <div class="theMapStyle" id="theMapTrendingData">
+                        </div>
+                        <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <div class="grid2-item" id="grid2-item-Today-3" style="width: 600px; height: 825px; top: 0"><a href="#grid2-item-Today-3"></a>
-                    <div><h4><strong style="color: black"><u>DISTURBANCE LOG</u></strong></h4>  @totalDistrubanceLogRecordsToday  Log Recs.</div>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; height: 725px; overflow-y: scroll">
-
-                        <div>
-
-                            <table title="disturbance-logevents" style="width: 100%; height: 822px; border: 2px; padding: 4px; border-spacing: 4px">
-                                <tr>
-                                    <th style="text-align: center"> No. </th>
-                                    <th style="text-align: center"> Time (CDT) </th>
-                                    <th style="text-align: center"> Electrical Element Monitored </th>
-                                    <th style="text-align: center"> Type </th>
-                                    <th style="text-align: center"> Severity </th>
-                                    <th style="text-align: center"> Duration </th>
-                                </tr>
-                                @{
-                                    foreach (Disturbance logRecord in disturbanceOverviewToday)
+        @foreach (string tab in tabs)
+        {
+            <div id="tabs-@(tab)">
+                <div id="column_1" class="column resizeable">
+                    <div class="portlet" id="Portlet1@(tab)">
+                        <div class="portlet-header">
+                            <div class="portlet-header-text" style="display: inline">@(tab) Overview (<span class="contextWindow"></span>)</div>
+                            @if (tab == "Disturbances")
+                            {
+                                <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
+                                    <option value="0">Bar Chart</option>
+                                    <option value="1">Mag/Dur Chart</option>
+                                </select>
+                            }
+                        </div>
+                        <div id="DockOverview@(tab)" class="portlet-content theDockOverviewStyle">
+                            <div id="Overview@(tab)" style="height: auto" class="docklet chart-container"></div>
+                            <div id="Overview@(tab)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
+                            @if (tab == "Disturbances")
+                            {
+                                <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
+                            }
+                        </div>
+                    </div>
+                    <div class="portlet" id="Portlet2@(tab)">
+                        <div class="portlet-header">
+                            <div class="portlet-header-text" style="display: inline">
+                                @tab Detail for <span class="contextWindow"></span>
+                            </div>
+                            @if (tab == "Faults")
+                            {
+                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
+                            }
+                        </div>
+                        <div id="DockDetail@(tab)" class="portlet-content noselect theDockDetailStyle">
+                            <div id="Detail@(tab)" class="docklet">
+                                <div id="Detail@(tab)Table"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="column_2" class="column">
+                    <div class="portlet">
+                        <div class="portlet-header portlet-header-text">
+                            <div class="header-container">
+                                <div class="siteselectdropdown" style="position: absolute;">
+                                    <select class="smallbutton mapGrid" id="map@(tab)Grid" onchange="selectmapgrid(this);">
+                                        <option value="Map">Map</option>
+                                        <option value="Grid">Grid</option>
+                                    </select>
+                                    <select class="smallbutton" id="selectSiteSet@(tab)" onchange="showSiteSet(this);">
+                                        <option value="All">All Sites</option>
+                                        <option value="Events">@(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
+                                        <option value="NoEvents">No @(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
+                                        <option value="SelectedSites">Selected Sites</option>
+                                        <option value="None">None</option>
+                                    </select>
+                                    @if (tab == "Events")
                                     {
-                                        <tr>
-                                            <th> @counter </th>
-                                            <td style="text-align: center">@logRecord.StartTime.ToShortTimeString() </td>
-                                            <td style="text-align: center"> Substation: 8 Line: M </td>
-                                            <td style="text-align: center"> Fault </td>
-                                            <td style="text-align: center"> 4 </td>
-                                            <td style="text-align: center"> @logRecord.DurationSeconds </td>
-                                        </tr>
-
-                                        counter = counter + 1;
+                                    <select class="smallbutton" id="selectHeatmap@(tab)" onchange="showHeatmap(this);">
+                                        <option value="EventCounts">Event Counts</option>
+                                        <option value="MinimumSags">Sag Minimum</option>
+                                        <option value="MaximumSwell">Swell Maximum</option>
+                                    </select>
                                     }
-                                    counter = 1;
-                                }
-                            </table>
+                                </div>
+
+                                <div class="overlaydate pull-right">
+                                    <div id="mapHeader@(tab)From" class="mapheader"></div>
+                                    <div id="mapHeader@(tab)Divider" class="mapheader">&nbsp;-&nbsp;</div>
+                                    <div id="mapHeader@(tab)To" class="mapheader"></div>
+                                </div>
+
+                            </div>
 
                         </div>
 
+                        <div id="MapMatrix@(tab)" class="portlet-content portlet-header-text">
+                            <div class="theMapStyle" id="theMap@(tab)"></div>
+                            <div class="theMatrixStyle noselect" id="theMatrix@(tab)"></div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="grid2-item" id="grid2-item-Today-4" style="width: 600px; left: 0px; top:50%; height: 625px;"><a href="#grid2-item-Today-4"></a>
-                    <h5><strong style="color: #e17009"><u>VOLTAGE DISTURBANCES</u></strong></h5> 
-                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black; height: 550px; overflow-y: scroll">
-
-
-
-                        <table title="disturbance-voltageevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-
-                                <th style="text-align: left; color: #e17009"><h5><strong> @severity45VoltageDisturbance </strong></h5></th>
-
-
-                            </tr>
-                        </table>
-
-
-                        <div><h5><strong style="color: #e17009">Voltage disturbance Bar Chart to go here. </strong></h5>  @totalVoltageDisturbanceToday </div>
-                        <table title="disturbance-logevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <tr>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-                                <th style="text-align: center"> Record ID</th>
-                                <th style="text-align: center"> Envelope </th>
-                                <th style="text-align: center"> ID </th>
-                                <th style="text-align: center"> Severity </th>
-                            </tr>
-                            @{ 
-                                foreach (DisturbanceSeverity logRecord in disturbanceSeverityOverviewToday)
-                                {
-                                    <tr>
-                                        <th> @counter </th>
-                                        <td style="text-align: center"> 7:49 am </td>
-                                        <td style="text-align: center"> @logRecord.ID </td>
-                                        <td style="text-align: center"> @logRecord.VoltageEnvelopeID </td>
-                                        <td style="text-align: center"> @logRecord.DisturbanceID </td>
-                                        <td style="text-align: center"> @logRecord.SeverityCode </td>
-                                    </tr>
-
-                                    counter = counter + 1;
-                               }
-                            }
-
-
-                        </table>
-
-
-                    </div>
-                </div>
-
             </div>
-        </div>
+        }
     </div>
 
-        <!-- Modal -->
-    <div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
-        <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
+</div>
 
-            <!-- Modal content-->
-            <div class="modal-content" style="z-index: 300">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">PQDashboard Settings for @ViewBag.username</h4>
-                </div>
-                <div class="modal-body" style="height: 95%; overflow-y: scroll">
-                    <div style="position: relative">
+
+<!-- Modal -->
+<div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
+    <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
+
+        <!-- Modal content-->
+        <div class="modal-content" style="z-index: 300">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" style="height: 95%; overflow-y: scroll">
+                <div style="position: relative">
+                    <h3><b>The Open PQDashboard version 2.0</b></h3>
+                    <div class="navbar">
+                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'about')"><a href="https://github.com/GridProtectionAlliance/PQDashboard/wiki/Operation-Instructions" target="_blank"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></a></button>
+                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
+                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
+                    </div>
+                    <div id="about" class="nav-tabs">
+
+                        <h3 class="modal-title"><a href="http://gridprotectionalliance.org/default.asp" target="_blank"><img src="~/Images/ConfigImages/lock.png" style="height:30px" /></a>&nbsp;&nbsp;About the Open PQDashboard</h3>
+                        <br />
+                        <p>
+                            The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s <a href="http://github.com/GridProtectionAlliance/openXDA" target="_blank" style="color:blue;">openXDA solution.</a><br />
+                            Development of the PQ Dashboard has been largely funded by the Electric Power Research Institute (EPRI).
+                        </p>
+                        <p>
+                            For information on updates and to log issues and make suggestions for improvements, go to the <a href="http://github.com/GridProtectionAlliance/PQDashboard" target="_blank" style="color:blue;">PQ Dashboard GitHub repository.</a>
+                        </p>
+                        <p>
+                            GPA offers annual product support agreements for the Open PQ Dashboard and openXDA as well as customized services that are tailored to meet the needs of individual utilities. <br />
+                            For more information about GPA’s support and maintenance services, please contact us at:
+                        </p>
+                        <p>
+                            1206 Broad Street <br />
+                            Chattanooga, TN 34702 <br />
+                            Phone: (423) 702-8136 <br />
+                            Email: <a href="mailto:info@gridprotectionalliance.org?subject=Contact%20GPA" style="color:blue;">info@gridprotectionalliance.org</a>
+                        </p>
+                    </div>
+                    <div id="config" class="nav-tabs" style="display:none">
+                        <h3 class="modal-title"><img src="~/Images/ConfigImages/tools.png" style="height:30px" />&nbsp;&nbsp;Settings for @ViewBag.username</h3>
                         <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
                         <div class="grid">
                             <div class="grid-item">
@@ -496,7 +634,7 @@
                                                         @setting.Value
                                                     </td>
                                                     <td>
-                                                        <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "")/>
+                                                        <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
                                                     </td>
                                                 </tr>
                                             }
@@ -507,7 +645,7 @@
 
                             @foreach (DashSettings setting in dashSettings)
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() {"#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData"}).IndexOf(setting.Value) < 0)
+                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
                                 {
                                     <div class="grid-item">
 
@@ -515,11 +653,11 @@
                                         <div class="well">
                                             <table>
                                                 <thead>
-                                                <tr>
-                                                    <th>Field</th>
-                                                    <th>Color</th>
-                                                    <th>Enabled</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>Field</th>
+                                                        <th>Color</th>
+                                                        <th>Enabled</th>
+                                                    </tr>
                                                 </thead>
                                                 @foreach (DashSettings innerSetting in dashSettings)
                                                 {
@@ -532,1124 +670,120 @@
                                                             <td>
                                                                 @{
                                                                     DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-
                                                                 }
-                                                                <input id="color@(color.ID)"class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")"/>
+                                                                <input id="color@(color.ID)" class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")" />
                                                             </td>
                                                             <td>
-                                                                <input id="enable@(innerSetting.ID)"type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "")/>
+                                                                <input id="enable@(innerSetting.ID)" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
                                                             </td>
                                                         </tr>
-                                                    }
-                                                }
+                                                                        }
+                                                                    }
                                             </table>
                                         </div>
                                     </div>
-
-                                }
-                            }
+                                                                        }
+                                                                    }
                         </div>
                     </div>
-                </div>
+                    <div id="help" class="nav-tabs" style="display:none;">
+                        <h3 class="modal-title"><img src="~/Images/ConfigImages/qmark.png" style="height:30px" />&nbsp;&nbsp;PQDashboard Help</h3>
+                        <br />
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
-                    <button type="button" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
+                        <h4><b>How to configure the dashboard</b></h4>
 
-        </div>
-    </div>
-.
-
-    <div id="tabs-Overview-Yesterday">
-
-        <div id="overviewContainer" class="container" style="background-color: #FCD883; width: 100%; height: 100%; text-align: center">
-
-            <div style="text-align: center; color: black">
-                <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
-            </div>
-            <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-
-            <div class="grid2" id="grid2Yesterday"><a href="#grid2-Yesterday"></a>
-                <div class="grid2-sizer"></div>
-                <div class="gutter2-sizer"></div>
-                <div class="grid2-item" id="grid2-item-Yesterday-1" style="width: 300px; left: 0px; top: 0px"><a href="#grid2-item-Yesterday-1"></a>
-                    <h5> Downloads </h5>
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-alarmfiles" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
+                        <br /><br />
+                        <table class="table-bordered">
+                            <tr> <th colspan="2">Description of configuration settings</th> </tr>
                             <tr>
-                                <th></th>
-                                <th style="text-align: center"> # Files </th>
-                                <th style="text-align: center"> # Devices </th>
+                                <td width="20%"><b>Tabs</b></td>
+                                <td>Hide or show available tabs</td>
                             </tr>
                             <tr>
-                                <th> DFR's </th>
-                                <td style="text-align: center"> 184 </td>
-                                <td style="text-align: center"> 44 </td>
+                                <td width="20%"><b>Correctness</b></td>
+                                <td>Configure the color and visibility of available correctness levels</td>
                             </tr>
                             <tr>
-                                <th> PQ's </th>
-                                <td style="text-align: center"> 623 </td>
-                                <td style="text-align: center"> 341</td>
+                                <td width="20%"><b>Events</b></td>
+                                <td>Configure the color and visibility of different event types.</td>
+                            </tr>
+                            <tr>
+                                <td width="20%"><b>Completeness</b></td>
+                                <td>Configure the color and visibility of available completeness levels</td>
+                            </tr>
+                            <tr>
+                                <td width="20%"><b>Trending</b></td>
+                                <td>Configure the color and visibility of trending data types</td>
+                            </tr>
+                            <tr>
+                                <td width="20%"><b>Breakers</b></td>
+                                <td>Configure the color and visibility of different breaker event types</td>
+                            </tr>
+                            <tr>
+                                <td width="20%"><b>Disturbances</b></td>
+                                <td>Configure the color and visibility of different types of disturbances</td>
+                            </tr>
+                            <tr>
+                                <td width="20%"><b>Faults</b></td>
+                                <td>Configure the color and visibility of different types of events</td>
                             </tr>
                         </table>
 
-
-
-                    </div>
-
-                </div>
-
-                <div class="grid2-item" id="grid2-item-Yesterday-2" style="width: 300px; top: 0px"><a href="#grid2-item-Yesterday-2"></a>
-                    <h5> Disturbance Alarms Recorded </h5>
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-alarmrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Alarms Records - 18 Alarms</h4> </caption>
-                            <tr>
-                                <th> Phase to Ground </th>
-                                <td style="text-align: center"> 5 </td>
-                            </tr>
-                            <tr>
-                                <th> Phase to Phase </th>
-                                <td style="text-align: center"> 2 </td>
-                            </tr>
-                            <tr>
-                                <th> Three Phase </th>
-                                <td style="text-align: center"> 1 </td>
-                            </tr>
-                        </table>
-
-
-
-                    </div>
-                </div>
-
-                <div class="grid2-item" id="grid2-item-Yesterday-3" style="width: 300px; top: 0px"><a href="#grid2-item-Yesterday-3"></a>
-                    <h5> Disturbance Off-Normal Records </h5>
-                    <div id="disturbance-downloads" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-offnormalevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Off-Normal Records</h4> </caption>
-                            <tr>
-                                <th></th>
-                                <th style="text-align: center"> # Files </th>
-                                <th style="text-align: center"> # Devices </th>
-                            </tr>
-                            <tr>
-                                <th> DFR's </th>
-                                <td style="text-align: center"> 184 </td>
-                                <td style="text-align: center"> 44 </td>
-                            </tr>
-                            <tr>
-                                <th> PQ's </th>
-                                <td style="text-align: center"> 623 </td>
-                                <td style="text-align: center"> 341</td>
-                            </tr>
-                        </table>
-
-
-
-                    </div>
-
-                </div>
-
-
-                <div class="grid2-item" id="grid2-item-Yesterday-4" style="width: 300px; top: 0"><a href="#grid2-item-Yesterday-4"></a>
-                    <h5> Overview Log Charts - Last 30 Days </h5>
-                    <div id="disturbance-log" class="well" style="background-color: white; border-color: black; overflow-y: scroll">
-
-
-
-                        <table title="disturbance-alarmcharts" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Charts for Last 30 Days</h4> </caption>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <th></th>
-                                            <th style="text-align: center"> No. </th>
-                                            <th style="text-align: center"> Time (CDT) </th>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 1 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 2 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 3 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                        <tr>
-                                            <th> 4 </th>
-                                            <td style="text-align: center"> 9:49 pm </td>
-                                            <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-
-                            @*<tr>
-                                <th></th>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-
-                            </tr>*@
-
-                        </table>
-
+                        <br /><br />
+                        <h4><b>FAQs</b></h4>
+                        <p>
+                            <b>What if I need more help than I can find online?</b><br />
+                            &nbsp;&nbsp; You can always ask a question in the <a href="http://discussions.gridprotectionalliance.org/" target="_blank" style="color: blue;">GPA user forum.</a>
+                        </p>
+                        <p>
+                            <b>What’s the difference between the “events” and “faults” tab</b> <br />
+                            &nbsp;&nbsp; Not all events are faults. Only faults show up in the faults tab, all events show up in the events tab.
+                        </p>
+                        <p>
+                            <b>Why do I sometimes see the same event more than once?</b><br />
+                            &nbsp;&nbsp; Not sure.
+                        </p>
+                        <p>
+                            <b>Why can’t I see trending data?</b><br />
+                            &nbsp;&nbsp; Not sure. Maybe you don’t have trending data?
+                        </p>
+                        <p>
+                            <b>Why do most events seem to be classified as a “swell”?</b><br />
+                            &nbsp;&nbsp; That’s the default way of classifying things.
+                        </p>
+                        <p>
+                            <b>Why are there no events for some sites?</b><br />
+                            &nbsp;&nbsp; Maybe you need to pick a different time range to see events for it??
+                        </p>
+                        <p>
+                            <b>Do I need to do anything to configure the PQ Dashboard as new monitors are added to openXDA?</b><br />
+                            &nbsp;&nbsp; I don’t think so, not sure though???
+                        </p>
+                        <p>
+                            <b>How can I add new charts and displays to the dashboard?</b><br />
+                            &nbsp;&nbsp; PQDashboard is open source and is <a href="https://github.com/GridProtectionAlliance/PQDashboard" target="_blank" style="color:blue;">posted on GitHub</a>, you are welcome to add more things there. <br />
+                            &nbsp;&nbsp; Please follow the guidelines in the <a href="https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf" target="_blank" style="color:blue;">contributing guide.</a>
+                        </p>
+                        <p>
+                            <b>Why do some waveforms identified as “faults” in the COMTRADE file not show up as faults in the dashboard?</b><br />
+                            &nbsp;&nbsp; Because PQDashboard/openXDA implements its own logic for classifying faults, which may be different than your specific DFR.
+                        </p>
 
 
                     </div>
                 </div>
 
-
-                <div class="grid2-item" id="grid2-item-Yesterday-5" style="width: 600px; left: 0px; top:70%"><a href="#grid2-item-Yesterday-5"></a>
-                    <h5> Voltage Disturbances </h5>
-                    <div id="disturbance-voltage" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-voltageevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Voltage Disturbances</h4> </caption>
-                            <tr>
-
-                                <th style="text-align: center"> Severity </th>
-                                <th style="text-align: center"> No. of Volt. Disturbances </th>
-
-                            </tr>
-                            <tr>
-
-                                <th style="text-align: center"> Severity 4 </th>
-                                <td style="text-align: center"> 3 </td>
-
-                            </tr>
-                            <tr>
-
-                                <th style="text-align: center"> Severity 5 </th>
-                                <td style="text-align: center"> 1 </td>
-
-                            </tr>
-
-                        </table>
-                        <h4> Voltage disturbance Bar Chart to go here. </h4>
-                        <table title="disturbance-logevents" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4>Downloaded Event Files</h4> </caption>
-                            <tr>
-                                <th style="text-align: center"> No. </th>
-                                <th style="text-align: center"> Time (CDT) </th>
-                                <th style="text-align: center"> Electrical Element Monitored </th>
-                                <th style="text-align: center"> Type </th>
-                                <th style="text-align: center"> Severity </th>
-                                <th style="text-align: center"> Duration </th>
-                            </tr>
-                            <tr>
-                                <th> 1 </th>
-                                <td style="text-align: center"> 9:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 2 </th>
-                                <td style="text-align: center"> 7:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 3 </th>
-                                <td style="text-align: center"> 5:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 4 </th>
-                                <td style="text-align: center"> 5:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 5 </th>
-                                <td style="text-align: center"> 3:49 pm </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 6 </th>
-                                <td style="text-align: center"> 2:10 pm </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 7 </th>
-                                <td style="text-align: center"> 1:49 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 8 </th>
-                                <td style="text-align: center"> 12:27 pm </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 9 </th>
-                                <td style="text-align: center"> 11:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 10 </th>
-                                <td style="text-align: center"> 10:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 11 </th>
-                                <td style="text-align: center"> 9:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 12 </th>
-                                <td style="text-align: center"> 8:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                            <tr>
-                                <th> 13 </th>
-                                <td style="text-align: center"> 7:49 am </td>
-                                <td style="text-align: center"> Substation: 3 Line: A </td>
-                                <td style="text-align: center"> Swell </td>
-                                <td style="text-align: center"> 2 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 14 </th>
-                                <td style="text-align: center"> 6:10 am </td>
-                                <td style="text-align: center"> Substation: 4 Line: B </td>
-                                <td style="text-align: center"> Sag </td>
-                                <td style="text-align: center"> 3 </td>
-                                <td style="text-align: center"> 33 </td>
-                            </tr>
-                            <tr>
-                                <th> 15 </th>
-                                <td style="text-align: center"> 5:49 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> Interupt </td>
-                                <td style="text-align: center"> 1 </td>
-                                <td style="text-align: center"> 4 </td>
-                            </tr>
-                            <tr>
-                                <th> 16 </th>
-                                <td style="text-align: center"> 1:27 am </td>
-                                <td style="text-align: center"> Substation: 8 Line: M </td>
-                                <td style="text-align: center"> FAULT </td>
-                                <td style="text-align: center"> -- </td>
-                                <td style="text-align: center"> -- </td>
-                            </tr>
-                        </table>
-
-
-
-                    </div>
-                </div>
-
-                <div class="grid2-item"  id="grid2-item-Yesterday-6" style="width: 300px; top:70%"><a href="#grid2-item-Yesterday-6"></a>
-                    <h5> Disturbance Alarms Recorded </h5>
-                    <div id="disturbance-faults" class="well" style="background-color: white; border-color: black">
-
-
-
-                        <table title="disturbance-faultAlarmsrecs" style="width: 100%; border: 2px; padding: 10px; border-spacing: 10px">
-                            <caption style="text-align: center; width: 100%"> <h4> Fault Records - 8 faults</h4> </caption>
-                            <tr>
-                                <th> Phase to Ground </th>
-                                <td style="text-align: center"> 5 </td>
-                            </tr>
-                            <tr>
-                                <th> Phase to Phase </th>
-                                <td style="text-align: center"> 2 </td>
-                            </tr>
-                            <tr>
-                                <th> Three Phase </th>
-                                <td style="text-align: center"> 1 </td>
-                            </tr>
-                        </table>
-
-
-
-                    </div>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" style="display: none" id="configApply" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
+                <button type="button" style="display: none" id="configDefaults" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
+
     </div>
-
-    <div id="tabs-ModbusData">
-        <iframe id="modbusFrame"></iframe>
-    </div>
-
-    <div id="tabs-HistorianData">
-        <iframe id="historianFrame"></iframe>
-    </div>
-
-    <div id="tabs-Events">
-        <div id="column_1" class="column resizeable">
-            <div class="portlet" id="Portlet1Events">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Events Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewEvents" class="portlet-content">
-                    <div id="OverviewEvents" class="docklet chart-container">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Events">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Events Detail for&nbsp;
-                        <div style="display: inline;" id="eventsDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailEvents" class="portlet-content noselect">
-                    <div id="DetailEvents" class="docklet">
-                        <div id="DetailEventsTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_2" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapEventsGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetEvents" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapEvents" onchange="showHeatmap(this);">
-                                <option value="EventCounts">Event Counts</option>
-                                <option value="MinimumSags">Sag Minimum</option>
-                                <option value="MaximumSwell">Swell Maximum</option>
-                            </select>
-                        </div>
-
-                        <div class="overlaydate pull-right">
-                                <div id="mapHeaderEventsFrom" class="mapheader"></div>
-                                <div id="mapHeaderEventsDivider" class="mapheader">&nbsp;-&nbsp;</div>
-                                <div id="mapHeaderEventsTo" class="mapheader"></div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div id="MapMatrixEvents" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapEvents"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixEvents"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Disturbances">
-        <div id="column_13" class="column resizeable">
-            <div class="portlet" id="Portlet1Disturbances">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Disturbances Overview (For Date Range)</div>
-                    <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
-                        <option value="0">Bar Chart</option>
-                        <option value="1">Mag/Dur Chart</option>
-                    </select>
-                </div>
-                <div id="DockOverviewDisturbances" class="portlet-content">
-                    <div id="OverviewDisturbances" class="docklet chart-container"></div>
-                    <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Disturbances">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Disturbances Detail for&nbsp;
-                        <div style="display: inline;" id="DisturbancesDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailDisturbances" class="portlet-content noselect">
-                    <div id="DetailDisturbances" class="docklet">
-                        <div id="DetailDisturbancesTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_14" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapDisturbancesGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetDisturbances" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Disturbances">Disturbances</option>
-                                <option value="NoDisturbances">No Disturbances</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapDisturbances" onchange="showHeatmap(this);">
-                                <option value="DisturbanceCounts">Disturbance Counts</option>
-                            </select>
-                        </div>
-
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderDisturbancesFrom" class="mapheader"></div>
-                            <div id="mapHeaderDisturbancesDivider" class="mapheader">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderDisturbancesTo" class="mapheader"></div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div id="MapMatrixDisturbances" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapDisturbances"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixDisturbances"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Trending">
-        <div id="column_3" class="column resizeable">
-            <div class="portlet" id="Portlet1Trending">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Trending Overview (Past 30 Days)</div>
-                </div>
-                <div id="DockOverviewTrending" class="portlet-content">
-                    <div id="OverviewTrending" class="docklet">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Trending">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Trending Detail for
-                        <div style="display: inline;" id="trendingDetailHeader">Date</div>
-                        &nbsp;(24 Hours)
-                        @*<%--<div style="height: 18px; display: block; float: right; margin-right: 30px; margin-top: 5px;"><input type="image" src="~/Images/fileexport.png" id="excelExportTrending" title="Export To Excel"/></div>--%>*@
-                    </div>
-                </div>
-                <div id="DockDetailTrending" class="portlet-content">
-                    <div id="DetailTrending" class="docklet">
-                        <div id="DetailTrendingTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_4" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapTrendingGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetTrending" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="selectHeatmapTrending" onchange="showHeatmap(this);">
-                                <option value="TrendingCounts">Alarm Counts</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderTrendingFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderTrendingDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderTrendingTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixTrending" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapTrending"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixTrending"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-TrendingData">
-        <div id="column_5" class="column resizeable">
-            <div class="portlet" id="Portlet1TrendingData">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
-                </div>
-                <div id="DockOverviewTrendingData" class="portlet-content">
-                    <div id="OverviewTrendingData" class="docklet">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2TrendingData">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Trending Data Detail for
-                        <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
-                        &nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailTrendingData" class="portlet-content">
-                    <div id="DetailTrendingData" class="docklet">
-                        <div id="DetailTrendingDataTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="column_6" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="RecievedData">Recieved Data</option>
-                                <option value="NoData">No Data</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                            <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
-                                <option value="Average">Average</option>
-                                <option value="Maximum">Maximum</option>
-                                <option value="Minimum">Minimum</option>
-                            </select>
-                            <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
-                        </div>
-
-
-                    </div>
-                </div>
-                <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapTrendingData">
-                    </div>
-                    <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Faults">
-        <div id="Div3" class="column resizeable">
-            <div class="portlet" id="Portlet1Faults">
-                <div class="portlet-header portlet-header-text">Faults Overview</div>
-                <div id="DockOverviewFaults" class="portlet-content">
-                    <div id="OverviewFaults" class="docklet chart-container">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Faults">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Faults Summary for&nbsp;
-                        <div style="display: inline;" id="faultsDetailHeader">Date</div>&nbsp;(24 Hours)
-                        <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
-                    </div>
-                </div>
-                <div id="DockDetailFaults" class="portlet-content noselect">
-                    <div id="DetailFaults" class="docklet">
-                        <div id="DetailFaultsTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div4" class="column">
-            <div class="portlet" id="Portlet3Faults">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapFaultsGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-                            <select class="smallbutton" id="selectSiteSetFaults" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderFaultsFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderFaultsDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderFaultsTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixFaults" class="portlet-content">
-                    <div class="theMapStyle" id="theMapFaults"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixFaults"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Breakers">
-        <div id="Div1" class="column resizeable">
-            <div class="portlet" id="Portlet1Breakers">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Breaker Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewBreakers" class="portlet-content">
-                    <div id="OverviewBreakers" class="docklet chart-container">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Breakers">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Breaker Detail for&nbsp;
-                        <div style="display: inline;" id="breakersDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailBreakers" class="portlet-content noselect">
-                    <div id="DetailBreakers" class="docklet">
-                        <div id="DetailBreakersTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div2" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapBreakersGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetBreakers" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderBreakersFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderBreakersDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderBreakersTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixBreakers" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapBreakers"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixBreakers"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Completeness">
-        <div id="Div5" class="column resizeable">
-            <div class="portlet" id="Portlet1Completeness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Completeness Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewCompleteness" class="portlet-content">
-                    <div id="OverviewCompleteness" class="docklet chart-container">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Completeness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Completeness Detail for&nbsp;
-                        <div style="display: inline;" id="CompletenessDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailCompleteness" class="portlet-content noselect">
-                    <div id="DetailCompleteness" class="docklet chart-container">
-                        <div id="DetailCompletenessTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div6" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapCompletenessGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetCompleteness" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderCompletenessFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderCompletenessDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderCompletenessTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixCompleteness" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapCompleteness"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixCompleteness"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tabs-Correctness">
-        <div id="Div7" class="column resizeable">
-            <div class="portlet" id="Portlet1Correctness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">Correctness Overview (For Date Range)</div>
-                </div>
-                <div id="DockOverviewCorrectness" class="portlet-content">
-                    <div id="OverviewCorrectness" class="docklet chart-container">
-                    </div>
-                </div>
-            </div>
-            <div class="portlet" id="Portlet2Correctness">
-                <div class="portlet-header">
-                    <div class="portlet-header-text" style="display: inline">
-                        Correctness Detail for&nbsp;
-                        <div style="display: inline;" id="CorrectnessDetailHeader">Date</div>&nbsp;(24 Hours)
-                    </div>
-                </div>
-                <div id="DockDetailCorrectness" class="portlet-content noselect">
-                    <div id="DetailCorrectness" class="docklet">
-                        <div id="DetailCorrectnessTable"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="Div8" class="column">
-            <div class="portlet">
-                <div class="portlet-header portlet-header-text">
-                    <div class="header-container">
-                        <div class="siteselectdropdown" style="position: absolute;">
-                            <select class="smallbutton mapGrid" id="mapCorrectnessGrid" onchange="selectmapgrid(this);">
-                                <option value="Map">Map</option>
-                                <option value="Grid">Grid</option>
-                            </select>
-
-                            <select class="smallbutton" id="selectSiteSetCorrectness" onchange="showSiteSet(this);">
-                                <option value="All">All Sites</option>
-                                <option value="Events">Events</option>
-                                <option value="NoEvents">No Events</option>
-                                <option value="SelectedSites">Selected Sites</option>
-                                <option value="None">None</option>
-                            </select>
-                        </div>
-                        <div class="overlaydate pull-right">
-                            <div id="mapHeaderCorrectnessFrom" class="mapheader noselect"></div>
-                            <div id="mapHeaderCorrectnessDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                            <div id="mapHeaderCorrectnessTo" class="mapheader noselect"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="MapMatrixCorrectness" class="portlet-content portlet-header-text">
-                    <div class="theMapStyle" id="theMapCorrectness"></div>
-                    <div class="theMatrixStyle noselect" id="theMatrixCorrectness"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-
 </div>
 
-
-<!-- Modals -->
 <div id="notesModal" class="modal fade" role="dialog">
     <div class="modal-dialog" style="width: 50%">
 
@@ -1700,6 +834,7 @@
             </div>
             <div class="modal-footer">
                 <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="previewDeviceFilter()">Preview</button>
+                <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="useSelectedMeters()">Use Selected Meters</button>
                 <button id="showDeviceFilterSaveBtn" type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveDeviceFilter('new')">Save</button>
                 <button id="showDeviceFilterEditBtn" type="button" class="btn btn-primary" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('edit')">Save</button>
                 <button id="showDeviceFilterDeleteBtn" type="button" class="btn btn-danger" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('delete')">Delete</button>
@@ -1800,12 +935,22 @@
     }
 
     function OpenWindowToMeterEventsByLine(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id, id + "MeterEventsByLine");
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterEventsByLine");
+        return false;
+    }
+
+    function OpenWindowToMeterEventsByLineTwo(id, context, sourcedate) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+context +"&posteddate="+sourcedate, id + "MeterEventsByLine");
         return false;
     }
 
     function OpenWindowToMeterDisturbancesByLine(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterDisturbancesByLine"))?eventid=" + id, id + "MeterDisturbancesByLine");
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterDisturbancesByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterDisturbancesByLine");
+        return false;
+    }
+
+    function OpenWindowToMeterExtensionsByLine(id) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterExtensionsByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterEventsByLine");
         return false;
     }
 
@@ -1830,10 +975,56 @@
 
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
-            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate)
+            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
         }
     }
 
+    function changeConfigScreen(evt, screen) {
+        if (screen == 'about')
+            return;
+        tabcontent = document.getElementsByClassName("nav-tabs");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        document.getElementById(screen).style.display = "block";
+
+        if (evt != null){
+            tablinks = document.getElementsByClassName("settings-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            evt.currentTarget.className += " active";
+        }
+        
+        $('.grid').masonry('layout'); // Redraw Config grid
+
+        if (screen == 'config'){
+            $('#configApply').show();
+            $('#configDefaults').show();
+        }
+        else {
+            $('#configApply').hide();
+            $('#configDefaults').hide();
+        }
+        window.location
+    }
+
+    $('#settingsModal').on('shown.bs.modal', function() {
+        tablinks = document.getElementsByClassName("settings-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        tabcontent = document.getElementsByClassName("nav-tabs");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        document.getElementById('about').style.display = "block";
+
+        $('#configApply').hide();
+        $('#configDefaults').hide();
+    })
     //////////////////////////////////////////////////////////////////////////////////////////////
 
     </script>
