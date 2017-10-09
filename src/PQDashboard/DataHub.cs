@@ -811,7 +811,14 @@ namespace PQDashboard
             return (eventSet);
         }
 
-        public IEnumerable<DisturbanceView> GetVoltageMagnitudeData(string meterIds,string startDate, string endDate, string context)
+        public class MagDurData
+        {
+            public int EventID { get; set; }
+            public double DurationSeconds { get; set; }
+            public double PerUnitMagnitude { get; set; }
+        }
+
+        public IEnumerable<MagDurData> GetVoltageMagnitudeData(string meterIds,string startDate, string endDate, string context)
         {
 
             DateTime beginDate;
@@ -838,11 +845,23 @@ namespace PQDashboard
             }
 
             DataTable table = DataContext.Connection.RetrieveData(
-                " SELECT * " +
-                " FROM DisturbanceView  " +
-                " WHERE (MeterID IN (Select * FROM String_To_Int_Table({0},','))) " +
-                " AND StartTime >= {1} AND StartTime <= {2} AND PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') ", meterIds, beginDate, finishDate);
-            return table.Select().Select(row => DataContext.Table<DisturbanceView>().LoadRecord(row));
+                @" SELECT Disturbance.EventID, 
+                          Disturbance.DurationSeconds,
+                          Disturbance.PerUnitMagnitude
+                  FROM Disturbance JOIN 
+                       Event ON Event.ID = Disturbance.EventID JOIN
+			           DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
+			           Phase ON Phase.ID = Disturbance.PhaseID JOIN
+			           VoltageEnvelope ON VoltageEnvelope.ID = DisturbanceSeverity.VoltageEnvelopeID	               
+                 WHERE PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') AND
+			           VoltageEnvelope.Name = COALESCE((SELECT TOP 1 Value FROM Setting WHERE Name = 'DefaultVoltageEnvelope'), 'ITIC') AND 
+                       (Event.MeterID IN (Select * FROM String_To_Int_Table({0},','))) AND
+                       Event.StartTime >= {1} AND Event.StartTime <= {2}  ", meterIds, beginDate, finishDate);
+            return table.Select().Select(row => new MagDurData() {
+                EventID = int.Parse(row["EventID"].ToString()),
+                DurationSeconds = double.Parse(row["DurationSeconds"].ToString()),
+                PerUnitMagnitude = double.Parse(row["PerUnitMagnitude"].ToString())
+            });
         }
 
         public IEnumerable<WorkbenchVoltageCurveView> GetCurves()
