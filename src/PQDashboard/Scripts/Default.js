@@ -1948,20 +1948,8 @@ function buildMagDurChart(data, thediv) {
     var layout = {
         title: 'Disturbance Magnitude Duration Scatter Plot',
         hovermode: 'closest',
-        //showLink: false,
-        //displayLogo: false,
-        //autosize: false,
-        //width: $('#viewWindow').innerWidth(),
         xaxis: { title: 'Duration (Seconds)', type: 'log', autorange: true, autotick: false, tickvals: [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]/*, range: [-3, 4] */ },
         yaxis: { side: 'left', overlaying: 'y', anchor: 'x', title: 'Voltage Magnitude(% of Nominal)'/*, range: [0, 150]*/ },
-        //margin: {
-        //    l: 15,
-        //    r: 15,
-        //    t: 50,
-        //    b: 50,
-        //    pad: 15
-        //},
-        //height: $('#viewWindow').height() * 0.85,
     };
 
     dataHub.getCurves().done(function (curves) {
@@ -2049,29 +2037,6 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         }).fail(function (msg) {
             alert(msg);
         });
-        //$.ajax({
-        //    datefrom: datefrom,
-        //    dateto: dateto,
-        //    type: "POST",
-        //    url: url,
-        //    data: JSON.stringify(thedatasent),
-        //    contentType: "application/json; charset=utf-8",
-        //    dataType: 'json',
-        //    cache: true,
-        //    success: function (data) {
-        //        cache_Map_Matrix_Data_Date_From = this.datefrom;
-        //        cache_Map_Matrix_Data_Date_To = this.dateto;
-        //        cache_Map_Matrix_Data = data;
-        //        data.d.JSON = data.d.Locations;
-        //        plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-        //        plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-        //        $(window).trigger('clickNow')
-        //    },
-        //    failure: function (msg) {
-        //        alert(msg);
-        //    },
-        //    async: true
-        //});
     }
 }
 
@@ -2699,31 +2664,20 @@ function getColorsForTab(dataPoint, colors) {
     }
     else if (currentTab === "Correctness") {
         var percentage = (parseFloat(dataPoint.GoodPoints) / (parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) * 100).toFixed(2);
-
-        if (dataPoint.Count == 0) {
-            color = '#0000FF';
-        } else if (percentage > 100) {
-            color = colors["> 100%"];
-        } else if (percentage <= 100 && percentage >= 98) {
-            color = colors["98% - 100%"];
-        } else if (percentage < 98 && percentage >= 90) {
-            color = colors["90% - 97%"];
-        } else if (percentage < 90 && percentage >= 70) {
-            color = colors["70% - 89%"];
-        } else if (percentage < 70 && percentage >= 50) {
-            color = colors["50% - 69%"];
-        } else if (percentage < 50 && percentage > 0) {
-            color = colors[">0% - 49%"];
-        } else if (percentage < 0) {
-            color = colors["0%"];
-        }
-        else
-            color = '#0000FF';
+        if (colors == undefined || dataPoint.Count == 0) color = '#0000FF';
+        else if (percentage > 100) color = colors["> 100%"];
+        else if (percentage <= 100 && percentage >= 98) color = colors["98% - 100%"];
+        else if (percentage < 98 && percentage >= 90) color = colors["90% - 97%"];
+        else if (percentage < 90 && percentage >= 70) color = colors["70% - 89%"];
+        else if (percentage < 70 && percentage >= 50) color = colors["50% - 69%"];
+        else if (percentage < 50 && percentage > 0) color = colors[">0% - 49%"];
+        else if (percentage < 0) color = colors["0%"];    
+        else color = '#0000FF';
     }
     else if (currentTab == "Completeness") {
         var percentage = ((parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) / parseFloat(dataPoint.ExpectedPoints) * 100).toFixed(2);
 
-        if (dataPoint.Count == 0) {
+        if (colors == undefined || dataPoint.Count == 0) {
             color = '#0000FF';
         } else if (percentage > 100) {
             color = colors["> 100%"];
@@ -2745,7 +2699,8 @@ function getColorsForTab(dataPoint, colors) {
 
     }
     else if (currentTab === "Breakers") {
-        if (dataPoint["No Operation"] > 0)
+        if (colors == undefined) color = '#0000FF';
+        else if (dataPoint["No Operation"] > 0)
             color = colors["No Operation"];
         else if (dataPoint["Normal"] > 0)
             color = colors["Normal"];
@@ -2759,7 +2714,7 @@ function getColorsForTab(dataPoint, colors) {
 
     }
     else if (currentTab === "Trending") {
-        if (dataPoint.AlarmCount == 0) 
+        if (colors == undefined || dataPoint.AlarmCount == 0)
             color = '#0E892C';
         else if(dataPoint.Alarm > 0)
             color = colors['Alarm'];
@@ -2768,13 +2723,14 @@ function getColorsForTab(dataPoint, colors) {
     }
 
     else if (currentTab === "Faults") {
-            if (dataPoint.Count == 0) 
-                color = '#0E892C';
-            else 
-                color = '#CC3300';
+        if (colors == undefined || dataPoint.Count == 0)
+            color = '#0E892C';
+        else 
+            color = '#CC3300';
     }
     else if (currentTab === "Disturbances") {
-        if (dataPoint.Count == 0)
+
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else if (dataPoint["5"] > 0)
             color = colors["5"];
@@ -2790,7 +2746,7 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["0"];
     }
     else if (currentTab === "Events") {
-        if (dataPoint.Count == 0)
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else if (dataPoint.Fault > 0)
             color = colors["Fault"];
@@ -2806,7 +2762,7 @@ function getColorsForTab(dataPoint, colors) {
             color = '#0E892C';
     }
     else if (currentTab === "Extensions") {
-        if (dataPoint.Count == 0)
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else
             color = '#CC3300';
