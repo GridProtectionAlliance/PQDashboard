@@ -51,6 +51,8 @@ var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
+var cache_Meter_Filter = null;
+
 var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
@@ -2022,12 +2024,12 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         var meterIds = GetCurrentlySelectedSitesIDs();
         dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId, globalContext).done(function (data) {
             data.JSON = JSON.parse(data.Data);
-            cache_Map_Matrix_Data_Date_From = this.datefrom;
-            cache_Map_Matrix_Data_Date_To = this.dateto;
+            cache_Map_Matrix_Data_Date_From = datefrom;
+            cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
 
-            plotMapLocations(data, currentTab, this.datefrom, this.dateto);
-            plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+            plotMapLocations(data, currentTab, datefrom, dateto);
+            plotGridLocations(data, currentTab, datefrom, dateto, string);
             $(window).trigger('clickNow')
 
         }).fail(function (msg) {
@@ -2035,29 +2037,41 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         });
     }
     else {
-        $.ajax({
-            datefrom: datefrom,
-            dateto: dateto,
-            type: "POST",
-            url: url,
-            data: JSON.stringify(thedatasent),
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json',
-            cache: true,
-            success: function (data) {
-                cache_Map_Matrix_Data_Date_From = this.datefrom;
-                cache_Map_Matrix_Data_Date_To = this.dateto;
-                cache_Map_Matrix_Data = data;
-                data.d.JSON = data.d.Locations;
-                plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-                plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-                $(window).trigger('clickNow')
-            },
-            failure: function (msg) {
-                alert(msg);
-            },
-            async: true
+        dataHub.getLocationsTrendingData(thedatasent.contourQuery).done(function (data) {
+            cache_Map_Matrix_Data_Date_From = data.DateFrom;
+            cache_Map_Matrix_Data_Date_To = data.DateTo;
+            cache_Map_Matrix_Data = data;
+            data.JSON = data.Locations;
+            plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
+            plotGridLocations(data, currentTab, data.DateFrom, data.DateTo, string);
+            $(window).trigger('clickNow')
+
+        }).fail(function (msg) {
+            alert(msg);
         });
+        //$.ajax({
+        //    datefrom: datefrom,
+        //    dateto: dateto,
+        //    type: "POST",
+        //    url: url,
+        //    data: JSON.stringify(thedatasent),
+        //    contentType: "application/json; charset=utf-8",
+        //    dataType: 'json',
+        //    cache: true,
+        //    success: function (data) {
+        //        cache_Map_Matrix_Data_Date_From = this.datefrom;
+        //        cache_Map_Matrix_Data_Date_To = this.dateto;
+        //        cache_Map_Matrix_Data = data;
+        //        data.d.JSON = data.d.Locations;
+        //        plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+        //        plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
+        //        $(window).trigger('clickNow')
+        //    },
+        //    failure: function (msg) {
+        //        alert(msg);
+        //    },
+        //    async: true
+        //});
     }
 }
 
@@ -2133,8 +2147,10 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
 
             if ($('#deviceFilterList').val() != 'ClickEvent') {
+                cache_Meter_Filter = $('#deviceFilterList').val();
                 $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
                 $('#deviceFilterList').val('ClickEvent');
+
             }
 
 
@@ -2584,6 +2600,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
                     });
 
                     if ($('#deviceFilterList').val() != 'ClickEvent') {
+                        cache_Meter_Filter = $('#deviceFilterList').val();
                         $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
                         $('#deviceFilterList').val('ClickEvent');
                     }
@@ -2617,8 +2634,15 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
             if(markerGroup.getBounds().isValid())
                 leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180,-270), L.latLng(180,270)));
+            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -270), L.latLng(180, 270)));
+            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
+
         }
+        
+        leafletMap[currentTab].off('zoomend');
+        leafletMap[currentTab].on('zoomend', function (event) {
+            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
+        });
 
         var timeoutVal;
         leafletMap[currentTab].off('boxzoomend');
@@ -2645,6 +2669,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             });
 
             if ($('#deviceFilterList').val() != 'ClickEvent') {
+                cache_Meter_Filter = $('#deviceFilterList').val();
                 $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
                 $('#deviceFilterList').val('ClickEvent');
             }
@@ -2796,8 +2821,8 @@ function getLeafletLocationPopup(dataPoint) {
     var popup;
     popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.Name + "&nbsp;</td></tr>";
     $.each(Object.keys(dataPoint), function (i, key) {
-        if(key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude")
-            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint[key] + "&nbsp;</td></tr>";
+        if (key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude" && key != "Data" && dataPoint[key] != null )
+            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + ( dataPoint[key].toString().indexOf('.') < 0 ? dataPoint[key] : dataPoint[key].toFixed(4)) + "&nbsp;</td></tr>";
     });
     popup += "</table>";
 
@@ -3761,7 +3786,7 @@ function loadLeafletMap(theDiv) {
                                     '</td>' +
                                     '<td colspan="1">' +
                                         '<select class="form-control" id="contourAnimationResolutionSelect">' +
-                                            '<option value="15">15</option>' +
+                                            '<option value="15">(High Res)15</option>' +
                                             '<option value="14">14</option>' +
                                             '<option value="13">13</option>' +
                                             '<option value="12">12</option>' +
@@ -3774,7 +3799,7 @@ function loadLeafletMap(theDiv) {
                                             '<option value="5">5</option>' +
                                             '<option value="4">4</option>' +
                                             '<option value="3">3</option>' +
-                                            '<option value="2">2</option>' +
+                                            '<option value="2">(Low Res)2</option>' +
                                         '</select>' +
                                     '</td>' +
                                 '</tr>' +
@@ -3969,6 +3994,19 @@ function loadContourAnimationData() {
         else
             meters += ',' + data;
     });
+
+    var xMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).x;
+    var xMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).x;
+    var yMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).y;
+    var yMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).y;
+
+    var pixels = (xMax - xMin) * (yMax - yMin);
+    var oneGigInPixels = 1024 * 1024 * 1024 * 4;
+
+    if (pixels > oneGigInPixels) {
+        if(!confirm("Your image will exceed 1 GB and could fail. Would you like to continue?"))
+            return;
+    }
 
     var thedatasent = {
         contourQuery: {

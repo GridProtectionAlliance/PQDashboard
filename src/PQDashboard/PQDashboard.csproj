@@ -336,6 +336,7 @@
     <Compile Include="Model\AlarmRangeLimit.cs" />
     <Compile Include="Model\AppModel.cs" />
     <Compile Include="Model\Channel.cs" />
+    <Compile Include="Model\ContourClasses.cs" />
     <Compile Include="Model\DashSettings.cs" />
     <Compile Include="Model\DataFile.cs" />
     <Compile Include="Model\DeviceDetail.cs" />
