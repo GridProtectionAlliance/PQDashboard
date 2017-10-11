@@ -20,6 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+"use strict";
 
 // Settings
 var updateInterval = 300000;
@@ -85,7 +86,7 @@ function buildMeterActivity(sourcedate) {
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row) } },
             { field: 'Events24Hours', headerText: 'Files (Events) 24H', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '24h', sourcedate) } },
             { field: 'Events7Days', headerText: 'Files (Events) 7D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '7d', sourcedate) } },
-            { field: 'Events30Days', headerText: 'Files (Events) 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
+            { field: 'Events30Days', headerText: 'Files (Events) 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } }
         ],
 
         datasource: function (callback, ui) {
@@ -105,7 +106,7 @@ function buildMeterActivity(sourcedate) {
             { field: 'AssetKey', headerText: 'Asset Key', content: function (row) { return createMeterActivityAssetKeyContent(row); } },
             { field: 'Events30Days', headerText: 'Files (Events) 30D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '30d', sourcedate) } },
             { field: 'Events90Days', headerText: 'Files (Events) 90D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '90d', sourcedate) } },
-            { field: 'Events180Days', headerText: 'Files (Events) 180D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '180d', sourcedate) } },
+            { field: 'Events180Days', headerText: 'Files (Events) 180D', sortable: true, headerStyle: "width: 125px", content: function (row) { return createMeterActivityEventsContent(row, '180d', sourcedate) } }
         ],
 
         datasource: function (callback, ui) {
@@ -161,6 +162,7 @@ function createMeterActivityEventsContent(row, context, sourcedate) {
 
 function buildMeterActivityFiles(sourcedate) {
     $('#meter-activity-files').append('<div id="meter-activity-files-table"> </div>');
+    var begindate;
     begindate = sourcedate.clone();
     begindate.subtract(1, 'd');
     dataHub.queryFileGroupsForOverview(begindate, sourcedate).done(function (data) {
@@ -173,7 +175,7 @@ function buildMeterActivityFiles(sourcedate) {
             columns: [
                 { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
                 { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px', sortable: true },
-                { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } },
+                { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } }
             ],
             datasource: data,
             rowExpand: function (event, data) {
@@ -189,7 +191,7 @@ function buildMeterActivityFiles(sourcedate) {
             expandedRowContent: function (row) {
                 return fileGroupExpandableContent(row);
             },
-            emptyMessage: "No files processed within the last 24 hours",
+            emptyMessage: "No files processed within the last 24 hours"
         });
 
         $(window).resize();
@@ -227,11 +229,11 @@ function buildFileGroupContent(row) {
 }
 
 function fileGroupExpandableContent(row) {
-    var html = '<div><table id="' + row.ID + '-expandableContent"><tr><th>Line</th><th>Start Time</th><th>Type</th></tr>'
+    var html = '<div><table id="' + row.ID + '-expandableContent"><tr><th>Line</th><th>Start Time</th><th>Type</th></tr>';
     dataHub.queryFileGroupEvents(row.ID).done(function (data) {
         $.each(data, function (index, value) {
-            var xdaLink = xdaInstance + '/OpenSEE.cshtml?ID=' + value.ID
-            $('#' + row.ID + '-expandableContent').append('<tr><td><a style="color: Blue" href="' + xdaLink + '" target="_blank">' + value.LineName + '</a></td><td>' + moment(value.StartTime).format('MM/DD/YY HH:MM:SS') + '</td><td>' + value.EventTypeName + '</td></tr>')
+            var xdaLink = xdaInstance + '/OpenSEE.cshtml?ID=' + value.ID;
+            $('#' + row.ID + '-expandableContent').append('<tr><td><a style="color: Blue" href="' + xdaLink + '" target="_blank">' + value.LineName + '</a></td><td>' + moment(value.StartTime).format('MM/DD/YY HH:MM:SS') + '</td><td>' + value.EventTypeName + '</td></tr>');
         });
         html += '</table></div>';
     });
