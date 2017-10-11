@@ -26,6 +26,7 @@ using GSF.Data.Model;
 
 namespace PQDashboard.Model
 {
+    [TableName("Setting")]
     public class Settings
     {
         [PrimaryKey(true)]
@@ -35,7 +36,7 @@ namespace PQDashboard.Model
         }
 
         [StringLength(64)]
-        public string Scope
+        public string DefaultValue
         {
             get; set;
         }
@@ -48,17 +49,6 @@ namespace PQDashboard.Model
 
         [StringLength(512)]
         public string Value
-        {
-            get; set;
-        }
-
-        public bool ApplicationInstance
-        {
-            get; set;
-        }
-
-        [StringLength(200)]
-        public string Roles
         {
             get; set;
         }

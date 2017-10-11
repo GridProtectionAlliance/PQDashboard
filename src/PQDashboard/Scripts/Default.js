@@ -45,12 +45,15 @@ var cache_Map_Matrix_Data_Date_To = null;
 
 // Billy's cached data
 var cache_Graph_Data = null;
-var cache_ErrorBar_data = null;
+var cache_ErrorBar_Data = null;
 var cache_Table_Data = null;
 var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
+var cache_Meter_Filter = null;
+var cache_MagDur_Data = null;
+
 var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
@@ -259,6 +262,7 @@ function selectmapgrid(thecontrol) {
                 plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
+            updateGridWithSelectedSites();
         }
         else if (thecontrol.selectedIndex === 0) {
             //$("#ContoursControlsTrending").hide();
@@ -272,15 +276,11 @@ function selectmapgrid(thecontrol) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function GetCurrentlySelectedSites() {
-    return ($('#siteList').multiselect("getChecked").map(function() {
-        return this.title + "|" + this.value;
-    }).get());
+    return $('#siteList option:selected').map(function() { return this.text + "|" + this.value; });
 }
 
 function GetCurrentlySelectedSitesIDs() {
-    return ($('#siteList').multiselect("getChecked").map(function () {
-        return this.value;
-    }).get()).join(',');
+    return $.map($('#siteList option:selected'), function (a) { return a.value; }).join(',')
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1115,7 +1115,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     var margin = { top: 20, right: 125, bottom: 20, left: 60 },
         width = $('#' + thediv).width() - margin.left - margin.right,
         height = $('#' + thediv).height() - margin.top - margin.bottom,
-        marginOverview = { top: 10, right: margin.right, bottom: 20, left: margin.left }
+        marginOverview = { top: 10, right: margin.right, bottom: 20, left: margin.left },
         heightOverview = $('#' + thediv + 'Overview').height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
@@ -1360,7 +1360,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 return parseInt(e);
             });
             var html = "<table><tr><td>Date: </td><td style='text-align: right'>" + getFormattedDate(d.data.Date) + "</td></tr>";
-            var dKeys = d3.keys(d.data).filter(function (key) { return key !== 'Date' && key !== 'Total' && key !== 'Disabled' && key !== 'Values' && key.indexOf('Disabled') < 0 }).reverse();
+            var dKeys = d3.keys(d.data).filter(function (key) { return key !== 'Date' && key !== 'Total' && key !== 'newTotal' && key !== 'Disabled' && key !== 'Values' && key.indexOf('Disabled') < 0 }).reverse();
             dKeys.forEach(function (data, i) {
                 html += "<tr><td>" + data + "</td><td style='text-align: right'>" + (data === "Date" ? getFormattedDate(d.data.Date) : d.data[data]) + "</td></tr>";
             });
@@ -1647,22 +1647,14 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
 
     // Deep copies an obj
-    function deepCopy(obj) {
-        if (Object.prototype.toString.call(obj) === '[object Array]') {
-            var out = [], i = 0, len = obj.length;
-            for (; i < len; i++) {
-                out[i] = arguments.callee(obj[i]);
-            }
-            return out;
+    function deepCopy(o) {
+        var output, v, key;
+        output = Array.isArray(o) ? [] : {};
+        for (key in o) {
+            v = o[key];
+            output[key] = (typeof v === "object") ? deepCopy(v) : v;
         }
-        if (typeof obj === 'object') {
-            var out = {}, i;
-            for (i in obj) {
-                out[i] = arguments.callee(obj[i]);
-            }
-            return out;
-        }
-        return obj;
+        return output;
     }
 
 }
@@ -1946,20 +1938,8 @@ function buildMagDurChart(data, thediv) {
     var layout = {
         title: 'Disturbance Magnitude Duration Scatter Plot',
         hovermode: 'closest',
-        //showLink: false,
-        //displayLogo: false,
-        //autosize: false,
-        //width: $('#viewWindow').innerWidth(),
         xaxis: { title: 'Duration (Seconds)', type: 'log', autorange: true, autotick: false, tickvals: [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]/*, range: [-3, 4] */ },
         yaxis: { side: 'left', overlaying: 'y', anchor: 'x', title: 'Voltage Magnitude(% of Nominal)'/*, range: [0, 150]*/ },
-        //margin: {
-        //    l: 15,
-        //    r: 15,
-        //    t: 50,
-        //    b: 50,
-        //    pad: 15
-        //},
-        //height: $('#viewWindow').height() * 0.85,
     };
 
     dataHub.getCurves().done(function (curves) {
@@ -2022,12 +2002,12 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         var meterIds = GetCurrentlySelectedSitesIDs();
         dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId, globalContext).done(function (data) {
             data.JSON = JSON.parse(data.Data);
-            cache_Map_Matrix_Data_Date_From = this.datefrom;
-            cache_Map_Matrix_Data_Date_To = this.dateto;
+            cache_Map_Matrix_Data_Date_From = datefrom;
+            cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
 
-            plotMapLocations(data, currentTab, this.datefrom, this.dateto);
-            plotGridLocations(data, currentTab, this.datefrom, this.dateto, string);
+            plotMapLocations(data, currentTab, datefrom, dateto);
+            plotGridLocations(data, currentTab, datefrom, dateto, string);
             $(window).trigger('clickNow')
 
         }).fail(function (msg) {
@@ -2035,28 +2015,17 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         });
     }
     else {
-        $.ajax({
-            datefrom: datefrom,
-            dateto: dateto,
-            type: "POST",
-            url: url,
-            data: JSON.stringify(thedatasent),
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json',
-            cache: true,
-            success: function (data) {
-                cache_Map_Matrix_Data_Date_From = this.datefrom;
-                cache_Map_Matrix_Data_Date_To = this.dateto;
-                cache_Map_Matrix_Data = data;
-                data.d.JSON = data.d.Locations;
-                plotMapLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-                plotGridLocations(data.d, currentTab, this.datefrom, this.dateto, string);
-                $(window).trigger('clickNow')
-            },
-            failure: function (msg) {
-                alert(msg);
-            },
-            async: true
+        dataHub.getLocationsTrendingData(thedatasent.contourQuery).done(function (data) {
+            cache_Map_Matrix_Data_Date_From = data.DateFrom;
+            cache_Map_Matrix_Data_Date_To = data.DateTo;
+            cache_Map_Matrix_Data = data;
+            data.JSON = data.Locations;
+            plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
+            plotGridLocations(data, currentTab, data.DateFrom, data.DateTo, string);
+            $(window).trigger('clickNow')
+
+        }).fail(function (msg) {
+            alert(msg);
         });
     }
 }
@@ -2085,38 +2054,38 @@ function populateGridMatrix(data, siteID, siteName, colors) {
     $(matrixItemID).click(function (e) {
 
         if (!e.shiftKey && !e.ctrlKey ) {
-            $('#siteList').multiselect('uncheckAll');                    
+            $('#siteList :selected').attr('selected', false);
         }
 
         var thisselectedindex = 0;
 
-        $('#siteList').multiselect("widget").find(":checkbox").each(function(item) {
-            if (this.title == siteName) {
-                thisselectedindex = item;
+        $('#siteList option').each(function(i, item) {
+            if (item.value == siteID) {
+                thisselectedindex = i;
             }
         });
 
 
-        $('#siteList').multiselect("widget").find(":checkbox").each(function (item) {
+        $('#siteList option').each(function (i,item) {
 
             if (e.shiftKey) {
 
                 if (thisselectedindex > lastselectedindex) {
-                    if ((item >= lastselectedindex) && (item <= thisselectedindex)) {
-                        if (this.checked == false) this.click();
+                    if ((i >= lastselectedindex) && (i <= thisselectedindex)) {
+                        if (item.selected == false) item.selected = true;
                     } else {
-                        if (this.checked == true) this.click();
+                        if (item.selected == true) item.selected = false;
                     }
                 } else {
-                    if ((item >= thisselectedindex) && (item <= lastselectedindex)) {
-                        if (this.checked == false) this.click();
+                    if ((i >= thisselectedindex) && (i <= lastselectedindex)) {
+                        if (item.selected == false) item.selected = true;
                     } else {
-                        if (this.checked == true) this.click();
+                        if (item.selected == true) item.selected = false;
                     }
                 }
-            } else if (item == thisselectedindex) {
-                    this.click();
-                    return(false);
+            } else if (i == thisselectedindex) {
+                item.selected = true;
+                return (false);
             }
         });
 
@@ -2133,8 +2102,10 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
 
             if ($('#deviceFilterList').val() != 'ClickEvent') {
+                cache_Meter_Filter = $('#deviceFilterList').val();
                 $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
                 $('#deviceFilterList').val('ClickEvent');
+
             }
 
 
@@ -2149,14 +2120,18 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function updateGridWithSelectedSites() {
-        
-    $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-        var matrixItemID = "#" + "matrix_" + this.value + "_box_" + currentTab;
-        if (this.checked) {
+    $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+
+    $('#siteList option').each(function (i, item) {
+        var matrixItemID = "#" + "matrix_" + item.value + "_box_" + currentTab;
+        if (item.selected) {
             $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
+            $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + item.text.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
         } else {
             $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
         }
+
+
     });
 }
 
@@ -2370,16 +2345,8 @@ function showSiteSet(thecontrol) {
 
 
             case "SelectedSites":
-
-                var selectedIDs = GetCurrentlySelectedSites();
-
-                $.each(gridchildren.children, function (key, value) {
-                    if ($.inArray ($(value).data('siteid'), selectedIDs) > -1) {
-                        $(value).show();
-                    } else {
-                        $(value).hide();
-                    }
-                });
+                $('.matrixButton[id*=' + currentTab + ']').show();
+                $('.matrixButtonBlack[id*='+ currentTab +']').hide();
                 break;
 
             case "None":
@@ -2448,13 +2415,8 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "SelectedSites":
-                var selectedIDs = GetCurrentlySelectedSites();
-                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                    if ($.inArray($(marker).children().attr('id').replace('-', '|'), selectedIDs) > -1)
-                        $(marker).show();
-                    else
-                        $(marker).hide();
-                });
+                $('#theMap' + currentTab).find('.leafletCircle').show();
+                $('#theMap' + currentTab).find('.leafletCircle.circleButtonBlack').hide();
                 break;
 
             case "Sags":
@@ -2517,20 +2479,9 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
         $("#theMatrix" + newTab).empty();
     }
 
-    var selectedIDs = GetCurrentlySelectedSites();
-
     // For each data unit, build containers, add to layer based on status
     $.each(locationdata.JSON, function (key, value) {
-        var theindex = $.inArray(value.Name + "|" + value.ID, selectedIDs);
- 
-        var item;
-
-        if (theindex > -1) {
-            item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
-
-        } else {
-            item = $("<div unselectable='on' class='matrix matrixButtonBlack noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
-        }
+        var item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
 
         item.data('gridstatus', value.Event_Count);
         item.data('siteid', value.name + "|" + value.ID);
@@ -2571,32 +2522,31 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
             marker.on('click', function (event) {
                 if (!event.originalEvent.ctrlKey) {
-                    $('#siteList').multiselect("uncheckAll");
+                    $('#siteList :selected').attr('selected', false);
+                    $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+
                 }
 
-                if ($('#siteList').multiselect("option").multiple) {
-
-                    $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                        if (this.value == data.ID) {
-                            this.click();
-                        }
-
-                    });
-
-                    if ($('#deviceFilterList').val() != 'ClickEvent') {
-                        $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
-                        $('#deviceFilterList').val('ClickEvent');
+                $('#siteList option').each(function (i, item) {
+                    if (item.value == data.ID) {
+                        item.selected = true;
                     }
 
-                    $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+                });
 
-
-                    selectsitesincharts();
-
-                } else {
-                    $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
-                    $('#siteList').multiselect('refresh');
+                if ($('#deviceFilterList').val() != 'ClickEvent') {
+                    cache_Meter_Filter = $('#deviceFilterList').val();
+                    $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                    $('#deviceFilterList').val('ClickEvent');
                 }
+
+                $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
+
+                selectsitesincharts();
+
+                $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
+
 
             });
 
@@ -2617,34 +2567,39 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
             if(markerGroup.getBounds().isValid())
                 leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180,-270), L.latLng(180,270)));
+            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -270), L.latLng(180, 270)));
+            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
+
         }
+        
+        leafletMap[currentTab].off('zoomend');
+        leafletMap[currentTab].on('zoomend', function (event) {
+            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
+        });
 
         var timeoutVal;
         leafletMap[currentTab].off('boxzoomend');
         leafletMap[currentTab].on('boxzoomend', function (event) {
-            $('#siteList').multiselect("uncheckAll");
+            $('#siteList :selected').attr('selected', false);
+            $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
             $.each(locationdata.JSON, function (index, data) {
                 if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
                     && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
-                    if ($('#siteList').multiselect("option").multiple) {
+                    
+                    $('#siteList option').each(function (_, item) {
+                        if (item.value == data.ID) {
+                            item.selected = true;
+                        }
 
-                        $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                            if (this.value == data.ID) {
-                                this.click();
-                            }
-
-                        });
-                    } else {
-                        $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
-                        $('#siteList').multiselect('refresh');
-                    }
-
+                    });
+                    
+                    $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
                 }
             });
 
             if ($('#deviceFilterList').val() != 'ClickEvent') {
+                cache_Meter_Filter = $('#deviceFilterList').val();
                 $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
                 $('#deviceFilterList').val('ClickEvent');
             }
@@ -2674,31 +2629,20 @@ function getColorsForTab(dataPoint, colors) {
     }
     else if (currentTab === "Correctness") {
         var percentage = (parseFloat(dataPoint.GoodPoints) / (parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) * 100).toFixed(2);
-
-        if (dataPoint.Count == 0) {
-            color = '#0000FF';
-        } else if (percentage > 100) {
-            color = colors["> 100%"];
-        } else if (percentage <= 100 && percentage >= 98) {
-            color = colors["98% - 100%"];
-        } else if (percentage < 98 && percentage >= 90) {
-            color = colors["90% - 97%"];
-        } else if (percentage < 90 && percentage >= 70) {
-            color = colors["70% - 89%"];
-        } else if (percentage < 70 && percentage >= 50) {
-            color = colors["50% - 69%"];
-        } else if (percentage < 50 && percentage > 0) {
-            color = colors[">0% - 49%"];
-        } else if (percentage < 0) {
-            color = colors["0%"];
-        }
-        else
-            color = '#0000FF';
+        if (colors == undefined || dataPoint.Count == 0) color = '#0000FF';
+        else if (percentage > 100) color = colors["> 100%"];
+        else if (percentage <= 100 && percentage >= 98) color = colors["98% - 100%"];
+        else if (percentage < 98 && percentage >= 90) color = colors["90% - 97%"];
+        else if (percentage < 90 && percentage >= 70) color = colors["70% - 89%"];
+        else if (percentage < 70 && percentage >= 50) color = colors["50% - 69%"];
+        else if (percentage < 50 && percentage > 0) color = colors[">0% - 49%"];
+        else if (percentage < 0) color = colors["0%"];    
+        else color = '#0000FF';
     }
     else if (currentTab == "Completeness") {
         var percentage = ((parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) / parseFloat(dataPoint.ExpectedPoints) * 100).toFixed(2);
 
-        if (dataPoint.Count == 0) {
+        if (colors == undefined || dataPoint.Count == 0) {
             color = '#0000FF';
         } else if (percentage > 100) {
             color = colors["> 100%"];
@@ -2720,7 +2664,8 @@ function getColorsForTab(dataPoint, colors) {
 
     }
     else if (currentTab === "Breakers") {
-        if (dataPoint["No Operation"] > 0)
+        if (colors == undefined) color = '#0000FF';
+        else if (dataPoint["No Operation"] > 0)
             color = colors["No Operation"];
         else if (dataPoint["Normal"] > 0)
             color = colors["Normal"];
@@ -2734,7 +2679,7 @@ function getColorsForTab(dataPoint, colors) {
 
     }
     else if (currentTab === "Trending") {
-        if (dataPoint.AlarmCount == 0) 
+        if (colors == undefined || dataPoint.AlarmCount == 0)
             color = '#0E892C';
         else if(dataPoint.Alarm > 0)
             color = colors['Alarm'];
@@ -2743,13 +2688,14 @@ function getColorsForTab(dataPoint, colors) {
     }
 
     else if (currentTab === "Faults") {
-            if (dataPoint.Count == 0) 
-                color = '#0E892C';
-            else 
-                color = '#CC3300';
+        if (colors == undefined || dataPoint.Count == 0)
+            color = '#0E892C';
+        else 
+            color = '#CC3300';
     }
     else if (currentTab === "Disturbances") {
-        if (dataPoint.Count == 0)
+
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else if (dataPoint["5"] > 0)
             color = colors["5"];
@@ -2765,7 +2711,7 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["0"];
     }
     else if (currentTab === "Events") {
-        if (dataPoint.Count == 0)
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else if (dataPoint.Fault > 0)
             color = colors["Fault"];
@@ -2781,7 +2727,7 @@ function getColorsForTab(dataPoint, colors) {
             color = '#0E892C';
     }
     else if (currentTab === "Extensions") {
-        if (dataPoint.Count == 0)
+        if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
         else
             color = '#CC3300';
@@ -2796,8 +2742,8 @@ function getLeafletLocationPopup(dataPoint) {
     var popup;
     popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.Name + "&nbsp;</td></tr>";
     $.each(Object.keys(dataPoint), function (i, key) {
-        if(key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude")
-            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint[key] + "&nbsp;</td></tr>";
+        if (key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude" && key != "Data" && dataPoint[key] != null )
+            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + ( dataPoint[key].toString().indexOf('.') < 0 ? dataPoint[key] : dataPoint[key].toFixed(4)) + "&nbsp;</td></tr>";
     });
     popup += "</table>";
 
@@ -2963,6 +2909,9 @@ function LoadHeatmapLeaflet(thedata) {
 }
 
 function ManageLocationClick(siteID) {
+    var thedatefrom;
+    var thedateto;
+
     if (globalContext == "custom") {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
         thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -3336,7 +3285,6 @@ function selectMeterGroup(thecontrol) {
     $('#deviceFilterList option[value="ClickEvent"]').remove()
 
     $('#siteList').children().remove();
-    $('#siteList').multiselect('refresh');
     getMeters(mg);
 
     $.each(Object.keys(leafletMap), function (i, key) {
@@ -3368,7 +3316,7 @@ function selectMeterGroup(thecontrol) {
     }
     else {
         cache_Graph_Data = null;
-        cache_Errorbar_Data = null;
+        cache_ErrorBar_Data = null;
         cache_Sparkline_Data = null;
         var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
@@ -3386,7 +3334,6 @@ function updateMeterselect() {
     $.each(cache_Meters, function (key, value) {
         SelectAdd("siteList", value.ID, value.Name, "selected");
     });
-    $('#siteList').multiselect('refresh');
 
 }
 
@@ -3419,9 +3366,6 @@ $(document).ready(function () {
 
 function loadsitedropdown() {
 
-    $("#siteList").multiselect().multiselectfilter();
-
-    $('.ui-multiselect').hide()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3637,7 +3581,7 @@ function buildPage() {
                 }
 
                 cache_Graph_Data = null;
-                cache_Errorbar_Data = null;
+                cache_ErrorBar_Data = null;
                 cache_Sparkline_Data = null;
                 var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
@@ -3647,16 +3591,25 @@ function buildPage() {
 
                 if (ids != null) {
                     $(window).off('clickNow')
-                    $(window).one('clickNow', function(e){
+                    $(window).one('clickNow', function (e) {
+                        $(".mapGrid").val('Grid');
+                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
+
                         $.each(ids.split(','), function (i, id) {
                             var me = {}
                             if (i != 0)
                                 me.ctrlKey = true;
 
                             $('#matrix_' + id + '_box_' + currentTab).trigger($.Event("click", me));
-                        })
+                        });
+
+                        $(".mapGrid").val(mapormatrix);
+                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
+
                     })
                 }
+
+
             }
 
 
@@ -3736,7 +3689,7 @@ function loadLeafletMap(theDiv) {
             attributionControl: false
         });
 
-        mapLink =
+        var mapLink =
             '<a href="https://openstreetmap.org">OpenStreetMap</a>';
 
         L.tileLayer(
@@ -3761,7 +3714,7 @@ function loadLeafletMap(theDiv) {
                                     '</td>' +
                                     '<td colspan="1">' +
                                         '<select class="form-control" id="contourAnimationResolutionSelect">' +
-                                            '<option value="15">15</option>' +
+                                            '<option value="15">(High Res)15</option>' +
                                             '<option value="14">14</option>' +
                                             '<option value="13">13</option>' +
                                             '<option value="12">12</option>' +
@@ -3774,7 +3727,7 @@ function loadLeafletMap(theDiv) {
                                             '<option value="5">5</option>' +
                                             '<option value="4">4</option>' +
                                             '<option value="3">3</option>' +
-                                            '<option value="2">2</option>' +
+                                            '<option value="2">(Low Res)2</option>' +
                                         '</select>' +
                                     '</td>' +
                                 '</tr>' +
@@ -3963,12 +3916,25 @@ function loadContourAnimationData() {
     var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
     var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
     var meters = "";
-    $.each($('#siteList').multiselect("getChecked").map(function () { return this.value; }), function (index, data) {
+    $.each($('#siteList option:selected').map(function () { return this.value; }), function (index, data) {
         if (index === 0)
             meters = data;
         else
             meters += ',' + data;
     });
+
+    var xMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).x;
+    var xMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).x;
+    var yMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).y;
+    var yMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).y;
+
+    var pixels = (xMax - xMin) * (yMax - yMin);
+    var oneGigInPixels = 1024 * 1024 * 1024 * 4;
+
+    if (pixels > oneGigInPixels) {
+        if(!confirm("Your image will exceed 1 GB and could fail. Would you like to continue?"))
+            return;
+    }
 
     var thedatasent = {
         contourQuery: {
@@ -4220,10 +4186,10 @@ function showHistorianData() {
 }
 
 function getBase64MeterSelection() {
-    var meterSelections = $('#siteList').multiselect('widget').find('input:checkbox').sort(function (a, b) {
+    var meterSelections = $('#siteList option:selected').sort(function (a, b) {
         return Number(a.value) - Number(b.value);
     }).map(function () {
-        return $(this).is(':checked');
+        return $(this).is(':selected');
     }).get();
 
     var base64Selections = '';

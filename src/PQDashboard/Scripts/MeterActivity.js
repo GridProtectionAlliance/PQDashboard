@@ -90,7 +90,7 @@ function buildMeterActivity(sourcedate) {
         ],
 
         datasource: function (callback, ui) {
-            $this = this;
+            var $this = this;
             dataHub.queryMeterActivity(sourcedate, ui.sortField != null ? ui.sortField : "Events24Hours", 11, false, ui.sortOrder == 1 ? true : false).done(function (data) {
                 callback.call($this, data);
             })

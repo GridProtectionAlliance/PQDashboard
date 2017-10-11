@@ -1585,7 +1585,8 @@ PUI.resolveUserAgent();
                 this.options.datasource.call(this, this._onLazyLoad, this._createStateMeta());
             }
             else {
-               this._renderData();
+                this._renderData();
+                $(window).trigger('resize');
             }
         },
                
@@ -2371,7 +2372,8 @@ PUI.resolveUserAgent();
             }
             else {
                this._renderData();
-            }
+               $(window).trigger('resize');
+           }
         },
         
         _multipleSort: function() {
@@ -10191,8 +10193,10 @@ PUI.resolveUserAgent();
         },
                 
         updateUI: function(state) {
-            for(var paginatorElementKey in this.paginatorElements) {
-                ElementHandlers[paginatorElementKey].update(this.paginatorElements[paginatorElementKey], state, this);
+            for (var paginatorElementKey in this.paginatorElements) {
+                if (paginatorElementKey in ElementHandlers) {
+                    ElementHandlers[paginatorElementKey].update(this.paginatorElements[paginatorElementKey], state, this);
+                }
             }
         },
                 

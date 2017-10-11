@@ -34,9 +34,17 @@
     NameValueCollection parameters = Request.QueryString;
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
+    string postedDateString = parameters["posteddate"] ?? "";
     EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    DateTime postedDate = theEvent.StartTime;
 
+    if (postedDateString != "")
+    {
+        DateTime.TryParse(postedDateString, out postedDate);
+    }
+
+    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string context = parameters["context"] ?? "day";
 }
 
 <!DOCTYPE html>
@@ -60,6 +68,16 @@
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
+    <style>
+        .jsPanelTable,.jsPanelTable th, .jsPanelTable td{
+            width: 100%;
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
 
     <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
@@ -68,12 +86,14 @@
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
 
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy") (<a href="@(xdaInstance + "/Workbench/MeterEventsByLine.cshtml?EventID=" + postedEventId)" target="_blank">View in OpenXDA</a>)</center>
+<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy") (<a href="@(xdaInstance + "/Workbench/MeterEventsByLine.cshtml?EventID=" + postedEventId + "&context=" + context)" target="_blank">View in OpenXDA</a>)</center>
 </div>
 
 
@@ -81,15 +101,43 @@
     <div style="height: 100%; display: inline-block" id="MeterDetailsByDate"></div>
 </div>
 
+<!-- Modals -->
+<div id="notesModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add a note to event record <span id="eventId"></span></h4>
+            </div>
+            <div id="previousNotesDiv">
+
+            </div>
+            <div class="modal-body">
+                <textarea wrap="hard" id="note" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveNote()">Add Note</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
 <script>
 
     var postedMeterId = "@theEvent.MeterID";
-    var postedDate = "@theEvent.StartTime";
+    var postedDate = "@postedDate";
     var postedMeterName = "@theEvent.MeterName";
+    var context = "@context";
+    var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     reconnectHub = false;
 
 
-    $(document).ready(function () {    
+    $(document).ready(function () {
         $(window).on('hubConnected', function () {
             populateMeterEventsDivWithGrid('getSiteLinesDetailsByDate', "MeterDetailsByDate", postedMeterName, postedMeterId, postedDate);
         })
@@ -104,8 +152,8 @@
 
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
-    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {        
-        dataHub.getSiteLinesDetailsByDate(siteID, theDate).done(function (data) {
+    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
+        dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "").done(function (data) {
             json = $.parseJSON(data);
 
             $.each(json, function (_, obj) {
@@ -130,54 +178,188 @@
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                    {
-                        headerText: '', headerStyle: 'width: 20%', content: function (row) {
-                            var key = Object.keys(row).filter(function (a) {
-                                return a !== 'thecurrentdistance' &&
-                                        a !== 'theeventid' &&
-                                        a !== 'theeventtype' &&
-                                        a !== 'thefaulttype' &&
-                                        a !== 'theinceptiontime' &&
-                                        a !== 'thelineid' &&
-                                        a !== 'thelinename' &&
-                                        a !== 'pqiexists' &&
-                                        a !== 'voltage' &&
-                                        a !== 'UpdatedBy';
-                            });
-                            var html = "";
-
-                            html += makeOpenSEEButton_html(row);
-
-                            if (row.theeventtype == "Fault")
-                                html += makeFaultSpecificsButton_html(row);
-                            if (row.pqiexists !== '0')
-                                html += makePQIButton_html(row);
-
-                            $.each(key, function (i, k) {
-                                if (row[k] !== '0')
-                                    html += makeEASDetailsButton_html(row, row[k], k + '.aspx', '~/Images/' + k + '.png', 'Launch ' + k + ' Page', 300, 450);
-                            });
-
-                            return html;
+                    { headerStyle: 'width: 60px', content: function (data) { return makeOpenSEEButton_html(data); }},
+                    { headerText: '', headerStyle: 'width: 50px', content: function (row) {
+                            return '<button style="height: 30px" onclick="openResultsModal(\'' + JSON.stringify(row).replace(/"/g, '\\\'') + '\')"><span class="glyphicon glyphicon-option-horizontal" title=""></span><span id="' +row.theeventid + 'asterisk" style="color: green; position: sticky; bottom: 0">'+(testForAllStuff(row) ? '*' : '') +'</span></button>';
                         }
                     }
                 ],
                 datasource: $.parseJSON(data)
             });
-            $.connection.hub.stop();
 
         });
     }
 
-    function makeEASDetailsButton_html(row, value, url, imagepath, title, width, height) {
+    function openResultsModal(row) {
+        var data = JSON.parse(row.replace(/\\/g, '\\\\').replace(/'/g, '"'));
+
+        var html = '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">More Info Available...</th></tr>';
+        if (data.theeventtype == "Fault")
+            html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
+
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> events (+/- 5 sec)</td><td colspan="2" style="width: auto"><button id="simultaneousEvents" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button></td></tr>';
+        dataHub.getSimultaneousEvents(data.theeventid).done(function (data) {
+            //console.log(data);
+
+            var html = "<style>" +
+                            ".listtable{" +
+                                "min-width: 150px;" +
+                                "max-height: 400px;" +
+                                "display: block;" +
+                            "}" +
+                            ".contextmenu1.list-group{" +
+                                "margin: 0;" +
+                            "}" +
+                            ".listtr:hover{" +
+                                "background-color: #66BB6A;" +
+                            "}" +
+                        "</style>" +
+                        //"<ul class='list-group contextmenu1' >" +
+                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+
+            $.each(data, function (index, object) {
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+            });
+
+            html += "</table>";
+
+
+            jsPanel.contextmenu('#simultaneousEvents', {
+                border: '1px solid gray',
+                contentSize: 'auto auto',
+                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
+                content: html,
+                callback: function (panel) {
+                    panel.css('z-index', '2001')
+                },
+                trigger: 'left'
+
+            });
+        });
+
+        html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
+        dataHub.getEventsForLineLastSixtyDays(data.theeventid).done(function (data) {
+            //console.log(data);
+
+            var html = "<style>" +
+                            ".listtable{" +
+                                "min-width: 150px;" +
+                                "max-height: 400px;" +
+                                "display: block;" +
+                            "}" +
+                            ".contextmenu1.list-group{" +
+                                "margin: 0;" +
+                            "}" +
+                            ".listtr:hover{" +
+                                "background-color: #66BB6A;" +
+                            "}" +
+                        "</style>" +
+                        //"<ul class='list-group contextmenu1' >" +
+                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+
+            $.each(data, function (index, object) {
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+            });
+
+            html += "</table>";
+
+            jsPanel.contextmenu('#getSixty', {
+                border: '1px solid gray',
+                contentSize: { width: 'auto', height: 'auto' },
+                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
+                content: html,
+                callback: function (panel) {
+                    panel.css('z-index', '2001')
+                },
+                trigger: 'left'
+
+            });
+        });
+
+
+        html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Add/Edit Event Data</th></tr>';
+        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="OpenWindowToXDAEdit(' + data.theeventid + ')">Edit Event Data</span></a></td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit(' + data.theeventid + ')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
+        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="openNoteModal(' + data.theeventid + ')">Add/Edit Notes for this event</span></a></td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"><span id="noteCount">' + data.Note + '</span> Notes Created</td></tr></table>';
+
+
+        if (testForStuff(data)) {
+            html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Get Results From Enabled Extended Analytics</th></tr>';
+
+
+            //if (data.pqiexists > 0) {
+            //    html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
+            //}
+
+            //dataHub.getPQICount(data.theeventid).done(function (count) {
+            //    $('#' + data.theeventid + 'pqicount').text(count);
+            //});
+
+            $.each(data.ServiceList.split(','), function (i, k) {
+                if (data[k] !== null && data[k] !== undefined)
+                    html += '<tr><td style="width: 50%">' + k + '</td><td style="width: 5%; padding: 0">' + makeEASDetailsButton_html(data, data[k], '@Html.Raw(Url.Content("~/"))' + k + '.aspx', '@Html.Raw(Url.Content("~/Images/"))' + k + '.png', 'Launch ' + k + ' Page') + '</td><td style="width: auto">Confidence: ' + data[k] + '</td></tr>';
+
+            });
+
+
+            html += '</table>';
+        }
+        var myPanel = $.jsPanel({
+            headerTitle: "",
+            content: html,
+            contentSize: '500 auto',
+            callback: function (panel) {
+                panel.css('z-index', '2000')
+            }
+        });
+
+    }
+
+    function leftClick(word) {
+        $(Object.keys(event), function (i, key) {
+            console.log(key);
+        });
+        if (word == 'sixty') {
+            document.getElementById('getSixty').dispatchEvent(new MouseEvent('contextmenu', { clientX: event.clientX, clientY: event.clientY, bubbles: true, screenX: event.screenX, screenY: event.screenY, view: window, isTrusted: true }))
+        }
+        else {
+            document.getElementById('simultaneousEvents').dispatchEvent(new CustomEvent('contextmenu'))
+        }
+    }
+
+    function testForStuff(data) {
+        if (data.pqiexists > 0) return true;
+        $.each(data.ServiceList.split(','), function (i, k) {
+            if (data[k] !== null)
+                return true;
+        });
+        return false;
+    }
+
+    function testForAllStuff(data) {
+        if (data.UpdatedBy !== null) return true;
+        if (data.Note > 0) return true;
+        if (data.pqiexists > 0) return true;
+        $.each(data.ServiceList.split(','), function (i, k) {
+            if (data[k] !== null)
+                return true;
+        });
+
+        return false;
+    }
+
+    function OpenWindowToXDAEdit(id) {
+        var popup = window.open('@xdaInstance' + "/Workbench/Event.cshtml?EventID=" + id);
+    }
+
+    function makeEASDetailsButton_html(data, value, url, imagepath, title) {
         var return_html = "";
 
-        url += "?eventid=" + row.theeventid;
+        url += "?eventid=" + data.theeventid;
 
         if (value != "" && value != "0" && value != null) {
 
             //return_html += '<div style="cursor: pointer;">';
-            return_html += '<button onClick="OpenWindowToEAS(' + "'" + url + "'" + "," + width + "," + height + ');"  title="' + title + '">';
+            return_html += '<button style="height: 33px" onClick="OpenWindowToEAS(\'' + url + '\');"  title=\'' + title + '\'>';
             return_html += '<img src="' +imagepath + '" /></button>';
             //return_html += '</div>';
         }
@@ -185,8 +367,8 @@
     }
 
 
-    function OpenWindowToEAS(url, width, height) {
-        var popup = window.open(url, url, "left=0,top=0,width=" + width + ",height=" + height + ",status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+    function OpenWindowToEAS(url) {
+        var popup = window.open(url, url, "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
 
@@ -215,12 +397,9 @@
     function makePQIButton_html(id) {
         var return_html = "";
 
-        if (id.pqiexists == "1") {
-            //return_html += '<div style="cursor: pointer;">';
-            return_html += '<button onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
-            return_html += '<img src="@Html.Raw(Url.Content("~/Images/pqiButton.png"))" /></button>';
-            //return_html += '</div>';
-        }
+        return_html += '<button style="height: 33px" onClick="OpenWindowToPQI(' + id.theeventid + ');"title="Open PQI Window">';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/pqiButton.png"))" /></button>';
+
         return (return_html);
     }
 
@@ -230,13 +409,57 @@
     }
 
     function OpenWindowToFaultSpecifics(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
 
     function OpenWindowToPQI(id) {
         var popup = window.open("@Html.Raw(Url.Content("~/PQIByEvent.aspx"))?eventid=" + id, id + "PQI", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
+    }
+
+    function openNoteModal(eventId) {
+        $('#previousNotes').remove();
+        dataHub.getNotesForEvent(eventId).done(function (data) {
+            $('#eventId').text(eventId);
+            if (data.length > 0)
+                $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
+            $.each(data, function (i, d) {
+                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+            });
+
+            $('#note').val('');
+            $('#notesModal').modal('show');
+        });
+    }
+
+    function saveNote() {
+        dataHub.saveNoteForEvent($('#eventId').text(), $('#note').val(), userId).done(function () {
+            dataHub.getNotesForEvent($('#eventId').text()).done(function (data) {
+                $('#previousNotes').remove();
+                $('#noteCount').text(data.length);
+                if (data.length > 0)
+                    $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
+                $.each(data, function (i, d) {
+                    $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+                });
+
+                $('#note').val('');
+                $('#notesModal').modal('show');
+            });
+
+        });
+    }
+
+    function removeNote(id) {
+        dataHub.removeEventNote(id);
+        $('#row' + id).remove();
+        $('#noteCount').text(parseInt($('#noteCount').text()) - 1 );
+    }
+
+    function editNote(id) {
+        $('#note').val($('#note' + id).text());
+        dataHub.removeEventNote(id);
     }
 
 </script>

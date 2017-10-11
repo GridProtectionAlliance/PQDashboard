@@ -29,7 +29,7 @@
 @{
     Layout = "";
     DataContext dataContext = Model.DataContext;
-    string historianConnection = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.URL'") ?? "127.0.0.0";
+    string historianConnection = dataContext.Table<Settings>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecordsWhere("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
     List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
@@ -94,14 +94,11 @@
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/themes/flick/theme.css">
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.multiselect.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/>
-    <link rel="stylesheet" href="~/Content/Default.css" type="text/css"/>
+    @Styles.Render("~/Content/Default")
     <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
     <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
     <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
-    <link rel="stylesheet" href="~/Content/overview.css" />
     <script>
         var mg = @defaulMeterGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
@@ -113,44 +110,22 @@
         var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
 
     </script>
-    <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    @Scripts.Render("~/Scripts/jquery")
     <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
     <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/overview.js"></script>
-    <script type="text/javascript" src="~/Scripts/MeterActivity.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.sparkline.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-multiselect.js"></script>
+    @Scripts.Render("~/Scripts/bootstrap")
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.multiselect.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.multiselect.filter.js"></script>
-    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.js"></script>
     <script type="text/javascript" src="~/Scripts/daterangepicker.js"></script>
 
     <script src="~/signalr/hubs"></script>
-    <script type="text/javascript" src="~/Scripts/Site.js"></script>
-    <script type="text/javascript" src="~/Scripts/Default.js"></script>
-    <script type="text/javascript" src="~/Scripts/jstorage.js"></script> 
-    <script type="text/javascript" src="~/Scripts/moment.js"></script> 
-    <script type="text/javascript" src="~/Scripts/D3/d3.js" charset="utf-8"></script>
-    <script type="text/javascript" src="~/Scripts/D3/d3-color.v1.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/D3/d3-interpolate.v1.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/D3/d3-scale.v1.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/D3/d3-shape.v1.min.js"></script>
+    @Scripts.Render("~/Scripts/default")
+    @Scripts.Render("~/Scripts/D3/d3")
     <script type="text/javascript" src="~/Scripts/Leaflet/leaflet-src.js"></script>
     <script type="text/javascript" src="~/Scripts/plotly-latest.min.js"></script>
     <script type="text/javascript" src="~/Scripts/heatmap.js"></script>
     <script type="text/javascript" src="~/Scripts/leaflet-heatmap.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.min.js"></script>
-  	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.js"></script>
-	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.errorbars.js"></script>
-	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.navigate.js"></script>
-  	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
-  	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
-   	<script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
+    @Scripts.Render("~/Scripts/flot/flot")
     <script src="~/Scripts/ie11-compatibility-functions.js"></script>
 </head>
 
