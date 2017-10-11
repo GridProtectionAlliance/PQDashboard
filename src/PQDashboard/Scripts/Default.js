@@ -45,13 +45,14 @@ var cache_Map_Matrix_Data_Date_To = null;
 
 // Billy's cached data
 var cache_Graph_Data = null;
-var cache_ErrorBar_data = null;
+var cache_ErrorBar_Data = null;
 var cache_Table_Data = null;
 var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
 var cache_Meter_Filter = null;
+var cache_MagDur_Data = null;
 
 var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
@@ -261,6 +262,7 @@ function selectmapgrid(thecontrol) {
                 plotGridLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);  
             }
             $.sparkline_display_visible();
+            updateGridWithSelectedSites();
         }
         else if (thecontrol.selectedIndex === 0) {
             //$("#ContoursControlsTrending").hide();
@@ -274,15 +276,11 @@ function selectmapgrid(thecontrol) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function GetCurrentlySelectedSites() {
-    return ($('#siteList').multiselect("getChecked").map(function() {
-        return this.title + "|" + this.value;
-    }).get());
+    return $('#siteList option:selected').map(function() { return this.text + "|" + this.value; });
 }
 
 function GetCurrentlySelectedSitesIDs() {
-    return ($('#siteList').multiselect("getChecked").map(function () {
-        return this.value;
-    }).get()).join(',');
+    return $.map($('#siteList option:selected'), function (a) { return a.value; }).join(',')
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1117,7 +1115,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     var margin = { top: 20, right: 125, bottom: 20, left: 60 },
         width = $('#' + thediv).width() - margin.left - margin.right,
         height = $('#' + thediv).height() - margin.top - margin.bottom,
-        marginOverview = { top: 10, right: margin.right, bottom: 20, left: margin.left }
+        marginOverview = { top: 10, right: margin.right, bottom: 20, left: margin.left },
         heightOverview = $('#' + thediv + 'Overview').height() - marginOverview.top - marginOverview.bottom;
 
     // axis definition and construction
@@ -1649,22 +1647,14 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     }
 
     // Deep copies an obj
-    function deepCopy(obj) {
-        if (Object.prototype.toString.call(obj) === '[object Array]') {
-            var out = [], i = 0, len = obj.length;
-            for (; i < len; i++) {
-                out[i] = arguments.callee(obj[i]);
-            }
-            return out;
+    function deepCopy(o) {
+        var output, v, key;
+        output = Array.isArray(o) ? [] : {};
+        for (key in o) {
+            v = o[key];
+            output[key] = (typeof v === "object") ? deepCopy(v) : v;
         }
-        if (typeof obj === 'object') {
-            var out = {}, i;
-            for (i in obj) {
-                out[i] = arguments.callee(obj[i]);
-            }
-            return out;
-        }
-        return obj;
+        return output;
     }
 
 }
@@ -2064,38 +2054,38 @@ function populateGridMatrix(data, siteID, siteName, colors) {
     $(matrixItemID).click(function (e) {
 
         if (!e.shiftKey && !e.ctrlKey ) {
-            $('#siteList').multiselect('uncheckAll');                    
+            $('#siteList :selected').attr('selected', false);
         }
 
         var thisselectedindex = 0;
 
-        $('#siteList').multiselect("widget").find(":checkbox").each(function(item) {
-            if (this.title == siteName) {
-                thisselectedindex = item;
+        $('#siteList option').each(function(i, item) {
+            if (item.value == siteID) {
+                thisselectedindex = i;
             }
         });
 
 
-        $('#siteList').multiselect("widget").find(":checkbox").each(function (item) {
+        $('#siteList option').each(function (i,item) {
 
             if (e.shiftKey) {
 
                 if (thisselectedindex > lastselectedindex) {
-                    if ((item >= lastselectedindex) && (item <= thisselectedindex)) {
-                        if (this.checked == false) this.click();
+                    if ((i >= lastselectedindex) && (i <= thisselectedindex)) {
+                        if (item.selected == false) item.selected = true;
                     } else {
-                        if (this.checked == true) this.click();
+                        if (item.selected == true) item.selected = false;
                     }
                 } else {
-                    if ((item >= thisselectedindex) && (item <= lastselectedindex)) {
-                        if (this.checked == false) this.click();
+                    if ((i >= thisselectedindex) && (i <= lastselectedindex)) {
+                        if (item.selected == false) item.selected = true;
                     } else {
-                        if (this.checked == true) this.click();
+                        if (item.selected == true) item.selected = false;
                     }
                 }
-            } else if (item == thisselectedindex) {
-                    this.click();
-                    return(false);
+            } else if (i == thisselectedindex) {
+                item.selected = true;
+                return (false);
             }
         });
 
@@ -2131,9 +2121,9 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
 function updateGridWithSelectedSites() {
         
-    $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-        var matrixItemID = "#" + "matrix_" + this.value + "_box_" + currentTab;
-        if (this.checked) {
+    $('#siteList option').each(function (i, item) {
+        var matrixItemID = "#" + "matrix_" + item.value + "_box_" + currentTab;
+        if (item.selected) {
             $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
         } else {
             $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
@@ -2351,16 +2341,8 @@ function showSiteSet(thecontrol) {
 
 
             case "SelectedSites":
-
-                var selectedIDs = GetCurrentlySelectedSites();
-
-                $.each(gridchildren.children, function (key, value) {
-                    if ($.inArray ($(value).data('siteid'), selectedIDs) > -1) {
-                        $(value).show();
-                    } else {
-                        $(value).hide();
-                    }
-                });
+                $('.matrixButton[id*=' + currentTab + ']').show();
+                $('.matrixButtonBlack[id*='+ currentTab +']').hide();
                 break;
 
             case "None":
@@ -2429,13 +2411,8 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "SelectedSites":
-                var selectedIDs = GetCurrentlySelectedSites();
-                $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
-                    if ($.inArray($(marker).children().attr('id').replace('-', '|'), selectedIDs) > -1)
-                        $(marker).show();
-                    else
-                        $(marker).hide();
-                });
+                $('#theMap' + currentTab).find('.leafletCircle').show();
+                $('#theMap' + currentTab).find('.leafletCircle.circleButtonBlack').hide();
                 break;
 
             case "Sags":
@@ -2498,20 +2475,9 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
         $("#theMatrix" + newTab).empty();
     }
 
-    var selectedIDs = GetCurrentlySelectedSites();
-
     // For each data unit, build containers, add to layer based on status
     $.each(locationdata.JSON, function (key, value) {
-        var theindex = $.inArray(value.Name + "|" + value.ID, selectedIDs);
- 
-        var item;
-
-        if (theindex > -1) {
-            item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
-
-        } else {
-            item = $("<div unselectable='on' class='matrix matrixButtonBlack noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
-        }
+        var item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
 
         item.data('gridstatus', value.Event_Count);
         item.data('siteid', value.name + "|" + value.ID);
@@ -2552,33 +2518,31 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
             marker.on('click', function (event) {
                 if (!event.originalEvent.ctrlKey) {
-                    $('#siteList').multiselect("uncheckAll");
+                    $('#siteList :selected').attr('selected', false);
+                    $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+
                 }
 
-                if ($('#siteList').multiselect("option").multiple) {
-
-                    $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                        if (this.value == data.ID) {
-                            this.click();
-                        }
-
-                    });
-
-                    if ($('#deviceFilterList').val() != 'ClickEvent') {
-                        cache_Meter_Filter = $('#deviceFilterList').val();
-                        $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
-                        $('#deviceFilterList').val('ClickEvent');
+                $('#siteList option').each(function (i, item) {
+                    if (item.value == data.ID) {
+                        item.selected = true;
                     }
 
-                    $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+                });
 
-
-                    selectsitesincharts();
-
-                } else {
-                    $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
-                    $('#siteList').multiselect('refresh');
+                if ($('#deviceFilterList').val() != 'ClickEvent') {
+                    cache_Meter_Filter = $('#deviceFilterList').val();
+                    $('#deviceFilterList').append(new Option('Click Event', 'ClickEvent'));
+                    $('#deviceFilterList').val('ClickEvent');
                 }
+
+                $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+
+
+                selectsitesincharts();
+
+                $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
+
 
             });
 
@@ -2612,24 +2576,21 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
         var timeoutVal;
         leafletMap[currentTab].off('boxzoomend');
         leafletMap[currentTab].on('boxzoomend', function (event) {
-            $('#siteList').multiselect("uncheckAll");
+            $('#siteList :selected').attr('selected', false);
+            $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
             $.each(locationdata.JSON, function (index, data) {
                 if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
                     && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
-                    if ($('#siteList').multiselect("option").multiple) {
+                    
+                    $('#siteList option').each(function (_, item) {
+                        if (item.value == data.ID) {
+                            item.selected = true;
+                        }
 
-                        $('#siteList').multiselect("widget").find(":checkbox").each(function () {
-                            if (this.value == data.ID) {
-                                this.click();
-                            }
-
-                        });
-                    } else {
-                        $('#siteList').multiselect("widget").find(":radio[value='" + data.ID + "']").each(function () { this.click(); });
-                        $('#siteList').multiselect('refresh');
-                    }
-
+                    });
+                    
+                    $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
                 }
             });
 
@@ -2944,6 +2905,9 @@ function LoadHeatmapLeaflet(thedata) {
 }
 
 function ManageLocationClick(siteID) {
+    var thedatefrom;
+    var thedateto;
+
     if (globalContext == "custom") {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
         thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -3317,7 +3281,6 @@ function selectMeterGroup(thecontrol) {
     $('#deviceFilterList option[value="ClickEvent"]').remove()
 
     $('#siteList').children().remove();
-    $('#siteList').multiselect('refresh');
     getMeters(mg);
 
     $.each(Object.keys(leafletMap), function (i, key) {
@@ -3349,7 +3312,7 @@ function selectMeterGroup(thecontrol) {
     }
     else {
         cache_Graph_Data = null;
-        cache_Errorbar_Data = null;
+        cache_ErrorBar_Data = null;
         cache_Sparkline_Data = null;
         var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
@@ -3367,7 +3330,6 @@ function updateMeterselect() {
     $.each(cache_Meters, function (key, value) {
         SelectAdd("siteList", value.ID, value.Name, "selected");
     });
-    $('#siteList').multiselect('refresh');
 
 }
 
@@ -3400,9 +3362,6 @@ $(document).ready(function () {
 
 function loadsitedropdown() {
 
-    $("#siteList").multiselect().multiselectfilter();
-
-    $('.ui-multiselect').hide()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3618,7 +3577,7 @@ function buildPage() {
                 }
 
                 cache_Graph_Data = null;
-                cache_Errorbar_Data = null;
+                cache_ErrorBar_Data = null;
                 cache_Sparkline_Data = null;
                 var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
@@ -3628,16 +3587,25 @@ function buildPage() {
 
                 if (ids != null) {
                     $(window).off('clickNow')
-                    $(window).one('clickNow', function(e){
+                    $(window).one('clickNow', function (e) {
+                        $(".mapGrid").val('Grid');
+                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
+
                         $.each(ids.split(','), function (i, id) {
                             var me = {}
                             if (i != 0)
                                 me.ctrlKey = true;
 
                             $('#matrix_' + id + '_box_' + currentTab).trigger($.Event("click", me));
-                        })
+                        });
+
+                        $(".mapGrid").val(mapormatrix);
+                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
+
                     })
                 }
+
+
             }
 
 
@@ -3717,7 +3685,7 @@ function loadLeafletMap(theDiv) {
             attributionControl: false
         });
 
-        mapLink =
+        var mapLink =
             '<a href="https://openstreetmap.org">OpenStreetMap</a>';
 
         L.tileLayer(
@@ -3944,7 +3912,7 @@ function loadContourAnimationData() {
     var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
     var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
     var meters = "";
-    $.each($('#siteList').multiselect("getChecked").map(function () { return this.value; }), function (index, data) {
+    $.each($('#siteList option:selected').map(function () { return this.value; }), function (index, data) {
         if (index === 0)
             meters = data;
         else
@@ -4214,10 +4182,10 @@ function showHistorianData() {
 }
 
 function getBase64MeterSelection() {
-    var meterSelections = $('#siteList').multiselect('widget').find('input:checkbox').sort(function (a, b) {
+    var meterSelections = $('#siteList option:selected').sort(function (a, b) {
         return Number(a.value) - Number(b.value);
     }).map(function () {
-        return $(this).is(':checked');
+        return $(this).is(':selected');
     }).get();
 
     var base64Selections = '';
