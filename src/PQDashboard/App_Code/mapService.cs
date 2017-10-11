@@ -505,25 +505,31 @@ public class mapService : WebService
             DataTable meterIds;
             string meters;
             string filterExpression = "";
-            if (contourQuery.MeterIds == 0.ToString())
+            if (!contourQuery.MeterIds.Contains(","))
             {
-                meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
-            }
-            else
-            {
-                int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
-                filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
-
-                if (meterGroupId == 0)
-                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                if (contourQuery.MeterIds == 0.ToString())
+                {
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                }
                 else
-                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
-            }
+                {
+                    int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
+                    filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
 
-            if (filterExpression != "")
-                meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
+                    if (meterGroupId == 0)
+                        meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                    else
+                        meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+                }
+
+                if (filterExpression != "")
+                    meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
+                else
+                    meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
+
+            }
             else
-                meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
+                meters = contourQuery.MeterIds;
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));

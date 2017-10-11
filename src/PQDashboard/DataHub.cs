@@ -1238,14 +1238,18 @@ namespace PQDashboard
                 DataTable meterIds;
                 string meters;
                 string filterExpression = "";
+                int meterId;
+                if (!int.TryParse(contourQuery.MeterIds, out meterId))
+                    meterId = 0;
+
                 if (contourQuery.MeterIds == 0.ToString())
                 {
                     meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
                 }
                 else
                 {
-                    int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
-                    filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+                    int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", meterId);
+                    filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", meterId);
 
                     if (meterGroupId == 0)
                         meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");

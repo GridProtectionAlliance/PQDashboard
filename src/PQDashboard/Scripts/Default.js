@@ -1993,7 +1993,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName,
-                MeterIds: $('#deviceFilterList').val()
+                MeterIds: ($('#deviceFilterList').val() == "ClickEvent"? GetCurrentlySelectedSitesIDs():$('#deviceFilterList').val())
             }
         };
     }
@@ -2481,7 +2481,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 
     // For each data unit, build containers, add to layer based on status
     $.each(locationdata.JSON, function (key, value) {
-        var item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
+        var item = $("<div unselectable='on' class='matrix matrixButton noSelect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
 
         item.data('gridstatus', value.Event_Count);
         item.data('siteid', value.name + "|" + value.ID);
@@ -2753,6 +2753,7 @@ function getLeafletLocationPopup(dataPoint) {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function plotMapPoints(data, thedatefrom, thedateto) {
     $('.contourControl').hide();
+    var thedatasent;
 
     if (currentTab === "TrendingData") {
 
@@ -2767,7 +2768,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
                     DataType: $('#trendingDataTypeSelection').val(),
                     ColorScaleName: $('#contourColorScaleSelect').val(),
                     UserName: postedUserName,
-                    MeterIds: $('#deviceFilterList').val()
+                    MeterIds: ($('#deviceFilterList').val() == "ClickEvent" ? GetCurrentlySelectedSitesIDs() : $('#deviceFilterList').val())
                 }
             };
 
