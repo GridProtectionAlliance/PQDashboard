@@ -2120,14 +2120,18 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function updateGridWithSelectedSites() {
-        
+    $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+
     $('#siteList option').each(function (i, item) {
         var matrixItemID = "#" + "matrix_" + item.value + "_box_" + currentTab;
         if (item.selected) {
             $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
+            $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + item.text.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
         } else {
             $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
         }
+
+
     });
 }
 
