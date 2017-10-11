@@ -94,14 +94,11 @@
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/themes/flick/theme.css">
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.multiselect.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css"/>
     @Styles.Render("~/Content/Default")
     <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
     <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
     <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
-    <link rel="stylesheet" href="~/Content/overview.css" />
     <script>
         var mg = @defaulMeterGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
@@ -116,17 +113,13 @@
     @Scripts.Render("~/Scripts/jquery")
     <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
     <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/overview.js"></script>
-    <script type="text/javascript" src="~/Scripts/MeterActivity.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-multiselect.js"></script>
+    @Scripts.Render("~/Scripts/bootstrap")
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.js"></script>
     <script type="text/javascript" src="~/Scripts/daterangepicker.js"></script>
 
     <script src="~/signalr/hubs"></script>
     @Scripts.Render("~/Scripts/default")
-    <script type="text/javascript" src="~/Scripts/moment.js"></script> 
     @Scripts.Render("~/Scripts/D3/d3")
     <script type="text/javascript" src="~/Scripts/Leaflet/leaflet-src.js"></script>
     <script type="text/javascript" src="~/Scripts/plotly-latest.min.js"></script>

@@ -415,8 +415,6 @@
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\ICFDetails.css" />
-    <Content Include="Content\jquery.multiselect.css" />
-    <Content Include="Content\jquery.multiselect.filter.css" />
     <Content Include="Content\MeterEventsByLine.css" />
     <Content Include="Content\ModbusData.css" />
     <Content Include="Content\OpenSEE.css" />
@@ -572,11 +570,8 @@
     <Content Include="Scripts\jquery-ui.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
     <Content Include="Scripts\jquery.jspanel-compiled.js" />
-    <Content Include="Scripts\jquery.jspanel-compiled.min.js" />
     <Content Include="Scripts\jquery.jspanel.js" />
     <Content Include="Scripts\jquery.jspanel.min.js" />
-    <Content Include="Scripts\jquery.multiselect.filter.js" />
-    <Content Include="Scripts\jquery.multiselect.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.js" />
     <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
@@ -586,7 +581,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\jscolor.js" />
-    <Content Include="Scripts\jscolor.min.js" />
     <Content Include="Scripts\jstorage.js" />
     <Content Include="Scripts\keydragzoom.js" />
     <Content Include="Scripts\knockout-3.4.0.debug.js" />
@@ -610,7 +604,6 @@
     <Content Include="Scripts\MeterActivity.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
-    <Content Include="Scripts\moment.min.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEEold.js" />

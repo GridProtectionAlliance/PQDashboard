@@ -10,13 +10,19 @@ namespace PQDashboard
         {
 
 
-            bundles.Add(new StyleBundle("~/css.bundle/site").Include(
-                "~/Content/Site.css"));
 
             bundles.Add(new ScriptBundle("~/Scripts/default").Include(
                 "~/Scripts/site.js",
-                "~/Scripts/default.js"
+                "~/Scripts/default.js",
+                "~/Scripts/overview.js",
+                "~/Scripts/MeterActivity.js"
             ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
+                "~/Scripts/bootstrap-3.3.2.min.js",
+                "~/Scripts/bootstrap-multiselect.js"
+            ));
+
 
             bundles.Add(new ScriptBundle("~/Scripts/jquery").Include(
                 "~/Scripts/jquery-2.1.1.js",
@@ -24,10 +30,8 @@ namespace PQDashboard
                 "~/Scripts/jquery.signalR-2.2.0.js",
                 "~/Scripts/jquery.blockUI.js",
                 "~/Scripts/jquery.sparkline.js",
-                "~/Scripts/jquery.multiselect.js",
-                "~/Scripts/jquery.multiselect.filter.js",
                 "~/Scripts/jstorage.js",
-                "~/Scripts/jquery.jspanel-compiled.min.js"
+                "~/Scripts/jquery.jspanel-compiled.js"
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/D3/d3").Include(
@@ -48,7 +52,8 @@ namespace PQDashboard
             ));
 
             bundles.Add(new StyleBundle("~/Content/default").Include(
-                "~/Content/Default.css"
+                "~/Content/Default.css",
+                "~/Content/overview.css"
             ));
 
             // Code removed for clarity.
