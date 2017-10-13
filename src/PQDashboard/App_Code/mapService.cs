@@ -499,42 +499,36 @@ public class mapService : WebService
         List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
 
         using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+        using (DataContext dataContext = new DataContext(conn))
         using (IDbCommand cmd = conn.Connection.CreateCommand())
         {
 
-            DataTable meterIds;
-            string meters;
-            string filterExpression = "";
-            if (!contourQuery.MeterIds.Contains(","))
+            var meters = dataContext.Table<Meter>().QueryRecordsWhere ("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
+
+            if (!string.IsNullOrEmpty(contourQuery.Meters))
             {
-                if (contourQuery.MeterIds == 0.ToString())
-                {
-                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
-                }
-                else
-                {
-                    int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
-                    filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+                const int byteSize = 8;
 
-                    if (meterGroupId == 0)
-                        meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
-                    else
-                        meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
-                }
+                // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
+                string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+                string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
+                byte[] meterSelections = Convert.FromBase64String(base64);
+                var ids = string.Join("", meterSelections.Select(x => Convert.ToString(x, 2)));
 
-                if (filterExpression != "")
-                    meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
-                else
-                    meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
 
+                // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
+                // In order to properly interpret the bytes, we must first order the data by meter ID to determine the location of
+                // each meter's bitflag. Then we can filter out the unwanted data from the original list of meters
+                meters = meters
+                    .OrderBy(meter => meter.ID)
+                    .Where((meter, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) > 0)
+                    .ToList();
             }
-            else
-                meters = contourQuery.MeterIds;
 
             cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
             cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
             cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-            cmd.Parameters.Add(new SqlParameter("@meterIds", meters));
+            cmd.Parameters.Add(new SqlParameter("@meterIds", string.Join(",", meters.Select(x => x.ID))));
             cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandTimeout = 300;
@@ -556,23 +550,6 @@ public class mapService : WebService
             }
         }
 
-        if (!string.IsNullOrEmpty(contourQuery.Meters))
-        {
-            const int byteSize = 8;
-
-            // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
-            string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
-            string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
-            byte[] meterSelections = Convert.FromBase64String(base64);
-
-            // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
-            // In order to properly interpret the bytes, we must first order the data by meter ID to determine the location of
-            // each meter's bitflag. Then we can filter out the unwanted data from the original list of meters
-            locations = locations
-                .OrderBy(location => location.ID)
-                .Where((location, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) > 0)
-                .ToList();
-        }
 
         return locations;
     }
@@ -584,29 +561,30 @@ public class mapService : WebService
         string historianInstance;
 
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+        using(DataContext dataContext = new DataContext(connection))
         {
-            DataTable meterIds;
-            string meters;
-            string filterExpression = "";
-            if (contourQuery.MeterIds == 0.ToString())
-            {
-                meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
-            }
-            else
-            {
-                int meterGroupId = connection.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
-                filterExpression = connection.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
+            var meters = dataContext.Table<Meter>().QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
 
-                if (meterGroupId == 0)
-                    meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
-                else
-                    meterIds = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+            if (!string.IsNullOrEmpty(contourQuery.Meters))
+            {
+                const int byteSize = 8;
+
+                // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
+                string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+                string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
+                byte[] meterSelections = Convert.FromBase64String(base64);
+                var ids = string.Join("", meterSelections.Select(x => Convert.ToString(x, 2)));
+
+
+                // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
+                // In order to properly interpret the bytes, we must first order the data by meter ID to determine the location of
+                // each meter's bitflag. Then we can filter out the unwanted data from the original list of meters
+                meters = meters
+                    .OrderBy(meter => meter.ID)
+                    .Where((meter, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) > 0)
+                    .ToList();
             }
 
-            if (filterExpression != "")
-                meters = string.Join(",", meterIds.Select(filterExpression).Select(x => int.Parse(x["ID"].ToString())));
-            else
-                meters = string.Join(",", meterIds.Select().Select(x => int.Parse(x["ID"].ToString())));
 
             string query =
                 "SELECT " +
@@ -622,35 +600,35 @@ public class mapService : WebService
                 "    Channel ON " +
                 "        Channel.MeterID = Meter.ID AND " +
                 "        Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {1}) " +
-                "WHERE Meter.ID IN ("+meters+")";
+                "WHERE Meter.ID IN (" + string.Join(",", meters.Select(x => x.ID)) + ")";
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
             historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
         }
 
-        if (!string.IsNullOrEmpty(contourQuery.Meters))
-        {
-            const int byteSize = 8;
+        //if (!string.IsNullOrEmpty(contourQuery.Meters))
+        //{
+        //    const int byteSize = 8;
 
-            // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
-            string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
-            string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
-            byte[] meterSelections = Convert.FromBase64String(base64);
+        //    // Meter selections are stored as a base-64 string without padding, using '-' instead of '+' and '_' instead of '/'
+        //    string padding = "A===".Remove(3 - (contourQuery.Meters.Length + 3) % 4);
+        //    string base64 = contourQuery.Meters.Replace('-', '+').Replace('_', '/') + padding;
+        //    byte[] meterSelections = Convert.FromBase64String(base64);
 
-            // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
-            // In order to properly interpret the bytes, we must first group and order the data by meter ID to determine the location
-            // of each meter's bitflag. Then we can filter out the unwanted data from the original table of IDs
-            idTable.Select()
-                .Select((Row, Index) => new { Row, Index })
-                .GroupBy(obj => obj.Row.ConvertField<int>("MeterID"))
-                .OrderBy(grouping => grouping.Key)
-                .Where((grouping, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) == 0)
-                .SelectMany(grouping => grouping)
-                .OrderByDescending(obj => obj.Index)
-                .ToList()
-                .ForEach(obj => idTable.Rows.RemoveAt(obj.Index));
-        }
+        //    // The resulting byte array is a simple set of bitflags ordered by meter ID and packed into the most significant bits.
+        //    // In order to properly interpret the bytes, we must first group and order the data by meter ID to determine the location
+        //    // of each meter's bitflag. Then we can filter out the unwanted data from the original table of IDs
+        //    idTable.Select()
+        //        .Select((Row, Index) => new { Row, Index })
+        //        .GroupBy(obj => obj.Row.ConvertField<int>("MeterID"))
+        //        .OrderBy(grouping => grouping.Key)
+        //        .Where((grouping, index) => (meterSelections[index / byteSize] & (0x80 >> (index % byteSize))) == 0)
+        //        .SelectMany(grouping => grouping)
+        //        .OrderByDescending(obj => obj.Index)
+        //        .ToList()
+        //        .ForEach(obj => idTable.Rows.RemoveAt(obj.Index));
+        //}
 
         List<DataRow> meterRows = idTable
             .Select()
@@ -858,11 +836,13 @@ public class mapService : WebService
         int stepSize = contourQuery.StepSize;
         int startTimeOffset = (int)Math.Ceiling((startDate - startDate.Date).TotalMinutes / stepSize);
         startDate = startDate.Date.AddMinutes(startTimeOffset * stepSize);
+        double latDif = frames.Min(frame => frame.Max(location => location.Latitude)) - frames.Min(frame => frame.Min(location => location.Latitude));
+        double lonDif = frames.Min(frame => frame.Max(location => location.Longitude)) - frames.Min(frame => frame.Min(location => location.Longitude));
 
-        double minLat = frames.Min(frame => frame.Min(location => location.Latitude)) - GetLatFromMiles(50.0D);
-        double maxLat = frames.Min(frame => frame.Max(location => location.Latitude)) + GetLatFromMiles(50.0D);
-        double minLng = frames.Min(frame => frame.Min(location => location.Longitude)) - GetLngFromMiles(50.0D, 0.0D);
-        double maxLng = frames.Min(frame => frame.Max(location => location.Longitude)) + GetLngFromMiles(50.0D, 0.0D);
+        double minLat = frames.Min(frame => frame.Min(location => location.Latitude)) - (latDif * 0.1D);
+        double maxLat = frames.Min(frame => frame.Max(location => location.Latitude)) + (latDif * 0.1D);
+        double minLng = frames.Min(frame => frame.Min(location => location.Longitude)) - (lonDif * 0.1D);
+        double maxLng = frames.Min(frame => frame.Max(location => location.Longitude)) + (lonDif * 0.1D);
 
         GeoCoordinate topLeft = new GeoCoordinate(maxLat, minLng);
         GeoCoordinate bottomRight = new GeoCoordinate(minLat, maxLng);
@@ -1142,10 +1122,12 @@ public class mapService : WebService
 
                 if (locations.Any())
                 {
-                    contourTileData.MinLatitude = locations.Min(location => location.Latitude) - GetLatFromMiles(50.0D);
-                    contourTileData.MaxLatitude = locations.Max(location => location.Latitude) + GetLatFromMiles(50.0D);
-                    contourTileData.MinLongitude = locations.Min(location => location.Longitude) - GetLngFromMiles(50.0D, 0.0D);
-                    contourTileData.MaxLongitude = locations.Max(location => location.Longitude) + GetLngFromMiles(50.0D, 0.0D);
+                    double latDif = locations.Max(location => location.Latitude) - locations.Min(location => location.Latitude);
+                    double lonDif = locations.Max(location => location.Longitude) - locations.Min(location => location.Longitude);
+                    contourTileData.MinLatitude = locations.Min(location => location.Latitude) - (latDif * 0.1D);
+                    contourTileData.MaxLatitude = locations.Max(location => location.Latitude) + (latDif * 0.1D);
+                    contourTileData.MinLongitude = locations.Min(location => location.Longitude) - (lonDif * 0.1D);
+                    contourTileData.MaxLongitude = locations.Max(location => location.Longitude) + (lonDif * 0.1D);
                 }
 
                 contourTileData.IDWFunction = idwFunction;
