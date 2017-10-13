@@ -3978,7 +3978,7 @@ function loadContourAnimationData() {
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val(),
             IncludeWeather: $('#weatherCheckbox:checked').length > 0,
-            MeterIds: meterList.selectedIdsString()
+            MeterIds: 0
         }
     };
 
