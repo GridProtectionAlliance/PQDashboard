@@ -3878,7 +3878,7 @@ function loadContourOverlay(contourInfo) {
 }
 
 function showType(thecontrol) {
-    plotMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+    plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 }
 
 function initiateTimeRangeSlider() {
