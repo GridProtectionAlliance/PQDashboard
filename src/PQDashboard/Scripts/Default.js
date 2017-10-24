@@ -835,7 +835,7 @@ function populateBreakersDivWithGrid(data) {
                                       var svg = "";
 
                                       if (row.chatter != 0)
-                                          svg = "<div title='Status bit chatter detected'><svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red' /></svg></div>";
+                                          svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
 
                                       return a + svg;
                                   }
