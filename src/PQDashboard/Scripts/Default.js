@@ -826,17 +826,18 @@ function populateBreakersDivWithGrid(data) {
                                       var title = "";
                                       var bgColor = "initial";
 
-                                      if (row.chatter != 0) {
-                                          title = "title='Status bit chatter detected'";
-                                          bgColor = "yellow";
-                                      }
-
                                       if (row.dcoffset != 0) {
                                           title = "title='DC offset logic applied'";
                                           bgColor = "aqua";
                                       }
 
-                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var svg = "";
+
+                                      if (row.chatter != 0)
+                                          svg = "<div title='Status bit chatter detected'><svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red' /></svg></div>";
+
+                                      return a + svg;
                                   }
                 },
                 { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
