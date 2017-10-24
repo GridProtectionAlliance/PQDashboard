@@ -300,8 +300,8 @@ function loadDataForDate() {
     if (currentTab != null) {
 
         if (globalContext == "custom") {
-            contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-            contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+            contextfromdate = $('#dateRange').data('daterangepicker').startDate.format('YYYY-MM-DD') + "T00:00:00Z";
+            contexttodate = $('#dateRange').data('daterangepicker').endDate.format('YYYY-MM-DD') + "T00:00:00Z";
         }
         else if (globalContext == "day") {
             contextfromdate = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
