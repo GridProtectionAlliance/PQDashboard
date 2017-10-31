@@ -1741,8 +1741,9 @@ namespace PQDashboard
             string order;
             order = ascending ? "ASC" : "DESC";
 
-            string sortBy;
+            string sortBy, thenBy;
             sortBy = sortByEvents == true ? "Events" : "FileGroups";
+            thenBy = sortByEvents == true ? "FileGroups180Days" : "Events180Days";
 
             if (orderBy == null || orderBy.IndexOf("24h", StringComparison.OrdinalIgnoreCase) >= 0)
                 orderBy = sortBy + "24Hours";
@@ -1754,6 +1755,7 @@ namespace PQDashboard
                 orderBy = sortBy + "90Days";
             else if (orderBy.IndexOf("180d", StringComparison.OrdinalIgnoreCase) > 0)
                 orderBy = sortBy + "180Days";
+
             DataTable table = new DataTable();
 
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
@@ -1834,7 +1836,7 @@ namespace PQDashboard
 
                 if (ascending)
                 {
-                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row)).ThenBy(row => typeof(MeterActivity).GetProperty(thenBy).GetValue(row));
                 }
                 else
                     return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).Where(row => row.Events30Days != 0).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
