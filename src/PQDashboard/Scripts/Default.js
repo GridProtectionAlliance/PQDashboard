@@ -38,6 +38,98 @@ var usersettings = {
 var applicationsettings = {};
 
 var cache_Meters = null;
+var meterList = null;
+
+// define MeterListClass object in a terrible way so that IE11 will accept it...
+var MeterListClass = function(meterList){
+    this.list = deepCopy(meterList);
+
+    $.each(this.list, function (_, meter) {
+        meter.Selected = true;
+        meter.MeterGroups = [0];
+        meter.Displayed = true;
+    });
+};
+
+MeterListClass.prototype.selected = function(){
+    return $.grep(this.list, function (a) { if (a.Selected) return a }).map(function(a){ return a.Name + "|" + a.ID});
+};
+
+MeterListClass.prototype.selectedIds = function() {
+    return $.grep(this.list, function (a) { if (a.Selected) return a }).map(function (a) { return a.ID });
+};
+
+MeterListClass.prototype.displayedIds = function () {
+    return $.grep(this.list, function (a) { if (a.Selected) return a }).map(function (a) { return a.ID });
+};
+
+MeterListClass.prototype.ids = function () {
+    return this.list.map(function (a) { return a.ID });
+};
+
+MeterListClass.prototype.selectedIdsString = function () {
+    return this.selectedIds().join(',');
+};
+
+MeterListClass.prototype.count = function () {
+    return this.list.length;
+};
+
+MeterListClass.prototype.selectedCount = function () {
+    return this.selectedIds().length;
+};
+
+MeterListClass.prototype.unselectAll = function () {
+    $.each(this.list, function (_, meter) {
+        meter.Selected = false;
+    });
+};
+
+MeterListClass.prototype.resetDisplayAll = function () {
+    $.each(this.list, function (_, meter) {
+        meter.Selected = false;
+        meter.Displayed = false;
+    });
+};
+
+MeterListClass.prototype.setDisplayed = function (id, boolean) {
+    var index = this.indexOf(id);
+    this.list[index].Displayed = boolean;
+};
+
+MeterListClass.prototype.setSelected = function (id, boolean) {
+    var index = this.indexOf(id);
+    this.list[index].Selected = boolean;
+};
+
+
+MeterListClass.prototype.selectById = function (id) {
+    $.each(this.list, function (_, meter) {
+        if(meter.ID == id)
+        meter.Selected = true;
+    });
+};
+
+MeterListClass.prototype.indexOf = function (id) {
+    return this.list.findIndex(function (a) { return a.ID == id });
+};
+
+MeterListClass.prototype.addMeterGroup = function (meterId, meterGroupId) {
+    var index = this.indexOf(meterId);
+    if(this.list[index].MeterGroups.indexOf(meterGroupId) < 0)
+        this.list[index].MeterGroups.push(meterGroupId);
+};
+
+MeterListClass.prototype.addMeter = function (meter) {
+    meter.Selected = true;
+    meter.MeterGroups = [0];
+    meter.Displayed = true;
+    
+    if (this.indexOf(meter.ID) < 0)
+        this.list.push(meter);
+};
+
+
 
 var cache_Map_Matrix_Data = null;
 var cache_Map_Matrix_Data_Date_From = null;
@@ -208,8 +300,8 @@ function loadDataForDate() {
     if (currentTab != null) {
 
         if (globalContext == "custom") {
-            contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-            contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+            contextfromdate = $('#dateRange').data('daterangepicker').startDate.format('YYYY-MM-DD') + "T00:00:00Z";
+            contexttodate = $('#dateRange').data('daterangepicker').endDate.format('YYYY-MM-DD') + "T00:00:00Z";
         }
         else if (globalContext == "day") {
             contextfromdate = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
@@ -275,34 +367,22 @@ function selectmapgrid(thecontrol) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function GetCurrentlySelectedSites() {
-    return $('#siteList option:selected').map(function() { return this.text + "|" + this.value; });
-}
-
-function GetCurrentlySelectedSitesIDs() {
-    return $.map($('#siteList option:selected'), function (a) { return a.value; }).join(',')
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function selectsitesincharts() {
 
     selectiontimeout = null;
 
-    var selectedIDs = GetCurrentlySelectedSites();
-
-    var sitename = selectedIDs.length + " of " + $('#siteList')[0].length + " selected";
+    var sitename = meterList.selectedCount() + " of " + meterList.count() + " selected";
     var thesiteidlist = "";
 
-    if (selectedIDs.length > 0) {
+    if (meterList.selectedCount() > 0) {
 
-        var thedetails = selectedIDs[0].split('|');
+        var thedetails = meterList.selected()[0].split('|');
 
-        if (selectedIDs.length == 1) {
+        if (meterList.selectedCount() == 1) {
             sitename = thedetails[0];
         }
 
-        $.each(selectedIDs, function(key, value) {
+        $.each(meterList.selected(), function (key, value) {
             thedetails = value.split('|');
             thesiteidlist += thedetails[1] + ",";
         });
@@ -318,6 +398,7 @@ function selectsitesincharts() {
 
     ManageLocationClick(thesiteidlist);  
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
@@ -601,7 +682,7 @@ function populateEventsDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         };
@@ -745,17 +826,18 @@ function populateBreakersDivWithGrid(data) {
                                       var title = "";
                                       var bgColor = "initial";
 
-                                      if (row.chatter != 0) {
-                                          title = "title='Status bit chatter detected'";
-                                          bgColor = "yellow";
-                                      }
-
                                       if (row.dcoffset != 0) {
                                           title = "title='DC offset logic applied'";
                                           bgColor = "aqua";
                                       }
 
-                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var svg = "";
+
+                                      if (row.chatter != 0)
+                                          svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
+
+                                      return a + svg;
                                   }
                 },
                 { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
@@ -1646,16 +1728,6 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         buildOverviewGraph(overviewStackedData, thedatefrom, thedateto);
     }
 
-    // Deep copies an obj
-    function deepCopy(o) {
-        var output, v, key;
-        output = Array.isArray(o) ? [] : {};
-        for (key in o) {
-            v = o[key];
-            output[key] = (typeof v === "object") ? deepCopy(v) : v;
-        }
-        return output;
-    }
 
 }
 
@@ -1727,6 +1799,17 @@ function moveGraphForward() {
 
     setMapHeaderDate(contextfromdate, contexttodate);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
+}
+
+// Deep copies an obj
+function deepCopy(o) {
+    var output, v, key;
+    output = Array.isArray(o) ? [] : {};
+    for (key in o) {
+        v = o[key];
+        output[key] = (typeof v === "object") ? deepCopy(v) : v;
+    }
+    return output;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1993,23 +2076,19 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
                 DataType: $('#trendingDataTypeSelection').val(),
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: postedUserName,
-                MeterIds: $('#deviceFilterList').val()
+                MeterIds: meterList.selectedIdsString()
             }
         };
     }
 
     if (currentTab != 'TrendingData') {
-        var meterIds = GetCurrentlySelectedSitesIDs();
-        dataHub.getMeterLocations(datefrom, dateto, meterIds, currentTab, userId, globalContext).done(function (data) {
+        dataHub.getMeterLocations(datefrom, dateto, meterList.selectedIdsString(), currentTab, userId, globalContext).done(function (data) {
             data.JSON = JSON.parse(data.Data);
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
-
             plotMapLocations(data, currentTab, datefrom, dateto);
             plotGridLocations(data, currentTab, datefrom, dateto, string);
-            $(window).trigger('clickNow')
-
         }).fail(function (msg) {
             alert(msg);
         });
@@ -2022,8 +2101,6 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             data.JSON = data.Locations;
             plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
             plotGridLocations(data, currentTab, data.DateFrom, data.DateTo, string);
-            $(window).trigger('clickNow')
-
         }).fail(function (msg) {
             alert(msg);
         });
@@ -2054,37 +2131,31 @@ function populateGridMatrix(data, siteID, siteName, colors) {
     $(matrixItemID).click(function (e) {
 
         if (!e.shiftKey && !e.ctrlKey ) {
-            $('#siteList :selected').attr('selected', false);
+            meterList.unselectAll()
         }
 
-        var thisselectedindex = 0;
-
-        $('#siteList option').each(function(i, item) {
-            if (item.value == siteID) {
-                thisselectedindex = i;
-            }
-        });
+        var thisselectedindex = meterList.indexOf(siteID)
 
 
-        $('#siteList option').each(function (i,item) {
+        $.each(meterList.list,function (i,item) {
 
             if (e.shiftKey) {
 
                 if (thisselectedindex > lastselectedindex) {
                     if ((i >= lastselectedindex) && (i <= thisselectedindex)) {
-                        if (item.selected == false) item.selected = true;
+                        if (item.Selected == false) item.Selected = true;
                     } else {
-                        if (item.selected == true) item.selected = false;
+                        if (item.Selected == true) item.Selected = false;
                     }
                 } else {
                     if ((i >= thisselectedindex) && (i <= lastselectedindex)) {
-                        if (item.selected == false) item.selected = true;
+                        if (item.Selected == false) item.Selected = true;
                     } else {
-                        if (item.selected == true) item.selected = false;
+                        if (item.Selected == true) item.Selected = false;
                     }
                 }
             } else if (i == thisselectedindex) {
-                item.selected = true;
+                item.Selected = true;
                 return (false);
             }
         });
@@ -2108,11 +2179,10 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
             }
 
-
             selectsitesincharts();
         }
 
-        $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+        $('#meterSelected').text(meterList.selectedCount());
 
     });
 }
@@ -2120,13 +2190,15 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function updateGridWithSelectedSites() {
+    if (meterList == null) return;
+
     $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
-    $('#siteList option').each(function (i, item) {
-        var matrixItemID = "#" + "matrix_" + item.value + "_box_" + currentTab;
-        if (item.selected) {
+    meterList.list.forEach(function (item) {
+        var matrixItemID = "#" + "matrix_" + item.ID + "_box_" + currentTab;
+        if (item.Selected) {
             $(matrixItemID).removeClass('matrixButtonBlack').addClass('matrixButton');
-            $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + item.text.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
+            $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + item.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
         } else {
             $(matrixItemID).removeClass('matrixButton').addClass('matrixButtonBlack');
         }
@@ -2228,24 +2300,6 @@ function populateGridSparklines(data, siteID, siteName, colors) {
         }
     });
 
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function SelectAdd(theControlID,theValue,theText,selected) {
-
-    var exists = false;
-
-    $('#' + theControlID + ' option').each(function () {
-        if (this.innerHTML == theText) {
-            exists = true;
-            return false;
-        }
-    });
-
-    if (!exists) {
-        $('#' + theControlID).append("<option value='" + theValue + "' " + selected+ ">" + theText + "</option>");
-    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2420,7 +2474,6 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "Sags":
-                var selectedIDs = GetCurrentlySelectedSites();
                 $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                     if ($(marker).children().children().attr('fill') === '#996633')
                         $(marker).show();
@@ -2430,7 +2483,6 @@ function showSiteSet(thecontrol) {
                 break;
 
             case "Swells":
-                var selectedIDs = GetCurrentlySelectedSites();
                 $.each($(leafletMap[currentTab].getPanes().markerPane).children(), function (index, marker) {
                     if ($(marker).children().children().attr('fill') === '#ff0000')
                         $(marker).show();
@@ -2481,7 +2533,7 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 
     // For each data unit, build containers, add to layer based on status
     $.each(locationdata.JSON, function (key, value) {
-        var item = $("<div unselectable='on' class='matrix matrixButton noselect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
+        var item = $("<div unselectable='on' class='matrix matrixButton noSelect' id='" + "matrix_" + value.ID + "_box_" + newTab + "'/>");
 
         item.data('gridstatus', value.Event_Count);
         item.data('siteid', value.name + "|" + value.ID);
@@ -2497,7 +2549,6 @@ function plotGridLocations(locationdata, newTab, thedatefrom, thedateto) {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
-    var selectedIDs = GetCurrentlySelectedSites();
     if (leafletMap[currentTab] == null)
         loadLeafletMap('theMap' + currentTab);
 
@@ -2522,14 +2573,14 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
             marker.on('click', function (event) {
                 if (!event.originalEvent.ctrlKey) {
-                    $('#siteList :selected').attr('selected', false);
+                    meterList.unselectAll();
                     $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
                 }
 
-                $('#siteList option').each(function (i, item) {
-                    if (item.value == data.ID) {
-                        item.selected = true;
+                $.each(meterList, function (i, item) {
+                    if (item.ID == data.ID) {
+                        item.Selected = true;
                     }
 
                 });
@@ -2540,7 +2591,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
                     $('#deviceFilterList').val('ClickEvent');
                 }
 
-                $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+                $('#meterSelected').text(meterList.selectedCount());
 
 
                 selectsitesincharts();
@@ -2557,7 +2608,8 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             marker.on('mouseout', function (event) {
                 marker.closePopup();
             });
-            if ($.inArray(data.Name + "|" + data.ID, selectedIDs) > -1)
+
+            if ($.inArray(data.Name + "|" + data.ID, meterList.selected()) > -1)
                 mapMarkers[currentTab].push({ id: data.ID, marker: marker });
         });
 
@@ -2572,24 +2624,27 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
         }
         
-        leafletMap[currentTab].off('zoomend');
-        leafletMap[currentTab].on('zoomend', function (event) {
-            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
-        });
+        if(currentTab == "TrendingData"){
+            leafletMap["TrendingData"].off('zoomend');
+            leafletMap["TrendingData"].on('zoomend', function (event) {
+                if (leafletMap["TrendingData"] != null)
+                    $('#contourAnimationResolutionSelect').val(leafletMap["TrendingData"].getZoom())
+            });
+        }
 
         var timeoutVal;
         leafletMap[currentTab].off('boxzoomend');
         leafletMap[currentTab].on('boxzoomend', function (event) {
-            $('#siteList :selected').attr('selected', false);
+            meterList.unselectAll()
             $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
             $.each(locationdata.JSON, function (index, data) {
                 if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
                     && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
                     
-                    $('#siteList option').each(function (_, item) {
-                        if (item.value == data.ID) {
-                            item.selected = true;
+                    $.each(meterList.list, function (_, item) {
+                        if (item.ID == data.ID) {
+                            item.Selected = true;
                         }
 
                     });
@@ -2604,7 +2659,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
                 $('#deviceFilterList').val('ClickEvent');
             }
 
-            $('#meterSelected').text(GetCurrentlySelectedSitesIDs().split(',').length);
+            $('#meterSelected').text(meterList.selectedCount());
 
             clearTimeout(timeoutVal);
             timeoutVal = setTimeout(function () {
@@ -2753,6 +2808,7 @@ function getLeafletLocationPopup(dataPoint) {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 function plotMapPoints(data, thedatefrom, thedateto) {
     $('.contourControl').hide();
+    var thedatasent;
 
     if (currentTab === "TrendingData") {
 
@@ -2767,7 +2823,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
                     DataType: $('#trendingDataTypeSelection').val(),
                     ColorScaleName: $('#contourColorScaleSelect').val(),
                     UserName: postedUserName,
-                    MeterIds: $('#deviceFilterList').val()
+                    MeterIds: 0
                 }
             };
 
@@ -2848,7 +2904,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 
 function showHeatmap(thecontrol) {
     if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), $(thecontrol).val()).done(function (data) {
+        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, meterList.selectedIdsString(), $(thecontrol).val()).done(function (data) {
             data.JSON = JSON.parse(data.Data);
             LoadHeatmapLeaflet(data);
         });
@@ -2858,7 +2914,7 @@ function showHeatmap(thecontrol) {
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
             if (currentTab != "TrendingData") {
-                dataHub.getMeterLocations(contextfromdate, contexttodate, GetCurrentlySelectedSitesIDs(), currentTab, userId).done(function (data) {
+                dataHub.getMeterLocations(contextfromdate, contexttodate, meterList.selectedIdsString(), currentTab, userId).done(function (data) {
                     data.JSON = JSON.parse(data.Data);
                     LoadHeatmapLeaflet(data);
                 });
@@ -2979,7 +3035,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     resizeMapAndMatrix(theNewTab);
 
     if (globalContext != "custom")
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), tableDate);
+        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), tableDate);
     else {
         if ($('#Detail' + currentTab + 'Table').children().length > 0) {
             var parent = $('#Detail' + currentTab + 'Table').parent();
@@ -2990,9 +3046,9 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     }
 
     if(currentTab != "TrendingData")
-        populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), barChartStartDate, thedateto);
+        populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), barChartStartDate, thedateto);
     else
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto)
+        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
 
@@ -3008,9 +3064,9 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
     setMapHeaderDate(thedatefrom, thedateto);
 
-    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom);
+    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), thedatefrom);
     if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
-        populateDivWithBarChart('Overview' + currentTab, GetCurrentlySelectedSitesIDs(), thedatefrom, thedateto);
+        populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
 
 }
@@ -3060,21 +3116,20 @@ function resizeDocklet(theparent, chartheight) {
         barDateTo = thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
 
-    var selectedIDs = GetCurrentlySelectedSites();
 
-    var siteName = selectedIDs.length + " of " + $('#siteList')[0].length + " selected";
+    var siteName = meterList.selectedCount() + " of " + meterList.count() + " selected";
 
     var siteID = "";
 
-    if (selectedIDs.length > 0) {
+    if (meterList.selectedCount() > 0) {
 
-        var thedetails = selectedIDs[0].split('|');
+        var thedetails = meterList.selected()[0].split('|');
 
-        if (selectedIDs.length == 1) {
+        if (meterList.selectedCount() == 1) {
             siteName = thedetails[0];
         }
 
-        $.each(selectedIDs, function (key, value) {
+        $.each(meterList.selected(), function (key, value) {
             thedetails = value.split('|');
             siteID += thedetails[1] + ",";
         });
@@ -3144,12 +3199,12 @@ function resizeMapAndMatrix(newTab) {
 function resizeMatrixCells(newTab) {
     var h = $("#theMatrix" + newTab).height();
     var w = $("#MapMatrix" + newTab).width();
-    var r = $('#siteList')[0].length;
+    var r = meterList.count();
 
     if($('#selectSiteSet' + currentTab).val() === "SelectedSites" )
-        r = $('#siteList').val().length;
+        r = meterList.selectedCount();
     else if ($('#selectSiteSet' + currentTab).val() === "All") 
-        r = $('#siteList')[0].length;
+        r = meterList.count();
     else {
         r = 0;
         $.each($('.matrix'), function (i, element) {
@@ -3261,6 +3316,11 @@ function showContent() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getMeters(meterGroup) {
+    if (meterGroup == "ClickEvent") {
+        $(window).trigger("meterSelectUpdated");
+        return;
+    }
+
     dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
 
         data.sort(function (a, b) {
@@ -3270,8 +3330,29 @@ function getMeters(meterGroup) {
         });
 
         cache_Meters = data;
-        updateMeterselect();
-        $('#meterSelected').text(data.length);
+
+        if(meterList == null)
+            meterList = new MeterListClass(data);
+        else {
+            meterList.resetDisplayAll();
+
+            $.each(data, function (_, d) {
+                if(meterList.indexOf(d.ID) >= 0)
+                {
+                    meterList.setSelected(d.ID, true);
+                    meterList.setDisplayed(d.ID, true);
+                    meterList.addMeterGroup(d.ID, meterGroup);
+                }
+                else
+                {
+                    meterList.addMeter(d);
+                    meterList.addMeterGroup(d.ID, meterGroup);
+                }
+
+            });
+        }
+
+        $('#meterSelected').text(meterList.selectedCount());
         $(window).trigger("meterSelectUpdated");
     }).fail(function (msg) {
         alert(msg);
@@ -3282,9 +3363,7 @@ function getMeters(meterGroup) {
 
 function selectMeterGroup(thecontrol) {
     mg = $('#deviceFilterList').val();
-    $('#deviceFilterList option[value="ClickEvent"]').remove()
 
-    $('#siteList').children().remove();
     getMeters(mg);
 
     $.each(Object.keys(leafletMap), function (i, key) {
@@ -3297,22 +3376,15 @@ function selectMeterGroup(thecontrol) {
             $(parent).append('<div id="theMap' + key + '"></div>');
         }
     });
+
     var newTab = currentTab;
     if (newTab.indexOf("Overview") > -1) {
-        $('#headerStrip').hide();
-        showOverviewPage(currentTab);
     }
     else if (newTab === "MeterActivity") {
-        $('#headerStrip').hide();
-        showMeterActivity()
     }
     else if (newTab === "ModbusData") {
-        $('#headerStrip').hide();
-        showModbusData();
     }
     else if (newTab === "HistorianData") {
-        $('#headerStrip').hide();
-        showHistorianData();
     }
     else {
         cache_Graph_Data = null;
@@ -3328,14 +3400,6 @@ function selectMeterGroup(thecontrol) {
 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-function updateMeterselect() {
-    $.each(cache_Meters, function (key, value) {
-        SelectAdd("siteList", value.ID, value.Name, "selected");
-    });
-
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3572,44 +3636,15 @@ function buildPage() {
             else if (newTab === "HistorianData") {
                 showHistorianData();
             }
-            else {
-                
-                var ids = null;
-                if ($('#deviceFilterList').val() == 'ClickEvent') {
-                    ids = GetCurrentlySelectedSitesIDs();
-                    $('#deviceFilterList').val(0)
-                }
-
+            else {             
                 cache_Graph_Data = null;
                 cache_ErrorBar_Data = null;
                 cache_Sparkline_Data = null;
                 var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
-                selectMeterGroup(null);
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
-
-                if (ids != null) {
-                    $(window).off('clickNow')
-                    $(window).one('clickNow', function (e) {
-                        $(".mapGrid").val('Grid');
-                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
-
-                        $.each(ids.split(','), function (i, id) {
-                            var me = {}
-                            if (i != 0)
-                                me.ctrlKey = true;
-
-                            $('#matrix_' + id + '_box_' + currentTab).trigger($.Event("click", me));
-                        });
-
-                        $(".mapGrid").val(mapormatrix);
-                        selectmapgrid($("#map" + currentTab + "Grid")[0]);
-
-                    })
-                }
-
-
+                loadDataForDate();
             }
 
 
@@ -3638,41 +3673,38 @@ function buildPage() {
 
 
     initializeDatePickers(datafromdate, datatodate);
+    initiateTimeRangeSlider();
+    initiateColorScale();
     getMeters(defaultView.DeviceFilterID);
-    $(window).one("meterSelectUpdated", function () {
-        initiateTimeRangeSlider();
-        initiateColorScale();
 
+    if (currentTab.indexOf("Overview") > -1) {
+        $('#headerStrip').hide();
+        showOverviewPage(currentTab);
 
-        resizeMapAndMatrix(currentTab);
-        if (currentTab.indexOf("Overview") > -1) {
-            $('#headerStrip').hide();
-            showOverviewPage(currentTab);
+    }
+    else if (currentTab === "MeterActivity") {
+        $('#headerStrip').hide();
+        showMeterActivity();
+    }
+    else if (currentTab === "ModbusData") {
+        $('#headerStrip').hide();
+        showModbusData();
+    }
+    else if (currentTab === "HistorianData") {
+        $('#headerStrip').hide();
+        showHistorianData();
+    }
+    else {
+        $(".mapGrid").val(defaultView.MapGrid);
+        $('#headerStrip').show();
 
-        }
-        else if (currentTab === "MeterActivity") {
-            $('#headerStrip').hide();
-            showMeterActivity();
-        }
-        else if (currentTab === "ModbusData") {
-            $('#headerStrip').hide();
-            showModbusData();
-        }
-        else if (currentTab === "HistorianData") {
-            $('#headerStrip').hide();
-            showHistorianData();
-        }
-        else {
+        $(window).one("meterSelectUpdated", function () {
             $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
-            $(".mapGrid").val(defaultView.MapGrid);
-
             selectmapgrid($("#map" + currentTab + "Grid")[0]);
-            $('#headerStrip').show();
+            resizeMapAndMatrix(currentTab);
+        });
+    }
 
-        }
-
-
-    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3847,7 +3879,7 @@ function loadContourOverlay(contourInfo) {
 }
 
 function showType(thecontrol) {
-    plotMapLocations(cache_Map_Matrix_Data.d, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+    plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
 }
 
 function initiateTimeRangeSlider() {
@@ -3916,7 +3948,7 @@ function loadContourAnimationData() {
     var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
     var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
     var meters = "";
-    $.each($('#siteList option:selected').map(function () { return this.value; }), function (index, data) {
+    $.each(meterList.selectedIds(), function (index, data) {
         if (index === 0)
             meters = data;
         else
@@ -3947,7 +3979,7 @@ function loadContourAnimationData() {
             StepSize: $('#contourAnimationStepSelect').val(),
             Resolution: $('#contourAnimationResolutionSelect').val(),
             IncludeWeather: $('#weatherCheckbox:checked').length > 0,
-            MeterIds: $('#deviceFilterList').val()
+            MeterIds: 0
         }
     };
 
@@ -4186,11 +4218,11 @@ function showHistorianData() {
 }
 
 function getBase64MeterSelection() {
-    var meterSelections = $('#siteList option:selected').sort(function (a, b) {
-        return Number(a.value) - Number(b.value);
-    }).map(function () {
-        return $(this).is(':selected');
-    }).get();
+    var meterSelections = deepCopy(meterList.list).sort(function (a, b) {
+        return a.ID - b.ID;
+    }).map(function (a) {
+        return a.Selected;
+    });
 
     var base64Selections = '';
 
@@ -4308,7 +4340,7 @@ function previewDeviceFilter() {
 
 function useSelectedMeters() {
     $('#deviceFilterMeterGroup').val(0)
-    $('#filterExpression').val('ID IN ('+ GetCurrentlySelectedSitesIDs()+')');
+    $('#filterExpression').val('ID IN (' + meterList.selectedIdsString() + ')');
 }
 
 function saveView() {
@@ -4325,7 +4357,7 @@ function saveView() {
                     var record = {
                         Name: $('#viewName').val(),
                         UserAccount: postedUserName,
-                        FilterExpression: 'ID IN (' + GetCurrentlySelectedSitesIDs() + ')',
+                        FilterExpression: 'ID IN (' + meterList.selectedIdsString() + ')',
                         MeterGroupID: $('#deviceFilterMeterGroup').val()
                     }
 
@@ -4391,14 +4423,15 @@ function selectView(theControl) {
     if($(theControl).val() != 0){
         dataHub.querySavedViewsRecord($(theControl).val()).done(function (record) {
             $('#deviceFilterList').val(record.DeviceFilterID);
+            //selectMeterGroup(null);
             //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
             $('#map' + record.Tab + 'Grid').val(record.MapGrid);
             selectmapgrid($('#map' + record.Tab + 'Grid')[0]);
             contextfromdate = moment(record.FromDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
             contexttodate = moment(record.ToDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
             if (record.DateRange < 0) {
-                $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YY'));
-                $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YY'));
+                $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YYYY'));
+                $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YYYY'));
                 $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
             }
             else {
@@ -4408,7 +4441,6 @@ function selectView(theControl) {
 
             }
 
-            selectMeterGroup(null);
 
             if(record.Tab != currentTab)
                 $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();

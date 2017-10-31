@@ -12,8 +12,11 @@ namespace PQDashboard
 
 
             bundles.Add(new ScriptBundle("~/Scripts/default").Include(
+                "~/Scripts/default.js"
+            ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/others").Include(
                 "~/Scripts/site.js",
-                "~/Scripts/default.js",
                 "~/Scripts/overview.js",
                 "~/Scripts/MeterActivity.js"
             ));
@@ -51,10 +54,47 @@ namespace PQDashboard
                 "~/Scripts/flot/jquery.flot.selection.js"
             ));
 
+            bundles.Add(new ScriptBundle("~/Scripts/Leaflet/leaflet").Include(
+                "~/Scripts/Leaflet/leaflet-src.js",
+                "~/Scripts/heatmap.js",
+                "~/Scripts/leaflet-heatmap.js"
+            ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/jscolor").Include(
+                "~/Scripts/jscolor.js"
+            ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/PrimeUI/primeui").Include(
+                "~/Scripts/PrimeUI/primeui.js"
+            ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/random").Include(
+                "~/Scripts/masonry.pkdg.min.js",
+                "~/Scripts/moment.js",
+                "~/Scripts/daterangepicker.js",
+                "~/Scripts/plotly-latest.min.js"
+            ));
+
+
             bundles.Add(new StyleBundle("~/Content/default").Include(
                 "~/Content/Default.css",
                 "~/Content/overview.css"
             ));
+
+            bundles.Add(new StyleBundle("~/Content/bootstrap/bootstrap").Include(
+                "~/Content/bootstrap/theme.css",
+                "~/Content/bootstrap-3.3.2.min.css",
+                "~/Content/themes/redmond/jquery-ui.css",
+                "~/Content/bootstrap-multiselect.css",
+                "~/Content/jquery.jspanel.min.css"
+            ));
+
+            bundles.Add(new StyleBundle("~/Content/primeui").Include(
+                "~/Content/font-awesome.css",
+                "~/Scripts/PrimeUI/themes/flick/theme.css",
+                "~/Scripts/PrimeUI/primeui.min.css"
+            ));
+
 
             // Code removed for clarity.
             BundleTable.EnableOptimizations = true;

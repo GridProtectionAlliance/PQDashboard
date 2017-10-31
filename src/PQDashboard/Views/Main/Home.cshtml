@@ -88,16 +88,10 @@
     <meta http-equiv="pragma" content="no-cache" />
 
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
-    <link rel="stylesheet" href="~/Content/bootstrap/theme.css"/>
-    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
-    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css"/>
-    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
-    <link rel="stylesheet" href="~/Scripts/PrimeUI/themes/flick/theme.css">
-    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>
+    @Styles.Render("~/Content/bootstrap/bootstrap")
+    @Styles.Render("~/Content/primeui")
     @Styles.Render("~/Content/Default")
-    <link rel="stylesheet" href="~/Content/bootstrap-multiselect.css"/>
     <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
-    <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
     <script>
         var mg = @defaulMeterGroupID;
@@ -111,20 +105,15 @@
 
     </script>
     @Scripts.Render("~/Scripts/jquery")
-    <script type="text/javascript" src="~/Scripts/jscolor.js"></script>
-    <script type="text/javascript" src="~/Scripts/masonry.pkdg.min.js"></script>
     @Scripts.Render("~/Scripts/bootstrap")
-    <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="~/Scripts/moment.js"></script>
-    <script type="text/javascript" src="~/Scripts/daterangepicker.js"></script>
-
+    @Scripts.Render("~/Scripts/random")
+    @Scripts.Render("~/Scripts/jscolor")
+    @Scripts.Render("~/Scripts/PrimeUI/primeui")
     <script src="~/signalr/hubs"></script>
     @Scripts.Render("~/Scripts/default")
+    @Scripts.Render("~/Scripts/others")
     @Scripts.Render("~/Scripts/D3/d3")
-    <script type="text/javascript" src="~/Scripts/Leaflet/leaflet-src.js"></script>
-    <script type="text/javascript" src="~/Scripts/plotly-latest.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/heatmap.js"></script>
-    <script type="text/javascript" src="~/Scripts/leaflet-heatmap.js"></script>
+    @Scripts.Render("~/Scripts/Leaflet/leaflet")
     @Scripts.Render("~/Scripts/flot/flot")
     <script src="~/Scripts/ie11-compatibility-functions.js"></script>
 </head>
@@ -157,7 +146,6 @@
                         {
                             <option value="@df.ID">@df.Name</option>
                         }
-
                     </select>
                     <button class="smallbutton" id="newDeviceFilterBtn" onclick="showDeviceFilter('new')">New</button>
                     <button class="smallbutton" id="editDeviceFilterBtn" onclick="showDeviceFilter('edit')">Edit</button>
@@ -166,8 +154,6 @@
                 </td>
                 <td width="150px" align="left" nowrap>
                     <span id="meterSelected"></span> of <span id="meterCount">@meterCount</span> devices
-                    @*Site:*@
-                    <select id="siteList" multiple="multiple" hidden="hidden"></select>
                 </td>
 
                 <td width="auto" align="center" nowrap>
