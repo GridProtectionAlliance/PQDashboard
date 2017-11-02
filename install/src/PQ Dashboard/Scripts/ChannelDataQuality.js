@@ -18,7 +18,7 @@ $(document).ready(function () {
 
 function makeOpenSTEButton_html(id) {
     var return_html = "";
-    var url = "'openSTE.aspx?channelid="
+    var url = "'Main/OpenSTE?channelid="
     + encodeURIComponent(id.channelid)
     + "&date=" + encodeURIComponent(id.date)
     + "&meterid=" + encodeURIComponent(id.meterid)
@@ -35,7 +35,7 @@ function makeOpenSTEButton_html(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function OpenWindowToOpenSTE(url, id) {
-    var popup = window.open(url, id + "openSTE", "left=0,top=0,width=1024,height=768,status=no,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no");
+    var popup = window.open(url, id + "openSTE");
     return false;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
