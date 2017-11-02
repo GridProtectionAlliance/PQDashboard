@@ -670,7 +670,7 @@ function populateEventsDivWithGrid(data) {
         $.each(data, function (i, d) {
             var sum = 0;
             $.each(Object.keys(d), function (index, key) {
-                if (key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
+                if (key != "MeterID" && key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
                     sum += parseInt(d[key]);
                 }
             });
@@ -717,7 +717,7 @@ function populateExtensionsDivWithGrid(data) {
         $.each(data, function (i, d) {
             var sum = 0;
             $.each(Object.keys(d), function (index, key) {
-                if (key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
+                if (key != "MeterID" && key != "EventID" && key != "Site" & !disabledList[currentTab][key]) {
                     sum += parseInt(d[key]);
                 }
             });
