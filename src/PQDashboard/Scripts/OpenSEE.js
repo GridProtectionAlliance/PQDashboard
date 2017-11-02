@@ -762,7 +762,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     });
 
                     series.highlightSample = function () { return highlightSample(plotIndex, waveform); };
-                    series.highlightSample();
+                    return series.highlightSample();
                 };
 
                 plotDataList[plotIndex].push(series);

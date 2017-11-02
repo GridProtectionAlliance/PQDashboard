@@ -300,8 +300,8 @@ function loadDataForDate() {
     if (currentTab != null) {
 
         if (globalContext == "custom") {
-            contextfromdate = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-            contexttodate = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+            contextfromdate = $('#dateRange').data('daterangepicker').startDate.format('YYYY-MM-DD') + "T00:00:00Z";
+            contexttodate = $('#dateRange').data('daterangepicker').endDate.format('YYYY-MM-DD') + "T00:00:00Z";
         }
         else if (globalContext == "day") {
             contextfromdate = moment(contextfromdate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
@@ -682,7 +682,7 @@ function populateEventsDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         };
@@ -826,17 +826,18 @@ function populateBreakersDivWithGrid(data) {
                                       var title = "";
                                       var bgColor = "initial";
 
-                                      if (row.chatter != 0) {
-                                          title = "title='Status bit chatter detected'";
-                                          bgColor = "yellow";
-                                      }
-
                                       if (row.dcoffset != 0) {
                                           title = "title='DC offset logic applied'";
                                           bgColor = "aqua";
                                       }
 
-                                      return "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                                      var svg = "";
+
+                                      if (row.chatter != 0)
+                                          svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
+
+                                      return a + svg;
                                   }
                 },
                 { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },

@@ -158,15 +158,23 @@
         return (return_html);
     }
 
+    var childWindows = { };
 
     function OpenWindowToOpenSEE(id, highlightStart, highlightEnd) {
+        var title = id + "openSEE";
 
-       window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id + "&faultcurves=1", id + "openSEE");
+        window.Highlight = {
+            Start: highlightStart,
+            End: highlightEnd
+        };
+
+        if (!childWindows[title] || childWindows[title].closed)
+            window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id + "&faultcurves=1", title);
+        else
+            childWindows[title].UpdateMarkings();
 
         return false;
     }
-
-
 </script>
 
 </body>
