@@ -292,6 +292,7 @@ function buildOverviewFiles(sourcedate, whichday) {
             expandedRowContent: function (row) {
                 return fileGroupExpandableContent(row);
             },
+            responsive: true,
         });
 
         // last thing - resize

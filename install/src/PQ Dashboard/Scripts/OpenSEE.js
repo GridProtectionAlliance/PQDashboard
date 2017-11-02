@@ -59,9 +59,7 @@ var selectedPoint;
 
 var plots = [];
 var plotDataList = [];
-var markingBuilders = [];
 
-var zeroMarker = false;
 var zoom = false;
 var xaxisHover = 0;
 var phasorData = [];
@@ -523,13 +521,15 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                 var from = series.DataPoints[calculationCycle][0];
                 var to = series.DataPoints[endIndex][0];
 
-                return {
-                    color: "#FFA",
-                    xaxis: {
-                        from: from,
-                        to: to
+                plots[plotIndex].getOptions().grid.markings = [
+                    {
+                        color: "#FFA",
+                        xaxis: {
+                            from: from,
+                            to: to
+                        }
                     }
-                };
+                ];
             }
 
             function highlightSample(plotIndex, series) {
@@ -538,13 +538,15 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
                 var from = series.DataPoints[calculationCycle][0];
 
-                return {
-                    color: "#EB0",
-                    xaxis: {
-                        from: from,
-                        to: from
+                plots[plotIndex].getOptions().grid.markings = [
+                    {
+                        color: "#EB0",
+                        xaxis: {
+                            from: from,
+                            to: from
+                        }
                     }
-                };
+                ];
             }
 
             var options = {
@@ -633,9 +635,9 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
                 if (parseBoolean(postedShowFaultCurves) && !isNaN(calculationCycle)) {
                     if (series.MeasurementCharacteristic == "Instantaneous") {
-                        series.highlightCycle = function () { return highlightCycle(plotIndex, series); };
+                        series.highlightCycle = function () { highlightCycle(plotIndex, series); };
                     } else {
-                        series.highlightSample = function () { return highlightSample(plotIndex, series); };
+                        series.highlightSample = function () { highlightSample(plotIndex, series); };
                     }
                 }
 
@@ -701,9 +703,9 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
                 if (parseBoolean(postedShowFaultCurves) && !isNaN(calculationCycle)) {
                     if (series.MeasurementCharacteristic == "Instantaneous") {
-                        series.highlightCycle = function () { return highlightCycle(plotIndex, series); };
+                        series.highlightCycle = function () { highlightCycle(plotIndex, series); };
                     } else {
-                        series.highlightSample = function () { return highlightSample(plotIndex, series); };
+                        series.highlightSample = function () { highlightSample(plotIndex, series); };
                     }
                 }
 
@@ -761,7 +763,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                             waveform = waveform || series;
                     });
 
-                    series.highlightSample = function () { return highlightSample(plotIndex, waveform); };
+                    series.highlightSample = function () { highlightSample(plotIndex, waveform); };
                     series.highlightSample();
                 };
 
@@ -934,93 +936,6 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             // Update the data in the plot to
             // display data for the first time
             updatePlotData();
-
-            // Add marking builder to highlight window.opener region
-            markingBuilders.push(function (plotKey, markings) {
-                try {
-                    if (!window.opener || !window.opener.Highlight)
-                        return;
-                } catch (err) {
-                    return;
-                }
-
-                markings.push({
-                    color: "#FFA",
-                    xaxis: {
-                        from: window.opener.Highlight.Start,
-                        to: window.opener.Highlight.End
-                    }
-                });
-            });
-
-            // Add marking builder to highlight fault calculation cycle
-            markingBuilders.push(function (plotKey, markings) {
-                var highlightCycle;
-                var highlightSample;
-                var highlightFunction;
-
-                $.each(plotDataList[plotKey], function (_, series) {
-                    if (series.visible) {
-                        highlightCycle = highlightCycle || series.highlightCycle;
-                        highlightSample = highlightSample || series.highlightSample;
-                    }
-                });
-
-                highlightFunction = highlightCycle || highlightSample;
-
-                if (highlightFunction && !(highlightCycle && highlightSample)) {
-                    var marking = highlightFunction();
-
-                    if (marking)
-                        markings.push(marking);
-                }
-            });
-
-            if (zeroMarker) {
-                markingBuilders.push(function (plotKey, markings) {
-                    var voltagePlotKey = $("#DockCharts").children().index($("#VoltageChart"));
-                    var currentPlotKey = $("#DockCharts").children().index($("#CurrentChart"));
-
-                    if (plotKey != voltagePlotKey && plotKey != currentPlotKey)
-                        return;
-
-                    markings.push({
-                        color: "#BBB",
-                        yaxis: {
-                            from: 0,
-                            to: 0
-                        }
-                    });
-                });
-            }
-
-            // Assign function to window to
-            // update the markings on the plots
-            window.UpdateMarkings = function (plotKey) {
-                function updateMarkings(plotKey) {
-                    var markings = [];
-                    var plot = plots[plotKey];
-
-                    $.each(markingBuilders, function (_, markingBuilder) {
-                        markingBuilder(plotKey, markings);
-                    });
-
-                    plot.getOptions().grid.markings = markings;
-                    plot.draw();
-                }
-
-                if (plotKey) {
-                    updateMarkings(plotKey);
-                    return;
-                }
-
-                $.each(plots, function (plotKey, _) {
-                    updateMarkings(plotKey);
-                });
-            };
-
-            // Update markings on plots
-            window.UpdateMarkings();
 
             // Align all plot axes
             alignAxes();
@@ -1326,16 +1241,27 @@ function updatePlotData(key) {
 
     function updatePlot(plotKey) {
         var plotData = [];
+        var highlightCycle;
+        var highlightSample;
+        var highlightFunction;
 
         $.each(plotDataList[plotKey], function (_, series) {
-            if (series.visible)
+            if (series.visible) {
                 plotData.push(series.flotSeries);
+                highlightCycle = highlightCycle || series.highlightCycle;
+                highlightSample = highlightSample || series.highlightSample;
+            }
 
             plots[plotKey].setData(plotData);
         });
 
-        if (window.UpdateMarkings)
-            window.UpdateMarkings(plotKey);
+        // Call the highlight function to apply grid markings
+        highlightFunction = highlightCycle || highlightSample;
+
+        if (highlightFunction && !(highlightCycle && highlightSample))
+            highlightFunction();
+        else
+            plots[plotKey].getOptions().grid.markings = [];
 
         // Fix y-axis after updating data
         fixYAxis(plotKey);
