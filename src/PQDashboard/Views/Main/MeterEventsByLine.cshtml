@@ -87,8 +87,9 @@
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.js"></script>
-    <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.js"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
+    <script type="text/javascript" src="~/Scripts/jstorage.js"></script>
 
 </head>
 
@@ -134,6 +135,8 @@
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
+    var disabledList = $.jStorage.get('disabledList');
+    var disabledArray = Object.keys(disabledList.Events).map(function(o){ if(!disabledList.Events[o]) return o}).filter(function(val) { return val !== undefined; });
     reconnectHub = false;
 
 
@@ -162,6 +165,13 @@
                 obj.thecurrentdistance = Number(obj.thecurrentdistance);
             });
 
+            var filterList = [];
+
+            $.each(json, function (_, element) {
+                if (disabledArray.indexOf(element.theeventtype) >= 0)
+                    filterList.push(element);
+            });
+
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
@@ -184,7 +194,7 @@
                         }
                     }
                 ],
-                datasource: $.parseJSON(data)
+                datasource: filterList
             });
 
         });

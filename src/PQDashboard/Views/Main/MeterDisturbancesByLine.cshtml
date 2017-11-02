@@ -68,6 +68,7 @@
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
+    <script type="text/javascript" src="~/Scripts/jstorage.js"></script>
 
 </head>
 
@@ -86,6 +87,8 @@
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
+    var disabledList = $.jStorage.get('disabledList');
+    var disabledArray = Object.keys(disabledList.Disturbances).map(function (o) { if (!disabledList.Disturbances[o]) return o }).filter(function (val) { return val !== undefined; });
 
     reconnectHub = false;
 
@@ -121,6 +124,14 @@
                 obj.duration = Number(obj.duration);
             });
 
+            var filterList = [];
+
+            $.each(json, function (_, element) {
+                if (disabledArray.indexOf(element.SeverityCode.toString()) >= 0)
+                    filterList.push(element);
+            });
+
+
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
@@ -138,7 +149,7 @@
                     { field: 'duration', headerText: 'Duration (s)', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
                     { headerText: '', headerStyle: 'width: 9%', content: function (row) { return makeOpenSEEButton_html(row); } }
                 ],
-                datasource: $.parseJSON(data)
+                datasource: filterList
             });
 
             $.connection.hub.stop();
