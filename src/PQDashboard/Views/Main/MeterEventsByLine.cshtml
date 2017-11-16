@@ -160,7 +160,6 @@
             json = $.parseJSON(data);
 
             $.each(json, function (_, obj) {
-                obj.thelinename = Number(obj.thelinename);
                 obj.voltage = Number(obj.voltage);
                 obj.thecurrentdistance = Number(obj.thecurrentdistance);
             });
