@@ -604,7 +604,7 @@ public class mapService : WebService
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
         }
 
         //if (!string.IsNullOrEmpty(contourQuery.Meters))

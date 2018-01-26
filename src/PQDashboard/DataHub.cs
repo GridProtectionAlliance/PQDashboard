@@ -655,7 +655,7 @@ namespace PQDashboard
             }
 
             string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
             IEnumerable<Channel> channelIds = DataContext.Table<Channel>().QueryRecordsWhere("MeterID IN (SELECT * FROM String_To_Int_Table({0}, ','))", siteID);
 
             DateTime epoch = new DateTime(1970, 1, 1);
@@ -1533,7 +1533,7 @@ namespace PQDashboard
         public TrendingDataSet GetTrendsForChannelIDDate(string ChannelID, string targetDate)
         {
             string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
             IEnumerable<int> channelIDs = new List<int>() { Convert.ToInt32(ChannelID) };
             DateTime startDate = Convert.ToDateTime(targetDate);
             DateTime endDate = startDate.AddDays(1);
