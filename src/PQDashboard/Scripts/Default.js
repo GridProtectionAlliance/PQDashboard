@@ -3591,29 +3591,30 @@ function buildPage() {
     });
 
     // Settings modal jscolor and enable change events
-    $('.modal-body input').change(function (event) {
-        var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
-        var value = $(event.currentTarget).parent().parent().text().trim();
-        var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
-        var field;
-        if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
-            tab += "Chart";
-            field = "enable";
-        }
-        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
-            tab = "DashTab";
-            field = "tab";
-        }
-        else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
-            tab += "ChartColors";
-            value += ',#' + $(event.currentTarget).val();
-            field = "color";
-        }
+    //$('.modal-body input').change(function (event) {
+    //    var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
+    //    var value = $(event.currentTarget).parent().parent().text().trim();
+    //    var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
+    //    var field;
+    //    if ($(event.currentTarget)) return;
+    //    if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
+    //        tab += "Chart";
+    //        field = "enable";
+    //    }
+    //    else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
+    //        tab = "DashTab";
+    //        field = "tab";
+    //    }
+    //    else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
+    //        tab += "ChartColors";
+    //        value += ',#' + $(event.currentTarget).val();
+    //        field = "color";
+    //    }
 
-        var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
+    //    var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
 
-        dataHub.updateDashSettings(id, tab, value, boolean, userId);
-    });
+    //    dataHub.updateDashSettings(id, tab, value, boolean, userId);
+    //});
 
     $("#application-tabs").tabs({
         heightStyle: "100%",
@@ -3727,6 +3728,48 @@ function loadLeafletMap(theDiv) {
         L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             }).addTo(leafletMap[currentTab]);
+
+
+        var customLayer = L.geoJson(null, {
+            style: function (feature) {
+                // my custom filter function
+                return {
+                    color: '#' + feature.properties.stroke,
+                    weight: feature.properties['stroke-width'],
+                    opacity: feature.properties['stroke-opacity'],
+                    'fill-color': '#' + feature.properties.stroke
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                var popupContent = feature.properties.name + ":<br>" + feature.properties.description;
+
+                layer.bindPopup(popupContent);
+            }
+        });
+
+        if (kmlData != null) {
+            loadDoc("/KML/" + kmlData.Value, function (data) {
+                if (data == null) return;
+
+                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent) {
+                    var legend = L.control({ position: 'topright' });
+
+                    legend.onAdd = function (map) {
+
+                        var div = L.DomUtil.create('div', 'info legend');
+
+                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent;
+
+                        return div;
+                    };
+
+                    legend.addTo(leafletMap[currentTab]);
+                }
+                var myLayer = omnivore.kml.parse(data.responseText, null, customLayer).on('ready', function (data) { console.log(data) });
+                leafletMap[currentTab].addLayer(myLayer);
+
+            });
+        }
 
 
         var contourControl = L.control({ position: 'bottomleft' });
@@ -3844,6 +3887,17 @@ function loadLeafletMap(theDiv) {
 
         });
     }
+}
+
+function loadDoc(file, callback) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            callback(this);
+        }
+    };
+    xhttp.open("GET", file, true);
+    xhttp.send();
 }
 
 function loadContourLayer(contourQuery) {

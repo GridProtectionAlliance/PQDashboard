@@ -33,7 +33,7 @@
     IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecordsWhere("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
     List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
     List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    if(!savedViews.FirstOrDefault()?.IsDefault ?? true)
+    if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
     {
         savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
     }
@@ -41,11 +41,12 @@
     SavedViews defaultView = savedViews.First();
 
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
+
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
     int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
     foreach (DashSettings setting in dashSettings)
     {
-        if (setting.Name == "DashTab" || setting.Name.EndsWith("Chart"))
+        if (setting.Name == "DashTab" || setting.Name == "KML"|| setting.Name.EndsWith("Chart"))
         {
             var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
             if (index >= 0)
@@ -62,6 +63,8 @@
             }
         }
     }
+
+    IEnumerable<DashSettings> kml = dashSettings.Where(x => x.Name == "KML");
 
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
     string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
@@ -107,7 +110,6 @@
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")
     @Scripts.Render("~/Scripts/random")
-    @Scripts.Render("~/Scripts/jscolor")
     @Scripts.Render("~/Scripts/PrimeUI/primeui")
     <script src="~/signalr/hubs"></script>
     @Scripts.Render("~/Scripts/default")
@@ -540,25 +542,25 @@
 
 
 <!-- Modal -->
-<div id="settingsModal" class="modal fade" style="z-index: 300" role="dialog">
-    <div class="modal-dialog" style="width: 90%; height:100%; z-index: 300">
+<div id="settingsModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
 
         <!-- Modal content-->
-        <div class="modal-content" style="z-index: 300">
+        <div class="modal-content">
             <div class="modal-header">
+                <h4 class="modal-title">The Open PQDashboard version 2.0</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body" style="height: 95%; overflow-y: scroll">
-                <div style="position: relative">
-                    <h3><b>The Open PQDashboard version 2.0</b></h3>
-                    <div class="navbar">
-                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'about')"><a href="https://github.com/GridProtectionAlliance/PQDashboard/wiki/Operation-Instructions" target="_blank"><img src="~/Images/ConfigImages/documentation.png" style="height:30px;" /></a></button>
-                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'config')"><img src="~/Images/ConfigImages/configure.png" style="height:30px;" /></button>
-                        <button class="btn btn-default settings-btn" onclick="changeConfigScreen(event, 'help')"><img src="~/Images/ConfigImages/help.png" style="height:30px;" /></button>
-                    </div>
-                    <div id="about" class="nav-tabs">
+            <div class="modal-body">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#about" data-toggle="tab">About</a></li>
+                    <li><a href="#config" data-toggle="tab">Config</a></li>
+                    <li><a href="#help" data-toggle="tab">Help</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="about" class="tab-pane fade in active">
 
-                        <h3 class="modal-title"><a href="http://gridprotectionalliance.org/default.asp" target="_blank"><img src="~/Images/ConfigImages/lock.png" style="height:30px" /></a>&nbsp;&nbsp;About the Open PQDashboard</h3>
+                        <h3><a href="http://gridprotectionalliance.org/default.asp" target="_blank"><img src="~/Images/ConfigImages/lock.png" style="height:30px" /></a>&nbsp;&nbsp;About the Open PQDashboard</h3>
                         <br />
                         <p>
                             The PQ Dashboard enables the visualization of findings and insights derived from event waveforms and power system trending data that are housed within GPA’s <a href="http://github.com/GridProtectionAlliance/openXDA" target="_blank" style="color:blue;">openXDA solution.</a><br />
@@ -578,14 +580,31 @@
                             Email: <a href="mailto:info@gridprotectionalliance.org?subject=Contact%20GPA" style="color:blue;">info@gridprotectionalliance.org</a>
                         </p>
                     </div>
-                    <div id="config" class="nav-tabs" style="display:none">
+                    <div id="config" class="tab-pane fade" style="overflow-y:auto; max-height: 750px">
                         <h3 class="modal-title"><img src="~/Images/ConfigImages/tools.png" style="height:30px" />&nbsp;&nbsp;Settings for @ViewBag.username</h3>
                         <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
-                        <div class="grid">
-                            <div class="grid-item">
-                                <h4><u>Tabs</u></h4>
+
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#tabs" data-toggle="tab">Tabs</a></li>
+                            @foreach (DashSettings setting in dashSettings)
+                            {
+                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
+                                {
+                                    <li><a href="#@setting.Value.Substring(5).ToLower()" data-toggle="tab">@setting.Value.Substring(5)</a></li>
+                                }
+                            }
+                            <li><a href="#kml" data-toggle="tab">KML</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tabs" class="tab-pane fade in active">
                                 <div class="well">
-                                    <table>
+                                    <table class="table table-responsive">
+                                        <thead>
+                                            <tr>
+                                                <th>Tab</th>
+                                                <th>Enabled</th>
+                                            </tr>
+                                        </thead>
                                         @foreach (DashSettings setting in dashSettings)
                                         {
                                             if (setting.Name == "DashTab")
@@ -595,7 +614,7 @@
                                                         @setting.Value
                                                     </td>
                                                     <td>
-                                                        <input id="tab@(setting.ID)" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                                        <input id="tab@(setting.ID)" type="checkbox" onchange="updateTabSetting(@JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
                                                     </td>
                                                 </tr>
                                             }
@@ -608,46 +627,70 @@
                             {
                                 if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
                                 {
-                                    <div class="grid-item">
+                                        <div id="@setting.Value.Substring(5).ToLower()"class="tab-pane fade">
+                                            <div class="well">
+                                                <table class="table table-responsive">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Field</th>
+                                                            <th>Color</th>
+                                                            <th>Enabled</th>
+                                                        </tr>
+                                                    </thead>
+                                                    @foreach (DashSettings innerSetting in dashSettings)
+                                                    {
+                                                        if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @innerSetting.Value
+                                                                </td>
+                                                                <td>
+                                                                    @{
+                                                                        DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
+                                                                    }
+                                                                    <input id="color@(color.ID)" style="background-color: @(color?.Value.Split(',')?[1])" onchange="updateColorSetting(@JsonConvert.SerializeObject(color), this)" value="@(color?.Value.Split(',')?[1] ?? "")" />
+                                                                </td>
+                                                                <td>
+                                                                    <input id="enable@(innerSetting.ID)" onchange="updateEnableSetting(@JsonConvert.SerializeObject(innerSetting))" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </table>
+                                            </div>
+                                        </div>
+                                }
+                            }
 
-                                        <h4><u>@setting.Value.Substring(5)</u></h4>
-                                        <div class="well">
-                                            <table>
+                            <div id="kml" class="tab-pane fade">
+                                <div class="well">
+                                            <table class="table table-responsive">
                                                 <thead>
                                                     <tr>
-                                                        <th>Field</th>
-                                                        <th>Color</th>
+                                                        <th>File</th>
                                                         <th>Enabled</th>
                                                     </tr>
                                                 </thead>
-                                                @foreach (DashSettings innerSetting in dashSettings)
-                                                {
-                                                    if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                @innerSetting.Value
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-                                                                }
-                                                                <input id="color@(color.ID)" class="jscolor" value="@(color?.Value.Split(',')?[1] ?? "")" />
-                                                            </td>
-                                                            <td>
-                                                                <input id="enable@(innerSetting.ID)" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
-                                                            </td>
-                                                        </tr>
-                                                                        }
-                                                                    }
-                                            </table>
-                                        </div>
-                                    </div>
-                                                                        }
-                                                                    }
-                        </div>
+                                        @foreach (DashSettings setting in kml)
+                                        {
+                                                <tr>
+                                                    <td>
+                                                        @setting.Value
+                                                    </td>
+                                                    <td>
+                                                        <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(@JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                    </td>
+                                                </tr>
+                                        }
+                                    </table>
+
+                                </div>
+                            </div>
+
+                            </div>
                     </div>
-                    <div id="help" class="nav-tabs" style="display:none;">
+                    <div id="help" class="tab-pane fade" style="overflow-y:auto; max-height: 750px">
                         <h3 class="modal-title"><img src="~/Images/ConfigImages/qmark.png" style="height:30px" />&nbsp;&nbsp;PQDashboard Help</h3>
                         <br />
 
@@ -732,12 +775,13 @@
 
 
                     </div>
+
                 </div>
 
             </div>
             <div class="modal-footer">
-                <button type="button" style="display: none" id="configApply" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
-                <button type="button" style="display: none" id="configDefaults" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
+                <button type="button" id="configApply" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
+                <button type="button" id="configDefaults" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -806,6 +850,7 @@
 </div>
 
 <script>
+    var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
     const DateTimeFormat = '@Model.Global.DateTimeFormat'
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The following function are for making button links to another page and opening another page
@@ -934,59 +979,28 @@
         dataHub.resetDefaultSettings().done(function(){ refresh();});
     }
 
+    function updateTabSetting(setting) {
+        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    }
+
+    function updateColorSetting(setting, element) {
+        $(element).css('background-color', element.value);
+        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value.split('#')[0] + element.value, !setting.Enabled, userId)
+    }
+
+    function updateEnableSetting(setting) {
+        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    }
+
+    function updateKMLSetting(setting) {
+        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    }
+
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
             window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
         }
     }
-
-    function changeConfigScreen(evt, screen) {
-        if (screen == 'about')
-            return;
-        tabcontent = document.getElementsByClassName("nav-tabs");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        document.getElementById(screen).style.display = "block";
-
-        if (evt != null){
-            tablinks = document.getElementsByClassName("settings-btn");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-
-            evt.currentTarget.className += " active";
-        }
-        
-        $('.grid').masonry('layout'); // Redraw Config grid
-
-        if (screen == 'config'){
-            $('#configApply').show();
-            $('#configDefaults').show();
-        }
-        else {
-            $('#configApply').hide();
-            $('#configDefaults').hide();
-        }
-        window.location
-    }
-
-    $('#settingsModal').on('shown.bs.modal', function() {
-        tablinks = document.getElementsByClassName("settings-btn");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-
-        tabcontent = document.getElementsByClassName("nav-tabs");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        document.getElementById('about').style.display = "block";
-
-        $('#configApply').hide();
-        $('#configDefaults').hide();
-    })
-    //////////////////////////////////////////////////////////////////////////////////////////////
 
     </script>
 
