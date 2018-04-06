@@ -3549,16 +3549,7 @@ function buildPage() {
     else
         $.jStorage.set("disabledList", disabledList)
 
-    $('.grid').masonry({
-        itemSelector: '.grid-item',
-        columnWidth: 400
-    });
-
-    $('#settingsModal').on('shown.bs.modal', function () {
-        $('.grid').masonry('layout');
-    });
-
-    $('#filterExpressionHelp').mouseenter(function(e){
+        $('#filterExpressionHelp').mouseenter(function (e) {
         $.jsPanel({
             paneltype: {
                 tooltip: true,
@@ -3589,32 +3580,6 @@ function buildPage() {
             }
         });
     });
-
-    // Settings modal jscolor and enable change events
-    //$('.modal-body input').change(function (event) {
-    //    var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
-    //    var value = $(event.currentTarget).parent().parent().text().trim();
-    //    var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
-    //    var field;
-    //    if ($(event.currentTarget)) return;
-    //    if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
-    //        tab += "Chart";
-    //        field = "enable";
-    //    }
-    //    else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
-    //        tab = "DashTab";
-    //        field = "tab";
-    //    }
-    //    else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
-    //        tab += "ChartColors";
-    //        value += ',#' + $(event.currentTarget).val();
-    //        field = "color";
-    //    }
-
-    //    var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
-
-    //    dataHub.updateDashSettings(id, tab, value, boolean, userId);
-    //});
 
     $("#application-tabs").tabs({
         heightStyle: "100%",

@@ -607,7 +607,6 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\jscolor.js" />
     <Content Include="Scripts\jstorage.js" />
     <Content Include="Scripts\keydragzoom.js" />
     <Content Include="Scripts\knockout-3.4.0.debug.js" />
@@ -622,15 +621,12 @@
     <Content Include="Scripts\Leaflet\images\marker-icon-2x.png" />
     <Content Include="Scripts\Leaflet\images\marker-icon.png" />
     <Content Include="Scripts\Leaflet\images\marker-shadow.png" />
-    <Content Include="Scripts\Leaflet\KML.js" />
     <Content Include="Scripts\Leaflet\leaflet-omnivore.min.js" />
     <Content Include="Scripts\Leaflet\leaflet-src.js" />
     <Content Include="Scripts\Leaflet\leaflet.css" />
     <Content Include="Scripts\Leaflet\leaflet.js" />
     <Content Include="Scripts\Leaflet\leaflet1.0.css" />
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
-    <Content Include="Scripts\masonry.pkdg.min.js" />
-    <Content Include="Scripts\masonry.pkgd.js" />
     <Content Include="Scripts\MeterActivity.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />

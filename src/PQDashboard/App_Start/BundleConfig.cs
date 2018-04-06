@@ -66,7 +66,6 @@ namespace PQDashboard
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/random").Include(
-                "~/Scripts/masonry.pkdg.min.js",
                 "~/Scripts/moment.js",
                 "~/Scripts/daterangepicker.js",
                 "~/Scripts/plotly-latest.min.js"
