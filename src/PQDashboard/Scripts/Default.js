@@ -822,7 +822,10 @@ function populateBreakersDivWithGrid(data) {
             columns: [
                 {
                     field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
-                                  function (row) {
+                                  function (row, options, td) {
+                                      if (row.notecount > 0)
+                                          td.addClass('note');
+
                                       var title = "";
                                       var bgColor = "initial";
 
@@ -848,6 +851,8 @@ function populateBreakersDivWithGrid(data) {
                 { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
                 { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
                 { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+
             ],
             datasource: filteredData
         });
