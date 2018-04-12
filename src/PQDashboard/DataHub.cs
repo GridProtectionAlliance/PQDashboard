@@ -985,10 +985,8 @@ namespace PQDashboard
         /// <param name="tab"></param>
 
         /// <returns>JSON string</returns>
-        public string GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
+        public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
-            string thedata = "";
-
             using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
             {
                 DataTable table = new DataTable();
@@ -1013,11 +1011,8 @@ namespace PQDashboard
                 sc.Parameters.Add(window);
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
-                thedata = DataTable2JSON(table);
-
+                return table;
             }
-
-            return thedata;
         }
 
 
@@ -1351,6 +1346,15 @@ namespace PQDashboard
 
 
         #endregion
+
+        #region [ Disturbance Notes ]
+
+        public IEnumerable<EventNote> GetNotesForDisturbance(int id)
+        {
+            return DataContext.Table<EventNote>().QueryRecords(restriction: new RecordRestriction("EventID = (SELECT EventID FROM Disturbance WHERE ID = {0})", id));
+        }
+        #endregion
+
 
         #region [ MeterEventsByLine Operations ]
 

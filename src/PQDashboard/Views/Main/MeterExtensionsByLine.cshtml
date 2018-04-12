@@ -125,7 +125,7 @@
     function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
         dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "Extension").done(function (data) {
 
-            var json = $.parseJSON(data);
+            var json = data;
 
             var filterList = [];
 

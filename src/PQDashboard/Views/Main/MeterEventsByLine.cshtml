@@ -157,7 +157,7 @@
 
     function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
         dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "").done(function (data) {
-            json = $.parseJSON(data);
+            json = data;
 
             $.each(json, function (_, obj) {
                 obj.voltage = Number(obj.voltage);

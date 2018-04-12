@@ -69,6 +69,7 @@
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/Site.js"></script>
     <script type="text/javascript" src="~/Scripts/jstorage.js"></script>
+    <script type="text/javascript" src="~/Scripts/moment.js"></script>
 
 </head>
 
@@ -81,6 +82,31 @@
     <div style="height: 100%; display: inline-block" id="MeterDetailsByDate"></div>
 </div>
 
+<!-- Modals -->
+<div id="notesModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add a note to event record <span id="eventId"></span></h4>
+            </div>
+            <div id="previousNotesDiv">
+
+            </div>
+            <div class="modal-body">
+                <textarea wrap="hard" id="note" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveNote()">Add Note</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script>
 
     var postedMeterId = "@theEvent.MeterID";
@@ -89,6 +115,7 @@
     var context = "@context";
     var disabledList = $.jStorage.get('disabledList');
     var disabledArray = Object.keys(disabledList.Disturbances).map(function (o) { if (!disabledList.Disturbances[o]) return o }).filter(function (val) { return val !== undefined; });
+    var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
 
     reconnectHub = false;
 
@@ -109,7 +136,7 @@
 
     function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
         dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, 'Disturbance').done(function (data) {
-            json = $.parseJSON(data);
+            json = data;
 
             $.each(json, function (_, obj) {
                 obj.voltage = Number(obj.voltage);
@@ -146,12 +173,12 @@
                     { field: 'phase', headerText: 'Phase', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
                     { field: 'magnitude', headerText: 'Magnitude (pu)', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
                     { field: 'duration', headerText: 'Duration (s)', headerStyle: 'width: 9%', bodyStyle: 'width: 9%; height: 20px', sortable: true },
-                    { headerText: '', headerStyle: 'width: 9%', content: function (row) { return makeOpenSEEButton_html(row); } }
+                    { headerText: '', headerStyle: 'width: 4%', content: function (row) { return makeOpenSEEButton_html(row); } },
+                    { headerText: '', headerStyle: 'width: 3%', content: function (row) { return makeNoteButton_html(row); } }
+
                 ],
                 datasource: filterList
             });
-
-            $.connection.hub.stop();
         });
     }
 
@@ -165,6 +192,12 @@
         var return_html = "";
         return_html += '<button onClick="OpenWindowToOpenSEE(' + args + ');" title="Launch OpenSEE Waveform Viewer">';
         return_html += '<img src="@Html.Raw(Url.Content("~/Images/seeButton.png"))" /></button>';
+        return (return_html);
+    }
+
+    function makeNoteButton_html(id) {
+        var return_html = "";
+        return_html += '<button><span onclick="openNoteModal(' + id.theeventid + ')" class="glyphicon glyphicon-pencil"></span></button>';
         return (return_html);
     }
 
@@ -185,6 +218,54 @@
 
         return false;
     }
+
+    function openNoteModal(eventId) {
+        $('#previousNotes').remove();
+        dataHub.getNotesForEvent(eventId).done(function (data) {
+            $('#eventId').text(eventId);
+            if (data.length > 0)
+                $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
+            $.each(data, function (i, d) {
+                $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+            });
+
+            $('#note').val('');
+            $('#notesModal').modal('show');
+        });
+
+    }
+    function saveNote() {
+        dataHub.saveNoteForEvent($('#eventId').text(), $('#note').val(), userId).done(function () {
+            dataHub.getNotesForEvent($('#eventId').text()).done(function (data) {
+                $('#previousNotes').remove();
+                $('#noteCount').text(data.length);
+                if (data.length > 0)
+                    $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 50%">Note</th><th style="width: 20%">Time</th><th style="width: 20%">User</th><th style="width: 10%"></th></tr></table>')
+                $.each(data, function (i, d) {
+                    $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '" style="word-break:break-all;">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td>' + d.UserAccount + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+                });
+
+                $('#note').val('');
+                $('#notesModal').modal('show');
+            });
+
+        });
+    }
+
+    function removeNote(id) {
+        dataHub.removeEventNote(id);
+        $('#row' + id).remove();
+        $('#noteCount').text(parseInt($('#noteCount').text()) - 1);
+    }
+
+    function editNote(id) {
+        $('#note').val($('#note' + id).text());
+        $('#row' + id).remove();
+
+        dataHub.removeEventNote(id);
+    }
+
+
 </script>
 
 </body>

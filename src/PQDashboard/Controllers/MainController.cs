@@ -198,6 +198,22 @@ namespace PQDashboard.Controllers
 
         public ActionResult MeterDisturbancesByLine()
         {
+            try
+            {
+                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                {
+                    ViewBag.username = "External";
+                    ViewBag.usersid = "External";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.username = "";
+            }
+
             m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
             return View();
         }
