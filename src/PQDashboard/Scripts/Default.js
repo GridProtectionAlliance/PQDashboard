@@ -500,7 +500,7 @@ function openNoteModal(eventId) {
 }
 
 function saveNote() {
-    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userId);
+    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userName);
 }
 
 function removeNote(id) {

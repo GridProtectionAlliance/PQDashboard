@@ -66,7 +66,7 @@
 
     IEnumerable<DashSettings> kml = dashSettings.Where(x => x.Name == "KML");
 
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
     string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
 
     int defaulMeterGroupID = -1;
@@ -105,7 +105,7 @@
         var userId = '@ViewBag.usersid';
         var defaultView = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(defaultView))');
         var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
-
+        var userName = '@ViewBag.username';
     </script>
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")

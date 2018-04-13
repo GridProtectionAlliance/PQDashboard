@@ -123,7 +123,7 @@
         postedDate = theEvent.StartTime.ToShortDateString();
         postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
 
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
 
         using (IDbCommand cmd = dataContext.Connection.Connection.CreateCommand())
         {

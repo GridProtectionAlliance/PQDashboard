@@ -1339,6 +1339,25 @@ namespace PQDashboard
             }
         }
 
+        public void SaveMultiNoteForEvent(int id, string note, string userId)
+        {
+            if (note.Trim().Length > 0)
+            {
+                DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", id);
+                IEnumerable<Event> events = DataContext.Table<Event>().QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0})", time);
+
+                foreach (Event evt in events) {
+                    DataContext.Table<EventNote>().AddNewRecord(new EventNote()
+                    {
+                        EventID = evt.ID,
+                        Note = note,
+                        UserAccount = userId,
+                        TimeStamp = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
         public void RemoveEventNote(int id)
         {
             DataContext.Table<EventNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
@@ -1362,6 +1381,12 @@ namespace PQDashboard
         {
             DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
             return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -5, {0}) and  DateAdd(SECOND, 5, {0})", time);
+        }
+
+        public IEnumerable<EventView> GetSimultaneousFaultsAndSags(int eventId)
+        {
+            DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
+            return DataContext.Table<EventView>().QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) AND ID != {1}", time, eventId);
         }
 
         public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
