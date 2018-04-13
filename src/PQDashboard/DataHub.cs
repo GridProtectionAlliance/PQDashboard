@@ -1358,6 +1358,24 @@ namespace PQDashboard
             }
         }
 
+        public void SaveMultiNoteForAllEvents(List<int> ids, string note, string userId)
+        {
+            if (note.Trim().Length > 0)
+            {
+                foreach (int id in ids)
+                {
+                    DataContext.Table<EventNote>().AddNewRecord(new EventNote()
+                    {
+                        EventID = id,
+                        Note = note,
+                        UserAccount = userId,
+                        TimeStamp = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
+
         public void RemoveEventNote(int id)
         {
             DataContext.Table<EventNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
@@ -1373,7 +1391,6 @@ namespace PQDashboard
             return DataContext.Table<EventNote>().QueryRecords(restriction: new RecordRestriction("EventID = (SELECT EventID FROM Disturbance WHERE ID = {0})", id));
         }
         #endregion
-
 
         #region [ MeterEventsByLine Operations ]
 
@@ -1393,6 +1410,100 @@ namespace PQDashboard
         {
             Event record = DataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
             return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.LineID);
+        }
+
+        #endregion
+
+        #region [ QuickSearch Operations ]
+
+        public DataTable GetEvents(DateTime date, int minuteWindow)
+        {
+            string query = @"
+                    DECLARE @minuteWindow int = {0}
+	                DECLARE @startDate DATETIME = DATEADD(MINUTE, -1*@minuteWindow, {1}) 
+	                DECLARE @endDate DATETIME = DATEADD(MINUTE, @minuteWindow, {1}) 
+
+                	DECLARE @simStartDate DATETIME = DATEADD(SECOND, -5, @startDate)
+	                DECLARE @simEndDate DATETIME = DATEADD(SECOND, 5, @endDate)
+	                print @simStartDate
+	                print @simEndDate
+                    DECLARE @localEventDate DATE = CAST({1} AS DATE)
+	                DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+
+                    ; WITH cte AS
+                    (
+                        SELECT
+                            Event.LineID AS thelineid, 
+                            Event.ID AS theeventid, 
+                            EventType.Name AS theeventtype,
+                            CAST(Event.StartTime AS VARCHAR(26)) AS theinceptiontime,
+                            MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
+                            Line.VoltageKV AS voltage,
+                            COALESCE(FaultSummary.FaultType, Phase.Name, '') AS thefaulttype,
+                            CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE COALESCE(CAST(CAST(FaultSummary.Distance AS DECIMAL(16, 4)) AS NVARCHAR(19)), '') END AS thecurrentdistance,
+                            dbo.EventHasImpactedComponents(Event.ID) AS pqiexists,
+                            Event.StartTime,
+                            CASE EventType.Name
+                                WHEN 'Sag' THEN ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY Magnitude, Disturbance.StartTime, IsSelectedAlgorithm DESC, IsSuppressed, Inception)
+                                WHEN 'Interruption' THEN ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY Magnitude, Disturbance.StartTime, IsSelectedAlgorithm DESC, IsSuppressed, Inception)
+                                WHEN 'Swell' THEN ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY Magnitude DESC, Disturbance.StartTime, IsSelectedAlgorithm DESC, IsSuppressed, Inception)
+                                WHEN 'Fault' THEN ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY IsSelectedAlgorithm DESC, IsSuppressed, IsValid DESC, Inception)
+                                ELSE ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY Event.ID)
+                            END AS RowPriority,
+			                (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.StartTime BETWEEN DateAdd(SECOND, -5, Event.StartTime) and  DateAdd(SECOND, 5, Event.StartTime)) as SimultaneousCount,
+			                (SELECT COUNT(*) FROM Event as EventCount WHERE EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND EventCount.StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), Event.StartTime) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), Event.StartTime) AND ID != Event.ID) as SimultaneousFAndSCount,
+			                (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.LineID = Event.LineID AND EventCount.StartTime BETWEEN DateAdd(Day, -60, Event.StartTime) and  Event.StartTime) as SixtyDayCount,
+			                Event.UpdatedBy,
+			                (SELECT COUNT(*) FROM EventNote WHERE EventID = Event.ID) as Note
+                        FROM
+                            Event JOIN
+                            EventType ON Event.EventTypeID = EventType.ID LEFT OUTER JOIN
+                            Disturbance ON Disturbance.EventID = Event.ID LEFT OUTER JOIN
+                            FaultSummary ON FaultSummary.EventID = Event.ID  LEFT OUTER JOIN
+                            Phase ON Disturbance.PhaseID = Phase.ID JOIN
+                            Meter ON Meter.ID = Event.MeterID JOIN
+                            Line ON Event.LineID = Line.ID JOIN
+                            MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+                        WHERE
+                            Event.StartTime >= @startDate AND Event.StartTime < @endDate
+                    )
+                    SELECT
+                        thelineid,
+                        theeventid,
+                        theeventtype,
+                        theinceptiontime,
+                        thelinename,
+                        voltage,
+                        thefaulttype,
+                        thecurrentdistance,
+                        pqiexists,
+		                SimultaneousCount,
+		                SimultaneousFAndSCount,
+		                SixtyDayCount,
+		                UpdatedBy,
+		                Note
+                    INTO #temp
+                    FROM cte
+                    WHERE RowPriority = 1
+                    ORDER BY StartTime
+
+                    DECLARE @sql NVARCHAR(MAX)
+                    SELECT @sql = COALESCE(@sql + ',dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName, 'dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName)
+                    FROM EASExtension
+
+	                DECLARE @serviceList NVARCHAR(MAX)
+	                SELECT @serviceList = COALESCE(@serviceList + ',' + ServiceName, ServiceName)
+	                FROM EASExtension
+	                Set @serviceList = '''' + @serviceList + ''''
+	
+	
+                    SET @sql = COALESCE('SELECT *,' + @sql + ', '+ @ServiceList +'as ServiceList FROM #temp', 'SELECT *, '''' AS ServiceList FROM #temp')
+                    print @sql
+	                EXEC sp_executesql @sql
+
+                    DROP TABLE #temp
+            ";
+            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
         }
 
         #endregion

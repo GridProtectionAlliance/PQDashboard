@@ -1282,6 +1282,7 @@
     <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
     <Content Include="Views\Main\MeterExtensionsByLine.cshtml" />
     <Content Include="Views\Main\Settings.cshtml" />
+    <Content Include="Views\Main\QuickSearch.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
