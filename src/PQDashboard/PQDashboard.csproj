@@ -1281,6 +1281,7 @@
     <Content Include="Views\Main\MeterEventsByLine.cshtml" />
     <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
     <Content Include="Views\Main\MeterExtensionsByLine.cshtml" />
+    <Content Include="Views\Main\Settings.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
