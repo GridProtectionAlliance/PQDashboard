@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "target": "es5",
+    "jsx": "react",
+    "lib": [ "dom", "es5", "scripthost", "es2015" ]
+  },
+  "include": [ "Scripts/TSX", "Scripts/TS/*" ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -27,6 +28,7 @@
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
     <Use64BitIISExpress />
+    <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,10 +65,12 @@
     </Reference>
     <Reference Include="GSF.Communication, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Communication.2.2.63-beta\lib\net46\GSF.Communication.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Core, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Core.2.2.63-beta\lib\net46\GSF.Core.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Geo">
@@ -74,22 +78,27 @@
     </Reference>
     <Reference Include="GSF.Security, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Security.2.2.63-beta\lib\net46\GSF.Security.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.ServiceModel, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.ServiceModel.2.2.63-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.ServiceProcess, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.ServiceProcess.2.2.63-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.TimeSeries, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.TimeSeries.2.2.63-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="GSF.Web, Version=2.2.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Web.2.2.63-beta\lib\net46\GSF.Web.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="Ionic.Zlib">
@@ -250,6 +259,7 @@
     </Content>
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="Controllers\SecurityController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Controllers\SystemController.cs" />
@@ -416,6 +426,7 @@
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
+    <Content Include="webpack.config.js" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
@@ -529,6 +540,7 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="package.json" />
     <None Include="Properties\PublishProfiles\desktop.pubxml" />
     <None Include="Properties\PublishProfiles\dev.pubxml" />
     <Content Include="Scripts\D3\LICENSE" />
@@ -1283,6 +1295,8 @@
     <Content Include="Views\Main\MeterExtensionsByLine.cshtml" />
     <Content Include="Views\Main\Settings.cshtml" />
     <Content Include="Views\Main\QuickSearch.cshtml" />
+    <Content Include="tsconfig.json" />
+    <Content Include="Views\Main\OpenSEE2.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -1299,11 +1313,21 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\WaveformViewerGraph.tsx" />
+    <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
