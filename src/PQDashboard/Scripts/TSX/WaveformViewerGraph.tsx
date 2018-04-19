@@ -35,7 +35,7 @@ import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 
 const color = {
-    IRES: '#999999',
+    IRE: '#999999',
     VAN: '#A30000',
     VBN: '#0029A3',
     VCN: '#007A29',
@@ -43,11 +43,11 @@ const color = {
     IBN: '#0066CC',
     ICN: '#33CC33',
     ING: '#ffd900',
-    Simple: '#996633',
-    Reactance: '#333300',
-    Takagi: '#9900FF',
-    ModifiedTakagi: '#66CCFF',
-    Novosel:'#CC9900'
+    Sim: '#996633',
+    Rea: '#333300',
+    Tak: '#9900FF',
+    Mod: '#66CCFF',
+    Nov:'#CC9900'
 }
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
@@ -162,7 +162,10 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
             this.openSEEService.getVoltageFrequencyData(state).then(d2 => {
-                console.log(d2);
+                legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
+                this.createDataRows(data.Data.concat(d2.Data), legend);
+                data.Data = data.Data.concat(d2.Data);
+                this.setState({ dataSet: data });
             })
         });
 
@@ -226,7 +229,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     createLegendRows(data) {
         var legend = [];
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel], enabled: true });
+            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0,3)], enabled: true });
         });
 
         this.setState({ legendRows: legend });
@@ -249,7 +252,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         var legendKeys = legend.filter(x => x.enabled).map(x => x.label);
         $.each(data.Data, (i, key) => {
             if (legendKeys.indexOf(key.ChartLabel) >= 0)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel] })
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel.substring(0, 3)] })
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
@@ -381,8 +384,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     render() {
         return (
             <div>
-                <div id={this.state.type} style={{ height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 120 /*, margin: '0x', padding: '0px'*/}}></div>
-                <div id={this.state.type + '-legend'} style={{ float: 'right', width: '100px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px'}}>
+                <div id={this.state.type} style={{ height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
+                <div id={this.state.type + '-legend'} style={{ float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px'}}>
                     <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} />
                 </div>
             </div>

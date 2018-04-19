@@ -66264,7 +66264,7 @@ __webpack_require__(198);
 __webpack_require__(199);
 __webpack_require__(200);
 var color = {
-    IRES: '#999999',
+    IRE: '#999999',
     VAN: '#A30000',
     VBN: '#0029A3',
     VCN: '#007A29',
@@ -66272,11 +66272,11 @@ var color = {
     IBN: '#0066CC',
     ICN: '#33CC33',
     ING: '#ffd900',
-    Simple: '#996633',
-    Reactance: '#333300',
-    Takagi: '#9900FF',
-    ModifiedTakagi: '#66CCFF',
-    Novosel: '#CC9900'
+    Sim: '#996633',
+    Rea: '#333300',
+    Tak: '#9900FF',
+    Mod: '#66CCFF',
+    Nov: '#CC9900'
 };
 var WaveformViewerGraph = (function (_super) {
     __extends(WaveformViewerGraph, _super);
@@ -66375,7 +66375,10 @@ var WaveformViewerGraph = (function (_super) {
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
             _this.openSEEService.getVoltageFrequencyData(state).then(function (d2) {
-                console.log(d2);
+                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
+                _this.createDataRows(data.Data.concat(d2.Data), legend);
+                data.Data = data.Data.concat(d2.Data);
+                _this.setState({ dataSet: data });
             });
         });
     };
@@ -66426,7 +66429,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
         var legend = [];
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel], enabled: true });
+            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0, 3)], enabled: true });
         });
         this.setState({ legendRows: legend });
         return legend;
@@ -66446,7 +66449,7 @@ var WaveformViewerGraph = (function (_super) {
         var legendKeys = legend.filter(function (x) { return x.enabled; }).map(function (x) { return x.label; });
         $.each(data.Data, function (i, key) {
             if (legendKeys.indexOf(key.ChartLabel) >= 0)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel] });
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel.substring(0, 3)] });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);
@@ -66545,8 +66548,8 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", null,
-            React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 120 } }),
-            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '100px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px' } },
+            React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
+            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
     return WaveformViewerGraph;

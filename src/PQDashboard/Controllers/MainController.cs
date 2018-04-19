@@ -273,7 +273,7 @@ namespace PQDashboard.Controllers
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Voltage");
@@ -317,7 +317,7 @@ namespace PQDashboard.Controllers
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 Dictionary<string, FlotSeries> temp = QueryFrequencyData(int.Parse(row["ID"].ToString()), meter, "Voltage");
@@ -363,7 +363,7 @@ namespace PQDashboard.Controllers
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Current");
@@ -408,7 +408,7 @@ namespace PQDashboard.Controllers
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2})", endTime, startTime, evt.MeterID);
+            table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 KeyValuePair<string, FlotSeries> temp = QueryFaultDistanceData(int.Parse(row["ID"].ToString()), meter);
@@ -518,22 +518,56 @@ namespace PQDashboard.Controllers
             return dataLookup;
         }
 
-        private Dictionary<string, FlotSeries> GetFrequencyDataLookup(DataGroup dataGroup, VICycleDataGroup vICycleDataGroup, string type)
+        private Dictionary<string, FlotSeries> GetFrequencyDataLookup(VICycleDataGroup vICycleDataGroup, string type)
         {
-            IEnumerable<string> names = vICycleDataGroup.VA.RMS.DataPoints.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type && ds.SeriesInfo.Channel.MeasurementCharacteristic.Name != "Instantaneous").Select(x => GetChartLabel(x.SeriesInfo.Channel));
-            Dictionary<string, FlotSeries> dataLookup = vICycleDataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type && ds.SeriesInfo.Channel.MeasurementCharacteristic.Name != "Instantaneous").ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries()
+            IEnumerable<string> names = vICycleDataGroup.CycleDataGroups.Where(ds => ds.RMS.SeriesInfo.Channel.MeasurementType.Name == type).Select(ds => ds.RMS.SeriesInfo.Channel.Phase.Name);
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+            foreach( CycleDataGroup cdg in vICycleDataGroup.CycleDataGroups.Where(ds => ds.RMS.SeriesInfo.Channel.MeasurementType.Name == type))
             {
-                ChannelID = ds.SeriesInfo.Channel.ID,
-                ChannelName = ds.SeriesInfo.Channel.Name,
-                ChannelDescription = ds.SeriesInfo.Channel.Description,
-                MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
-                MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
-                Phase = ds.SeriesInfo.Channel.Phase.Name,
-                SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
-                DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
-                ChartLabel = GetChartLabel(ds.SeriesInfo.Channel)
 
-            });
+                FlotSeries flotSeriesRMS = new FlotSeries
+                {
+                    ChannelID = cdg.RMS.SeriesInfo.Channel.ID,
+                    ChannelName = cdg.RMS.SeriesInfo.Channel.Name,
+                    ChannelDescription = cdg.RMS.SeriesInfo.Channel.Description,
+                    MeasurementCharacteristic = cdg.RMS.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                    MeasurementType = cdg.RMS.SeriesInfo.Channel.MeasurementType.Name,
+                    Phase = cdg.RMS.SeriesInfo.Channel.Phase.Name,
+                    SeriesType = cdg.RMS.SeriesInfo.Channel.MeasurementType.Name,
+                    DataPoints = cdg.RMS.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.RMS.SeriesInfo.Channel, "RMS")
+                };
+                dataLookup.Add(flotSeriesRMS.ChartLabel, flotSeriesRMS);
+
+                FlotSeries flotSeriesWaveAmp = new FlotSeries
+                {
+                    ChannelID = cdg.Peak.SeriesInfo.Channel.ID,
+                    ChannelName = cdg.Peak.SeriesInfo.Channel.Name,
+                    ChannelDescription = cdg.Peak.SeriesInfo.Channel.Description,
+                    MeasurementCharacteristic = cdg.Peak.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                    MeasurementType = cdg.Peak.SeriesInfo.Channel.MeasurementType.Name,
+                    Phase = cdg.Peak.SeriesInfo.Channel.Phase.Name,
+                    SeriesType = cdg.Peak.SeriesInfo.Channel.MeasurementType.Name,
+                    DataPoints = cdg.Peak.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.Peak.SeriesInfo.Channel, "Amplitude")
+                };
+                dataLookup.Add(flotSeriesWaveAmp.ChartLabel, flotSeriesWaveAmp);
+
+                FlotSeries flotSeriesPolarAngle = new FlotSeries
+                {
+                    ChannelID = cdg.Phase.SeriesInfo.Channel.ID,
+                    ChannelName = cdg.Phase.SeriesInfo.Channel.Name,
+                    ChannelDescription = cdg.Phase.SeriesInfo.Channel.Description,
+                    MeasurementCharacteristic = cdg.Phase.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                    MeasurementType = cdg.Phase.SeriesInfo.Channel.MeasurementType.Name,
+                    Phase = cdg.Phase.SeriesInfo.Channel.Phase.Name,
+                    SeriesType = cdg.Phase.SeriesInfo.Channel.MeasurementType.Name,
+                    DataPoints = cdg.Phase.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.Phase.SeriesInfo.Channel, "Phase")
+                };
+                dataLookup.Add(flotSeriesPolarAngle.ChartLabel, flotSeriesPolarAngle);
+
+            }
 
             return dataLookup;
         }
@@ -543,38 +577,39 @@ namespace PQDashboard.Controllers
                 return m_dataContext.Table<ChannelDetail>().QueryRecordWhere("ID = (SELECT ChannelID FROM Series WHERE ID = {0})", seriesID);
         }
 
-        private string GetChartLabel(openXDA.Model.Channel channel) {
+        private string GetChartLabel(openXDA.Model.Channel channel, string type = null) {
 
-            if (channel.MeasurementType.Name == "Voltage" && channel.MeasurementCharacteristic.Name == "Instantaneous")
+            if (channel.MeasurementType.Name == "Voltage" && type == null)
                 return "V" + channel.Phase.Name;
-            else if (channel.MeasurementType.Name == "Current" && channel.MeasurementCharacteristic.Name == "Instantaneous")
+            else if (channel.MeasurementType.Name == "Current" && type == null)
                 return "I" + channel.Phase.Name;
-            else if(channel.MeasurementType.Name == "Voltage" && channel.MeasurementCharacteristic.Name != "Instantaneous")
-                return "V" + channel.Phase.Name + " " + channel.MeasurementCharacteristic.Name;
-            else if (channel.MeasurementType.Name == "Current" && channel.MeasurementCharacteristic.Name != "Instantaneous")
-                return "I" + channel.Phase.Name + " " + channel.MeasurementCharacteristic.Name;
+            else if(channel.MeasurementType.Name == "Voltage")
+                return "V" + channel.Phase.Name + " " + type;
+            else if (channel.MeasurementType.Name == "Current")
+                return "I" + channel.Phase.Name + " " + type;
 
             return null;
         }
-        private List<double[]> Downsample(List<double[]> series, int sampleCount, Range<DateTime> range)
+        private List<double[]> Downsample(List<double[]> series, int maxSampleCount, Range<DateTime> range)
         {
             List<double[]> data = new List<double[]>();
             DateTime epoch = new DateTime(1970, 1, 1);
             double startTime = range.Start.Subtract(epoch).TotalMilliseconds;
             double endTime = range.End.Subtract(epoch).TotalMilliseconds;
+            int step = (int)(endTime * 1000 - startTime * 1000) / maxSampleCount;
+            if (step < 1)
+                step = 1;
+
             series = series.Where(x => x[0] >= startTime && x[0] <= endTime).ToList();
-            if (sampleCount > series.Count) return series;
 
             int index = 0;
 
-            for (int n = 0; n < sampleCount; n += 2)
+            for (double n = startTime * 1000; n <= endTime * 1000; n += 2 * step)
             {
-                double end = startTime + (n + 2) * range.End.Subtract(range.Start).TotalMilliseconds / sampleCount;
-
                 double[] min = null;
                 double[] max = null;
 
-                while (index < series.Count && series[index][0] < end)
+                while (index < series.Count && series[index][0] * 1000 < n + 2 * step)
                 {
                     if (min == null || min[1] > series[index][1])
                         min = series[index];
@@ -602,12 +637,54 @@ namespace PQDashboard.Controllers
                         data.Add(min);
                     }
                 }
-                else
-                {
-                    if (data.Any() && data.Last() != null)
-                        data.Add(null);
-                }
             }
+
+            //var data = new List<double[]>();
+            //var step = series.Count / maxSampleCount;
+
+            //if (step < 1)
+            //    step = 1;
+
+            //for (var n = 0; n < series.Count; n += step * 2)
+            //{
+            //    var start = n;
+            //    var next = Math.Floor((double)(n + step * 2));
+            //    var end = Math.Min(next, series.Count);
+
+            //    double[] min = null;
+            //    double[] max = null;
+
+            //    for (var i = start; i < end; i++)
+            //    {
+            //        var val = series[i];
+
+            //        if (min == null || min[1] > val[1])
+            //            min = val;
+
+            //        if (max == null || max[1] <= val[1])
+            //            max = val;
+            //    }
+
+            //    if (min != null)
+            //    {
+            //        if (min[0] < max[0])
+            //        {
+            //            data.Add(min);
+            //            data.Add(max);
+            //        }
+            //        else if (min[0] > max[0])
+            //        {
+            //            data.Add(max);
+            //            data.Add(min);
+            //        }
+            //        else
+            //        {
+            //            data.Add(min);
+            //        }
+            //    }
+            //}
+
+
 
             return data;
 
