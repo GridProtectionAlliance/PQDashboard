@@ -37,7 +37,7 @@
     {
         savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
     }
-    int meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
+    int meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
 
     SavedViews defaultView = savedViews.First();
 

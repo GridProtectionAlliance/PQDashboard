@@ -11,6 +11,8 @@ using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
 using GSF.Data;
+using GSF.Data.Model;
+using Meter = openXDA.Model.Meter;
 
 namespace PQDashboard
 {
@@ -231,11 +233,11 @@ namespace PQDashboard
                 EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
                 EventDataTableAdapter eventDataAdapter = dbAdapterContainer.GetAdapter<EventDataTableAdapter>();
                 FaultCurveTableAdapter faultCurveAdapter = dbAdapterContainer.GetAdapter<FaultCurveTableAdapter>();
-                MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
                 FaultLocationInfoDataContext faultLocationInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
 
                 MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
-                Meter meter = meterInfo.Meters.First(m => m.ID == eventRow.MeterID);
+                Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", eventRow.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection(connection.Connection, typeof(SqlDataAdapter), false);
 
                 List<FlotSeries> flotInfo = GetFlotInfo(eventID);
                 DateTime epoch = new DateTime(1970, 1, 1);
@@ -315,10 +317,13 @@ namespace PQDashboard
         public DataGroup ToDataGroup(Meter meter, byte[] data)
         {
             DataGroup dataGroup = new DataGroup();
+
             dataGroup.FromData(meter, data);
             return dataGroup;
         }
-
+        public AdoDataConnection AdoDataConnectionFactory() {
+            return new AdoDataConnection("SystemSettings");
+        }
         /// <summary>
         /// FetchFaultSegmentDetails
         /// </summary>
@@ -379,6 +384,7 @@ namespace PQDashboard
             using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
             using (EventTableAdapter eventAdapter = new EventTableAdapter())
             using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
+            using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
                 eventAdapter.Connection.ConnectionString = ConnectionString;
                 eventDataAdapter.Connection.ConnectionString = ConnectionString;
@@ -389,7 +395,7 @@ namespace PQDashboard
 
                 foreach (MeterData.EventRow evt in events)
                 {
-                    Meter meter = meterInfo.Meters.Single(m => m.ID == evt.MeterID);
+                    Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
 
                     FaultData.Database.Line line = meterInfo.Lines.Single(l => l.ID == evt.LineID);
 
@@ -490,7 +496,7 @@ namespace PQDashboard
             using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
             using (EventTableAdapter eventAdapter = new EventTableAdapter())
             using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
-
+            using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
                 eventAdapter.Connection.ConnectionString = ConnectionString;
                 eventDataAdapter.Connection.ConnectionString = ConnectionString;
@@ -499,7 +505,7 @@ namespace PQDashboard
 
                 foreach (MeterData.EventRow evt in events)
                 {
-                    Meter meter = meterInfo.Meters.Single(m => m.ID == evt.MeterID);
+                    Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
 
                     FaultData.Database.Line line = meterInfo.Lines.Single(l => l.ID == evt.LineID);
 
@@ -620,6 +626,7 @@ namespace PQDashboard
             using (FaultSummaryTableAdapter summaryInfo = new FaultSummaryTableAdapter())
             using (EventTableAdapter eventAdapter = new EventTableAdapter())
             using (FaultCurveTableAdapter faultCurveAdapter = new FaultCurveTableAdapter())
+            using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
                 faultCurveAdapter.Connection.ConnectionString = ConnectionString;
                 eventAdapter.Connection.ConnectionString = ConnectionString;
@@ -629,7 +636,7 @@ namespace PQDashboard
                 theset.Yaxis1name = "";
 
                 MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID)).First();
-                Meter themeter = meterInfo.Meters.Single(m => theevent.MeterID == m.ID);
+                Meter themeter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", theevent.MeterID);
                 Line theline = meterInfo.Lines.Single(l => theevent.LineID == l.ID);
 
                 FaultLocationData.FaultSummaryRow thesummary = (FaultLocationData.FaultSummaryRow)summaryInfo.GetDataBy(Convert.ToInt32(EventInstanceID)).Select("IsSelectedAlgorithm = 1").FirstOrDefault();
@@ -770,6 +777,7 @@ namespace PQDashboard
             using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
             using (EventTableAdapter eventAdapter = new EventTableAdapter())
             using (EventDataTableAdapter cycleDataAdapter = new EventDataTableAdapter())
+            using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
                 cycleDataAdapter.Connection.ConnectionString = ConnectionString;
                 eventAdapter.Connection.ConnectionString = ConnectionString;
@@ -778,7 +786,7 @@ namespace PQDashboard
                 theset.Yaxis1name = "";
 
                 MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID)).First();
-                Meter themeter = meterInfo.Meters.Single(m => theevent.MeterID == m.ID);
+                Meter themeter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", theevent.MeterID);
                 Line theline = meterInfo.Lines.Single(l => theevent.LineID == l.ID);
 
                 cycleDataRows = cycleDataAdapter.GetDataBy(Convert.ToInt32(EventInstanceID)).ToList();

@@ -33,9 +33,7 @@ using FaultData.Database.FaultLocationDataTableAdapters;
 using FaultData.Database.MeterDataTableAdapters;
 using EventDataTableAdapter = FaultData.Database.MeterDataTableAdapters.EventDataTableAdapter;
 using System.Data.Linq;
-using GSF.Data;
 using System.Data.SqlClient;
-using GSF.Configuration;
 using PQDashboard;
 
 

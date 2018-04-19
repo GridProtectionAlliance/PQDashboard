@@ -25,16 +25,19 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Web.Mvc;
 using FaultData.DataAnalysis;
 using GSF;
+using GSF.Data;
 using GSF.Identity;
 using GSF.Web.Model;
 using GSF.Web.Security;
 using Newtonsoft.Json.Linq;
+using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
@@ -48,6 +51,7 @@ namespace PQDashboard.Controllers
         #region [ Members ]
 
         // Fields
+        private DateTime m_epoch = new DateTime(1970, 1, 1);
         private readonly DataContext m_dataContext;
         private readonly AppModel m_appModel;
         private bool m_disposed;
@@ -255,86 +259,236 @@ namespace PQDashboard.Controllers
             return View();
         }
 
-        public ActionResult GetEventData()
+
+        public ActionResult GetVoltageEventData()
         {
-                int eventId = int.Parse(Request.QueryString["eventId"]);
-                Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            int eventId = int.Parse(Request.QueryString["eventId"]);
+            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
+            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
 
-                DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
-                DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
-                int pixels = int.Parse(Request.QueryString["pixels"]);
-                string type = Request.QueryString["type"];
-                DataTable table;
+            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
+            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
+            int pixels = int.Parse(Request.QueryString["pixels"]);
+            DataTable table;
 
-                Dictionary<string, List<double[]>> dict = new Dictionary<string, List<double[]>>();
-                table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
-                foreach (DataRow row in table.Rows)
+            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            foreach (DataRow row in table.Rows)
+            {
+                Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Voltage");
+                foreach (string key in temp.Keys)
                 {
-                    Dictionary<string, List<double[]>> temp = QueryEventData(int.Parse(row["ID"].ToString()), type);
-                    foreach (string key in temp.Keys)
-                    {
+                    if (temp[key].MeasurementType == "Voltage") {
                         if (dict.ContainsKey(key))
-                        {
-                            dict[key] = dict[key].Concat(temp[key]).ToList();
-                        }
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
                         else
-                        {
                             dict.Add(key, temp[key]);
-                        }
                     }
                 }
-
-                Dictionary<string, List<double[]>> returnDict = new Dictionary<string, List<double[]>>();
-                foreach (string key in dict.Keys)
-                {
-                    returnDict.Add(key, Downsample(dict[key].OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime)));
-                }
-
-                return Json(returnDict, JsonRequestBehavior.AllowGet);
-
             }
 
+            List<FlotSeries> returnList = new List<FlotSeries>();
+            foreach (string key in dict.Keys)
+            {
+                FlotSeries series = new FlotSeries();
+                series = dict[key];
+                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                returnList.Add(series);
+            }
+            JsonReturn returnDict = new JsonReturn();
+            returnDict.StartDate = evt.StartTime;
+            returnDict.EndDate = evt.EndTime;
+            returnDict.Data = returnList;
+            return Json(returnDict, JsonRequestBehavior.AllowGet);
 
+        }
+
+        public ActionResult GetVoltageFrequencyData()
+        {
+            int eventId = int.Parse(Request.QueryString["eventId"]);
+            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
+            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+
+            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
+            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
+            int pixels = int.Parse(Request.QueryString["pixels"]);
+            DataTable table;
+
+            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            foreach (DataRow row in table.Rows)
+            {
+                Dictionary<string, FlotSeries> temp = QueryFrequencyData(int.Parse(row["ID"].ToString()), meter, "Voltage");
+                foreach (string key in temp.Keys)
+                {
+                    if (temp[key].MeasurementType == "Voltage")
+                    {
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
+                    }
+                }
+            }
+
+            List<FlotSeries> returnList = new List<FlotSeries>();
+            foreach (string key in dict.Keys)
+            {
+                FlotSeries series = new FlotSeries();
+                series = dict[key];
+                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                returnList.Add(series);
+            }
+            JsonReturn returnDict = new JsonReturn();
+            returnDict.StartDate = evt.StartTime;
+            returnDict.EndDate = evt.EndTime;
+            returnDict.Data = returnList;
+            return Json(returnDict, JsonRequestBehavior.AllowGet);
+
+        }
+
+
+        public ActionResult GetCurrentEventData()
+        {
+            int eventId = int.Parse(Request.QueryString["eventId"]);
+            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
+            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+
+            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
+            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
+            int pixels = int.Parse(Request.QueryString["pixels"]);
+            DataTable table;
+
+            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2}", endTime, startTime, evt.MeterID);
+            foreach (DataRow row in table.Rows)
+            {
+                Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Current");
+                foreach (string key in temp.Keys)
+                {
+                    if (temp[key].MeasurementType == "Current")
+                    {
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
+                    }
+                }
+            }
+
+            List<FlotSeries> returnList = new List<FlotSeries>();
+            foreach (string key in dict.Keys)
+            {
+                FlotSeries series = new FlotSeries();
+                series = dict[key];
+                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                returnList.Add(series);
+            }
+            JsonReturn returnDict = new JsonReturn();
+            returnDict.StartDate = evt.StartTime;
+            returnDict.EndDate = evt.EndTime;
+            returnDict.Data = returnList;
+            return Json(returnDict, JsonRequestBehavior.AllowGet);
+
+        }
+
+        public ActionResult GetFaultDistanceData() {
+
+            int eventId = int.Parse(Request.QueryString["eventId"]);
+            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
+            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+
+            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
+            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
+            int pixels = int.Parse(Request.QueryString["pixels"]);
+            DataTable table;
+
+            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+            table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2})", endTime, startTime, evt.MeterID);
+            foreach (DataRow row in table.Rows)
+            {
+                KeyValuePair<string, FlotSeries> temp = QueryFaultDistanceData(int.Parse(row["ID"].ToString()), meter);
+                if (dict.ContainsKey(temp.Key))
+                    dict[temp.Key].DataPoints = dict[temp.Key].DataPoints.Concat(temp.Value.DataPoints).ToList();
+                else
+                    dict.Add(temp.Key, temp.Value);
+            }
+            List<FlotSeries> returnList = new List<FlotSeries>();
+            foreach (string key in dict.Keys)
+            {
+                FlotSeries series = new FlotSeries();
+                series = dict[key];
+                series.DataPoints = Downsample(dict[key].DataPoints.Where(x => !double.IsNaN(x[1])).OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                returnList.Add(series);
+            }
+            JsonReturn returnDict = new JsonReturn();
+            returnDict.StartDate = evt.StartTime;
+            returnDict.EndDate = evt.EndTime;
+            returnDict.Data = returnList;
+
+            return Json(returnDict, JsonRequestBehavior.AllowGet);
+        }
         #endregion
 
         #region [ OpenSEE Table Operations ]
 
-        private Dictionary<string, List<double[]>> QueryEventData(int eventID, string type)
+        private class JsonReturn
         {
-
-            const string EventDataQueryFormat =
-                "SELECT " +
-                "    EventData.TimeDomainData, " +
-                "    EventData.FrequencyDomainData " +
-                "FROM " +
-                "    Event JOIN " +
-                "    EventData ON Event.EventDataID = EventData.ID " +
-                "WHERE Event.ID = {0}";
-
-            Dictionary<int, List<double[]>> dataLookup = new Dictionary<int, List<double[]>>();
-            byte[] timeDomainData = null;
-
-            using (IDataReader reader = m_dataContext.Connection.ExecuteReader(EventDataQueryFormat, eventID))
-            {
-                while (reader.Read())
-                {
-                    timeDomainData = Decompress((byte[])reader["TimeDomainData"]);
-                }
-            }
-
-
-            return GetDataLookup(timeDomainData, type);
+            public DateTime StartDate;
+            public DateTime EndDate;
+            public List<FlotSeries> Data;
         }
 
-        private byte[] Decompress(byte[] compressedBytes)
+        private class FlotSeries
         {
-            using (MemoryStream memoryStream = new MemoryStream(compressedBytes))
-            using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-            using (MemoryStream destinationStream = new MemoryStream())
-            {
-                gzipStream.CopyTo(destinationStream);
-                return destinationStream.ToArray();
-            }
+            public int ChannelID;
+            public string ChannelName;
+            public string ChannelDescription;
+            public string MeasurementType;
+            public string MeasurementCharacteristic;
+            public string Phase;
+            public string SeriesType;
+            public string ChartLabel;
+            public List<double[]> DataPoints = new List<double[]>();
+        }
+
+        private Dictionary<string, FlotSeries> QueryEventData(int eventID, Meter meter, string type)
+        {
+            byte[] timeDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+            DataGroup dataGroup = ToDataGroup(meter, timeDomainData);       
+            return GetDataLookup(dataGroup, type);
+        }
+
+        private Dictionary<string, FlotSeries> QueryFrequencyData(int eventID, Meter meter, string type)
+        {
+            byte[] frequencyDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT FrequencyDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+            DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
+            VICycleDataGroup vICycleDataGroup = new VICycleDataGroup(dataGroup);
+            return GetFrequencyDataLookup(vICycleDataGroup, type);
+        }
+
+        private KeyValuePair<string, FlotSeries> QueryFaultDistanceData(int faultCurveID, Meter meter)
+        {
+
+            FaultCurve faultCurve = m_dataContext.Table<FaultCurve>().QueryRecordWhere("ID = {0}", faultCurveID);
+            DataGroup dataGroup = ToDataGroup(meter, faultCurve.Data);
+            FlotSeries flotSeries = new FlotSeries() {
+                ChannelID = 0,
+                ChannelName = faultCurve.Algorithm,
+                ChannelDescription = faultCurve.Algorithm,
+                MeasurementCharacteristic = "FaultCurve",
+                MeasurementType = "FaultCurve",
+                Phase = "None",
+                SeriesType = "None",
+                DataPoints = dataGroup.DataSeries[0].DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                ChartLabel = faultCurve.Algorithm
+
+            };
+            return new KeyValuePair<string, FlotSeries> (faultCurve.Algorithm, flotSeries);
         }
 
         public DataGroup ToDataGroup(Meter meter, byte[] data)
@@ -345,62 +499,63 @@ namespace PQDashboard.Controllers
         }
 
 
-        private Dictionary<string, List<double[]>> GetDataLookup(byte[] bytes, string type)
+        private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type)
         {
-            int offset;
-            int samples;
-            double[] times;
+            IEnumerable<string> names = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).Select(x => GetChartLabel(x.SeriesInfo.Channel));
+            Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries() {
+                ChannelID = ds.SeriesInfo.Channel.ID,
+                ChannelName = ds.SeriesInfo.Channel.Name,
+                ChannelDescription = ds.SeriesInfo.Channel.Description,
+                MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                Phase = ds.SeriesInfo.Channel.Phase.Name,
+                SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                ChartLabel = GetChartLabel(ds.SeriesInfo.Channel)
 
-            string channelName;
-            List<double[]> dataSeries;
-            Dictionary<string, List<double[]>> dataLookup = new Dictionary<string, List<double[]>>();
-
-            offset = 0;
-            samples = LittleEndian.ToInt32(bytes, offset);
-            offset += sizeof(int);
-
-            long epoch = new DateTime(1970, 1, 1).Ticks;
-
-            times = new double[samples];
-
-            for (int i = 0; i < samples; i++)
-            {
-                times[i] = (LittleEndian.ToInt64(bytes, offset) - epoch) / (double)TimeSpan.TicksPerMillisecond;
-                offset += sizeof(long);
-            }
-
-
-            while (offset < bytes.Length)
-            {
-                dataSeries = new List<double[]>();
-                channelName = GetChannelName(LittleEndian.ToInt32(bytes, offset));
-                offset += sizeof(int);
-
-                for (int i = 0; i < samples; i++)
-                {
-                    dataSeries.Add(new double[] { times[i], LittleEndian.ToDouble(bytes, offset) });
-                    offset += sizeof(double);
-                }
-
-                if (channelName.Contains(type))
-                    dataLookup.Add(channelName, dataSeries);
-            }
+            });
 
             return dataLookup;
         }
 
-        private string GetChannelName(int seriesID)
+        private Dictionary<string, FlotSeries> GetFrequencyDataLookup(DataGroup dataGroup, VICycleDataGroup vICycleDataGroup, string type)
         {
-                const string QueryFormat =
-                    "SELECT Channel.Name " +
-                    "FROM " +
-                    "    Channel JOIN " +
-                    "    Series ON Series.ChannelID = Channel.ID " +
-                    "WHERE Series.ID = {0}";
+            IEnumerable<string> names = vICycleDataGroup.VA.RMS.DataPoints.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type && ds.SeriesInfo.Channel.MeasurementCharacteristic.Name != "Instantaneous").Select(x => GetChartLabel(x.SeriesInfo.Channel));
+            Dictionary<string, FlotSeries> dataLookup = vICycleDataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type && ds.SeriesInfo.Channel.MeasurementCharacteristic.Name != "Instantaneous").ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries()
+            {
+                ChannelID = ds.SeriesInfo.Channel.ID,
+                ChannelName = ds.SeriesInfo.Channel.Name,
+                ChannelDescription = ds.SeriesInfo.Channel.Description,
+                MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                Phase = ds.SeriesInfo.Channel.Phase.Name,
+                SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                ChartLabel = GetChartLabel(ds.SeriesInfo.Channel)
 
-                return m_dataContext.Connection.ExecuteScalar<string>(QueryFormat, seriesID);
+            });
+
+            return dataLookup;
         }
 
+        private ChannelDetail GetChannel(int seriesID)
+        {
+                return m_dataContext.Table<ChannelDetail>().QueryRecordWhere("ID = (SELECT ChannelID FROM Series WHERE ID = {0})", seriesID);
+        }
+
+        private string GetChartLabel(openXDA.Model.Channel channel) {
+
+            if (channel.MeasurementType.Name == "Voltage" && channel.MeasurementCharacteristic.Name == "Instantaneous")
+                return "V" + channel.Phase.Name;
+            else if (channel.MeasurementType.Name == "Current" && channel.MeasurementCharacteristic.Name == "Instantaneous")
+                return "I" + channel.Phase.Name;
+            else if(channel.MeasurementType.Name == "Voltage" && channel.MeasurementCharacteristic.Name != "Instantaneous")
+                return "V" + channel.Phase.Name + " " + channel.MeasurementCharacteristic.Name;
+            else if (channel.MeasurementType.Name == "Current" && channel.MeasurementCharacteristic.Name != "Instantaneous")
+                return "I" + channel.Phase.Name + " " + channel.MeasurementCharacteristic.Name;
+
+            return null;
+        }
         private List<double[]> Downsample(List<double[]> series, int sampleCount, Range<DateTime> range)
         {
             List<double[]> data = new List<double[]>();

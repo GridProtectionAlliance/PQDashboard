@@ -44,7 +44,7 @@
 @using GSF.Web
 @using GSF.Web.Model
 @using Newtonsoft.Json
-
+@using openXDA.Model
 @{
     const string NextBackForSystem = "GetPreviousAndNextEventIdsForSystem";
     const string NextBackForStation = "GetPreviousAndNextEventIdsForMeterLocation";
@@ -64,12 +64,12 @@
     string postedShowBreakerDigitals = parameters["breakerdigitals"] ?? "";
 
     Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
-{
-{ NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
-{ NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
-{ NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
-{ NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
-};
+    {
+    { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+    };
 
     string postedURLQueryString = string.Concat(parameters.AllKeys
         .Where(key => !key.Equals("eventid", StringComparison.OrdinalIgnoreCase))
@@ -215,11 +215,7 @@
 
                 if (int.TryParse(breakerOperationID, out id))
                 {
-                    MeterData.BreakerOperationDataTable breakerTable = breakerAdapter.GetDataBy(theEvent.ID);
-
-                    MeterData.BreakerOperationRow breakerRow = breakerTable
-                        .Where(row => row.ID == id)
-                        .FirstOrDefault();
+                    BreakerOperation breakerRow = dataContext.Table<BreakerOperation>().QueryRecordWhere("ID = {0}", id);
 
                     if ((object)breakerRow != null)
                     {

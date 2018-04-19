@@ -43,6 +43,11 @@ using GSF.Web.Security;
 using PQDashboard.Model;
 using openHistorian.XDALink;
 using Newtonsoft.Json;
+using EventView = openXDA.Model.EventView;
+using AlarmRangeLimit = openXDA.Model.AlarmRangeLimit;
+using Meter = openXDA.Model.Meter;
+using DefaultAlarmRangeLimit = openXDA.Model.DefaultAlarmRangeLimit;
+using Event = openXDA.Model.Event;
 
 namespace PQDashboard
 {
@@ -198,95 +203,6 @@ namespace PQDashboard
         public void UpdatePage(Page record)
         {
             m_coreContext.Table<Page>().UpdateRecord(record);
-        }
-
-        #endregion
-
-        #region [ Menu Table Operations ]
-
-        [RecordOperation(typeof(Menu), RecordOperation.QueryRecordCount)]
-        public int QueryMenuCount(string filterText)
-        {
-            return m_coreContext.Table<Menu>().QueryRecordCount();
-        }
-
-        [RecordOperation(typeof(Menu), RecordOperation.QueryRecords)]
-        public IEnumerable<Menu> QueryMenus(string sortField, bool ascending, int page, int pageSize, string filterText)
-        {
-            return m_coreContext.Table<Menu>().QueryRecords(sortField, ascending, page, pageSize);
-        }
-
-        [RecordOperation(typeof(Menu), RecordOperation.DeleteRecord)]
-        public void DeleteMenu(int id)
-        {
-            m_coreContext.Table<Menu>().DeleteRecord(id);
-        }
-
-        [RecordOperation(typeof(Menu), RecordOperation.CreateNewRecord)]
-        public Menu NewMenu()
-        {
-            return new Menu();
-        }
-
-        [RecordOperation(typeof(Menu), RecordOperation.AddNewRecord)]
-        public void AddNewMenu(Menu record)
-        {
-            record.CreatedOn = DateTime.UtcNow;
-            m_coreContext.Table<Menu>().AddNewRecord(record);
-        }
-
-        [RecordOperation(typeof(Menu), RecordOperation.UpdateRecord)]
-        public void UpdateMenu(Menu record)
-        {
-            m_coreContext.Table<Menu>().UpdateRecord(record);
-        }
-
-        #endregion
-
-        #region [ MenuItem Table Operations ]
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.QueryRecordCount)]
-        public int QueryMenuItemCount(int parentID, string filterText)
-        {
-            return m_coreContext.Table<MenuItem>().QueryRecordCount(new RecordRestriction("MenuID = {0}", parentID));
-        }
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.QueryRecords)]
-        public IEnumerable<MenuItem> QueryMenuItems(int parentID, string sortField, bool ascending, int page, int pageSize, string filterText)
-        {
-            return m_coreContext.Table<MenuItem>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("MenuID = {0}", parentID));
-        }
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.DeleteRecord)]
-        public void DeleteMenuItem(int id)
-        {
-            m_coreContext.Table<MenuItem>().DeleteRecord(id);
-        }
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.CreateNewRecord)]
-        public MenuItem NewMenuItem()
-        {
-            return new MenuItem();
-        }
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.AddNewRecord)]
-        public void AddNewMenuItem(MenuItem record)
-        {
-            // TODO: MenuItem.Text is currently required in database, but empty should be allowed for spacer items
-            if (string.IsNullOrEmpty(record.Text))
-                record.Text = " ";
-
-            m_coreContext.Table<MenuItem>().AddNewRecord(record);
-        }
-
-        [RecordOperation(typeof(MenuItem), RecordOperation.UpdateRecord)]
-        public void UpdateMenuItem(MenuItem record)
-        {
-            // TODO: MenuItem.Text is currently required in database, but empty should be allowed for spacer items
-            if (string.IsNullOrEmpty(record.Text))
-                record.Text = " ";
-
-            m_coreContext.Table<MenuItem>().UpdateRecord(record);
         }
 
         #endregion
@@ -1967,7 +1883,7 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.Meter>().QueryRecordCountWhere("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
+                recordCount = DataContext.Table<Meter>().QueryRecordCountWhere("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
             }
 
             return recordCount;
@@ -1982,11 +1898,11 @@ namespace PQDashboard
             return recordCount;
         }
 
-        public IEnumerable<PQDashboard.Model.Meter> QueryMeterRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        public IEnumerable<Meter> QueryMeterRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {//**
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                return DataContext.Table<Model.Meter>().QueryRecords(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
+                return DataContext.Table<Meter>().QueryRecords(restriction: new RecordRestriction("[Meter].ID IN (SELECT DISTINCT [Event].MeterID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
             }
             else
             {

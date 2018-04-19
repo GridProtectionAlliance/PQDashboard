@@ -63,8 +63,8 @@ export class OpenSEE extends React.Component<any, any>{
             <div className="panel-body collapse in" style={{ padding: '0' }}>
                 <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="V" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
                 <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="I" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
-                {(this.state.FaultCurves ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true}></WaveformViewerGraph> : '')}
-                {(this.state.BreakerDigitals ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true}></WaveformViewerGraph> : '')}                
+                {(this.state.FaultCurves ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}
+                {(this.state.BreakerDigitals ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}                
             </div>
         );
     }

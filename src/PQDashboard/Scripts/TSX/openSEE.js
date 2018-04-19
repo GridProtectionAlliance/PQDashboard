@@ -45,8 +45,8 @@ var OpenSEE = (function (_super) {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
             React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "V", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
             React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "I", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true }) : ''),
-            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true }) : '')));
+            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : ''),
+            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         this.setState(obj);

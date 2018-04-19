@@ -25,6 +25,7 @@
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using Newtonsoft.Json
+@using Meter = openXDA.Model.Meter
 @model AppModel
 @{
     Layout = "";
@@ -33,7 +34,7 @@
     List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
 
     List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
-    int meterCount = dataContext.Table<PQDashboard.Model.Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
+    int meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
     foreach (DashSettings setting in dashSettings)
     {
         if (setting.Name == "DashTab" || setting.Name == "KML" || setting.Name.EndsWith("Chart"))

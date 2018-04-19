@@ -98,17 +98,6 @@ namespace PQDashboard.Controllers
             return View();
         }
 
-        public ActionResult Menus()
-        {
-            m_appModel.ConfigureView<Menu>(Url.RequestContext, "System.Menus", ViewBag);
-            return View();
-        }
-
-        public ActionResult MenuItems()
-        {
-            m_appModel.ConfigureView<MenuItem>(Url.RequestContext, "System.MenuItems", ViewBag);
-            return View();
-        }
 
         public ActionResult ValueListGroups()
         {

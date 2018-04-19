@@ -35,15 +35,19 @@ import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 
 const color = {
-    IR: '#999999',
-    VA: '#A30000',
-    VB: '#0029A3',
-    VC: '#007A29',
-    IA: '#FF0000',
-    IB: '#0066CC',
-    IC: '#33CC33',
-    IN: '#999999'
-
+    IRES: '#999999',
+    VAN: '#A30000',
+    VBN: '#0029A3',
+    VCN: '#007A29',
+    IAN: '#FF0000',
+    IBN: '#0066CC',
+    ICN: '#33CC33',
+    ING: '#ffd900',
+    Simple: '#996633',
+    Reactance: '#333300',
+    Takagi: '#9900FF',
+    ModifiedTakagi: '#66CCFF',
+    Novosel:'#CC9900'
 }
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
@@ -154,9 +158,12 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data);
+                legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
+            this.openSEEService.getVoltageFrequencyData(state).then(d2 => {
+                console.log(d2);
+            })
         });
 
     }
@@ -166,7 +173,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data);
+                legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
@@ -178,7 +185,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data);
+                legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
@@ -190,7 +197,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data);
+                legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
@@ -218,8 +225,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     createLegendRows(data) {
         var legend = [];
-        $.each(Object.keys(data), function (i, key) {
-            legend.push({ label: key, color: color[key], enabled: true });
+        $.each(data, function (i, key) {
+            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel], enabled: true });
         });
 
         this.setState({ legendRows: legend });
@@ -227,14 +234,25 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
     createDataRows(data, legend) {
+        // if start and end date are not provided calculate them from the data set
+        var startString = this.state.StartDate;
+        var endString = this.state.EndDate;
+        if (this.state.StartDate == null) {
+            this.setState({ StartDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+            startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
+        }
+        if (this.state.EndDate == null) {
+            this.setState({ EndDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+            endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
+        }
         var newVessel = [];
         var legendKeys = legend.filter(x => x.enabled).map(x => x.label);
-        $.each(Object.keys(data), (i, key) => {
-            if (legendKeys.indexOf(key) >= 0)
-                newVessel.push({ label: key, data: data[key], color: color[key] })
+        $.each(data.Data, (i, key) => {
+            if (legendKeys.indexOf(key.ChartLabel) >= 0)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel] })
         });
 
-        //newVessel.push([[this.getMillisecondTime(this.state.startDate), null], [this.getMillisecondTime(this.state.endDate), null]]);
+        newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);
         this.plotSelected();
         this.plotZoom();

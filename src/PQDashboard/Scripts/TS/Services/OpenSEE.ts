@@ -27,11 +27,10 @@ import * as moment from 'moment';
 export default class OpenSEEService{
     getVoltageEventData(filters) {
         return axios
-            .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+            .get(`/Main/GetVoltageEventData?eventId=${filters.eventId}` + 
                     `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                     `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`+
-                    `&type=${filters.type}`)
+                    `&pixels=${filters.pixels}`)
             .then(res => {
                 return res.data;
             });
@@ -40,11 +39,10 @@ export default class OpenSEEService{
 
     getVoltageFrequencyData(filters) {
         return axios
-            .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+            .get(`/Main/GetVoltageFrequencyData?eventId=${filters.eventId}` + 
                     `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                     `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`+
-                    `&type=${filters.type}`)
+                    `&pixels=${filters.pixels}`)
             .then(res => {
                 return res.data;
             });
@@ -53,7 +51,7 @@ export default class OpenSEEService{
 
     getCurrentEventData(filters) {
         return axios
-            .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+            .get(`/Main/GetCurrentEventData?eventId=${filters.eventId}` + 
                     `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                     `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
                     `&pixels=${filters.pixels}`+
@@ -79,11 +77,10 @@ export default class OpenSEEService{
 
     getFaultDistanceData(filters) {
         return axios
-            .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+            .get(`/Main/GetFaultDistanceData?eventId=${filters.eventId}` + 
                     `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                     `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`+
-                    `&type=${filters.type}`)
+                    `&pixels=${filters.pixels}`)
             .then(res => {
                 return res.data;
             });

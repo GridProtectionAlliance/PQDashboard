@@ -237,7 +237,6 @@ namespace PQDashboard.Model
         /// </remarks>
         public void ConfigureView(RequestContext requestContext, string pageName, dynamic viewBag)
         {
-            DataContext.ConfigureView(requestContext, viewBag);
             ConfigureView(pageName, viewBag);
         }
 
@@ -252,7 +251,6 @@ namespace PQDashboard.Model
         /// </remarks>
         public void ConfigureView<TModel>(RequestContext requestContext, string pageName, dynamic viewBag) where TModel : class, new()
         {
-            DataContext.ConfigureView<TModel, DataHub>(requestContext, viewBag);
             ConfigureView(pageName, viewBag);
         }
 
