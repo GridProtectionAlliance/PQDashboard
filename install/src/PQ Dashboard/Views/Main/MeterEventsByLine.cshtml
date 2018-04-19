@@ -26,6 +26,7 @@
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
+@using EventView = openXDA.Model.EventView
 @model AppModel
 @{
     Layout = "";
@@ -43,7 +44,8 @@
         DateTime.TryParse(postedDateString, out postedDate);
     }
 
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
     string context = parameters["context"] ?? "day";
 }
 
@@ -127,6 +129,27 @@
     </div>
 </div>
 
+<div id="multiNotesModal" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 50%">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add a note to associated event records</h4>
+            </div>
+            <div class="modal-body">
+                <textarea wrap="hard" id="multiNote" class="form-control"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveMultiNote()" data-dismiss="modal">Add Note</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
 <script>
 
@@ -157,7 +180,7 @@
 
     function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
         dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "").done(function (data) {
-            json = $.parseJSON(data);
+            json = data;
 
             $.each(json, function (_, obj) {
                 obj.voltage = Number(obj.voltage);
@@ -205,6 +228,44 @@
         var html = '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">More Info Available...</th></tr>';
         if (data.theeventtype == "Fault")
             html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
+
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Faults and Sags (+/- @timeWindow sec)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default">' + data.SimultaneousFAndSCount + ' Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
+        dataHub.getSimultaneousFaultsAndSags(data.theeventid).done(function (data) {
+
+            var html = "<style>" +
+                            ".listtable{" +
+                                "min-width: 150px;" +
+                                "max-height: 400px;" +
+                                "display: block;" +
+                            "}" +
+                            ".contextmenu1.list-group{" +
+                                "margin: 0;" +
+                            "}" +
+                            ".listtr:hover{" +
+                                "background-color: #66BB6A;" +
+                            "}" +
+                        "</style>" +
+                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+
+            $.each(data, function (index, object) {
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+            });
+
+            html += "</table>";
+
+
+            jsPanel.contextmenu('#simultaneousFaultsAndSags', {
+                border: '1px solid gray',
+                contentSize: 'auto auto',
+                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
+                content: html,
+                callback: function (panel) {
+                    panel.css('z-index', '2001')
+                },
+                trigger: 'left'
+
+            });
+        });
 
         html += '<tr><td style="width: 50%">List <b>simultaneous</b> events (+/- 5 sec)</td><td colspan="2" style="width: auto"><button id="simultaneousEvents" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button></td></tr>';
         dataHub.getSimultaneousEvents(data.theeventid).done(function (data) {
@@ -288,7 +349,7 @@
 
         html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Add/Edit Event Data</th></tr>';
         html += '<tr><td style="width: 50%;"><a href="#"><span onclick="OpenWindowToXDAEdit(' + data.theeventid + ')">Edit Event Data</span></a></td><td style="width: 5%; padding: 0;"><button style="height: 33px" onclick="OpenWindowToXDAEdit(' + data.theeventid + ')"><span class="glyphicon glyphicon-edit" title=""></span></button></td><td style="width: auto">' + (data.UpdatedBy == null ? 'Unedited' : 'Last Updated By ' + data.UpdatedBy) + '</td></tr>';
-        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="openNoteModal(' + data.theeventid + ')">Add/Edit Notes for this event</span></a></td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-comment" title=""></span></button></td><td style="width: auto"><span id="noteCount">' + data.Note + '</span> Notes Created</td></tr></table>';
+        html += '<tr><td style="width: 50%;"><a href="#"><span onclick="openNoteModal(' + data.theeventid + ')">Add/Edit Notes for this event</span></a></td><td style="width: 5%; padding: 0"><button style="height: 33px" onclick="openNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td><td style="width: auto"><span id="noteCount">' + data.Note + '</span> Notes Created</td></tr></table>';
 
 
         if (testForStuff(data)) {
@@ -469,6 +530,16 @@
     function editNote(id) {
         $('#note').val($('#note' + id).text());
         dataHub.removeEventNote(id);
+    }
+
+    function openMultiNoteModal(eventId) {
+            $('#eventId').text(eventId);
+            $('#multiNote').val('');
+            $('#multiNotesModal').modal('show');
+    }
+
+    function saveMultiNote() {
+        dataHub.saveMultiNoteForEvent($('#eventId').text(), $('#multiNote').val(), userId);
     }
 
 </script>

@@ -347,6 +347,7 @@ function showData() {
         var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
 
         label += "Station: " + postedStationName;
+        label += separator + "Meter: " + postedMeterName;
         label += separator + "Line: " + postedLineName;
         label += "<br />";
 

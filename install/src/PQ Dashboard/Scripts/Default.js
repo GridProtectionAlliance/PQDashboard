@@ -500,7 +500,7 @@ function openNoteModal(eventId) {
 }
 
 function saveNote() {
-    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userId);
+    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userName);
 }
 
 function removeNote(id) {
@@ -729,7 +729,7 @@ function populateExtensionsDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterExtensionsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterExtensionsByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         };
@@ -775,7 +775,7 @@ function populateDisturbancesDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'EventID', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
+                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterDisturbancesByLine(' + row.EventID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch Events List Page">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         }
@@ -822,7 +822,10 @@ function populateBreakersDivWithGrid(data) {
             columns: [
                 {
                     field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
-                                  function (row) {
+                                  function (row, options, td) {
+                                      if (row.notecount > 0)
+                                          td.addClass('note');
+
                                       var title = "";
                                       var bgColor = "initial";
 
@@ -848,6 +851,8 @@ function populateBreakersDivWithGrid(data) {
                 { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
                 { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
                 { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+
             ],
             datasource: filteredData
         });
@@ -3549,16 +3554,7 @@ function buildPage() {
     else
         $.jStorage.set("disabledList", disabledList)
 
-    $('.grid').masonry({
-        itemSelector: '.grid-item',
-        columnWidth: 400
-    });
-
-    $('#settingsModal').on('shown.bs.modal', function () {
-        $('.grid').masonry('layout');
-    });
-
-    $('#filterExpressionHelp').mouseenter(function(e){
+        $('#filterExpressionHelp').mouseenter(function (e) {
         $.jsPanel({
             paneltype: {
                 tooltip: true,
@@ -3588,31 +3584,6 @@ function buildPage() {
 
             }
         });
-    });
-
-    // Settings modal jscolor and enable change events
-    $('.modal-body input').change(function (event) {
-        var tab = $(event.currentTarget).parent().parent().parent().parent().parent().parent().find('h4').text();
-        var value = $(event.currentTarget).parent().parent().text().trim();
-        var boolean = $(event.currentTarget).parent().parent().find('[type=checkbox]').prop('checked');
-        var field;
-        if ($(event.currentTarget).attr('id').indexOf('enable') > -1){
-            tab += "Chart";
-            field = "enable";
-        }
-        else if ($(event.currentTarget).attr('id').indexOf('tab') > -1){
-            tab = "DashTab";
-            field = "tab";
-        }
-        else if ($(event.currentTarget).attr('id').indexOf('color') > -1) {
-            tab += "ChartColors";
-            value += ',#' + $(event.currentTarget).val();
-            field = "color";
-        }
-
-        var id = parseInt($(event.currentTarget).attr('id').split(field)[1]);
-
-        dataHub.updateDashSettings(id, tab, value, boolean, userId);
     });
 
     $("#application-tabs").tabs({
@@ -3727,6 +3698,48 @@ function loadLeafletMap(theDiv) {
         L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             }).addTo(leafletMap[currentTab]);
+
+
+        var customLayer = L.geoJson(null, {
+            style: function (feature) {
+                // my custom filter function
+                return {
+                    color: '#' + feature.properties.stroke,
+                    weight: feature.properties['stroke-width'],
+                    opacity: feature.properties['stroke-opacity'],
+                    'fill-color': '#' + feature.properties.stroke
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                var popupContent = feature.properties.name + ":<br>" + feature.properties.description;
+
+                layer.bindPopup(popupContent);
+            }
+        });
+
+        if (kmlData != null) {
+            loadDoc("/KML/" + kmlData.Value, function (data) {
+                if (data == null) return;
+
+                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent) {
+                    var legend = L.control({ position: 'topright' });
+
+                    legend.onAdd = function (map) {
+
+                        var div = L.DomUtil.create('div', 'info legend');
+
+                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent;
+
+                        return div;
+                    };
+
+                    legend.addTo(leafletMap[currentTab]);
+                }
+                var myLayer = omnivore.kml.parse(data.responseText, null, customLayer).on('ready', function (data) { console.log(data) });
+                leafletMap[currentTab].addLayer(myLayer);
+
+            });
+        }
 
 
         var contourControl = L.control({ position: 'bottomleft' });
@@ -3844,6 +3857,17 @@ function loadLeafletMap(theDiv) {
 
         });
     }
+}
+
+function loadDoc(file, callback) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            callback(this);
+        }
+    };
+    xhttp.open("GET", file, true);
+    xhttp.send();
 }
 
 function loadContourLayer(contourQuery) {

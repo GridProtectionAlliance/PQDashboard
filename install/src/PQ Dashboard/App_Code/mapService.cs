@@ -39,7 +39,8 @@ using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI.WebControls;
-using GSF.Collections;
+using System.Configuration;
+using GSF;
 using GSF.Configuration;
 using GSF.Data;
 using GSF.Data.Model;
@@ -47,10 +48,13 @@ using GSF.Drawing;
 using GSF.Geo;
 using GSF.NumericalAnalysis.Interpolation;
 using GSF.Threading;
-using GSF.Web.Model;
+using GSF.Web;
 using openHistorian.XDALink;
 using PQDashboard;
 using PQDashboard.Model;
+using GSF.Web.Model;
+using Meter = openXDA.Model.Meter;
+using GSF.Collections;
 
 /// <summary>
 /// Summary description for MapService
@@ -553,7 +557,7 @@ public class mapService : WebService
 
         return locations;
     }
-
+    
     private List<List<TrendingDataLocation>> GetFramesFromHistorian(ContourQuery contourQuery)
     {
         DataTable idTable;
@@ -561,9 +565,8 @@ public class mapService : WebService
         string historianInstance;
 
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
-        using(DataContext dataContext = new DataContext(connection))
         {
-            var meters = dataContext.Table<Meter>().QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
+            var meters = (new TableOperations<openXDA.Model.Meter>(connection)).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
 
             if (!string.IsNullOrEmpty(contourQuery.Meters))
             {
@@ -604,7 +607,7 @@ public class mapService : WebService
 
             idTable = connection.RetrieveData(query, contourQuery.UserName, contourQuery.ColorScaleName);
             historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Instance'") ?? "XDA";
+            historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
         }
 
         //if (!string.IsNullOrEmpty(contourQuery.Meters))

@@ -1,25 +1,25 @@
 ﻿@*******************************************************************************************************
-//  OpenSEE.cshtml - Gbtc
-//
-//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
-//
-//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
-//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
-//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
-//  not use this file except in compliance with the License. You may obtain a copy of the License at:
-//
-//      http://opensource.org/licenses/MIT
-//
-//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
-//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
-//  License for the specific language governing permissions and limitations.
-//
-//  Code Modification History:
-//  ----------------------------------------------------------------------------------------------------
-//  04/21/2016 - Stephen Wills
-//       Generated original version of source code.
-//
-//*****************************************************************************************************@
+    //  OpenSEE.cshtml - Gbtc
+    //
+    //  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+    //
+    //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+    //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+    //  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+    //  not use this file except in compliance with the License. You may obtain a copy of the License at:
+    //
+    //      http://opensource.org/licenses/MIT
+    //
+    //  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+    //  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+    //  License for the specific language governing permissions and limitations.
+    //
+    //  Code Modification History:
+    //  ----------------------------------------------------------------------------------------------------
+    //  04/21/2016 - Stephen Wills
+    //       Generated original version of source code.
+    //
+    //*****************************************************************************************************@
 
 @using System.Data
 @using System.Net.Http
@@ -44,6 +44,7 @@
 @using GSF.Web
 @using GSF.Web.Model
 @using Newtonsoft.Json
+@using openXDA.Model
 
 @{
     const string NextBackForSystem = "GetPreviousAndNextEventIdsForSystem";
@@ -64,12 +65,12 @@
     string postedShowBreakerDigitals = parameters["breakerdigitals"] ?? "";
 
     Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
-    {
-        { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
-    };
+{
+{ NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+{ NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+{ NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+{ NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+};
 
     string postedURLQueryString = string.Concat(parameters.AllKeys
         .Where(key => !key.Equals("eventid", StringComparison.OrdinalIgnoreCase))
@@ -123,7 +124,7 @@
         postedDate = theEvent.StartTime.ToShortDateString();
         postedEventMilliseconds = theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString();
 
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'XDAInstance'");
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
 
         using (IDbCommand cmd = dataContext.Connection.Connection.CreateCommand())
         {
@@ -215,19 +216,14 @@
 
                 if (int.TryParse(breakerOperationID, out id))
                 {
-                    MeterData.BreakerOperationDataTable breakerTable = breakerAdapter.GetDataBy(theEvent.ID);
-
-                    MeterData.BreakerOperationRow breakerRow = breakerTable
-                        .Where(row => row.ID == id)
-                        .FirstOrDefault();
-
-                    if ((object)breakerRow != null)
+                    BreakerOperation breaker = dataContext.Table<BreakerOperation>().QueryRecordWhere("ID = {0}", id);
+                    if ((object)breaker != null)
                     {
-                        postedBreakerNumber = breakerRow.BreakerNumber;
-                        postedBreakerPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == breakerRow.PhaseID)?.Name ?? "";
-                        postedBreakerTiming = breakerRow.BreakerTiming.ToString();
-                        postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
-                        postedBreakerOperation = dbAdapterContainer.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                        postedBreakerNumber = breaker.BreakerNumber;
+                        postedBreakerPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == breaker.PhaseID)?.Name ?? "";
+                        postedBreakerTiming = breaker.BreakerTiming.ToString();
+                        postedBreakerSpeed = breaker.BreakerSpeed.ToString();
+                        postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breaker.BreakerOperationTypeID).ToString();
                     }
                 }
             }
@@ -235,17 +231,17 @@
     }
 }
 @helper NextBackButton(EventView evt, string id, string postedURLQueryString, string text)
-{
-if ((object)evt != null)
-{
-    string title = evt.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
-    string url = "?eventid=" + evt.ID + postedURLQueryString;
-        <a href="@url" id="@id" class="nextbackbutton smallbutton" title="@title" style="padding: 4px 20px">@text</a>
-}
-else
-{
-        <a href="#" id="@id" class="nextbackbutton smallbutton-disabled" title="No event" style="padding: 4px 20px">@text</a>
-}
+    {
+        if ((object)evt != null)
+        {
+            string title = evt.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+            string url = "?eventid=" + evt.ID + postedURLQueryString;
+            <a href="@url" id="@id" class="nextbackbutton smallbutton" title="@title" style="padding: 4px 20px">@text</a>
+        }
+        else
+        {
+            <a href="#" id="@id" class="nextbackbutton smallbutton-disabled" title="No event" style="padding: 4px 20px">@text</a>
+        }
 }
 <!DOCTYPE html>
 
@@ -283,8 +279,8 @@ else
     <script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
     <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
     @*<script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-    <script type="text/javascript" src="~/signalr/hubs"></script>
-    <script type="text/javascript" src="~/Scripts/Site.js"></script>*@
+        <script type="text/javascript" src="~/signalr/hubs"></script>
+        <script type="text/javascript" src="~/Scripts/Site.js"></script>*@
 </head>
 <body>
     <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
@@ -348,7 +344,7 @@ else
             </tr>
             <tr>
                 <td colspan="3" style="text-align: center">
-                    <div ><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" href="@(xdaInstance + "/Workbench/Event.cshtml?EventID=" + eventID)" class="">edit</a></div>
+                    <div><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" href="@(xdaInstance + "/Workbench/Event.cshtml?EventID=" + eventID)" class="">edit</a></div>
                 </td>
             </tr>
         </table>
@@ -357,8 +353,8 @@ else
     <div class="DockWaveformHeader">
         <table style="width: 75%; margin: 0 auto">
             <tr>
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom"/></td>
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints"/></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom" /></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints" /></td>
 
                 <td style="text-align: center">
                     @NextBackButton(nextBackLookup[NextBackForSystem].Item1, "system-back", postedURLQueryString + "&navigation=system", "<")
@@ -377,16 +373,16 @@ else
                     @NextBackButton(nextBackLookup[NextBackForLine].Item2, "line-next", postedURLQueryString + "&navigation=line", ">")
                 </td>
 
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Tooltip" onclick="showhideTooltip(this);" id="showtooltip"/></td>
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Phasor" onclick="showhidePhasor(this);" id="showphasor"/></td>
-                <td style="text-align: center; display: none"><input class="smallbutton" type="button" value="Export Data" onclick="exportdata(this);" id="exportdata"/></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Tooltip" onclick="showhideTooltip(this);" id="showtooltip" /></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Show Phasor" onclick="showhidePhasor(this);" id="showphasor" /></td>
+                <td style="text-align: center; display: none"><input class="smallbutton" type="button" value="Export Data" onclick="exportdata(this);" id="exportdata" /></td>
             </tr>
         </table>
     </div>
 
     <div id="DockCharts"></div>
 
-<script>
+    <script>
     var SeriesList;
     var homePath = '@Html.Raw(Url.Content("~/"))';
 
@@ -394,7 +390,7 @@ else
         SeriesList = @Html.Raw(postedSeriesList);
         $('#next-back-selection').val('@Html.Raw(navigation)');
     });
-</script>
+    </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
 </body>
 </html>

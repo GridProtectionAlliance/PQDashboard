@@ -426,7 +426,6 @@
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
-    <Content Include="Readme.txt" />
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
@@ -447,8 +446,6 @@
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
-    <Content Include="Shared\Content\Readme.txt" />
-    <Content Include="Shared\Readme.txt" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
     <Content Include="webpack.config.js" />
   </ItemGroup>
