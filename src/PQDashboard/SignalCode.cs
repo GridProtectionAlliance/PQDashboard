@@ -18,6 +18,11 @@ namespace PQDashboard
 {
     public class SignalCode
     {
+        #region [ Members ]
+        private const double MaxFaultDistanceMultiplier = 1.25D;
+        private const double MinFaultDistanceMultiplier = -0.1D;
+        private double m_systemFrequency;
+
         public class eventSet
         {
             public string Yaxis0name;
@@ -71,158 +76,34 @@ namespace PQDashboard
                 return clone;
             }
         }
-        private const double MaxFaultDistanceMultiplier = 1.25D;
-        private const double MinFaultDistanceMultiplier = -0.1D;
 
-        private static string ConnectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+        #endregion
+
+        #region [ Constructors ]
 
         public SignalCode()
         {
             int i = 1;
+            using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                m_systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+            }
             //Uncomment the following line if using designed components 
             //InitializeComponent(); 
         }
 
-        private static readonly List<FlotSeries> CycleDataInfo = new List<FlotSeries>();
+        #endregion
 
-        static SignalCode()
-        {
-            foreach (string phase in new string[] { "AN", "BN", "CN", "AB", "BC", "CA" })
+        #region [ Properties ]
+        public double SystemFrequency {
+            get
             {
-                int seriesID = 0;
-
-                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
-                {
-                    string measurementType = "Voltage";
-                    char measurementTypeDesignation = 'V';
-
-                    CycleDataInfo.Add(new FlotSeries()
-                    {
-                        FlotType = FlotSeriesType.Cycle,
-                        SeriesID = seriesID++,
-                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
-                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
-                        MeasurementType = measurementType,
-                        MeasurementCharacteristic = measurementCharacteristic,
-                        Phase = phase,
-                        SeriesType = "Values"
-                    });
-                }
-            }
-
-            foreach (string phase in new string[] { "AN", "BN", "CN", "RES" })
-            {
-                int seriesID = 0;
-
-                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
-                {
-                    string measurementType = "Current";
-                    char measurementTypeDesignation = 'I';
-
-                    CycleDataInfo.Add(new FlotSeries()
-                    {
-                        FlotType = FlotSeriesType.Cycle,
-                        SeriesID = seriesID++,
-                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
-                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
-                        MeasurementType = measurementType,
-                        MeasurementCharacteristic = measurementCharacteristic,
-                        Phase = phase,
-                        SeriesType = "Values"
-                    });
-                }
+                return m_systemFrequency;
             }
         }
+        #endregion
 
-        private static List<Series> GetWaveformInfo(Table<Series> seriesTable, int meterID, int lineID)
-        {
-            return seriesTable
-                .Where(series => series.Channel.MeterID == meterID)
-                .Where(series => series.Channel.LineID == lineID)
-                .OrderBy(series => series.ID)
-                .ToList();
-        }
-
-        private static List<string> GetFaultCurveInfo(AdoDataConnection connection, int eventID)
-        {
-            const string query =
-                "SELECT Algorithm " +
-                "FROM FaultCurve LEFT OUTER JOIN FaultLocationAlgorithm ON Algorithm = MethodName " +
-                "WHERE EventID = {0} " +
-                "ORDER BY CASE WHEN ExecutionOrder IS NULL THEN 1 ELSE 0 END, ExecutionOrder";
-
-            DataTable table = connection.RetrieveData(query, eventID);
-
-            return table.Rows
-                .Cast<DataRow>()
-                .Select(row => row.Field<string>("Algorithm"))
-                .ToList();
-        }
-
-        public static List<FlotSeries> GetFlotInfo(int eventID)
-        {
-            using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
-            using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
-            {
-                EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
-                MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
-                FaultLocationInfoDataContext faultInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
-
-                MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
-
-                if ((object)eventRow == null)
-                    return new List<FlotSeries>();
-
-                List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
-
-                var lookup = waveformInfo
-                    .Where(info => info.Channel.MeasurementCharacteristic.Name == "Instantaneous")
-                    .Where(info => new string[] { "Instantaneous", "Values" }.Contains(info.SeriesType.Name))
-                    .Select(info => new { MeasurementType = info.Channel.MeasurementType.Name, Phase = info.Channel.Phase.Name })
-                    .Distinct()
-                    .ToDictionary(info => info);
-
-                IEnumerable<FlotSeries> cycleDataInfo = CycleDataInfo
-                    .Where(info => lookup.ContainsKey(new { info.MeasurementType, info.Phase }))
-                    .Select(info => info.Clone());
-
-                return GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID)
-                    .Select(ToFlotSeries)
-                    .Concat(cycleDataInfo)
-                    .Concat(GetFaultCurveInfo(connection, eventID).Select(ToFlotSeries))
-                    .ToList();
-            }
-        }
-
-        private static FlotSeries ToFlotSeries(Series series)
-        {
-            return new FlotSeries()
-            {
-                FlotType = FlotSeriesType.Waveform,
-                SeriesID = series.ID,
-                ChannelName = series.Channel.Name,
-                ChannelDescription = series.Channel.Description,
-                MeasurementType = series.Channel.MeasurementType.Name,
-                MeasurementCharacteristic = series.Channel.MeasurementCharacteristic.Name,
-                Phase = series.Channel.Phase.Name,
-                SeriesType = series.SeriesType.Name
-            };
-        }
-
-        private static FlotSeries ToFlotSeries(string faultLocationAlgorithm)
-        {
-            return new FlotSeries()
-            {
-                FlotType = FlotSeriesType.Fault,
-                ChannelName = faultLocationAlgorithm,
-                ChannelDescription = faultLocationAlgorithm,
-                MeasurementType = "Distance",
-                MeasurementCharacteristic = "FaultDistance",
-                Phase = "None",
-                SeriesType = "Values"
-            };
-        }
-
+        #region [ Methods ]
         public List<FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
         {
             List<FlotSeries> flotSeriesList = new List<FlotSeries>();
@@ -242,13 +123,12 @@ namespace PQDashboard
                 List<FlotSeries> flotInfo = GetFlotInfo(eventID);
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                Lazy<Dictionary<int, DataSeries>> waveformData = new Lazy<Dictionary<int, DataSeries>>(() =>
-                {
-                    return ToDataGroup(meter, eventDataAdapter.GetTimeDomainData(eventRow.EventDataID)).DataSeries
-                        .ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
-                });
+                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, eventDataAdapter.GetTimeDomainData(eventRow.EventDataID)));
 
-                Lazy<DataGroup> cycleData = new Lazy<DataGroup>(() => ToDataGroup(meter, eventDataAdapter.GetFrequencyDomainData(eventRow.EventDataID)));
+                Dictionary<int, DataSeries> waveformData = dataGroup.Value.DataSeries
+                        .ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
+
+                Lazy<DataGroup> cycleData = new Lazy<DataGroup>(() => (Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup.Value), SystemFrequency).ToDataGroup()));
 
                 Lazy<Dictionary<string, DataSeries>> faultCurveData = new Lazy<Dictionary<string, DataSeries>>(() =>
                 {
@@ -275,7 +155,7 @@ namespace PQDashboard
 
                     if (flotSeries.FlotType == FlotSeriesType.Waveform)
                     {
-                        if (!waveformData.Value.TryGetValue(flotSeries.SeriesID, out dataSeries))
+                        if (!waveformData.TryGetValue(flotSeries.SeriesID, out dataSeries))
                             continue;
                     }
                     else if (flotSeries.FlotType == FlotSeriesType.Cycle)
@@ -321,7 +201,8 @@ namespace PQDashboard
             dataGroup.FromData(meter, data);
             return dataGroup;
         }
-        public AdoDataConnection AdoDataConnectionFactory() {
+        public AdoDataConnection AdoDataConnectionFactory()
+        {
             return new AdoDataConnection("SystemSettings");
         }
         /// <summary>
@@ -869,6 +750,157 @@ namespace PQDashboard
             }
             return (theset);
         }
+
+
+        #endregion
+
+        #region [ Static }
+        private static string ConnectionString = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+
+
+        private static readonly List<FlotSeries> CycleDataInfo = new List<FlotSeries>();
+
+        static SignalCode()
+        {
+            foreach (string phase in new string[] { "AN", "BN", "CN", "AB", "BC", "CA" })
+            {
+                int seriesID = 0;
+
+                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
+                {
+                    string measurementType = "Voltage";
+                    char measurementTypeDesignation = 'V';
+
+                    CycleDataInfo.Add(new FlotSeries()
+                    {
+                        FlotType = FlotSeriesType.Cycle,
+                        SeriesID = seriesID++,
+                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
+                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
+                        MeasurementType = measurementType,
+                        MeasurementCharacteristic = measurementCharacteristic,
+                        Phase = phase,
+                        SeriesType = "Values"
+                    });
+                }
+            }
+
+            foreach (string phase in new string[] { "AN", "BN", "CN", "RES" })
+            {
+                int seriesID = 0;
+
+                foreach (string measurementCharacteristic in new string[] { "RMS", "AngleFund", "WaveAmplitude", "WaveError" })
+                {
+                    string measurementType = "Current";
+                    char measurementTypeDesignation = 'I';
+
+                    CycleDataInfo.Add(new FlotSeries()
+                    {
+                        FlotType = FlotSeriesType.Cycle,
+                        SeriesID = seriesID++,
+                        ChannelName = string.Concat(measurementTypeDesignation, phase, " ", measurementCharacteristic),
+                        ChannelDescription = string.Concat(phase, " ", measurementType, " ", measurementCharacteristic),
+                        MeasurementType = measurementType,
+                        MeasurementCharacteristic = measurementCharacteristic,
+                        Phase = phase,
+                        SeriesType = "Values"
+                    });
+                }
+            }
+        }
+
+        private static List<Series> GetWaveformInfo(Table<Series> seriesTable, int meterID, int lineID)
+        {
+            return seriesTable
+                .Where(series => series.Channel.MeterID == meterID)
+                .Where(series => series.Channel.LineID == lineID)
+                .OrderBy(series => series.ID)
+                .ToList();
+        }
+
+        private static List<string> GetFaultCurveInfo(AdoDataConnection connection, int eventID)
+        {
+            const string query =
+                "SELECT Algorithm " +
+                "FROM FaultCurve LEFT OUTER JOIN FaultLocationAlgorithm ON Algorithm = MethodName " +
+                "WHERE EventID = {0} " +
+                "ORDER BY CASE WHEN ExecutionOrder IS NULL THEN 1 ELSE 0 END, ExecutionOrder";
+
+            DataTable table = connection.RetrieveData(query, eventID);
+
+            return table.Rows
+                .Cast<DataRow>()
+                .Select(row => row.Field<string>("Algorithm"))
+                .ToList();
+        }
+
+        public static List<FlotSeries> GetFlotInfo(int eventID)
+        {
+            using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
+            using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
+            {
+                EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
+                MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
+                FaultLocationInfoDataContext faultInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
+
+                MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
+
+                if ((object)eventRow == null)
+                    return new List<FlotSeries>();
+
+                List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
+
+                var lookup = waveformInfo
+                    .Where(info => info.Channel.MeasurementCharacteristic.Name == "Instantaneous")
+                    .Where(info => new string[] { "Instantaneous", "Values" }.Contains(info.SeriesType.Name))
+                    .Select(info => new { MeasurementType = info.Channel.MeasurementType.Name, Phase = info.Channel.Phase.Name })
+                    .Distinct()
+                    .ToDictionary(info => info);
+
+                IEnumerable<FlotSeries> cycleDataInfo = CycleDataInfo
+                    .Where(info => lookup.ContainsKey(new { info.MeasurementType, info.Phase }))
+                    .Select(info => info.Clone());
+
+                return GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID)
+                    .Select(ToFlotSeries)
+                    .Concat(cycleDataInfo)
+                    .Concat(GetFaultCurveInfo(connection, eventID).Select(ToFlotSeries))
+                    .ToList();
+            }
+        }
+
+        private static FlotSeries ToFlotSeries(Series series)
+        {
+            return new FlotSeries()
+            {
+                FlotType = FlotSeriesType.Waveform,
+                SeriesID = series.ID,
+                ChannelName = series.Channel.Name,
+                ChannelDescription = series.Channel.Description,
+                MeasurementType = series.Channel.MeasurementType.Name,
+                MeasurementCharacteristic = series.Channel.MeasurementCharacteristic.Name,
+                Phase = series.Channel.Phase.Name,
+                SeriesType = series.SeriesType.Name
+            };
+        }
+
+        private static FlotSeries ToFlotSeries(string faultLocationAlgorithm)
+        {
+            return new FlotSeries()
+            {
+                FlotType = FlotSeriesType.Fault,
+                ChannelName = faultLocationAlgorithm,
+                ChannelDescription = faultLocationAlgorithm,
+                MeasurementType = "Distance",
+                MeasurementCharacteristic = "FaultDistance",
+                Phase = "None",
+                SeriesType = "Values"
+            };
+        }
+
+        #endregion
+
+
 
 
     }
