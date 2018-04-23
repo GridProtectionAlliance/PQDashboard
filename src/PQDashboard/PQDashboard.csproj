@@ -404,14 +404,6 @@
     <Content Include="Images\ConfigImages\qmark.png" />
     <Content Include="Images\ConfigImages\tools.png" />
     <Content Include="Images\PQI.png" />
-    <Content Include="OpenSEE.aspx.cs">
-      <DependentUpon>OpenSEE.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
-    <Content Include="OpenSTE.aspx.cs">
-      <DependentUpon>OpenSTE.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
@@ -521,8 +513,6 @@
     <Content Include="Images\TVAcompanylogo.jpg" />
     <Content Include="Images\yesterdaymockup.png" />
     <Content Include="mapService.asmx" />
-    <Content Include="OpenSEE.aspx" />
-    <Content Include="OpenSTE.aspx" />
     <Content Include="favicon.ico" />
     <Content Include="PQIByEvent.aspx" />
     <Content Include="Scripts\bootstrap-3.3.2.min.js" />

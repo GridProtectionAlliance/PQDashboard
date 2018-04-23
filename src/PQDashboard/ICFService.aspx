@@ -1,6 +1,4 @@
 <%@ Page Language="C#" AutoEventWireup="true" CodeFile="ICFService.aspx.cs" Inherits="ICFDetails" %>
-<%@ Import Namespace="System.Activities.Statements" %>
-<%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>
 

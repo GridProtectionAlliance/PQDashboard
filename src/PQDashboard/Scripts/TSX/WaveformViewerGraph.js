@@ -134,8 +134,8 @@ var WaveformViewerGraph = (function (_super) {
             _this.setState({ dataSet: data });
             _this.openSEEService.getVoltageFrequencyData(state).then(function (d2) {
                 legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
-                _this.createDataRows(data.Data.concat(d2.Data), legend);
                 data.Data = data.Data.concat(d2.Data);
+                _this.createDataRows(data, legend);
                 _this.setState({ dataSet: data });
             });
         });
@@ -185,9 +185,18 @@ var WaveformViewerGraph = (function (_super) {
         $("#" + this.state.type).off("plothover");
     };
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
+        var ctrl = this;
         var legend = [];
+        data.sort(function (a, b) {
+            var keyA = a.ChartLabel, keyB = b.ChartLabel;
+            if (keyA < keyB)
+                return -1;
+            if (keyA > keyB)
+                return 1;
+            return 0;
+        });
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0, 3)], enabled: true });
+            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0, 3)], enabled: (ctrl.state.type == "F" || key.ChartLabel == key.ChartLabel.substring(0, 3)) });
         });
         this.setState({ legendRows: legend });
         return legend;

@@ -163,8 +163,9 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.setState({ dataSet: data });
             this.openSEEService.getVoltageFrequencyData(state).then(d2 => {
                 legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
-                this.createDataRows(data.Data.concat(d2.Data), legend);
                 data.Data = data.Data.concat(d2.Data);
+
+                this.createDataRows(data, legend);
                 this.setState({ dataSet: data });
             })
         });
@@ -227,9 +228,19 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
     createLegendRows(data) {
+        var ctrl = this;
+
         var legend = [];
+        data.sort((a, b) => {
+            var keyA = a.ChartLabel,
+                keyB = b.ChartLabel;
+            // Compare the 2 dates
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0,3)], enabled: true });
+            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0,3)], enabled: (ctrl.state.type == "F" || key.ChartLabel == key.ChartLabel.substring(0,3)) });
         });
 
         this.setState({ legendRows: legend });

@@ -1,5 +1,4 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="PQI.aspx.cs" Inherits="PQI" %>
-<%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>
 

@@ -10,12 +10,9 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using FaultData.Database;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
 
-public partial class ICFDetails: System.Web.UI.Page
+public partial class ICFDetails: Page
 {
 
     public Dictionary<string, string> thedata = new Dictionary<string,string>();

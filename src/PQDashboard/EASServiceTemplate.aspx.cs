@@ -1,21 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
-using System.Data;
 using System.Data.SqlClient;
-using System.EnterpriseServices;
-using System.Globalization;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.HtmlControls;
-using System.Web.UI.WebControls;
-using FaultData.Database;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
-using GSF.Data.Model;
 
 public partial class EASDetails: System.Web.UI.Page
 {
@@ -61,7 +47,6 @@ public partial class EASDetails: System.Web.UI.Page
                             {
                                 thedata.Add(Tuple.Create(rdr.GetName(i), rdr[i].ToString()));
                             }
-                            //thedata.Add(rdr["Name"].ToString(), rdr["Value"].ToString());
                         }
                     }
                 }

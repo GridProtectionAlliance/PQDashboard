@@ -4,16 +4,11 @@ using System.Data;
 using System.Data.Linq;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Web;
 using FaultData.DataAnalysis;
-using FaultData.Database;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
 using GSF.Data;
 using GSF.Data.Model;
-using Meter = openXDA.Model.Meter;
-
+using openXDA.Model;
 namespace PQDashboard
 {
     public class SignalCode
@@ -108,32 +103,31 @@ namespace PQDashboard
         {
             List<FlotSeries> flotSeriesList = new List<FlotSeries>();
 
-            using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
-            using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
+            using (AdoDataConnection connection = CreateDbConnection())
             {
-                EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
-                EventDataTableAdapter eventDataAdapter = dbAdapterContainer.GetAdapter<EventDataTableAdapter>();
-                FaultCurveTableAdapter faultCurveAdapter = dbAdapterContainer.GetAdapter<FaultCurveTableAdapter>();
-                FaultLocationInfoDataContext faultLocationInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
+                TableOperations<Meter> meterTable = new TableOperations<Meter>(connection);
+                TableOperations<Event> eventTable = new TableOperations<Event>(connection);
+                TableOperations<FaultCurve> faultCurveTable = new TableOperations<FaultCurve>(connection);
 
-                MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
-                Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", eventRow.MeterID);
-                meter.ConnectionFactory = () => new AdoDataConnection(connection.Connection, typeof(SqlDataAdapter), false);
+                Event evt = eventTable.QueryRecordWhere("ID = {0}", eventID);
+                Meter meter = meterTable.QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection(connection.Connection, connection.AdapterType, false);
 
                 List<FlotSeries> flotInfo = GetFlotInfo(eventID);
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, eventDataAdapter.GetTimeDomainData(eventRow.EventDataID)));
+                byte[] timeDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = {0}", evt.EventDataID);
 
-                Dictionary<int, DataSeries> waveformData = dataGroup.Value.DataSeries
-                        .ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
+                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, timeDomainData));
+                Dictionary<int, DataSeries> waveformData = dataGroup.Value.DataSeries.ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
+
 
                 Lazy<DataGroup> cycleData = new Lazy<DataGroup>(() => (Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup.Value), SystemFrequency).ToDataGroup()));
 
                 Lazy<Dictionary<string, DataSeries>> faultCurveData = new Lazy<Dictionary<string, DataSeries>>(() =>
                 {
-                    return faultCurveAdapter
-                        .GetDataBy(eventRow.ID)
+                    return faultCurveTable
+                        .QueryRecordsWhere("EventID = {0}", evt.ID)
                         .Select(faultCurve => new
                         {
                             Algorithm = faultCurve.Algorithm,
@@ -201,48 +195,10 @@ namespace PQDashboard
             dataGroup.FromData(meter, data);
             return dataGroup;
         }
+
         public AdoDataConnection AdoDataConnectionFactory()
         {
             return new AdoDataConnection("SystemSettings");
-        }
-        /// <summary>
-        /// FetchFaultSegmentDetails
-        /// </summary>
-        /// <param name="EventInstanceID"></param>
-        /// <param name="theset"></param>
-        /// <returns></returns>
-        private eventSet FetchFaultSegmentDetails(string EventInstanceID, eventSet theset)
-        {
-            List<faultSegmentDetail> thedetails = new List<faultSegmentDetail>();
-            FaultLocationData.FaultSegmentDataTable segments;
-
-            theset.detail = thedetails;
-
-            using (FaultSegmentTableAdapter faultSegmentTableAdapter = new FaultSegmentTableAdapter())
-            {
-                faultSegmentTableAdapter.Connection.ConnectionString = ConnectionString;
-
-                segments = faultSegmentTableAdapter.GetDataBy(Convert.ToInt32(EventInstanceID));
-
-                foreach (FaultLocationData.FaultSegmentRow seg in segments)
-                {
-                    faultSegmentDetail thedetail = new faultSegmentDetail();
-
-                    thedetail.type = "Start";
-                    thedetail.StartSample = seg.StartSample;
-                    thedetail.EndSample = seg.StartSample + 8;
-                    thedetails.Add(thedetail);
-
-                    faultSegmentDetail thedetail2 = new faultSegmentDetail();
-
-                    thedetail2.type = "End";
-                    thedetail2.StartSample = seg.EndSample - 8;
-                    thedetail2.EndSample = seg.EndSample;
-                    thedetails.Add(thedetail2);
-                }
-            }
-
-            return (theset);
         }
 
         public eventSet getSignalDataByID(string EventInstanceID)
@@ -260,109 +216,98 @@ namespace PQDashboard
         {
             eventSet theset = new eventSet();
             theset.data = new List<signalDetail>();
-            MeterData.EventDataTable events;
             DataGroup eventDataGroup = new DataGroup();
-            using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
-            using (EventTableAdapter eventAdapter = new EventTableAdapter())
-            using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
             using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
-                eventAdapter.Connection.ConnectionString = ConnectionString;
-                eventDataAdapter.Connection.ConnectionString = ConnectionString;
-
-                events = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID));
+                Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
+                Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
+                EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
                 theset.Yaxis0name = "Voltage";
                 theset.Yaxis1name = "Current";
 
-                foreach (MeterData.EventRow evt in events)
+
+                //eventDataAdapter.GetTimeDomainData(evt.EventDataID);
+
+                eventDataGroup.FromData(meter, eventData.TimeDomainData);
+
+                int i = 0;
+
+                foreach (DataSeries theseries in eventDataGroup.DataSeries)
                 {
-                    Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    int datacount = eventDataGroup.DataSeries[i].DataPoints.Count();
+                    theset.xAxis = new string[datacount];
 
-                    FaultData.Database.Line line = meterInfo.Lines.Single(l => l.ID == evt.LineID);
+                    signalDetail theitem = new signalDetail();
 
-                    //eventDataAdapter.GetTimeDomainData(evt.EventDataID);
+                    string measurementType = "I"; // Assume Current, sorry this is ugly
 
-                    eventDataGroup.FromData(meter, eventDataAdapter.GetTimeDomainData(evt.EventDataID));
-
-                    int i = 0;
-
-                    foreach (DataSeries theseries in eventDataGroup.DataSeries)
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Voltage"))
                     {
-                        int datacount = eventDataGroup.DataSeries[i].DataPoints.Count();
-                        theset.xAxis = new string[datacount];
-
-                        signalDetail theitem = new signalDetail();
-
-                        string measurementType = "I"; // Assume Current, sorry this is ugly
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Voltage"))
-                        {
-                            measurementType = "V";
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Power"))
-                        {
-                            measurementType = "P";
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Energy"))
-                        {
-                            measurementType = "E";
-                        }
-
-                        if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Min") continue;
-                        if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Max") continue;
-
-                        //theitem.name = theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) + " " + measurementType + theseries.SeriesInfo.Channel.Phase.Name;
-                        theitem.name = measurementType + theseries.SeriesInfo.Channel.Phase.Name;
-                        theitem.data = new double[datacount];
-                        theitem.type = "line";
-                        theitem.yAxis = 0;
-
-                        if (theitem.name.Contains("Angle"))
-                        {
-                            theitem.showInTooltip = false;
-                            theitem.visible = false;
-                            theitem.showInLegend = false;
-                        }
-
-                        if (theitem.name.Contains("RMS"))
-                        {
-                            theitem.showInTooltip = false;
-                            theitem.visible = false;
-                        }
-
-                        if (theitem.name.Contains("RES"))
-                        {
-                            theitem.showInTooltip = false;
-                            theitem.visible = false;
-                        }
-
-                        if (theitem.name.Contains("Peak"))
-                        {
-                            theitem.showInTooltip = false;
-                            theitem.visible = false;
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Current"))
-                        {
-                            theitem.yAxis = 1;
-                        }
-
-                        int j = 0;
-                        DateTime beginticks = eventDataGroup.DataSeries[i].DataPoints[0].Time;
-                        foreach (FaultData.DataAnalysis.DataPoint thepoint in eventDataGroup.DataSeries[i].DataPoints)
-                        {
-                            double elapsed = thepoint.Time.Subtract(beginticks).TotalSeconds;
-                            theset.xAxis[j] = elapsed.ToString();
-                            theitem.data[j] = thepoint.Value;
-                            j++;
-                        }
-                        i++;
-
-                        theset.data.Add(theitem);
+                        measurementType = "V";
                     }
-                    break;
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Power"))
+                    {
+                        measurementType = "P";
+                    }
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Energy"))
+                    {
+                        measurementType = "E";
+                    }
+
+                    if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Min") continue;
+                    if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Max") continue;
+
+                    //theitem.name = theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) + " " + measurementType + theseries.SeriesInfo.Channel.Phase.Name;
+                    theitem.name = measurementType + theseries.SeriesInfo.Channel.Phase.Name;
+                    theitem.data = new double[datacount];
+                    theitem.type = "line";
+                    theitem.yAxis = 0;
+
+                    if (theitem.name.Contains("Angle"))
+                    {
+                        theitem.showInTooltip = false;
+                        theitem.visible = false;
+                        theitem.showInLegend = false;
+                    }
+
+                    if (theitem.name.Contains("RMS"))
+                    {
+                        theitem.showInTooltip = false;
+                        theitem.visible = false;
+                    }
+
+                    if (theitem.name.Contains("RES"))
+                    {
+                        theitem.showInTooltip = false;
+                        theitem.visible = false;
+                    }
+
+                    if (theitem.name.Contains("Peak"))
+                    {
+                        theitem.showInTooltip = false;
+                        theitem.visible = false;
+                    }
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Current"))
+                    {
+                        theitem.yAxis = 1;
+                    }
+
+                    int j = 0;
+                    DateTime beginticks = eventDataGroup.DataSeries[i].DataPoints[0].Time;
+                    foreach (DataPoint thepoint in eventDataGroup.DataSeries[i].DataPoints)
+                    {
+                        double elapsed = thepoint.Time.Subtract(beginticks).TotalSeconds;
+                        theset.xAxis[j] = elapsed.ToString();
+                        theitem.data[j] = thepoint.Value;
+                        j++;
+                    }
+                    i++;
+
+                    theset.data.Add(theitem);
                 }
             }
             return (theset);
@@ -372,114 +317,101 @@ namespace PQDashboard
         {
             eventSet theset = new eventSet();
             theset.data = new List<signalDetail>();
-            MeterData.EventDataTable events;
             DataGroup eventDataGroup = new DataGroup();
-            using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
-            using (EventTableAdapter eventAdapter = new EventTableAdapter())
-            using (EventDataTableAdapter eventDataAdapter = new EventDataTableAdapter())
             using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
-                eventAdapter.Connection.ConnectionString = ConnectionString;
-                eventDataAdapter.Connection.ConnectionString = ConnectionString;
+                Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
+                Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
+                EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
 
-                events = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID));
 
-                foreach (MeterData.EventRow evt in events)
+                eventDataGroup.FromData(meter, eventData.TimeDomainData);
+
+                int i = -1;
+
+                int datacount = eventDataGroup.DataSeries[0].DataPoints.Count();
+                theset.xAxis = new string[datacount];
+
+                foreach (DataSeries theseries in eventDataGroup.DataSeries)
                 {
-                    Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    i++;
 
-                    FaultData.Database.Line line = meterInfo.Lines.Single(l => l.ID == evt.LineID);
 
-                    eventDataGroup.FromData(meter, eventDataAdapter.GetTimeDomainData(evt.EventDataID));
+                    signalDetail theitem = new signalDetail();
 
-                    //eventDataGroup.FromData(meter, evt.Data);
+                    string measurementType = "I"; // Assume Current, sorry this is ugly
+                    string phasename = theseries.SeriesInfo.Channel.Phase.Name;
 
-                    int i = -1;
-
-                    int datacount = eventDataGroup.DataSeries[0].DataPoints.Count();
-                    theset.xAxis = new string[datacount];
-
-                    foreach (DataSeries theseries in eventDataGroup.DataSeries)
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Voltage"))
                     {
-                        i++;
-
-
-                        signalDetail theitem = new signalDetail();
-
-                        string measurementType = "I"; // Assume Current, sorry this is ugly
-                        string phasename = theseries.SeriesInfo.Channel.Phase.Name;
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Voltage"))
-                        {
-                            measurementType = "V";
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Power"))
-                        {
-                            measurementType = "P";
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Energy"))
-                        {
-                            measurementType = "E";
-                        }
-
-                        if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Digital"))
-                        {
-                            if (theseries.SeriesInfo.Channel.MeasurementCharacteristic.Name == "None")
-                                continue;
-
-                            measurementType = "D";
-                            phasename = theseries.SeriesInfo.Channel.Description;
-                        }
-
-                        if (DataType != null)
-                        {
-                            if (measurementType != DataType)
-                            {
-                                continue;
-                            }
-                        }
-
-                        if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Min") continue;
-                        if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Max") continue;
-
-                        theset.Yaxis0name = "Current";
-
-                        if (measurementType == "V")
-                        {
-                            theset.Yaxis0name = "Voltage";
-                        }
-
-                        if (measurementType == "D")
-                        {
-                            theset.Yaxis0name = "Breakers";
-                        }
-
-                        //theitem.name = theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) + " " + measurementType + theseries.SeriesInfo.Channel.Phase.Name;
-                        theitem.name = measurementType + phasename;
-                        theitem.data = new double[datacount];
-                        theitem.type = "line";
-                        theitem.yAxis = 0;
-
-                        if (theitem.name.Contains("IRES"))
-                        {
-                            theitem.showInTooltip = false;
-                            theitem.visible = false;
-                        }
-
-                        int j = 0;
-                        DateTime beginticks = eventDataGroup.DataSeries[i].DataPoints[0].Time;
-                        foreach (FaultData.DataAnalysis.DataPoint thepoint in eventDataGroup.DataSeries[i].DataPoints)
-                        {
-                            double elapsed = thepoint.Time.Subtract(beginticks).TotalSeconds;
-                            theset.xAxis[j] = elapsed.ToString();
-                            theitem.data[j] = thepoint.Value;
-                            j++;
-                        }
-                        theset.data.Add(theitem);
+                        measurementType = "V";
                     }
-                    break;
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Power"))
+                    {
+                        measurementType = "P";
+                    }
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Energy"))
+                    {
+                        measurementType = "E";
+                    }
+
+                    if (theseries.SeriesInfo.Channel.MeasurementType.Name.Equals("Digital"))
+                    {
+                        if (theseries.SeriesInfo.Channel.MeasurementCharacteristic.Name == "None")
+                            continue;
+
+                        measurementType = "D";
+                        phasename = theseries.SeriesInfo.Channel.Description;
+                    }
+
+                    if (DataType != null)
+                    {
+                        if (measurementType != DataType)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Min") continue;
+                    if (theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) == "Max") continue;
+
+                    theset.Yaxis0name = "Current";
+
+                    if (measurementType == "V")
+                    {
+                        theset.Yaxis0name = "Voltage";
+                    }
+
+                    if (measurementType == "D")
+                    {
+                        theset.Yaxis0name = "Breakers";
+                    }
+
+                    //theitem.name = theseries.SeriesInfo.SeriesType.Name.Substring(0, 3) + " " + measurementType + theseries.SeriesInfo.Channel.Phase.Name;
+                    theitem.name = measurementType + phasename;
+                    theitem.data = new double[datacount];
+                    theitem.type = "line";
+                    theitem.yAxis = 0;
+
+                    if (theitem.name.Contains("IRES"))
+                    {
+                        theitem.showInTooltip = false;
+                        theitem.visible = false;
+                    }
+
+                    int j = 0;
+                    DateTime beginticks = eventDataGroup.DataSeries[i].DataPoints[0].Time;
+                    foreach (FaultData.DataAnalysis.DataPoint thepoint in eventDataGroup.DataSeries[i].DataPoints)
+                    {
+                        double elapsed = thepoint.Time.Subtract(beginticks).TotalSeconds;
+                        theset.xAxis[j] = elapsed.ToString();
+                        theitem.data[j] = thepoint.Value;
+                        j++;
+                    }
+                    theset.data.Add(theitem);
                 }
             }
 
@@ -501,39 +433,31 @@ namespace PQDashboard
 
             DataGroup eventDataGroup = new DataGroup();
             List<DataSeries> faultCurves;
-            List<FaultLocationData.FaultCurveRow> FaultCurves;
+            List<FaultCurve> FaultCurves;
 
-            using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
-            using (FaultSummaryTableAdapter summaryInfo = new FaultSummaryTableAdapter())
-            using (EventTableAdapter eventAdapter = new EventTableAdapter())
-            using (FaultCurveTableAdapter faultCurveAdapter = new FaultCurveTableAdapter())
             using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
-                faultCurveAdapter.Connection.ConnectionString = ConnectionString;
-                eventAdapter.Connection.ConnectionString = ConnectionString;
-                summaryInfo.Connection.ConnectionString = ConnectionString;
-
                 theset.Yaxis0name = "Miles";
                 theset.Yaxis1name = "";
 
-                MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID)).First();
-                Meter themeter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", theevent.MeterID);
-                Line theline = meterInfo.Lines.Single(l => theevent.LineID == l.ID);
-
-                FaultLocationData.FaultSummaryRow thesummary = (FaultLocationData.FaultSummaryRow)summaryInfo.GetDataBy(Convert.ToInt32(EventInstanceID)).Select("IsSelectedAlgorithm = 1").FirstOrDefault();
+                Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
+                Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
+                EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
+                FaultSummary thesummary = (new TableOperations<FaultSummary>(connection)).QueryRecordWhere("EventID = {0} AND IsSelectedAlgorithm = 1", Convert.ToInt32(EventInstanceID));
 
                 if ((object)thesummary == null)
                     return theset;
 
-                FaultCurves = faultCurveAdapter.GetDataBy(Convert.ToInt32(EventInstanceID)).ToList();
+                FaultCurves = (new TableOperations<FaultCurve>(connection)).QueryRecordsWhere("EventID = {0]", Convert.ToInt32(EventInstanceID)).ToList();
 
-                if (FaultCurves.Count == 0) return (theset);
+                if (!FaultCurves.Any()) return (theset);
 
                 faultCurves = FaultCurves.Select(ToDataSeries).ToList();
 
                 foreach (DataSeries faultCurve in faultCurves)
                 {
-                    FixFaultCurve(faultCurve, theline);
+                    FixFaultCurve(faultCurve, line);
                 }
 
                 double CyclesPerSecond = thesummary.DurationCycles / thesummary.DurationSeconds;
@@ -597,7 +521,7 @@ namespace PQDashboard
         /// </summary>
         /// <param name="faultCurve"></param>
         /// <returns></returns>
-        private DataSeries ToDataSeries(FaultLocationData.FaultCurveRow faultCurve)
+        private DataSeries ToDataSeries(FaultCurve faultCurve)
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(faultCurve.Data);
@@ -607,12 +531,12 @@ namespace PQDashboard
         /// <summary>
         /// ToDataSeries
         /// </summary>
-        /// <param name="faultCurve"></param>
+        /// <param name="eventData"></param>
         /// <returns></returns>
-        private DataGroup ToDataSeries(MeterData.EventDataRow faultCurve)
+        private DataGroup ToDataSeries(EventData eventData)
         {
             DataGroup dataGroup = new DataGroup();
-            dataGroup.FromData(faultCurve.FrequencyDomainData);
+            dataGroup.FromData(eventData.FrequencyDomainData);
             return dataGroup;
         }
 
@@ -650,27 +574,21 @@ namespace PQDashboard
         {
             DataGroup eventDataGroup = new DataGroup();
             List<DataGroup> cycleCurves;
-            List<MeterData.EventDataRow> cycleDataRows;
+            List<EventData> cycleDataRows;
 
             if (MeasurementName != "Voltage" && MeasurementName != "Current")
                 return theset;
 
-            using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(ConnectionString))
-            using (EventTableAdapter eventAdapter = new EventTableAdapter())
-            using (EventDataTableAdapter cycleDataAdapter = new EventDataTableAdapter())
             using (AdoDataConnection connection = new AdoDataConnection("SystemSettings"))
             {
-                cycleDataAdapter.Connection.ConnectionString = ConnectionString;
-                eventAdapter.Connection.ConnectionString = ConnectionString;
-
                 theset.Yaxis0name = MeasurementName;
                 theset.Yaxis1name = "";
 
-                MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(EventInstanceID)).First();
+                Event theevent = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
                 Meter themeter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", theevent.MeterID);
-                Line theline = meterInfo.Lines.Single(l => theevent.LineID == l.ID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", theevent.LineID);
 
-                cycleDataRows = cycleDataAdapter.GetDataBy(Convert.ToInt32(EventInstanceID)).ToList();
+                cycleDataRows = (new TableOperations<EventData>(connection)).QueryRecordsWhere("ID = {0}", theevent.EventData.ID).ToList();
                 cycleCurves = cycleDataRows.Select(ToDataSeries).ToList();
 
                 //RMS, Phase angle, Peak, and Error
@@ -809,14 +727,20 @@ namespace PQDashboard
             }
         }
 
-        private static List<Series> GetWaveformInfo(Table<Series> seriesTable, int meterID, int lineID)
+        private static List<Series> GetWaveformInfo(AdoDataConnection connection, int meterID, int lineID)
         {
-            return seriesTable
-                .Where(series => series.Channel.MeterID == meterID)
-                .Where(series => series.Channel.LineID == lineID)
-                .OrderBy(series => series.ID)
+            TableOperations<Series> seriesTable = new TableOperations<Series>(connection);
+
+            List<Series> seriesList = seriesTable
+                .QueryRecords("ID", new RecordRestriction("ChannelID IN (SELECT ID FROM Channel WHERE MeterID = {0} AND LineID = {1})", meterID, lineID))
                 .ToList();
+
+            foreach (Series series in seriesList)
+                series.ConnectionFactory = () => new AdoDataConnection(connection.Connection, typeof(SqlDataAdapter), false);
+
+            return seriesList;
         }
+
 
         private static List<string> GetFaultCurveInfo(AdoDataConnection connection, int eventID)
         {
@@ -836,19 +760,16 @@ namespace PQDashboard
 
         public static List<FlotSeries> GetFlotInfo(int eventID)
         {
-            using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(ConnectionString))
-            using (AdoDataConnection connection = new AdoDataConnection(dbAdapterContainer.Connection, typeof(SqlDataAdapter), false))
+            using (AdoDataConnection connection = CreateDbConnection())
             {
-                EventTableAdapter eventAdapter = dbAdapterContainer.GetAdapter<EventTableAdapter>();
-                MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
-                FaultLocationInfoDataContext faultInfo = dbAdapterContainer.GetAdapter<FaultLocationInfoDataContext>();
+                TableOperations<Event> eventTable = new TableOperations<Event>(connection);
 
-                MeterData.EventRow eventRow = eventAdapter.GetDataByID(eventID).FirstOrDefault();
+                Event evt = eventTable.QueryRecordWhere("ID = {0}", eventID);
 
-                if ((object)eventRow == null)
+                if ((object)evt == null)
                     return new List<FlotSeries>();
 
-                List<Series> waveformInfo = GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID);
+                List<Series> waveformInfo = GetWaveformInfo(connection, evt.MeterID, evt.LineID);
 
                 var lookup = waveformInfo
                     .Where(info => info.Channel.MeasurementCharacteristic.Name == "Instantaneous")
@@ -861,7 +782,7 @@ namespace PQDashboard
                     .Where(info => lookup.ContainsKey(new { info.MeasurementType, info.Phase }))
                     .Select(info => info.Clone());
 
-                return GetWaveformInfo(meterInfo.Series, eventRow.MeterID, eventRow.LineID)
+                return waveformInfo
                     .Select(ToFlotSeries)
                     .Concat(cycleDataInfo)
                     .Concat(GetFaultCurveInfo(connection, eventID).Select(ToFlotSeries))
@@ -896,6 +817,11 @@ namespace PQDashboard
                 Phase = "None",
                 SeriesType = "Values"
             };
+        }
+
+        private static AdoDataConnection CreateDbConnection()
+        {
+            return new AdoDataConnection(ConnectionString, typeof(SqlConnection), typeof(SqlDataAdapter));
         }
 
         #endregion
