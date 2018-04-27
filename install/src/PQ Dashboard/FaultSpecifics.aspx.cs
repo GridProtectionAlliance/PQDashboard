@@ -1,15 +1,14 @@
 using System;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
-using FaultData.Database;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
-
-public partial class FaultSpecifics : System.Web.UI.Page
+using GSF.Data;
+using GSF.Data.Model;
+using System.Web.UI;
+using openXDA.Model;
+public partial class FaultSpecifics : Page
 {
     public string postedFaultType = "";
     public string postedDeltaTime = "";
@@ -39,24 +38,12 @@ public partial class FaultSpecifics : System.Web.UI.Page
             {
                 postedEventId = Request["eventId"];
 
-                using (EventTypeTableAdapter eventTypeAdapter = new EventTypeTableAdapter())
-                using (EventTableAdapter eventAdapter = new EventTableAdapter())
-                using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
-                using (FaultSummaryTableAdapter summaryInfo = new FaultSummaryTableAdapter())
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     try
                     {
-                        eventAdapter.Connection.ConnectionString = connectionstring;
-                        eventTypeAdapter.Connection.ConnectionString = connectionstring;
-                        summaryInfo.Connection.ConnectionString = connectionstring;
-                        MeterData.EventRow theevent = eventAdapter.GetDataByID(Convert.ToInt32(postedEventId)).First();
-                        FaultLocationData.FaultSummaryDataTable thesummarydatatable = summaryInfo.GetDataBy(Convert.ToInt32(postedEventId));
-
-                        FaultLocationData.FaultSummaryRow thesummary = thesummarydatatable
-                            .OrderBy(row => row.IsSuppressed)
-                            .ThenByDescending(row => row.IsSelectedAlgorithm)
-                            .ThenBy(row => row.Inception)
-                            .FirstOrDefault();
+                        Event theevent = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(postedEventId));
+                        FaultSummary thesummary = (new TableOperations<FaultSummary>(connection)).QueryRecordWhere("EventID = {0} AND IsSelectedAlgorithm = 1", Convert.ToInt32(postedEventId));
 
                         if ((object)thesummary == null)
                         {
@@ -80,12 +67,8 @@ public partial class FaultSpecifics : System.Web.UI.Page
                         postedSingleEndedDistance = thesummary.Distance.ToString("####.###", CultureInfo.InvariantCulture) + " miles";
                         double deltatime = (thesummary.Inception - theevent.StartTime).Ticks / 10000000.0;
                         postedDeltaTime = deltatime.ToString();
-
                         postedStartTime = theevent.StartTime.TimeOfDay.ToString();
-
-                        Meter themeter = meterInfo.Meters.Single(m => m.ID == theevent.MeterID);
-
-                        postedMeterName = themeter.Name + " - " + themeter.AssetKey;
+                        postedMeterName = connection.ExecuteScalar<string>("SELECT Name From Meter WHERE ID = {0}", theevent.MeterID);
                         postedMeterId = theevent.MeterID.ToString();
 
                         conn = new SqlConnection(connectionstring);

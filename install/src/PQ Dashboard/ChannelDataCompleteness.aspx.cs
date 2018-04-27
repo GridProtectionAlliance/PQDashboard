@@ -9,11 +9,10 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using FaultData.Database;
-using FaultData.Database.DataQualityTableAdapters;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
 using GSF.Configuration;
+using GSF.Data;
+using GSF.Data.Model;
+using openXDA.Model;
 
 public partial class ChannelDataCompleteness : System.Web.UI.Page
 {
@@ -21,8 +20,6 @@ public partial class ChannelDataCompleteness : System.Web.UI.Page
     public String postedMeterId = "";
     public String postedMeterName = "";
     public String postedEventId = "";
-
-    String connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -32,18 +29,16 @@ public partial class ChannelDataCompleteness : System.Web.UI.Page
             {
                 postedEventId = Request["eventId"];
 
-                using(MeterDataQualitySummaryTableAdapter meterdataqualityAdapter = new DbAdapterContainer(connectionstring).GetAdapter<MeterDataQualitySummaryTableAdapter>())
-                using (MeterInfoDataContext meterInfo = new MeterInfoDataContext(connectionstring))
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     try
                     {
 
-                        DataQuality.MeterDataQualitySummaryRow theevent = meterdataqualityAdapter.GetDataByID(Convert.ToInt32(postedEventId)).First();
-                        Meter themeter = meterInfo.Meters.Single(m => m.ID == theevent.MeterID);
+                        MeterDataQualitySummary theevent = (new TableOperations<MeterDataQualitySummary>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(postedEventId));
 
                         postedDate = theevent.Date.ToShortDateString();
                         postedMeterId = theevent.MeterID.ToString();
-                        postedMeterName = themeter.Name;
+                        postedMeterName = connection.ExecuteScalar<string>("SELECT Name From Meter WHERE ID = {0}", theevent.MeterID);
                     }
 
                     catch (Exception ex)

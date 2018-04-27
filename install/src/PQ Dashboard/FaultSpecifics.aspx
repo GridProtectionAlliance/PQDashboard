@@ -1,5 +1,4 @@
 <%@ Page Language="C#" AutoEventWireup="true" CodeFile="FaultSpecifics.aspx.cs" Inherits="FaultSpecifics" %>
-<%@ Import Namespace="FaultData.DataAnalysis" %>
 
 <!DOCTYPE html>
 

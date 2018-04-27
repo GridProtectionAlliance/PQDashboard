@@ -22,11 +22,7 @@
     //*****************************************************************************************************@
 
 @using System.Data
-@using System.Net.Http
-@using System.Security.Policy
 @using GSF.Data.Model
-@using PQDashboard
-@using PQDashboard.Model
 @using System.Data;
 @using GSF.Data
 @using System.Collections.Generic;
@@ -36,12 +32,7 @@
 @using System.Linq
 @using System.Web
 @using System.Web.Script.Serialization
-@using FaultData.Database
-@using FaultData.Database.FaultLocationDataTableAdapters
-@using FaultData.Database.MeterDataTableAdapters
 @using GSF.Configuration
-@using RazorEngine.Templating
-@using GSF.Web
 @using GSF.Web.Model
 @using Newtonsoft.Json
 @using openXDA.Model
@@ -161,73 +152,55 @@
             }
         }
 
-        using (DbAdapterContainer dbAdapterContainer = new DbAdapterContainer(connectionString))
+        if (new[] { "Fault", "RecloseIntoFault" }.Contains(postedEventName))
         {
-            MeterInfoDataContext meterInfo = dbAdapterContainer.GetAdapter<MeterInfoDataContext>();
-            FaultSummaryTableAdapter summaryInfo = dbAdapterContainer.GetAdapter<FaultSummaryTableAdapter>();
-            DisturbanceTableAdapter disturbanceAdapter = dbAdapterContainer.GetAdapter<DisturbanceTableAdapter>();
-            BreakerOperationTableAdapter breakerAdapter = dbAdapterContainer.GetAdapter<BreakerOperationTableAdapter>();
+            FaultSummary thesummary = dataContext.Table<FaultSummary>().QueryRecordsWhere("EventID = {0} AND IsSelectedAlgorithm = 1", theEvent.ID).OrderBy(row => row.IsSuppressed).ThenBy(row => row.Inception).FirstOrDefault();
 
-            if (new[] { "Fault", "RecloseIntoFault" }.Contains(postedEventName))
+            if ((object)thesummary != null)
             {
-                FaultLocationData.FaultSummaryDataTable thesummarydatatable = summaryInfo.GetDataBy(Convert.ToInt32(eventID));
-
-                FaultLocationData.FaultSummaryRow thesummary = thesummarydatatable
-                    .Where(row => row.IsSelectedAlgorithm == 1)
-                    .OrderBy(row => row.IsSuppressed)
-                    .ThenBy(row => row.Inception)
-                    .FirstOrDefault();
-
-                if ((object)thesummary != null)
-                {
-                    postedStartTime = thesummary.Inception.TimeOfDay.ToString();
-                    postedPhase = thesummary.FaultType;
-                    postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
-                    postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
-                    postedCalculationCycle = thesummary.CalculationCycle.ToString();
-                }
+                postedStartTime = thesummary.Inception.TimeOfDay.ToString();
+                postedPhase = thesummary.FaultType;
+                postedDurationPeriod = thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
+                postedMagnitude = thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)";
+                postedCalculationCycle = thesummary.CalculationCycle.ToString();
             }
-            else if (new[] { "Sag", "Swell" }.Contains(postedEventName))
+        }
+        else if (new[] { "Sag", "Swell" }.Contains(postedEventName))
+        {
+            Disturbance disturbance = dataContext.Table<Disturbance>().QueryRecordsWhere("EventID = {0}", theEvent.ID).Where(row => row.EventTypeID == theEvent.EventTypeID).OrderBy(row => row.StartTime).FirstOrDefault();
+
+            if ((object)disturbance != null)
             {
-                MeterData.DisturbanceDataTable disturbanceTable = disturbanceAdapter.GetDataBy(theEvent.ID);
+                postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
+                postedPhase = dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", disturbance.PhaseID).Name;
+                postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
 
-                MeterData.DisturbanceRow disturbance = disturbanceTable
-                    .Where(row => row.EventTypeID == theEvent.EventTypeID)
-                    .OrderBy(row => row.StartTime)
-                    .FirstOrDefault();
-
-                if ((object)disturbance != null)
+                if (disturbance.PerUnitMagnitude != -1.0e308)
                 {
-                    postedStartTime = disturbance.StartTime.TimeOfDay.ToString();
-                    postedPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == disturbance.PhaseID)?.Name ?? "";
-                    postedDurationPeriod = disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles";
-
-                    if (disturbance.PerUnitMagnitude != -1.0e308)
-                    {
-                        postedMagnitude = disturbance.PerUnitMagnitude.ToString("N3", CultureInfo.InvariantCulture) + " pu (RMS)";
-                    }
-                }
-            }
-
-            if (breakerOperationID != "")
-            {
-                int id;
-
-                if (int.TryParse(breakerOperationID, out id))
-                {
-                    BreakerOperation breakerRow = dataContext.Table<BreakerOperation>().QueryRecordWhere("ID = {0}", id);
-
-                    if ((object)breakerRow != null)
-                    {
-                        postedBreakerNumber = breakerRow.BreakerNumber;
-                        postedBreakerPhase = meterInfo.Phases.FirstOrDefault(phase => phase.ID == breakerRow.PhaseID)?.Name ?? "";
-                        postedBreakerTiming = breakerRow.BreakerTiming.ToString();
-                        postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
-                        postedBreakerOperation = dbAdapterContainer.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
-                    }
+                    postedMagnitude = disturbance.PerUnitMagnitude.ToString("N3", CultureInfo.InvariantCulture) + " pu (RMS)";
                 }
             }
         }
+
+        if (breakerOperationID != "")
+        {
+            int id;
+
+            if (int.TryParse(breakerOperationID, out id))
+            {
+                BreakerOperation breakerRow = dataContext.Table<BreakerOperation>().QueryRecordWhere("ID = {0}", id);
+
+                if ((object)breakerRow != null)
+                {
+                    postedBreakerNumber = breakerRow.BreakerNumber;
+                    postedBreakerPhase = dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", breakerRow.PhaseID).Name;
+                    postedBreakerTiming = breakerRow.BreakerTiming.ToString();
+                    postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
+                    postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                }
+            }
+        }
+
     }
 }
 @helper NextBackButton(EventView evt, string id, string postedURLQueryString, string text)

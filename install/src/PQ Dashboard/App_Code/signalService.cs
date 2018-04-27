@@ -23,20 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Data;
 using System.Web.Services;
-using FaultData.DataAnalysis;
-using FaultData.Database;
-using FaultData.Database.FaultLocationDataTableAdapters;
-using FaultData.Database.MeterDataTableAdapters;
-using EventDataTableAdapter = FaultData.Database.MeterDataTableAdapters.EventDataTableAdapter;
-using System.Data.Linq;
-using System.Data.SqlClient;
 using PQDashboard;
-
-
 
 /// <summary>
 /// Summary description for WebService
@@ -47,7 +35,7 @@ using PQDashboard;
 // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
 [System.Web.Script.Services.ScriptService]
 
-public class signalService : System.Web.Services.WebService {
+public class signalService : WebService {
 
     [WebMethod]
     public List<SignalCode.FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
