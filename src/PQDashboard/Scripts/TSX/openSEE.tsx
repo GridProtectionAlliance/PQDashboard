@@ -41,11 +41,11 @@ export class OpenSEE extends React.Component<any, any>{
         var query = queryString.parse(this.history['location'].search);
         this.resizeId;
         this.state = {
-            EventId: (query['eventid'] != undefined ? query['eventid'] : 0),
+            eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
             StartDate: query['StartDate'],
             EndDate: query['EndDate'],
-            FaultCurves: Boolean(query['faultcurves']),
-            BreakerDigitals: Boolean(query['breakerdigitals']),
+            faultcurves: query['faultcurves'],
+            breakerdigitals: query['breakerdigitals'],
             Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
             Hover: 0
@@ -54,9 +54,11 @@ export class OpenSEE extends React.Component<any, any>{
         this.history['listen']((location, action) => {
             var query = queryString.parse(this.history['location'].search);
             this.setState({
-                EventID: (query['eventid'] != undefined ? query['eventid'] : 0),
+                eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
                 StartDate: query['StartDate'],
-                EndDate: query['EndDate']
+                EndDate: query['EndDate'],
+                faultcurves: query['faultcurves'],
+                breakerdigitals: query['breakerdigitals'],
             });
         });
     }
@@ -82,16 +84,27 @@ export class OpenSEE extends React.Component<any, any>{
     render() {
         return ( 
             <div className="panel-body collapse in" style={{ padding: '0' }}>
-                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
-                {(this.state.FaultCurves ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}
-                {(this.state.BreakerDigitals ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}                
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
+                {(this.state.faultcurves ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}
+                {(this.state.breakerdigitals ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}                
             </div>
         );
     }
 
     stateSetter(obj) {
-        this.setState(obj);
+        this.setState(obj, () => {
+            var prop = _.clone(this.state);
+            delete prop.Hover;
+            delete prop.Height;
+            delete prop.Width;
+
+            var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
+            var hqs = queryString.parse(this.history['location'].search);
+
+            if(!_.isEqual(qs, hqs))
+                this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
+        });
     }
 }
 

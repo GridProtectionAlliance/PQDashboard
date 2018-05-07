@@ -45573,6 +45573,7 @@ var ReactDOM = __webpack_require__(153);
 var OpenSEE_1 = __webpack_require__(16);
 var createBrowserHistory_1 = __webpack_require__(181);
 var queryString = __webpack_require__(188);
+var _ = __webpack_require__(24);
 var WaveformViewerGraph_1 = __webpack_require__(191);
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
@@ -45583,11 +45584,11 @@ var OpenSEE = (function (_super) {
         var query = queryString.parse(_this.history['location'].search);
         _this.resizeId;
         _this.state = {
-            EventId: (query['eventid'] != undefined ? query['eventid'] : 0),
+            eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
             StartDate: query['StartDate'],
             EndDate: query['EndDate'],
-            FaultCurves: Boolean(query['faultcurves']),
-            BreakerDigitals: Boolean(query['breakerdigitals']),
+            faultcurves: query['faultcurves'],
+            breakerdigitals: query['breakerdigitals'],
             Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
             Hover: 0
@@ -45595,9 +45596,11 @@ var OpenSEE = (function (_super) {
         _this.history['listen'](function (location, action) {
             var query = queryString.parse(_this.history['location'].search);
             _this.setState({
-                EventID: (query['eventid'] != undefined ? query['eventid'] : 0),
+                eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
                 StartDate: query['StartDate'],
-                EndDate: query['EndDate']
+                EndDate: query['EndDate'],
+                faultcurves: query['faultcurves'],
+                breakerdigitals: query['breakerdigitals'],
             });
         });
         return _this;
@@ -45620,13 +45623,23 @@ var OpenSEE = (function (_super) {
     };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
-            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : ''),
-            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : '')));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
+            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : ''),
+            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
-        this.setState(obj);
+        var _this = this;
+        this.setState(obj, function () {
+            var prop = _.clone(_this.state);
+            delete prop.Hover;
+            delete prop.Height;
+            delete prop.Width;
+            var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
+            var hqs = queryString.parse(_this.history['location'].search);
+            if (!_.isEqual(qs, hqs))
+                _this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
+        });
     };
     return OpenSEE;
 }(React.Component));
@@ -66399,7 +66412,7 @@ var WaveformViewerGraph = (function (_super) {
             this.getData(nextProps);
         }
         else if (this.props.hover != nextProps.hover) {
-            this.plot.setCrosshair(nextProps.hover);
+            this.plot.setCrosshair({ x: nextProps.hover });
         }
     };
     WaveformViewerGraph.prototype.componentDidMount = function () {
@@ -66428,14 +66441,14 @@ var WaveformViewerGraph = (function (_super) {
         return legend;
     };
     WaveformViewerGraph.prototype.createDataRows = function (data, legend) {
-        var startString = this.state.StartDate;
-        var endString = this.state.EndDate;
-        if (this.state.StartDate == null) {
-            this.setState({ StartDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        var startString = this.state.startDate;
+        var endString = this.state.endDate;
+        if (this.state.startDate == null) {
+            this.setState({ startDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
-        if (this.state.EndDate == null) {
-            this.setState({ EndDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        if (this.state.endDate == null) {
+            this.setState({ endDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
@@ -66457,7 +66470,7 @@ var WaveformViewerGraph = (function (_super) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
-            var xcenter = ctrl.xaxisHover;
+            var xcenter = ctrl.state.hover;
             var xmin = xaxis.options.min;
             var xmax = xaxis.options.max;
             var datamin = xaxis.datamin;
@@ -66473,10 +66486,10 @@ var WaveformViewerGraph = (function (_super) {
                 return;
             xcenter = Math.max(xcenter, xmin);
             xcenter = Math.min(xcenter, xmax);
-            if (originalEvent.wheelDelta != undefined)
-                delta = originalEvent.wheelDelta;
+            if (event.originalEvent.wheelDelta != undefined)
+                delta = event.originalEvent.wheelDelta;
             else
-                delta = -originalEvent.detail;
+                delta = -event.originalEvent.detail;
             deltaMagnitude = Math.abs(delta);
             if (minDelta == null || deltaMagnitude < minDelta)
                 minDelta = deltaMagnitude;
@@ -66498,8 +66511,8 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.plotSelected = function () {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plotselected");
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plotselected", function (event, ranges) {
+        $("#" + this.state.type).off("plotselected");
+        $("#" + ctrl.state.type).bind("plotselected", function (event, ranges) {
             ctrl.state.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to) });
         });
     };
@@ -66507,8 +66520,7 @@ var WaveformViewerGraph = (function (_super) {
         var ctrl = this;
         $("#" + this.state.type).off("plothover");
         $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
-            ctrl.xaxisHover = pos.x;
-            ctrl.state.stateSetter({ Hover: pos });
+            ctrl.state.stateSetter({ Hover: pos.x });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {

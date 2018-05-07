@@ -33,6 +33,7 @@ import './../flot/jquery.flot.navigate.min.js';
 //import './../flot/jquery.flot.resize.min.js';
 import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
+import { WheelEvent } from 'react';
 
 const color = {
     IRE: '#999999',
@@ -54,7 +55,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     openSEEService: OpenSEEService;
     plot: any;
     options: object;
-    xaxisHover;
 
     constructor(props) {
         super(props);
@@ -208,7 +208,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
         }
         else if (this.props.hover != nextProps.hover) {
-            this.plot.setCrosshair(nextProps.hover);
+            this.plot.setCrosshair({ x: nextProps.hover });
         }
 
     }
@@ -245,14 +245,14 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
-        var startString = this.state.StartDate;
-        var endString = this.state.EndDate;
-        if (this.state.StartDate == null) {
-            this.setState({ StartDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        var startString = this.state.startDate;
+        var endString = this.state.endDate;
+        if (this.state.startDate == null) {
+            this.setState({ startDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
-        if (this.state.EndDate == null) {
-            this.setState({ EndDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        if (this.state.endDate == null) {
+            this.setState({ endDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
@@ -273,11 +273,10 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         var ctrl = this;
         $("#" + this.state.type).off("plotzoom");
         $("#" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
-            //console.log(event, ctrl.plot.getAxes().xaxis, originalEvent, ctrl.xaxisHover);
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
-            var xcenter = ctrl.xaxisHover;
+            var xcenter = ctrl.state.hover;
             var xmin = xaxis.options.min;
             var xmax = xaxis.options.max;
             var datamin = xaxis.datamin;
@@ -299,10 +298,10 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             xcenter = Math.max(xcenter, xmin);
             xcenter = Math.min(xcenter, xmax);
 
-            if (originalEvent.wheelDelta != undefined)
-                delta = originalEvent.wheelDelta;
+            if ((event.originalEvent as any).wheelDelta != undefined)
+                delta = (event.originalEvent as any).wheelDelta;
             else
-                delta = -originalEvent.detail;
+                delta = -(event.originalEvent as any).detail;
 
             deltaMagnitude = Math.abs(delta);
 
@@ -333,8 +332,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     plotSelected() {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plotselected");    
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plotselected", function(event, ranges){
+        $("#" + this.state.type).off("plotselected");    
+        $("#" + ctrl.state.type).bind("plotselected", function (event, ranges) {
             ctrl.state.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to)});
         });
     }
@@ -343,8 +342,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         var ctrl = this;
         $("#" + this.state.type).off("plothover");
         $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
-            ctrl.xaxisHover = pos.x;
-            ctrl.state.stateSetter({ Hover: pos });
+            ctrl.state.stateSetter({ Hover: pos.x });
         });
     }
 

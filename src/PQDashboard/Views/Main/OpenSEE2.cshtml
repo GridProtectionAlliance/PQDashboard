@@ -236,46 +236,8 @@
     <link rel="stylesheet" href="~/Content/OpenSEE.css" type="text/css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/Font-Awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
-
-    @*<script type="text/javascript" src="~/Scripts/jquery-2.2.3.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>*@
-    @*<script type="text/javascript" src="~/Scripts/flot/jquery.flot.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.crosshair.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.navigate.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>*@
-    @*<script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-        <script type="text/javascript" src="~/signalr/hubs"></script>
-        <script type="text/javascript" src="~/Scripts/Site.js"></script>*@
 </head>
 <body>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedSystemFrequency">@postedSystemFrequency</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedStationName">@postedStationName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterId">@postedMeterId</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterName">@postedMeterName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedLineName">@postedLineName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedLineLength">@postedLineLength</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedStartTime">@postedStartTime</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedPhase">@postedPhase</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDurationPeriod">@postedDurationPeriod</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedCalculationCycle">@postedCalculationCycle</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMagnitude">@postedMagnitude</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerNumber">@postedBreakerNumber</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerPhase">@postedBreakerPhase</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerTiming">@postedBreakerTiming</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerSpeed">@postedBreakerSpeed</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerOperation">@postedBreakerOperation</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedShowFaultCurves">@postedShowFaultCurves</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedShowBreakerDigitals">@postedShowBreakerDigitals</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedErrorMessage">@postedErrorMessage</div>
 
     @*<div id="unifiedtooltip" class="ui-widget-content">
         <div id="unifiedtooltiphandle"></div>
@@ -355,10 +317,15 @@
     var SeriesList;
     var homePath = '@Html.Raw(Url.Content("~/"))';
 
-    @*$(function(){
-        SeriesList = @Html.Raw(postedSeriesList);
-        $('#next-back-selection').val('@Html.Raw(navigation)');
-    });*@
+        window.onwheel = function (event, info) {
+            if (event.path[0].tagName == "CANVAS") {
+                event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
+                return false;
+            }
+            else
+                return true;
+        }
+
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE2.js"></script>
 </body>
