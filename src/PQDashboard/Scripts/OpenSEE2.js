@@ -16131,44 +16131,14 @@ var axios_1 = __webpack_require__(162);
 var OpenSEEService = (function () {
     function OpenSEEService() {
     }
-    OpenSEEService.prototype.getVoltageEventData = function (filters) {
+    OpenSEEService.prototype.getData = function (filters, dataType) {
         return axios_1.default
-            .get("/Main/GetVoltageEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getVoltageFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetVoltageFrequencyData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentEventData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetCurrentEventData?eventId=" + filters.eventId +
+            .get("/Main/GetData?eventId=" + filters.eventId +
             ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
             ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
             ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetCurrentFrequencyData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
+            ("&type=" + filters.type) +
+            ("&dataType=" + dataType))
             .then(function (res) {
             return res.data;
         });
@@ -45649,8 +45619,8 @@ var OpenSEE = (function (_super) {
     };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "V", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "I", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
             (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : ''),
             (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : '')));
     };
@@ -66368,11 +66338,11 @@ var WaveformViewerGraph = (function (_super) {
     }
     WaveformViewerGraph.prototype.getData = function (state) {
         switch (state.type) {
-            case 'V':
-                this.getVoltageEventData(state);
+            case 'Voltage':
+                this.getEventData(state);
                 break;
-            case 'I':
-                this.getCurrentEventData(state);
+            case 'Current':
+                this.getEventData(state);
                 break;
             case 'F':
                 this.getFaultDistanceData(state);
@@ -66384,31 +66354,15 @@ var WaveformViewerGraph = (function (_super) {
                 break;
         }
     };
-    WaveformViewerGraph.prototype.getVoltageEventData = function (state) {
+    WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
-        this.openSEEService.getVoltageEventData(state).then(function (data) {
+        this.openSEEService.getData(state, "Time").then(function (data) {
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
                 legend = _this.createLegendRows(data.Data);
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
-            _this.openSEEService.getVoltageFrequencyData(state).then(function (d2) {
-                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
-                data.Data = data.Data.concat(d2.Data);
-                _this.createDataRows(data, legend);
-                _this.setState({ dataSet: data });
-            });
-        });
-    };
-    WaveformViewerGraph.prototype.getCurrentEventData = function (state) {
-        var _this = this;
-        this.openSEEService.getCurrentEventData(state).then(function (data) {
-            var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.Data);
-            _this.createDataRows(data, legend);
-            _this.setState({ dataSet: data });
-            _this.openSEEService.getCurrentFrequencyData(state).then(function (d2) {
+            _this.openSEEService.getData(state, "Freq").then(function (d2) {
                 legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
                 _this.createDataRows(data, legend);

@@ -259,12 +259,15 @@ namespace PQDashboard.Controllers
             return View();
         }
 
-        public ActionResult GetVoltageEventData()
+        public ActionResult GetData()
         {
             int eventId = int.Parse(Request.QueryString["eventId"]);
             Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
             Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
             meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+
+            string type = Request.QueryString["type"];
+            string dataType = Request.QueryString["dataType"];
 
             DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
             DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
@@ -275,145 +278,15 @@ namespace PQDashboard.Controllers
             table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
-                Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Voltage");
+                Dictionary<string, FlotSeries> temp;
+                if(dataType == "Time")
+                    temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, type);
+                else 
+                    temp = QueryFrequencyData(int.Parse(row["ID"].ToString()), meter, type);
+
                 foreach (string key in temp.Keys)
                 {
-                    if (temp[key].MeasurementType == "Voltage") {
-                        if (dict.ContainsKey(key))
-                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                        else
-                            dict.Add(key, temp[key]);
-                    }
-                }
-            }
-
-            List<FlotSeries> returnList = new List<FlotSeries>();
-            foreach (string key in dict.Keys)
-            {
-                FlotSeries series = new FlotSeries();
-                series = dict[key];
-                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                returnList.Add(series);
-            }
-            JsonReturn returnDict = new JsonReturn();
-            returnDict.StartDate = evt.StartTime;
-            returnDict.EndDate = evt.EndTime;
-            returnDict.Data = returnList;
-            return Json(returnDict, JsonRequestBehavior.AllowGet);
-
-        }
-
-        public ActionResult GetVoltageFrequencyData()
-        {
-            int eventId = int.Parse(Request.QueryString["eventId"]);
-            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
-            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
-
-            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
-            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
-            int pixels = int.Parse(Request.QueryString["pixels"]);
-            DataTable table;
-
-            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
-            foreach (DataRow row in table.Rows)
-            {
-                Dictionary<string, FlotSeries> temp = QueryFrequencyData(int.Parse(row["ID"].ToString()), meter, "Voltage");
-                foreach (string key in temp.Keys)
-                {
-                    if (temp[key].MeasurementType == "Voltage")
-                    {
-                        if (dict.ContainsKey(key))
-                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                        else
-                            dict.Add(key, temp[key]);
-                    }
-                }
-            }
-
-            List<FlotSeries> returnList = new List<FlotSeries>();
-            foreach (string key in dict.Keys)
-            {
-                FlotSeries series = new FlotSeries();
-                series = dict[key];
-                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                returnList.Add(series);
-            }
-            JsonReturn returnDict = new JsonReturn();
-            returnDict.StartDate = evt.StartTime;
-            returnDict.EndDate = evt.EndTime;
-            returnDict.Data = returnList;
-            return Json(returnDict, JsonRequestBehavior.AllowGet);
-
-        }
-
-
-        public ActionResult GetCurrentEventData()
-        {
-            int eventId = int.Parse(Request.QueryString["eventId"]);
-            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
-            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
-
-            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
-            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
-            int pixels = int.Parse(Request.QueryString["pixels"]);
-            DataTable table;
-
-            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
-            foreach (DataRow row in table.Rows)
-            {
-                Dictionary<string, FlotSeries> temp = QueryEventData(int.Parse(row["ID"].ToString()), meter, "Current");
-                foreach (string key in temp.Keys)
-                {
-                    if (temp[key].MeasurementType == "Current")
-                    {
-                        if (dict.ContainsKey(key))
-                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                        else
-                            dict.Add(key, temp[key]);
-                    }
-                }
-            }
-
-            List<FlotSeries> returnList = new List<FlotSeries>();
-            foreach (string key in dict.Keys)
-            {
-                FlotSeries series = new FlotSeries();
-                series = dict[key];
-                series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                returnList.Add(series);
-            }
-            JsonReturn returnDict = new JsonReturn();
-            returnDict.StartDate = evt.StartTime;
-            returnDict.EndDate = evt.EndTime;
-            returnDict.Data = returnList;
-            return Json(returnDict, JsonRequestBehavior.AllowGet);
-
-        }
-
-        public ActionResult GetCurrentFrequencyData()
-        {
-            int eventId = int.Parse(Request.QueryString["eventId"]);
-            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
-            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
-
-            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
-            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
-            int pixels = int.Parse(Request.QueryString["pixels"]);
-            DataTable table;
-
-            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
-            foreach (DataRow row in table.Rows)
-            {
-                Dictionary<string, FlotSeries> temp = QueryFrequencyData(int.Parse(row["ID"].ToString()), meter, "Current");
-                foreach (string key in temp.Keys)
-                {
-                    if (temp[key].MeasurementType == "Current")
+                    if (temp[key].MeasurementType == type)
                     {
                         if (dict.ContainsKey(key))
                             dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();

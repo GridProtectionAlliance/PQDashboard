@@ -25,54 +25,17 @@ import axios from 'axios';
 import * as moment from 'moment'; 
 
 export default class OpenSEEService{
-    getVoltageEventData(filters) {
+    getData(filters, dataType) {
         return axios
-            .get(`/Main/GetVoltageEventData?eventId=${filters.eventId}` + 
-                    `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                    `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`)
+            .get(`/Main/GetData?eventId=${filters.eventId}` +
+            `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
+            `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
+            `&pixels=${filters.pixels}` +
+            `&type=${filters.type}` + 
+            `&dataType=${dataType}`)
             .then(res => {
                 return res.data;
             });
-
-    }
-
-    getVoltageFrequencyData(filters) {
-        return axios
-            .get(`/Main/GetVoltageFrequencyData?eventId=${filters.eventId}` + 
-                    `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                    `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`)
-            .then(res => {
-                return res.data;
-            });
-
-    }
-
-    getCurrentEventData(filters) {
-        return axios
-            .get(`/Main/GetCurrentEventData?eventId=${filters.eventId}` + 
-                    `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                    `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`+
-                    `&type=${filters.type}`)
-            .then(res => {
-                return res.data;
-            });
-
-    }
-
-    getCurrentFrequencyData(filters) {
-    return axios
-        .get(`/Main/GetCurrentFrequencyData?eventId=${filters.eventId}` + 
-                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                `&pixels=${filters.pixels}`+
-                `&type=${filters.type}`)
-        .then(res => {
-            return res.data;
-        });
-
     }
 
     getFaultDistanceData(filters) {

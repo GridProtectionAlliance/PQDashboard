@@ -4,44 +4,14 @@ var axios_1 = require("axios");
 var OpenSEEService = (function () {
     function OpenSEEService() {
     }
-    OpenSEEService.prototype.getVoltageEventData = function (filters) {
+    OpenSEEService.prototype.getData = function (filters, dataType) {
         return axios_1.default
-            .get("/Main/GetVoltageEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getVoltageFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetVoltageFrequencyData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentEventData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetCurrentEventData?eventId=" + filters.eventId +
+            .get("/Main/GetData?eventId=" + filters.eventId +
             ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
             ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
             ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetCurrentFrequencyData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
+            ("&type=" + filters.type) +
+            ("&dataType=" + dataType))
             .then(function (res) {
             return res.data;
         });

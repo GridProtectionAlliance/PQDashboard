@@ -18,7 +18,6 @@ var Legend_1 = require("./Legend");
 require("flot");
 require("./../flot/jquery.flot.crosshair.min.js");
 require("./../flot/jquery.flot.navigate.min.js");
-require("./../flot/jquery.flot.resize.min.js");
 require("./../flot/jquery.flot.selection.min.js");
 require("./../flot/jquery.flot.time.min.js");
 var color = {
@@ -108,11 +107,11 @@ var WaveformViewerGraph = (function (_super) {
     }
     WaveformViewerGraph.prototype.getData = function (state) {
         switch (state.type) {
-            case 'V':
-                this.getVoltageEventData(state);
+            case 'Voltage':
+                this.getEventData(state);
                 break;
-            case 'I':
-                this.getCurrentEventData(state);
+            case 'Current':
+                this.getEventData(state);
                 break;
             case 'F':
                 this.getFaultDistanceData(state);
@@ -124,31 +123,15 @@ var WaveformViewerGraph = (function (_super) {
                 break;
         }
     };
-    WaveformViewerGraph.prototype.getVoltageEventData = function (state) {
+    WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
-        this.openSEEService.getVoltageEventData(state).then(function (data) {
+        this.openSEEService.getData(state, "Time").then(function (data) {
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
                 legend = _this.createLegendRows(data.Data);
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
-            _this.openSEEService.getVoltageFrequencyData(state).then(function (d2) {
-                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
-                data.Data = data.Data.concat(d2.Data);
-                _this.createDataRows(data, legend);
-                _this.setState({ dataSet: data });
-            });
-        });
-    };
-    WaveformViewerGraph.prototype.getCurrentEventData = function (state) {
-        var _this = this;
-        this.openSEEService.getCurrentEventData(state).then(function (data) {
-            var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.Data);
-            _this.createDataRows(data, legend);
-            _this.setState({ dataSet: data });
-            _this.openSEEService.getCurrentFrequencyData(state).then(function (d2) {
+            _this.openSEEService.getData(state, "Freq").then(function (d2) {
                 legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
                 _this.createDataRows(data, legend);

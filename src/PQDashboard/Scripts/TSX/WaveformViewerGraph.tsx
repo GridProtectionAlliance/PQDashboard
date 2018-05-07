@@ -136,11 +136,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getData(state) {
         switch (state.type) {
-            case 'V':
-                this.getVoltageEventData(state);
+            case 'Voltage':
+                this.getEventData(state);
                 break;
-            case 'I':
-                this.getCurrentEventData(state);
+            case 'Current':
+                this.getEventData(state);
                 break;
             case 'F':
                 this.getFaultDistanceData(state);
@@ -153,34 +153,15 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         }
     }
 
-    getVoltageEventData(state) {
-        this.openSEEService.getVoltageEventData(state).then(data => {
+    getEventData(state) {
+        this.openSEEService.getData(state, "Time").then(data => {
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
                 legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
-            this.openSEEService.getVoltageFrequencyData(state).then(d2 => {
-                legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
-                data.Data = data.Data.concat(d2.Data);
-
-                this.createDataRows(data, legend);
-                this.setState({ dataSet: data });
-            })
-        });
-
-    }
-
-    getCurrentEventData(state) {
-        this.openSEEService.getCurrentEventData(state).then(data => {
-            var legend = this.state.legendRows;
-
-            if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data.Data);
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
-            this.openSEEService.getCurrentFrequencyData(state).then(d2 => {
+            this.openSEEService.getData(state, "Freq").then(d2 => {
                 legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
 
