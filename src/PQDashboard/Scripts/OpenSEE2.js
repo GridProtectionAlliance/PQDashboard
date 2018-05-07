@@ -16164,7 +16164,7 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getCurrentFrequencyData = function (filters) {
         return axios_1.default
-            .get("/Main/GetEventData?eventId=" + filters.eventId +
+            .get("/Main/GetCurrentFrequencyData?eventId=" + filters.eventId +
             ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
             ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
             ("&pixels=" + filters.pixels) +
@@ -45586,7 +45586,7 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function($) {
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -45611,13 +45611,15 @@ var OpenSEE = (function (_super) {
         _this.openSEEService = new OpenSEE_1.default();
         _this.history = createBrowserHistory_1.default();
         var query = queryString.parse(_this.history['location'].search);
+        _this.resizeId;
         _this.state = {
             EventId: (query['eventid'] != undefined ? query['eventid'] : 0),
             StartDate: query['StartDate'],
             EndDate: query['EndDate'],
             FaultCurves: Boolean(query['faultcurves']),
             BreakerDigitals: Boolean(query['breakerdigitals']),
-            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals'])))
+            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            Width: window.innerWidth
         };
         _this.history['listen'](function (location, action) {
             var query = queryString.parse(_this.history['location'].search);
@@ -45629,12 +45631,28 @@ var OpenSEE = (function (_super) {
         });
         return _this;
     }
+    OpenSEE.prototype.componentDidMount = function () {
+        window.addEventListener("resize", this.handleScreenSizeChange.bind(this));
+    };
+    OpenSEE.prototype.componentWillUnmount = function () {
+        $(window).off('resize');
+    };
+    OpenSEE.prototype.handleScreenSizeChange = function () {
+        var _this = this;
+        clearTimeout(this.resizeId);
+        this.resizeId = setTimeout(function () {
+            _this.setState({
+                Width: window.innerWidth,
+                Height: (window.innerHeight - 90) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+            });
+        }, 500);
+    };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "V", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "I", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : ''),
-            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: window.innerWidth, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : '')));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "V", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "I", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
+            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : ''),
+            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         this.setState(obj);
@@ -45644,6 +45662,7 @@ var OpenSEE = (function (_super) {
 exports.OpenSEE = OpenSEE;
 ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('DockCharts'));
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 150 */
@@ -66260,7 +66279,6 @@ var Legend_1 = __webpack_require__(194);
 __webpack_require__(195);
 __webpack_require__(196);
 __webpack_require__(197);
-__webpack_require__(198);
 __webpack_require__(199);
 __webpack_require__(200);
 var color = {
@@ -66390,6 +66408,12 @@ var WaveformViewerGraph = (function (_super) {
                 legend = _this.createLegendRows(data.Data);
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
+            _this.openSEEService.getCurrentFrequencyData(state).then(function (d2) {
+                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
+                data.Data = data.Data.concat(d2.Data);
+                _this.createDataRows(data, legend);
+                _this.setState({ dataSet: data });
+            });
         });
     };
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
@@ -69670,19 +69694,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 198 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8.3.
-
-Copyright (c) 2007-2014 IOLA and Ole Laursen.
-Licensed under the MIT license.
-
-*/
-(function($,e,t){"$:nomunge";var i=[],n=$.resize=$.extend($.resize,{}),a,r=false,s="setTimeout",u="resize",m=u+"-special-event",o="pendingDelay",l="activeDelay",f="throttleWindow";n[o]=200;n[l]=20;n[f]=true;$.event.special[u]={setup:function(){if(!n[f]&&this[s]){return false}var e=$(this);i.push(this);e.data(m,{w:e.width(),h:e.height()});if(i.length===1){a=t;h()}},teardown:function(){if(!n[f]&&this[s]){return false}var e=$(this);for(var t=i.length-1;t>=0;t--){if(i[t]==this){i.splice(t,1);break}}e.removeData(m);if(!i.length){if(r){cancelAnimationFrame(a)}else{clearTimeout(a)}a=null}},add:function(e){if(!n[f]&&this[s]){return false}var i;function a(e,n,a){var r=$(this),s=r.data(m)||{};s.w=n!==t?n:r.width();s.h=a!==t?a:r.height();i.apply(this,arguments)}if($.isFunction(e)){i=e;return a}else{i=e.handler;e.handler=a}}};function h(t){if(r===true){r=t||1}for(var s=i.length-1;s>=0;s--){var l=$(i[s]);if(l[0]==e||l.is(":visible")){var f=l.width(),c=l.height(),d=l.data(m);if(d&&(f!==d.w||c!==d.h)){l.trigger(u,[d.w=f,d.h=c]);r=t||true}}else{d=l.data(m);d.w=0;d.h=0}}if(a!==null){if(r&&(t==null||t-r<1e3)){a=e.requestAnimationFrame(h)}else{a=setTimeout(h,n[o]);r=false}}}if(!e.requestAnimationFrame){e.requestAnimationFrame=function(){return e.webkitRequestAnimationFrame||e.mozRequestAnimationFrame||e.oRequestAnimationFrame||e.msRequestAnimationFrame||function(t,i){return e.setTimeout(function(){t((new Date).getTime())},n[l])}}()}if(!e.cancelAnimationFrame){e.cancelAnimationFrame=function(){return e.webkitCancelRequestAnimationFrame||e.mozCancelRequestAnimationFrame||e.oCancelRequestAnimationFrame||e.msCancelRequestAnimationFrame||clearTimeout}()}})(jQuery,this);(function($){var options={};function init(plot){function onResize(){var placeholder=plot.getPlaceholder();if(placeholder.width()==0||placeholder.height()==0)return;plot.resize();plot.setupGrid();plot.draw()}function bindEvents(plot,eventHolder){plot.getPlaceholder().resize(onResize)}function shutdown(plot,eventHolder){plot.getPlaceholder().unbind("resize",onResize)}plot.hooks.bindEvents.push(bindEvents);plot.hooks.shutdown.push(shutdown)}$.plot.plugins.push({init:init,options:options,name:"resize",version:"1.0"})})(jQuery);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ }),
+/* 198 */,
 /* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 

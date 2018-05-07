@@ -33,19 +33,21 @@ import WaveformViewerGraph from './WaveformViewerGraph';
 export class OpenSEE extends React.Component<any, any>{
     history: object;
     openSEEService: OpenSEEService;
+    resizeId: any;
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
         this.history = createHistory();
         var query = queryString.parse(this.history['location'].search);
-
+        this.resizeId;
         this.state = {
             EventId: (query['eventid'] != undefined ? query['eventid'] : 0),
             StartDate: query['StartDate'],
             EndDate: query['EndDate'],
             FaultCurves: Boolean(query['faultcurves']),
             BreakerDigitals: Boolean(query['breakerdigitals']),
-            Height: (window.innerHeight - 90) / (2 +  Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals'])))
+            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            Width: window.innerWidth
         }
 
         this.history['listen']((location, action) => {
@@ -58,13 +60,31 @@ export class OpenSEE extends React.Component<any, any>{
         });
     }
 
+    componentDidMount() {
+        window.addEventListener("resize", this.handleScreenSizeChange.bind(this));
+    }
+
+    componentWillUnmount() {
+        $(window).off('resize');
+    }
+
+    handleScreenSizeChange() {
+        clearTimeout(this.resizeId);
+        this.resizeId = setTimeout(() => {
+            this.setState({
+                Width: window.innerWidth,
+                Height: (window.innerHeight - 90) / (2 + Number(this.state.FaultCurves) + Number(this.state.BreakerDigitals))
+            });
+        }, 500);
+    }
+
     render() {
         return ( 
             <div className="panel-body collapse in" style={{ padding: '0' }}>
-                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="V" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="I" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
-                {(this.state.FaultCurves ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}
-                {(this.state.BreakerDigitals ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={window.innerWidth} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}                
+                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="V" pixels={this.state.Width} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="I" pixels={this.state.Width} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph>
+                {(this.state.FaultCurves ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}
+                {(this.state.BreakerDigitals ? <WaveformViewerGraph eventId={this.state.EventId} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter} showXAxis={true} height={this.state.Height}></WaveformViewerGraph> : '')}                
             </div>
         );
     }

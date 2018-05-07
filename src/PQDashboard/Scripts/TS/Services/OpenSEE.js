@@ -37,7 +37,7 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getCurrentFrequencyData = function (filters) {
         return axios_1.default
-            .get("/Main/GetEventData?eventId=" + filters.eventId +
+            .get("/Main/GetCurrentFrequencyData?eventId=" + filters.eventId +
             ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
             ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
             ("&pixels=" + filters.pixels) +

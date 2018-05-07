@@ -148,6 +148,12 @@ var WaveformViewerGraph = (function (_super) {
                 legend = _this.createLegendRows(data.Data);
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
+            _this.openSEEService.getCurrentFrequencyData(state).then(function (d2) {
+                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
+                data.Data = data.Data.concat(d2.Data);
+                _this.createDataRows(data, legend);
+                _this.setState({ dataSet: data });
+            });
         });
     };
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {

@@ -30,7 +30,7 @@ import Legend from './Legend';
 import 'flot';
 import './../flot/jquery.flot.crosshair.min.js';
 import './../flot/jquery.flot.navigate.min.js';
-import './../flot/jquery.flot.resize.min.js';
+//import './../flot/jquery.flot.resize.min.js';
 import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 
@@ -180,6 +180,13 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
+            this.openSEEService.getCurrentFrequencyData(state).then(d2 => {
+                legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
+                data.Data = data.Data.concat(d2.Data);
+
+                this.createDataRows(data, legend);
+                this.setState({ dataSet: data });
+            })
         });
 
     }

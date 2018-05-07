@@ -64,7 +64,7 @@ export default class OpenSEEService{
 
     getCurrentFrequencyData(filters) {
     return axios
-        .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+        .get(`/Main/GetCurrentFrequencyData?eventId=${filters.eventId}` + 
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
                 `&pixels=${filters.pixels}`+
