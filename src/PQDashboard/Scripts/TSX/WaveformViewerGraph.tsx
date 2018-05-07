@@ -70,7 +70,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             stateSetter: props.stateSetter,
             legendRow: [], 
             dataSet: [],
-            height: props.height
+            height: props.height,
+            hover: props.hover
         };
         ctrl.options = {
             canvas: true,
@@ -136,12 +137,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getData(state) {
         switch (state.type) {
-            case 'Voltage':
-                this.getEventData(state);
-                break;
-            case 'Current':
-                this.getEventData(state);
-                break;
             case 'F':
                 this.getFaultDistanceData(state);
                 break;
@@ -149,6 +144,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 this.getBreakerDigitalsData(state);
                 break;
             default:
+                this.getEventData(state);
                 break;
         }
     }
@@ -198,11 +194,23 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
 
     componentWillReceiveProps(nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
+        var props = _.clone(this.props);
+        var nextPropsClone = _.clone(nextProps);
+
+        delete props.hover;
+        delete nextPropsClone.hover;
+        delete props.stateSetter;
+        delete nextPropsClone.stateSetter;
+
+        if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
 
         }
+        else if (this.props.hover != nextProps.hover) {
+            this.plot.setCrosshair(nextProps.hover);
+        }
+
     }
 
 
@@ -263,8 +271,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     plotZoom() {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plotzoom");
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
+        $("#" + this.state.type).off("plotzoom");
+        $("#" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
             //console.log(event, ctrl.plot.getAxes().xaxis, originalEvent, ctrl.xaxisHover);
             var minDelta = null;
             var maxDelta = 5;
@@ -333,9 +341,10 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     plotHover() {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plothover");
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plothover", function (event, pos, item) {
+        $("#" + this.state.type).off("plothover");
+        $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
             ctrl.xaxisHover = pos.x;
+            ctrl.state.stateSetter({ Hover: pos });
         });
     }
 
@@ -379,6 +388,45 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
         return date + millisecondFraction.toString();
     }
+
+    //highlightCycle(plotIndex, series, calculationCycle) {
+    //    if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
+    //        return;
+
+    //    var dataPointCount = Math.min(128, series.DataPoints.length - 1);
+    //    var timeStart = series.DataPoints[0][0] / 1000.0;
+    //    var timeEnd = series.DataPoints[dataPointCount][0] / 1000.0;
+    //    var samplesPerCycle = Math.round(dataPointCount / (systemFrequency * (timeEnd - timeStart)));
+
+    //    var endIndex = Math.min(calculationCycle + samplesPerCycle, series.DataPoints.length - 1);
+    //    var from = series.DataPoints[calculationCycle][0];
+    //    var to = series.DataPoints[endIndex][0];
+
+    //    return {
+    //        color: "#FFA",
+    //        xaxis: {
+    //            from: from,
+    //            to: to
+    //        }
+    //    };
+    //}
+
+    //highlightSample(plotIndex, series, calculationCycle) {
+    //    if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
+    //        return;
+
+    //    var from = series.DataPoints[calculationCycle][0];
+
+    //    return {
+    //        color: "#EB0",
+    //        xaxis: {
+    //            from: from,
+    //            to: from
+    //        }
+    //    };
+    //}
+
+
 
     render() {
         return (

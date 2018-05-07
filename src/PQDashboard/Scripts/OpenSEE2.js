@@ -45589,7 +45589,8 @@ var OpenSEE = (function (_super) {
             FaultCurves: Boolean(query['faultcurves']),
             BreakerDigitals: Boolean(query['breakerdigitals']),
             Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
-            Width: window.innerWidth
+            Width: window.innerWidth,
+            Hover: 0
         };
         _this.history['listen'](function (location, action) {
             var query = queryString.parse(_this.history['location'].search);
@@ -45619,10 +45620,10 @@ var OpenSEE = (function (_super) {
     };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }),
-            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : ''),
-            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter, showXAxis: true, height: this.state.Height }) : '')));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
+            (this.state.FaultCurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : ''),
+            (this.state.BreakerDigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.EventId, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         this.setState(obj);
@@ -66281,7 +66282,8 @@ var WaveformViewerGraph = (function (_super) {
             stateSetter: props.stateSetter,
             legendRow: [],
             dataSet: [],
-            height: props.height
+            height: props.height,
+            hover: props.hover
         };
         ctrl.options = {
             canvas: true,
@@ -66338,12 +66340,6 @@ var WaveformViewerGraph = (function (_super) {
     }
     WaveformViewerGraph.prototype.getData = function (state) {
         switch (state.type) {
-            case 'Voltage':
-                this.getEventData(state);
-                break;
-            case 'Current':
-                this.getEventData(state);
-                break;
             case 'F':
                 this.getFaultDistanceData(state);
                 break;
@@ -66351,6 +66347,7 @@ var WaveformViewerGraph = (function (_super) {
                 this.getBreakerDigitalsData(state);
                 break;
             default:
+                this.getEventData(state);
                 break;
         }
     };
@@ -66391,9 +66388,18 @@ var WaveformViewerGraph = (function (_super) {
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
+        var props = _.clone(this.props);
+        var nextPropsClone = _.clone(nextProps);
+        delete props.hover;
+        delete nextPropsClone.hover;
+        delete props.stateSetter;
+        delete nextPropsClone.stateSetter;
+        if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
+        }
+        else if (this.props.hover != nextProps.hover) {
+            this.plot.setCrosshair(nextProps.hover);
         }
     };
     WaveformViewerGraph.prototype.componentDidMount = function () {
@@ -66446,8 +66452,8 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.plotZoom = function () {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plotzoom");
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
+        $("#" + this.state.type).off("plotzoom");
+        $("#" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
@@ -66499,9 +66505,10 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.plotHover = function () {
         var ctrl = this;
-        $("#" + this.state.meterId + "-" + this.state.type).off("plothover");
-        $("#" + ctrl.state.meterId + "-" + ctrl.state.type).bind("plothover", function (event, pos, item) {
+        $("#" + this.state.type).off("plothover");
+        $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
             ctrl.xaxisHover = pos.x;
+            ctrl.state.stateSetter({ Hover: pos });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {
