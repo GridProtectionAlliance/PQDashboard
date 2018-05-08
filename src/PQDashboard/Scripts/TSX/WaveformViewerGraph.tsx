@@ -35,6 +35,8 @@ import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 import { WheelEvent } from 'react';
 
+declare var systemFrequency: any;
+
 const color = {
     IRE: '#999999',
     VAN: '#A30000',
@@ -48,7 +50,8 @@ const color = {
     Rea: '#333300',
     Tak: '#9900FF',
     Mod: '#66CCFF',
-    Nov:'#CC9900'
+    Nov: '#CC9900',
+    Dou: '#BD9B33'
 }
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
@@ -82,6 +85,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 autoHighlight: false,
                 clickable: true,
                 hoverable: true,
+                markings: []
             },
             xaxis: {
                 mode: "time",
@@ -151,6 +155,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getEventData(state) {
         this.openSEEService.getData(state, "Time").then(data => {
+            this.options['grid'].markings.push(this.highlightCycle(data));
+
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
@@ -170,6 +176,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getFaultDistanceData(state) {
         this.openSEEService.getFaultDistanceData(state).then(data => {
+            this.options['grid'].markings.push(this.highlightSample(data));
+
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
@@ -272,7 +280,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     plotZoom() {
         var ctrl = this;
         $("#" + this.state.type).off("plotzoom");
-        $("#" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
+        $("#" + ctrl.state.type).bind("plotzoom", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
@@ -387,42 +395,27 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         return date + millisecondFraction.toString();
     }
 
-    //highlightCycle(plotIndex, series, calculationCycle) {
-    //    if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
-    //        return;
+    highlightSample(series) {
+        if(series.CalculationTime > 0)
+        return {
+            color: "#EB0",
+            xaxis: {
+                from: series.CalculationTime,
+                to: series.CalculationTime
+            }
+        };
+    }
 
-    //    var dataPointCount = Math.min(128, series.DataPoints.length - 1);
-    //    var timeStart = series.DataPoints[0][0] / 1000.0;
-    //    var timeEnd = series.DataPoints[dataPointCount][0] / 1000.0;
-    //    var samplesPerCycle = Math.round(dataPointCount / (systemFrequency * (timeEnd - timeStart)));
-
-    //    var endIndex = Math.min(calculationCycle + samplesPerCycle, series.DataPoints.length - 1);
-    //    var from = series.DataPoints[calculationCycle][0];
-    //    var to = series.DataPoints[endIndex][0];
-
-    //    return {
-    //        color: "#FFA",
-    //        xaxis: {
-    //            from: from,
-    //            to: to
-    //        }
-    //    };
-    //}
-
-    //highlightSample(plotIndex, series, calculationCycle) {
-    //    if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
-    //        return;
-
-    //    var from = series.DataPoints[calculationCycle][0];
-
-    //    return {
-    //        color: "#EB0",
-    //        xaxis: {
-    //            from: from,
-    //            to: from
-    //        }
-    //    };
-    //}
+    highlightCycle(series) {
+        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+        return {
+            color: "#FFA",
+            xaxis: {
+                from: series.CalculationTime,
+                to: series.CalculationEnd
+            }
+        };
+    }
 
 
 

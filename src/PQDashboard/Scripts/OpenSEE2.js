@@ -66278,7 +66278,8 @@ var color = {
     Rea: '#333300',
     Tak: '#9900FF',
     Mod: '#66CCFF',
-    Nov: '#CC9900'
+    Nov: '#CC9900',
+    Dou: '#BD9B33'
 };
 var WaveformViewerGraph = (function (_super) {
     __extends(WaveformViewerGraph, _super);
@@ -66307,6 +66308,7 @@ var WaveformViewerGraph = (function (_super) {
                 autoHighlight: false,
                 clickable: true,
                 hoverable: true,
+                markings: []
             },
             xaxis: {
                 mode: "time",
@@ -66367,6 +66369,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
+            _this.options['grid'].markings.push(_this.highlightCycle(data));
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
                 legend = _this.createLegendRows(data.Data);
@@ -66383,6 +66386,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
+            _this.options['grid'].markings.push(_this.highlightSample(data));
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
                 legend = _this.createLegendRows(data.Data);
@@ -66466,7 +66470,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.plotZoom = function () {
         var ctrl = this;
         $("#" + this.state.type).off("plotzoom");
-        $("#" + ctrl.state.type).bind("plotzoom", function (event, originalEvent) {
+        $("#" + ctrl.state.type).bind("plotzoom", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
@@ -66551,6 +66555,26 @@ var WaveformViewerGraph = (function (_super) {
         var date = moment.utc(float).format('YYYY-MM-DDTHH:mm:ss.SSS');
         var millisecondFraction = parseInt((float.toString().indexOf('.') >= 0 ? float.toString().split('.')[1] : '0'));
         return date + millisecondFraction.toString();
+    };
+    WaveformViewerGraph.prototype.highlightSample = function (series) {
+        if (series.CalculationTime > 0)
+            return {
+                color: "#EB0",
+                xaxis: {
+                    from: series.CalculationTime,
+                    to: series.CalculationTime
+                }
+            };
+    };
+    WaveformViewerGraph.prototype.highlightCycle = function (series) {
+        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+            return {
+                color: "#FFA",
+                xaxis: {
+                    from: series.CalculationTime,
+                    to: series.CalculationEnd
+                }
+            };
     };
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", null,

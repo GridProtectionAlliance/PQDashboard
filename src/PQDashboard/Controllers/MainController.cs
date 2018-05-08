@@ -265,6 +265,8 @@ namespace PQDashboard.Controllers
             Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
             Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
             meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+            int calcCycle = m_dataContext.Connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+            double systemFrequency = m_dataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
 
             string type = Request.QueryString["type"];
             string dataType = Request.QueryString["dataType"];
@@ -295,6 +297,7 @@ namespace PQDashboard.Controllers
                     }
                 }
             }
+            double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
             List<FlotSeries> returnList = new List<FlotSeries>();
             foreach (string key in dict.Keys)
@@ -308,6 +311,9 @@ namespace PQDashboard.Controllers
             returnDict.StartDate = evt.StartTime;
             returnDict.EndDate = evt.EndTime;
             returnDict.Data = returnList;
+            returnDict.CalculationTime = calcTime;
+            returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
             return Json(returnDict, JsonRequestBehavior.AllowGet);
 
         }
@@ -319,11 +325,13 @@ namespace PQDashboard.Controllers
             Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
             meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
 
+            DateTime epoch = new DateTime(1970, 1, 1);
             DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
             DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
             int pixels = int.Parse(Request.QueryString["pixels"]);
             DataTable table;
 
+            int calcCycle = m_dataContext.Connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
             table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", endTime, startTime, evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
@@ -334,6 +342,9 @@ namespace PQDashboard.Controllers
                 else
                     dict.Add(temp.Key, temp.Value);
             }
+
+            double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
             List<FlotSeries> returnList = new List<FlotSeries>();
             foreach (string key in dict.Keys)
             {
@@ -346,6 +357,7 @@ namespace PQDashboard.Controllers
             returnDict.StartDate = evt.StartTime;
             returnDict.EndDate = evt.EndTime;
             returnDict.Data = returnList;
+            returnDict.CalculationTime = calcTime;
 
             return Json(returnDict, JsonRequestBehavior.AllowGet);
         }
@@ -357,6 +369,8 @@ namespace PQDashboard.Controllers
         {
             public DateTime StartDate;
             public DateTime EndDate;
+            public double CalculationTime;
+            public double CalculationEnd;
             public List<FlotSeries> Data;
         }
 
