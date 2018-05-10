@@ -124,6 +124,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
+            _this.options['grid'].markings.push(_this.highlightCycle(data));
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
                 legend = _this.createLegendRows(data.Data);
@@ -311,18 +312,29 @@ var WaveformViewerGraph = (function (_super) {
         return date + millisecondFraction.toString();
     };
     WaveformViewerGraph.prototype.highlightSample = function (series) {
-        return {
-            color: "#EB0",
-            xaxis: {
-                from: series.CalculationTime,
-                to: series.CalculationTime
-            }
-        };
+        if (series.CalculationTime > 0)
+            return {
+                color: "#EB0",
+                xaxis: {
+                    from: series.CalculationTime,
+                    to: series.CalculationTime
+                }
+            };
+    };
+    WaveformViewerGraph.prototype.highlightCycle = function (series) {
+        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+            return {
+                color: "#FFA",
+                xaxis: {
+                    from: series.CalculationTime,
+                    to: series.CalculationEnd
+                }
+            };
     };
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", null,
             React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
-            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px' } },
+            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
     return WaveformViewerGraph;

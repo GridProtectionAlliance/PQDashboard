@@ -200,7 +200,7 @@
                     postedBreakerPhase = dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", breakerRow.PhaseID).Name;
                     postedBreakerTiming = breakerRow.BreakerTiming.ToString();
                     postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
-                    postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                    postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = {0}", breakerRow.BreakerOperationTypeID).ToString();
                 }
             }
         }

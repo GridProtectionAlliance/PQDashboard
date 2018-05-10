@@ -37,22 +37,6 @@ import { WheelEvent } from 'react';
 
 declare var systemFrequency: any;
 
-const color = {
-    IRE: '#999999',
-    VAN: '#A30000',
-    VBN: '#0029A3',
-    VCN: '#007A29',
-    IAN: '#FF0000',
-    IBN: '#0066CC',
-    ICN: '#33CC33',
-    ING: '#ffd900',
-    Sim: '#996633',
-    Rea: '#333300',
-    Tak: '#9900FF',
-    Mod: '#66CCFF',
-    Nov: '#CC9900',
-    Dou: '#BD9B33'
-}
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
     openSEEService: OpenSEEService;
@@ -139,6 +123,38 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         }
     }
 
+    getColor(label, index) {
+        if( label.ChartLabel.indexOf('IRES') >= 0) return '#999999';
+        if( label.ChartLabel.indexOf('VAN') >= 0) return '#A30000';
+        if( label.ChartLabel.indexOf('VBN') >= 0) return '#0029A3';
+        if( label.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
+        if( label.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
+        if( label.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
+        if( label.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
+        if( label.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
+        if( label.ChartLabel.indexOf('Simp') >= 0) return '#996633';
+        if( label.ChartLabel.indexOf('Reac') >= 0) return '#333300';
+        if( label.ChartLabel.indexOf('Taka') >= 0) return '#9900FF';
+        if( label.ChartLabel.indexOf('Modi') >= 0) return '#66CCFF';
+        if( label.ChartLabel.indexOf('Novo') >= 0) return '#CC9900';
+        if (label.ChartLabel.indexOf('Doub') >= 0) return '#BD9B33';
+        else if (index == 0) return '#edc240';
+        else if (index == 1) return '#afd8f8';
+        else if (index == 2) return '#cb4b4b';
+        else if (index == 3) return '#4da74d';
+        else if (index == 4) return '#9440ed';
+        else if (index == 5) return '#bd9b33';
+        else if (index == 6) return '#3498db';
+        else if (index == 7) return '#1d5987';
+        else {
+            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
+            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
+            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
+
+            return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
+        }
+     }
+
     getData(state) {
         switch (state.type) {
             case 'F':
@@ -190,9 +206,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getBreakerDigitalsData(state) {
         this.openSEEService.getBreakerDigitalsData(state).then(data => {
+            this.options['grid'].markings.push(this.highlightSample(data));
+
             var legend = this.state.legendRows;
 
-            if (this.state.legendRows == undefined)
+            if (legend == undefined)
                 legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
@@ -244,7 +262,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             return 0;
         });
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0,3)], enabled: (ctrl.state.type == "F" || key.ChartLabel == key.ChartLabel.substring(0,3)) });
+            legend.push({ label: key.ChartLabel, color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0,3)) });
         });
 
         this.setState({ legendRows: legend });
@@ -253,6 +271,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
+        var ctrl = this;
         var startString = this.state.startDate;
         var endString = this.state.endDate;
         if (this.state.startDate == null) {
@@ -264,10 +283,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
-        var legendKeys = legend.filter(x => x.enabled).map(x => x.label);
         $.each(data.Data, (i, key) => {
-            if (legendKeys.indexOf(key.ChartLabel) >= 0)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel.substring(0, 3)] })
+            var legendKey = legend.find(x => x.label == key.ChartLabel);
+
+            if (legendKey.enabled)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legendKey.color })
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
@@ -423,7 +443,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         return (
             <div>
                 <div id={this.state.type} style={{ height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
-                <div id={this.state.type + '-legend'} style={{ float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px'}}>
+                <div id={this.state.type + '-legend'} style={{ float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto'}}>
                     <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} />
                 </div>
             </div>

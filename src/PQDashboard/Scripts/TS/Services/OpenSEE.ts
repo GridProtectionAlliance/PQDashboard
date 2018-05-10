@@ -52,7 +52,7 @@ export default class OpenSEEService{
 
     getBreakerDigitalsData(filters) {
         return axios
-            .get(`/Main/GetEventData?eventId=${filters.eventId}` + 
+            .get(`/Main/GetBreakerData?eventId=${filters.eventId}` + 
                     `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                     `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
                     `&pixels=${filters.pixels}`+

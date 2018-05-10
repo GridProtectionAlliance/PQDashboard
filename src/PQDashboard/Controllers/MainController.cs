@@ -277,7 +277,7 @@ namespace PQDashboard.Controllers
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", endTime, startTime, evt.MeterID, evt.LineID);
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 Dictionary<string, FlotSeries> temp;
@@ -361,6 +361,53 @@ namespace PQDashboard.Controllers
 
             return Json(returnDict, JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult GetBreakerData() {
+            int eventId = int.Parse(Request.QueryString["eventId"]);
+            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
+            Meter meter = m_dataContext.Table<Meter>().QueryRecordWhere("ID = {0}", evt.MeterID);
+            meter.ConnectionFactory = () => new AdoDataConnection(m_dataContext.Connection.Connection, typeof(SqlDataAdapter), false);
+
+            DateTime epoch = new DateTime(1970, 1, 1);
+            DateTime startTime = (Request.QueryString["startDate"] != null ? DateTime.Parse(Request.QueryString["startDate"]) : evt.StartTime);
+            DateTime endTime = (Request.QueryString["endDate"] != null ? DateTime.Parse(Request.QueryString["endDate"]) : evt.EndTime);
+            int pixels = int.Parse(Request.QueryString["pixels"]);
+            DataTable table;
+
+            int calcCycle = m_dataContext.Connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+            Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
+            foreach (DataRow row in table.Rows)
+            {
+                Dictionary<string, FlotSeries> temp = QueryBreakerData(int.Parse(row["ID"].ToString()), meter);
+                foreach (string key in temp.Keys)
+                {
+                    if (dict.ContainsKey(key))
+                        dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                    else
+                        dict.Add(key, temp[key]);
+                }
+            }
+
+            double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+            List<FlotSeries> returnList = new List<FlotSeries>();
+            foreach (string key in dict.Keys)
+            {
+                FlotSeries series = new FlotSeries();
+                series = dict[key];
+                series.DataPoints = Downsample(dict[key].DataPoints.Where(x => !double.IsNaN(x[1])).OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                returnList.Add(series);
+            }
+            JsonReturn returnDict = new JsonReturn();
+            returnDict.StartDate = evt.StartTime;
+            returnDict.EndDate = evt.EndTime;
+            returnDict.Data = returnList;
+            returnDict.CalculationTime = calcTime;
+
+            return Json(returnDict, JsonRequestBehavior.AllowGet);
+
+        }
         #endregion
 
         #region [ OpenSEE Table Operations ]
@@ -423,7 +470,15 @@ namespace PQDashboard.Controllers
             return new KeyValuePair<string, FlotSeries> (faultCurve.Algorithm, flotSeries);
         }
 
-        public DataGroup ToDataGroup(Meter meter, byte[] data)
+        private Dictionary<string, FlotSeries> QueryBreakerData(int eventID, Meter meter)
+        {
+            byte[] timeDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+            DataGroup dataGroup = ToDataGroup(meter, timeDomainData);
+            return GetBreakerLookup(dataGroup);
+        }
+
+
+        private DataGroup ToDataGroup(Meter meter, byte[] data)
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(meter, data);
@@ -433,7 +488,6 @@ namespace PQDashboard.Controllers
 
         private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type)
         {
-            IEnumerable<string> names = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).Select(x => GetChartLabel(x.SeriesInfo.Channel));
             Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries() {
                 ChannelID = ds.SeriesInfo.Channel.ID,
                 ChannelName = ds.SeriesInfo.Channel.Name,
@@ -449,6 +503,27 @@ namespace PQDashboard.Controllers
 
             return dataLookup;
         }
+
+        private Dictionary<string, FlotSeries> GetBreakerLookup(DataGroup dataGroup)
+        {
+            Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == "Digital" && (ds.SeriesInfo.Channel.MeasurementCharacteristic.Name == "BreakerStatus" || ds.SeriesInfo.Channel.MeasurementCharacteristic.Name == "TCE")).ToDictionary(ds => ds.SeriesInfo.Channel.Name, ds => new FlotSeries()
+            {
+                ChannelID = ds.SeriesInfo.Channel.ID,
+                ChannelName = ds.SeriesInfo.Channel.Name,
+                ChannelDescription = ds.SeriesInfo.Channel.Description,
+                MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                Phase = ds.SeriesInfo.Channel.Phase.Name,
+                SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                ChartLabel = ds.SeriesInfo.Channel.Description
+
+            });
+
+            return dataLookup;
+        }
+
+
 
         private Dictionary<string, FlotSeries> GetFrequencyDataLookup(VICycleDataGroup vICycleDataGroup, string type)
         {
@@ -571,56 +646,21 @@ namespace PQDashboard.Controllers
                 }
             }
 
-            //var data = new List<double[]>();
-            //var step = series.Count / maxSampleCount;
-
-            //if (step < 1)
-            //    step = 1;
-
-            //for (var n = 0; n < series.Count; n += step * 2)
-            //{
-            //    var start = n;
-            //    var next = Math.Floor((double)(n + step * 2));
-            //    var end = Math.Min(next, series.Count);
-
-            //    double[] min = null;
-            //    double[] max = null;
-
-            //    for (var i = start; i < end; i++)
-            //    {
-            //        var val = series[i];
-
-            //        if (min == null || min[1] > val[1])
-            //            min = val;
-
-            //        if (max == null || max[1] <= val[1])
-            //            max = val;
-            //    }
-
-            //    if (min != null)
-            //    {
-            //        if (min[0] < max[0])
-            //        {
-            //            data.Add(min);
-            //            data.Add(max);
-            //        }
-            //        else if (min[0] > max[0])
-            //        {
-            //            data.Add(max);
-            //            data.Add(min);
-            //        }
-            //        else
-            //        {
-            //            data.Add(min);
-            //        }
-            //    }
-            //}
-
-
-
             return data;
 
         }
+
+        private IDbDataParameter ToDateTime2(AdoDataConnection connection, DateTime dateTime)
+        {
+            using (IDbCommand command = connection.Connection.CreateCommand())
+            {
+                IDbDataParameter parameter = command.CreateParameter();
+                parameter.DbType = DbType.DateTime2;
+                parameter.Value = dateTime;
+                return parameter;
+            }
+        }
+
         #endregion
 
     }
