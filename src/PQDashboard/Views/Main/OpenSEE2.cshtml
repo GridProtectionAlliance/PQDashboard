@@ -312,7 +312,7 @@
     </div>
 
     <div id="DockCharts"></div>
-
+    <script src="~/Scripts/jquery-2.1.3.min.js"></script>
     <script>
         var SeriesList;
         var homePath = '@Html.Raw(Url.Content("~/"))';
@@ -342,6 +342,12 @@
 
         showData();
 
+        nextBackSelect($('#next-back-selection option:selected').val());
+
+        $('#next-back-selection').change(function () {
+            nextBackSelect($('#next-back-selection option:selected').val());
+        });
+
         window.onwheel = function (event, info) {
             if (event.path[0].tagName == "CANVAS") {
                 event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
@@ -354,6 +360,7 @@
         function resetZoom() {
             window.location = '?eventid=' + postedEventId + (postedShowFaultCurves == 1 ? '&faultcurves=1': '') + (postedShowBreakerDigitals == 1 ? '&breakerdigitals=1': '');
         }
+
         function showData() {
             // If all exist, then let's act
             if (postedEventName && postedEventId) {
@@ -441,6 +448,12 @@
                 document.getElementById('TitleData').innerHTML = label;
 
             }
+        }
+
+        function nextBackSelect(nextBackType) {
+            $('.nextbackbutton').hide();
+            $('#' + nextBackType + '-back').show();
+            $('#' + nextBackType + '-next').show();
         }
 
     </script>
