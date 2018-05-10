@@ -45589,7 +45589,7 @@ var OpenSEE = (function (_super) {
             EndDate: query['EndDate'],
             faultcurves: query['faultcurves'],
             breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
             Hover: 0
         };
@@ -45617,7 +45617,7 @@ var OpenSEE = (function (_super) {
         this.resizeId = setTimeout(function () {
             _this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - 90) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
             });
         }, 500);
     };
@@ -66382,15 +66382,15 @@ var WaveformViewerGraph = (function (_super) {
         if (label.ChartLabel.indexOf('ING') >= 0)
             return '#ffd900';
         if (label.ChartLabel.indexOf('Simp') >= 0)
-            return '#996633';
+            return '#edc240';
         if (label.ChartLabel.indexOf('Reac') >= 0)
-            return '#333300';
-        if (label.ChartLabel.indexOf('Taka') >= 0)
-            return '#9900FF';
+            return '#afd8f8';
         if (label.ChartLabel.indexOf('Modi') >= 0)
-            return '#66CCFF';
+            return '#4da74d';
+        if (label.ChartLabel.indexOf('Taka') >= 0)
+            return '#cb4b4b';
         if (label.ChartLabel.indexOf('Novo') >= 0)
-            return '#CC9900';
+            return '#9440ed';
         if (label.ChartLabel.indexOf('Doub') >= 0)
             return '#BD9B33';
         else if (index == 0)

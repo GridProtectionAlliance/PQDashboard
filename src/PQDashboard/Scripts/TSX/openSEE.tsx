@@ -46,7 +46,7 @@ export class OpenSEE extends React.Component<any, any>{
             EndDate: query['EndDate'],
             faultcurves: query['faultcurves'],
             breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            Height: (window.innerHeight - $('#pageHeader').height()-30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
             Hover: 0
         }
@@ -76,7 +76,7 @@ export class OpenSEE extends React.Component<any, any>{
         this.resizeId = setTimeout(() => {
             this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - 90) / (2 + Number(this.state.FaultCurves) + Number(this.state.BreakerDigitals))
+                Height: (window.innerHeight - $('#pageHeader').height()-30) / (2 + Number(this.state.FaultCurves) + Number(this.state.BreakerDigitals))
             });
         }, 500);
     }

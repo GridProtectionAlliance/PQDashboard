@@ -266,7 +266,7 @@
         <button class="CloseButton" onclick="showhidePhasor($('#showphasor')[0]);">X</button>
     </div>*@
 
-    <div style="width: 100%">
+    <div id="pageHeader" style="width: 100%">
         <table style="width: 100%">
             <tr>
                 <td style="text-align: left; width: 10%"><img alt="" src="~/Images/GPA-Logo---30-pix(on-white).png" /></td>
@@ -284,7 +284,7 @@
     <div class="DockWaveformHeader">
         <table style="width: 75%; margin: 0 auto">
             <tr>
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom" /></td>
+                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom" onclick="resetZoom()" /></td>
                 <td style="text-align: center"><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints" /></td>
 
                 <td style="text-align: center">
@@ -314,19 +314,134 @@
     <div id="DockCharts"></div>
 
     <script>
-    var SeriesList;
-    var homePath = '@Html.Raw(Url.Content("~/"))';
-    const systemFrequency = Number('@postedSystemFrequency') || 60;
+        var SeriesList;
+        var homePath = '@Html.Raw(Url.Content("~/"))';
+        const postedSystemFrequency = Number('@postedSystemFrequency') || 60;
+        const postedStationName = '@postedStationName';
+        const postedMeterId = '@postedMeterId';
+        const postedMeterName = '@postedMeterName';
+        const postedLineName = '@postedLineName';
+        const postedLineLength = '@postedLineLength';
+        const postedEventId = '@eventID';
+        const postedEventName = '@postedEventName';
+        const postedEventDate = '@postedEventDate';
+        const postedDate = '@postedDate';
+        const postedEventMilliseconds = '@postedEventMilliseconds';
+        const postedStartTime = '@postedStartTime';
+        const postedPhase = '@postedPhase';
+        const postedDurationPeriod = '@postedDurationPeriod';
+        const postedMagnitude = '@postedMagnitude';
+        const postedCalculationCycle = '@postedCalculationCycle';
+        const postedBreakerNumber = '@postedBreakerNumber';
+        const postedBreakerPhase = '@postedBreakerPhase';
+        const postedBreakerTiming = '@postedBreakerTiming';
+        const postedBreakerSpeed = '@postedBreakerSpeed';
+        const postedBreakerOperation = '@postedBreakerOperation';
+        const postedShowFaultCurves = '@postedShowFaultCurves';
+        const postedShowBreakerDigitals = '@postedShowBreakerDigitals';
 
+        showData();
 
-    window.onwheel = function (event, info) {
-        if (event.path[0].tagName == "CANVAS") {
-            event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
-            return false;
+        window.onwheel = function (event, info) {
+            if (event.path[0].tagName == "CANVAS") {
+                event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
+                return false;
+            }
+            else
+                return true;
         }
-        else
-            return true;
-    }
+
+        function resetZoom() {
+            window.location = '?eventid=' + postedEventId + (postedShowFaultCurves == 1 ? '&faultcurves=1': '') + (postedShowBreakerDigitals == 1 ? '&breakerdigitals=1': '');
+        }
+        function showData() {
+            // If all exist, then let's act
+            if (postedEventName && postedEventId) {
+                // Lets build a label for this chart
+                var label = "";
+                var details = "";
+                var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
+                var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
+
+                label += "Station: " + postedStationName;
+                label += separator + "Meter: " + postedMeterName;
+                label += separator + "Line: " + postedLineName;
+                label += "<br />";
+
+                if (postedEventName != "Fault")
+                    label += "Event Type: " + postedEventName;
+                else
+                    label += "Event Type: " + faultLink;
+
+                label += separator + "Event Time: " + postedEventDate;
+
+                if (postedStartTime != "")
+                    details += "Start: " + postedStartTime;
+
+                if (postedPhase != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Phase: " + postedPhase;
+                }
+
+                if (postedDurationPeriod != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Duration: " + postedDurationPeriod;
+                }
+
+                if (postedMagnitude != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Magnitude: " + postedMagnitude;
+                }
+
+                if (details != "")
+                    label += "<br />" + details;
+
+                details = "";
+
+                if (postedBreakerNumber != "")
+                    details += "Breaker: " + postedBreakerNumber;
+
+                if (postedBreakerPhase != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Phase: " + postedBreakerPhase;
+                }
+
+                if (postedBreakerTiming != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Timing: " + postedBreakerTiming;
+                }
+
+                if (postedBreakerSpeed != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Speed: " + postedBreakerSpeed;
+                }
+
+                if (postedBreakerOperation != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Operation: " + postedBreakerOperation;
+                }
+
+                if (details != "")
+                    label += "<br />" + details;
+
+                document.getElementById('TitleData').innerHTML = label;
+
+            }
+        }
 
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE2.js"></script>

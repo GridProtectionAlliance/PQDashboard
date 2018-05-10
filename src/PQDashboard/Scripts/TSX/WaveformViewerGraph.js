@@ -20,22 +20,6 @@ require("./../flot/jquery.flot.crosshair.min.js");
 require("./../flot/jquery.flot.navigate.min.js");
 require("./../flot/jquery.flot.selection.min.js");
 require("./../flot/jquery.flot.time.min.js");
-var color = {
-    IRE: '#999999',
-    VAN: '#A30000',
-    VBN: '#0029A3',
-    VCN: '#007A29',
-    IAN: '#FF0000',
-    IBN: '#0066CC',
-    ICN: '#33CC33',
-    ING: '#ffd900',
-    Sim: '#996633',
-    Rea: '#333300',
-    Tak: '#9900FF',
-    Mod: '#66CCFF',
-    Nov: '#CC9900',
-    Dou: '#BD9B33'
-};
 var WaveformViewerGraph = (function (_super) {
     __extends(WaveformViewerGraph, _super);
     function WaveformViewerGraph(props) {
@@ -108,6 +92,58 @@ var WaveformViewerGraph = (function (_super) {
         };
         return _this;
     }
+    WaveformViewerGraph.prototype.getColor = function (label, index) {
+        if (label.ChartLabel.indexOf('IRES') >= 0)
+            return '#999999';
+        if (label.ChartLabel.indexOf('VAN') >= 0)
+            return '#A30000';
+        if (label.ChartLabel.indexOf('VBN') >= 0)
+            return '#0029A3';
+        if (label.ChartLabel.indexOf('VCN') >= 0)
+            return '#007A29';
+        if (label.ChartLabel.indexOf('IAN') >= 0)
+            return '#FF0000';
+        if (label.ChartLabel.indexOf('IBN') >= 0)
+            return '#0066CC';
+        if (label.ChartLabel.indexOf('ICN') >= 0)
+            return '#33CC33';
+        if (label.ChartLabel.indexOf('ING') >= 0)
+            return '#ffd900';
+        if (label.ChartLabel.indexOf('Simp') >= 0)
+            return '#edc240';
+        if (label.ChartLabel.indexOf('Reac') >= 0)
+            return '#afd8f8';
+        if (label.ChartLabel.indexOf('Modi') >= 0)
+            return '#4da74d';
+        if (label.ChartLabel.indexOf('Taka') >= 0)
+            return '#cb4b4b';
+        if (label.ChartLabel.indexOf('Novo') >= 0)
+            return '#9440ed';
+        if (label.ChartLabel.indexOf('Doub') >= 0)
+            return '#BD9B33';
+        else if (index == 0)
+            return '#edc240';
+        else if (index == 1)
+            return '#afd8f8';
+        else if (index == 2)
+            return '#cb4b4b';
+        else if (index == 3)
+            return '#4da74d';
+        else if (index == 4)
+            return '#9440ed';
+        else if (index == 5)
+            return '#bd9b33';
+        else if (index == 6)
+            return '#3498db';
+        else if (index == 7)
+            return '#1d5987';
+        else {
+            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
+            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
+            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
+            return "#" + (ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne) + (ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo) + (ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree);
+        }
+    };
     WaveformViewerGraph.prototype.getData = function (state) {
         switch (state.type) {
             case 'F':
@@ -152,8 +188,9 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getBreakerDigitalsData = function (state) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
+            _this.options['grid'].markings.push(_this.highlightSample(data));
             var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
+            if (legend == undefined)
                 legend = _this.createLegendRows(data.Data);
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
@@ -194,12 +231,13 @@ var WaveformViewerGraph = (function (_super) {
             return 0;
         });
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: color[key.ChartLabel.substring(0, 3)], enabled: (ctrl.state.type == "F" || key.ChartLabel == key.ChartLabel.substring(0, 3)) });
+            legend.push({ label: key.ChartLabel, color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) });
         });
         this.setState({ legendRows: legend });
         return legend;
     };
     WaveformViewerGraph.prototype.createDataRows = function (data, legend) {
+        var ctrl = this;
         var startString = this.state.startDate;
         var endString = this.state.endDate;
         if (this.state.startDate == null) {
@@ -211,10 +249,10 @@ var WaveformViewerGraph = (function (_super) {
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
-        var legendKeys = legend.filter(function (x) { return x.enabled; }).map(function (x) { return x.label; });
         $.each(data.Data, function (i, key) {
-            if (legendKeys.indexOf(key.ChartLabel) >= 0)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: color[key.ChartLabel.substring(0, 3)] });
+            var legendKey = legend.find(function (x) { return x.label == key.ChartLabel; });
+            if (legendKey.enabled)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legendKey.color });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);

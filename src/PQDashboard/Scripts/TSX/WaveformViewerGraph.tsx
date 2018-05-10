@@ -132,11 +132,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         if( label.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
         if( label.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
         if( label.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
-        if( label.ChartLabel.indexOf('Simp') >= 0) return '#996633';
-        if( label.ChartLabel.indexOf('Reac') >= 0) return '#333300';
-        if( label.ChartLabel.indexOf('Taka') >= 0) return '#9900FF';
-        if( label.ChartLabel.indexOf('Modi') >= 0) return '#66CCFF';
-        if( label.ChartLabel.indexOf('Novo') >= 0) return '#CC9900';
+        if (label.ChartLabel.indexOf('Simp') >= 0) return '#edc240';
+        if (label.ChartLabel.indexOf('Reac') >= 0) return '#afd8f8';
+        if (label.ChartLabel.indexOf('Modi') >= 0) return '#4da74d';
+        if (label.ChartLabel.indexOf('Taka') >= 0) return '#cb4b4b';
+        if (label.ChartLabel.indexOf('Novo') >= 0) return '#9440ed';
         if (label.ChartLabel.indexOf('Doub') >= 0) return '#BD9B33';
         else if (index == 0) return '#edc240';
         else if (index == 1) return '#afd8f8';
