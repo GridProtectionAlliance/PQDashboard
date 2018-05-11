@@ -36,6 +36,7 @@ import './../flot/jquery.flot.time.min.js';
 import { WheelEvent } from 'react';
 
 declare var systemFrequency: any;
+declare var postedEventMilliseconds: any;
 
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
@@ -58,7 +59,9 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             legendRow: [], 
             dataSet: [],
             height: props.height,
-            hover: props.hover
+            hover: props.hover,
+            tableData: props.tableData,
+            pointsTable: props.pointsTable
         };
         ctrl.options = {
             canvas: true,
@@ -234,7 +237,16 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
         }
         else if (this.props.hover != nextProps.hover) {
-            this.plot.setCrosshair({ x: nextProps.hover });
+            if(this.plot)
+                this.plot.setCrosshair({ x: nextProps.hover });
+            //var table = _.clone(this.state.tableData);
+            //_.each(this.state.dataSet.Data, (data, i) => {
+            //    var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
+            //    if(vector)
+            //        table[data.ChartLabel] = vector[1];
+            //});
+            //this.state.stateSetter({ TableData: table });
+
         }
 
     }
@@ -247,6 +259,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         $("#" + this.state.type).off("plotselected");
         $("#" + this.state.type).off("plotzoom");
         $("#" + this.state.type).off("plothover");
+        $("#" + this.state.type).off("plotclick");
+
     }
 
     createLegendRows(data) {
@@ -295,6 +309,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         this.plotSelected();
         this.plotZoom();
         this.plotHover();
+        this.plotClick();
     }
 
     plotZoom() {
@@ -371,6 +386,46 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         $("#" + this.state.type).off("plothover");
         $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
             ctrl.state.stateSetter({ Hover: pos.x });
+        });
+    }
+
+    plotClick() {
+        var ctrl = this;
+        $("#" + this.state.type).off("plotclick");
+        $("#" + ctrl.state.type).bind("plotclick", function (event, pos, item) {
+            var time;
+            var deltatime;
+            var deltavalue;
+
+            if (!item)
+                return;
+
+            var pointsTable = _.clone(ctrl.state.pointsTable);
+
+            time = (item.datapoint[0] - Number(postedEventMilliseconds)) / 1000.0;
+            deltatime = 0.0;
+            deltavalue = 0.0;
+
+            if (pointsTable.length > 0) {
+                deltatime = time - pointsTable[pointsTable.length - 1].thetime;
+                deltavalue = item.datapoint[1] - pointsTable[pointsTable.length - 1].thevalue;
+            }
+
+            pointsTable.push({
+                theseries: item.series.label,
+                thetime: time,
+                thevalue: item.datapoint[1].toFixed(3),
+                deltatime: deltatime,
+                deltavalue: deltavalue.toFixed(3),
+                arrayIndex: ctrl.state.pointsTable.length
+            });
+
+            ctrl.state.stateSetter({PointsTable: pointsTable});
+            //$('#accumulatedpointscontent').puidatatable('reload');
+
+            //var scrollDiv = $('#accumulatedpointscontent').parent()[0];
+            //scrollDiv.scrollTop = scrollDiv.scrollHeight;
+
         });
     }
 

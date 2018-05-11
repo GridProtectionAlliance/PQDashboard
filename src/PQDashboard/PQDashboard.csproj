@@ -1309,8 +1309,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PolarChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\WaveformViewerGraph.tsx" />
     <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />
   </ItemGroup>

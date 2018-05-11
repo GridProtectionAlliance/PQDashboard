@@ -17,6 +17,8 @@ var createBrowserHistory_1 = require("history/createBrowserHistory");
 var queryString = require("query-string");
 var _ = require("lodash");
 var WaveformViewerGraph_1 = require("./WaveformViewerGraph");
+var PolarChart_1 = require("./PolarChart");
+var AccumulatedPoints_1 = require("./AccumulatedPoints");
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
     function OpenSEE(props) {
@@ -31,9 +33,10 @@ var OpenSEE = (function (_super) {
             EndDate: query['EndDate'],
             faultcurves: query['faultcurves'],
             breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - 90) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
-            Hover: 0
+            Hover: 0,
+            TableData: {}
         };
         _this.history['listen'](function (location, action) {
             var query = queryString.parse(_this.history['location'].search);
@@ -45,6 +48,8 @@ var OpenSEE = (function (_super) {
                 breakerdigitals: query['breakerdigitals'],
             });
         });
+        ReactDOM.render(React.createElement(PolarChart_1.default, { data: _this.state.phasorData }), document.getElementById('phasor'));
+        ReactDOM.render(React.createElement(AccumulatedPoints_1.default, { data: _this.state.phasorData }), document.getElementById('accumulatedpoints'));
         return _this;
     }
     OpenSEE.prototype.componentDidMount = function () {
@@ -59,16 +64,16 @@ var OpenSEE = (function (_super) {
         this.resizeId = setTimeout(function () {
             _this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - 90) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
             });
         }, 500);
     };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }),
-            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : ''),
-            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover }) : '')));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData }),
+            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData }) : ''),
+            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
@@ -77,6 +82,7 @@ var OpenSEE = (function (_super) {
             delete prop.Hover;
             delete prop.Height;
             delete prop.Width;
+            delete prop.TableData;
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(_this.history['location'].search);
             if (!_.isEqual(qs, hqs))

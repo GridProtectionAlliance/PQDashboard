@@ -240,31 +240,14 @@
 <body>
 
     @*<div id="unifiedtooltip" class="ui-widget-content">
-        <div id="unifiedtooltiphandle"></div>
-        <div id="unifiedtooltipcontent"></div>
-        <button class="CloseButton" onclick="showhideTooltip($('#showtooltip')[0]);">X</button>
-    </div>*@
+            <div id="unifiedtooltiphandle"></div>
+            <div id="unifiedtooltipcontent"></div>
+            <button class="CloseButton" onclick="showhideTooltip($('#showtooltip')[0]);">X</button>
+        </div>*@
 
-    @*<div id="accumulatedpoints" class="ui-widget-content">
-        <div style="border: black solid 2px;">
-            <div id="accumulatedpointshandle"></div>
-            <div style="overflow-y: scroll; height: 200px"><div id="accumulatedpointscontent"></div></div>
-            <div style="margin: 5px; text-align: right">
-                <input class="smallbutton" type="button" value="Remove" onclick="RemovePoint()" />
-                <input class="smallbutton" type="button" value="Pop" onclick="popAccumulatedPoints()" />
-                <input class="smallbutton" type="button" value="Clear" onclick="clearAccumulatedPoints()" />
-            </div>
-            <button class="CloseButton" style="top: 2px; right: 2px" onclick="showhidePoints($('#showpoints')[0]);">X</button>
-        </div>
+
+    <div id="phasor" class="ui-widget-content" style="width:300px; height:320px; display: none">
     </div>
-
-    <div id="phasor" class="ui-widget-content" style="width:300px; height:320px;">
-        <div id="phasorhandle"></div>
-        <div id="phasorchart" style="width: 300px; height: 300px; z-index: 1001;">
-            <canvas id="phasorCanvas" width="300" height="300" style="display: block;"></canvas>
-        </div>
-        <button class="CloseButton" onclick="showhidePhasor($('#showphasor')[0]);">X</button>
-    </div>*@
 
     <div id="pageHeader" style="width: 100%">
         <table style="width: 100%">
@@ -313,6 +296,7 @@
 
     <div id="DockCharts"></div>
     <script src="~/Scripts/jquery-2.1.3.min.js"></script>
+
     <script>
         var SeriesList;
         var homePath = '@Html.Raw(Url.Content("~/"))';
@@ -455,6 +439,42 @@
             $('#' + nextBackType + '-back').show();
             $('#' + nextBackType + '-next').show();
         }
+
+        function showhidePoints(thecontrol) {
+            if (thecontrol.value == "Show Points") {
+                thecontrol.value = "Hide Points";
+                $('#accumulatedpoints').show();
+
+            } else {
+                thecontrol.value = "Show Points";
+                $('#accumulatedpoints').hide();
+
+            }
+        }
+
+        function showhideTooltip(thecontrol) {
+            if (thecontrol.value == "Show Tooltip") {
+                thecontrol.value = "Hide Tooltip";
+                $('#unifiedtooltip').show();
+                $('.legendCheckbox').show();
+
+            } else {
+                thecontrol.value = "Show Tooltip";
+                $('#unifiedtooltip').hide();
+                $('.legendCheckbox').hide();
+            }
+        }
+
+        function showhidePhasor(thecontrol) {
+            if (thecontrol.value == "Show Phasor") {
+                thecontrol.value = "Hide Phasor";
+                $('#phasor').show();
+            } else {
+                thecontrol.value = "Show Phasor";
+                $('#phasor').hide();
+            }
+        }
+
 
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE2.js"></script>

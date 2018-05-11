@@ -36,7 +36,8 @@ var WaveformViewerGraph = (function (_super) {
             legendRow: [],
             dataSet: [],
             height: props.height,
-            hover: props.hover
+            hover: props.hover,
+            tableData: props.tableData
         };
         ctrl.options = {
             canvas: true,

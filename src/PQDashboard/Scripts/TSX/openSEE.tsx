@@ -29,6 +29,8 @@ import * as queryString from "query-string";
 import * as moment from 'moment';
 import * as _ from "lodash";
 import WaveformViewerGraph from './WaveformViewerGraph';
+import PolarChart from './PolarChart';
+import Points from './AccumulatedPoints';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -48,7 +50,8 @@ export class OpenSEE extends React.Component<any, any>{
             breakerdigitals: query['breakerdigitals'],
             Height: (window.innerHeight - $('#pageHeader').height()-30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
-            Hover: 0
+            Hover: 0,
+            PointsTable: []
         }
 
         this.history['listen']((location, action) => {
@@ -61,6 +64,8 @@ export class OpenSEE extends React.Component<any, any>{
                 breakerdigitals: query['breakerdigitals'],
             });
         });
+
+        ReactDOM.render(<PolarChart data={this.state.phasorData} />, document.getElementById('phasor'));
     }
 
     componentDidMount() {
@@ -84,10 +89,11 @@ export class OpenSEE extends React.Component<any, any>{
     render() {
         return ( 
             <div className="panel-body collapse in" style={{ padding: '0' }}>
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph>
-                {(this.state.faultcurves ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}
-                {(this.state.breakerdigitals ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover}></WaveformViewerGraph> : '')}                
+                <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} />
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.state.TableData} pointsTable={this.state.PointsTable}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.state.TableData} pointsTable={this.state.PointsTable}></WaveformViewerGraph>
+                {(this.state.faultcurves ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.state.TableData} pointsTable={this.state.PointsTable}></WaveformViewerGraph> : '')}
+                {(this.state.breakerdigitals ? <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.state.TableData} pointsTable={this.state.PointsTable}></WaveformViewerGraph> : '')}                
             </div>
         );
     }
@@ -98,6 +104,8 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.Hover;
             delete prop.Height;
             delete prop.Width;
+            delete prop.TableData;
+            delete prop.PointsTable
 
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(this.history['location'].search);
@@ -108,4 +116,4 @@ export class OpenSEE extends React.Component<any, any>{
     }
 }
 
- ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));
+ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));
