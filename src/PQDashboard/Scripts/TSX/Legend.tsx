@@ -66,6 +66,9 @@ const Row = (props) => {
     return (
         <tr>
             <td>
+                <input name={props.label} className='legendCheckbox' type="checkbox" style={{ display: 'none' }} defaultChecked={props.enabled}/>
+            </td>
+            <td>
                 <div style={{ border: '1px solid #ccc', padding: '1px' }}>
                     <div style={{ width: ' 4px', height: 0, border: '5px solid ' + props.color + (props.enabled ? 'FF' : '60'), overflow: 'hidden' }} onClick={props.callback}>
                     </div>

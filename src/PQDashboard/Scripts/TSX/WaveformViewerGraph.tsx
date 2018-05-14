@@ -43,7 +43,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     openSEEService: OpenSEEService;
     plot: any;
     options: object;
-
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -61,7 +60,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             height: props.height,
             hover: props.hover,
             tableData: props.tableData,
-            pointsTable: props.pointsTable
+            pointsTable: props.pointsTable,
+            tableSetter: props.tableSetter
         };
         ctrl.options = {
             canvas: true,
@@ -223,14 +223,15 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
 
     componentWillReceiveProps(nextProps) {
-        var props = _.clone(this.props);
+        var props = _.clone(this.props) as any;
         var nextPropsClone = _.clone(nextProps);
 
         delete props.hover;
         delete nextPropsClone.hover;
         delete props.stateSetter;
         delete nextPropsClone.stateSetter;
-
+        delete props.tableSetter;
+        delete nextPropsClone.tableSetter;
         if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
@@ -239,13 +240,13 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         else if (this.props.hover != nextProps.hover) {
             if(this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
-            //var table = _.clone(this.state.tableData);
-            //_.each(this.state.dataSet.Data, (data, i) => {
-            //    var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
-            //    if(vector)
-            //        table[data.ChartLabel] = vector[1];
-            //});
-            //this.state.stateSetter({ TableData: table });
+            var table = _.clone(this.state.tableData);
+            _.each(this.state.dataSet.Data, (data, i) => {
+                var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
+                if (vector)
+                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows.find(x => x.label == data.ChartLabel).color } ;
+            });
+            this.state.tableSetter(table);
 
         }
 
@@ -498,7 +499,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         return (
             <div>
                 <div id={this.state.type} style={{ height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
-                <div id={this.state.type + '-legend'} style={{ float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto'}}>
+                <div id={this.state.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto'}}>
                     <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} />
                 </div>
             </div>

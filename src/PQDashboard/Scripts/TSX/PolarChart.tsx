@@ -24,129 +24,130 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
+import './../jquery-ui.js';
 
 export default class PolarChart extends React.Component<any, any>{
     constructor(props) {
         super(props);
-
-        this.state = {
-            data: props.data,
-            callback: props.callback
-        }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
-            this.setState(nextProps);
-        }
+        var k = 1;
+        this.updatePhasorChart();
 
     }
 
-//   updatePhasorChart() {
-//        var canvas = $("#phasorCanvas");
-//        var context = canvas[0].getContext("2d");
-//
-//        var padding = 10;
-//        var center = { x: canvas.width() / 2, y: canvas.height() / 2 };
-//        var chartRadius = Math.min(center.x, center.y) - padding;
-//
-//        if (canvas.is(":hidden"))
-//            return;
-//
-//        function drawGrid() {
-//            context.lineWidth = 1;
-//            context.strokeStyle = "#BBB";
-//
-//            for (var i = 0; i < 4; i++)
-//                drawVector(chartRadius, i * Math.PI / 2);
-//
-//            context.strokeStyle = "#DDD";
-//            drawCircle(0.9 * chartRadius / 2);
-//            drawCircle(0.9 * chartRadius);
-//        }
-//
-//        function drawPhasors() {
-//            var vMax = 0;
-//            var iMax = 0;
-//
-//            context.lineWidth = 3;
-//
-//            $.each(phasorData, function (key, series) {
-//                if (series == undefined)
-//                    return;
-//
-//                if (series.color == undefined)
-//                    return;
-//
-//                $.each(series.data, function (_, dataPoint) {
-//                    series.vector = dataPoint;
-//
-//                    if (dataPoint[0] >= xaxisHover)
-//                        return false;
-//                });
-//
-//                if (key < 3 && series.vector[1] > vMax)
-//                    vMax = series.vector[1];
-//                if (key >= 3 && series.vector[1] > iMax)
-//                    iMax = series.vector[1];
-//            });
-//
-//            $.each(phasorData, function (key, series) {
-//                var scale;
-//
-//                if (series == undefined)
-//                    return;
-//
-//                if (series.vector == undefined)
-//                    return;
-//
-//                if (key < 3) {
-//                    scale = 0.9 * chartRadius / vMax;
-//                }
-//                else {
-//                    scale = 0.9 * chartRadius / iMax;
-//                    context.setLineDash([10, 5]);
-//                }
-//
-//                context.strokeStyle = series.color;
-//                drawVector(series.vector[1] * scale, series.vector[2]);
-//                context.setLineDash([]);
-//            });
-//        }
-//
-//        function drawVector(r, t) {
-//            var x = r * Math.cos(t);
-//            var y = r * Math.sin(t);
-//
-//            context.beginPath();
-//            context.moveTo(center.x, center.y);
-//            context.lineTo(center.x + x, center.y - y);
-//            context.stroke();
-//        }
-//
-//        function drawCircle(r) {
-//            context.beginPath();
-//            context.arc(center.x, center.y, r, 0, 2 * Math.PI);
-//            context.stroke();
-//        }
-//
-//        context.clearRect(0, 0, canvas.width(), canvas.height());
-//        drawGrid();
-//        drawPhasors();
-//    }
+    componentDidMount() {
+        var ctrl = this;
+        ($("#phasor") as any).draggable({ scroll: false, handle: '#phasorhandle' });
+        this.updatePhasorChart();
+    }
 
+   updatePhasorChart() {
+        var canvas = $("#phasorCanvas");
+        var context = (canvas[0] as any).getContext("2d");
+
+        var padding = 10;
+        var center = { x: canvas.width() / 2, y: canvas.height() / 2 };
+        var chartRadius = Math.min(center.x, center.y) - padding;
+
+        if (canvas.is(":hidden"))
+            return;
+
+       context.clearRect(0, 0, canvas.width(), canvas.height());
+       this.drawGrid(context, center, chartRadius);
+       this.drawPhasors(context, center, chartRadius);
+
+    }
+
+    drawPhasors(context, center, chartRadius) {
+        var vMax = 0;
+        var iMax = 0;
+        var ctrl = this;
+
+        context.lineWidth = 3;
+        if (!this.props.data.hasOwnProperty('VAN RMS')) return;
+
+        var dataV = [
+            { mag: this.props.data['VAN RMS'].data, ang: this.props.data['VAN Phase'].data, color: this.props.data['VAN RMS'].color },
+            { mag: this.props.data['VBN RMS'].data, ang: this.props.data['VBN Phase'].data, color: this.props.data['VBN RMS'].color },
+            { mag: this.props.data['VCN RMS'].data, ang: this.props.data['VCN Phase'].data, color: this.props.data['VCN RMS'].color }
+        ];
+
+        var dataI = [
+            { mag: this.props.data['IAN RMS'].data, ang: this.props.data['IAN Phase'].data, color: this.props.data['IAN RMS'].color },
+            { mag: this.props.data['IBN RMS'].data, ang: this.props.data['IBN Phase'].data, color: this.props.data['IBN RMS'].color },
+            { mag: this.props.data['ICN RMS'].data, ang: this.props.data['ICN Phase'].data, color: this.props.data['ICN RMS'].color }
+        ];
+
+        $.each(dataV, function (key, series) {
+            if (series.mag > vMax)
+                vMax = series.mag;
+        });
+        $.each(dataI, function (key, series) {
+            if (series.mag > iMax)
+                iMax = series.mag;
+        });
+
+
+
+        $.each(dataV, function (index: number, series) {
+            var scale = 0.9 * chartRadius / vMax;
+            context.strokeStyle = series.color;
+            ctrl.drawVector(context, center, series.mag * scale, series.ang);
+            context.setLineDash([]);
+        });
+
+        $.each(dataI, function (index: number, series) {
+            var scale = 0.9 * chartRadius / iMax;
+            context.setLineDash([10, 5]);
+
+            context.strokeStyle = series.color;
+            ctrl.drawVector(context, center, series.mag * scale, series.ang);
+            context.setLineDash([]);
+        });
+    }
+
+    drawGrid(context, center, chartRadius) {
+        context.lineWidth = 1;
+        context.strokeStyle = "#BBB";
+
+        for (var i = 0; i < 4; i++)
+            this.drawVector(context, center, chartRadius, i * Math.PI / 2);
+
+        context.strokeStyle = "#DDD";
+        this.drawCircle(context, center, 0.9 * chartRadius / 2);
+        this.drawCircle(context, center, 0.9 * chartRadius);
+    }
+
+    drawVector(context, center, r, t) {
+        var x = r * Math.cos(t);
+        var y = r * Math.sin(t);
+
+        context.beginPath();
+        context.moveTo(center.x, center.y);
+        context.lineTo(center.x + x, center.y - y);
+        context.stroke();
+    }
+
+    drawCircle(context, center, r) {
+        context.beginPath();
+        context.arc(center.x, center.y, r, 0, 2 * Math.PI);
+        context.stroke();
+    }
 
     render() {
         return (
-            <div>
+            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: '300px', height: '320px', display: 'none' }}>
                 <div id="phasorhandle"></div>
-                <div id="phasorchart" style={{width: '300px', height: '300px', zIndex: 1001}}>
+                <div id="phasorchart" style={{ width: '300px', height: '300px', zIndex: 1001 }}>
                     <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' }}></canvas>
                 </div>
                 <button className="CloseButton" onClick={() => {
                     $('#phasor').hide();
                     $('#showphasor').val('Show Phasor');
                 }}>X</button>
+
             </div>
         );
     }

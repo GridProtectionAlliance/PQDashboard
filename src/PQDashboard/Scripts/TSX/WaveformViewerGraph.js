@@ -37,7 +37,9 @@ var WaveformViewerGraph = (function (_super) {
             dataSet: [],
             height: props.height,
             hover: props.hover,
-            tableData: props.tableData
+            tableData: props.tableData,
+            pointsTable: props.pointsTable,
+            tableSetter: props.tableSetter
         };
         ctrl.options = {
             canvas: true,
@@ -204,12 +206,22 @@ var WaveformViewerGraph = (function (_super) {
         delete nextPropsClone.hover;
         delete props.stateSetter;
         delete nextPropsClone.stateSetter;
+        delete props.tableSetter;
+        delete nextPropsClone.tableSetter;
         if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
         }
         else if (this.props.hover != nextProps.hover) {
-            this.plot.setCrosshair({ x: nextProps.hover });
+            if (this.plot)
+                this.plot.setCrosshair({ x: nextProps.hover });
+            var table = _.clone(this.state.tableData);
+            _.each(this.state.dataSet.Data, function (data, i) {
+                var vector = _.findLast(data.DataPoints, function (x) { return x[0] <= nextProps.hover; });
+                if (vector)
+                    table[data.ChartLabel] = vector[1];
+            });
+            this.state.tableSetter(table);
         }
     };
     WaveformViewerGraph.prototype.componentDidMount = function () {
@@ -219,6 +231,7 @@ var WaveformViewerGraph = (function (_super) {
         $("#" + this.state.type).off("plotselected");
         $("#" + this.state.type).off("plotzoom");
         $("#" + this.state.type).off("plothover");
+        $("#" + this.state.type).off("plotclick");
     };
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
         var ctrl = this;
@@ -260,6 +273,7 @@ var WaveformViewerGraph = (function (_super) {
         this.plotSelected();
         this.plotZoom();
         this.plotHover();
+        this.plotClick();
     };
     WaveformViewerGraph.prototype.plotZoom = function () {
         var ctrl = this;
@@ -319,6 +333,34 @@ var WaveformViewerGraph = (function (_super) {
         $("#" + this.state.type).off("plothover");
         $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
             ctrl.state.stateSetter({ Hover: pos.x });
+        });
+    };
+    WaveformViewerGraph.prototype.plotClick = function () {
+        var ctrl = this;
+        $("#" + this.state.type).off("plotclick");
+        $("#" + ctrl.state.type).bind("plotclick", function (event, pos, item) {
+            var time;
+            var deltatime;
+            var deltavalue;
+            if (!item)
+                return;
+            var pointsTable = _.clone(ctrl.state.pointsTable);
+            time = (item.datapoint[0] - Number(postedEventMilliseconds)) / 1000.0;
+            deltatime = 0.0;
+            deltavalue = 0.0;
+            if (pointsTable.length > 0) {
+                deltatime = time - pointsTable[pointsTable.length - 1].thetime;
+                deltavalue = item.datapoint[1] - pointsTable[pointsTable.length - 1].thevalue;
+            }
+            pointsTable.push({
+                theseries: item.series.label,
+                thetime: time,
+                thevalue: item.datapoint[1].toFixed(3),
+                deltatime: deltatime,
+                deltavalue: deltavalue.toFixed(3),
+                arrayIndex: ctrl.state.pointsTable.length
+            });
+            ctrl.state.stateSetter({ PointsTable: pointsTable });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {

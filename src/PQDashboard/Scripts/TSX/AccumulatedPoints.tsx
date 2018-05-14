@@ -78,7 +78,7 @@ export default class Points extends React.Component<any, any>{
 
     render() {
         return (
-            <div id="accumulatedpoints" className="ui-widget-content" style={{ width: '520px', height: '260px', display: 'none' }}>
+            <div id="accumulatedpoints" className="ui-widget-content" style={{ position: 'absolute', top:'0', width: '520px', height: '260px', display: 'none' }}>
                 <div style={{ border: 'black solid 2px' }}>
                     <div id="accumulatedpointshandle"></div>
                     <div style={{ overflowY: 'scroll', height: '200px' }}><div id="accumulatedpointscontent" style={{ height: '100%' }}></div></div>

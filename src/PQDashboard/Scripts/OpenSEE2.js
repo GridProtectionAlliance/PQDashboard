@@ -45577,6 +45577,7 @@ var _ = __webpack_require__(11);
 var WaveformViewerGraph_1 = __webpack_require__(192);
 var PolarChart_1 = __webpack_require__(200);
 var AccumulatedPoints_1 = __webpack_require__(201);
+var Tooltip_1 = __webpack_require__(204);
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
     function OpenSEE(props) {
@@ -45594,8 +45595,10 @@ var OpenSEE = (function (_super) {
             Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
             Width: window.innerWidth,
             Hover: 0,
-            PointsTable: []
+            PointsTable: [],
+            TableData: {}
         };
+        _this.TableData = {};
         _this.history['listen'](function (location, action) {
             var query = queryString.parse(_this.history['location'].search);
             _this.setState({
@@ -45606,7 +45609,6 @@ var OpenSEE = (function (_super) {
                 breakerdigitals: query['breakerdigitals'],
             });
         });
-        ReactDOM.render(React.createElement(PolarChart_1.default, { data: _this.state.phasorData }), document.getElementById('phasor'));
         return _this;
     }
     OpenSEE.prototype.componentDidMount = function () {
@@ -45627,11 +45629,13 @@ var OpenSEE = (function (_super) {
     };
     OpenSEE.prototype.render = function () {
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
+            React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
             React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this) }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData, pointsTable: this.state.PointsTable }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData, pointsTable: this.state.PointsTable }),
-            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData, pointsTable: this.state.PointsTable }) : ''),
-            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.state.TableData, pointsTable: this.state.PointsTable }) : '')));
+            React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }),
+            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }) : ''),
+            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }) : '')));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
@@ -45647,6 +45651,10 @@ var OpenSEE = (function (_super) {
             if (!_.isEqual(qs, hqs))
                 _this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
         });
+    };
+    OpenSEE.prototype.tableUpdater = function (obj) {
+        this.TableData = _.merge(this.TableData, obj);
+        this.setState({ TableData: this.TableData });
     };
     return OpenSEE;
 }(React.Component));
@@ -66317,7 +66325,8 @@ var WaveformViewerGraph = (function (_super) {
             height: props.height,
             hover: props.hover,
             tableData: props.tableData,
-            pointsTable: props.pointsTable
+            pointsTable: props.pointsTable,
+            tableSetter: props.tableSetter
         };
         ctrl.options = {
             canvas: true,
@@ -66478,12 +66487,15 @@ var WaveformViewerGraph = (function (_super) {
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
+        var _this = this;
         var props = _.clone(this.props);
         var nextPropsClone = _.clone(nextProps);
         delete props.hover;
         delete nextPropsClone.hover;
         delete props.stateSetter;
         delete nextPropsClone.stateSetter;
+        delete props.tableSetter;
+        delete nextPropsClone.tableSetter;
         if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
@@ -66491,6 +66503,13 @@ var WaveformViewerGraph = (function (_super) {
         else if (this.props.hover != nextProps.hover) {
             if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
+            var table = _.clone(this.state.tableData);
+            _.each(this.state.dataSet.Data, function (data, i) {
+                var vector = _.findLast(data.DataPoints, function (x) { return x[0] <= nextProps.hover; });
+                if (vector)
+                    table[data.ChartLabel] = { data: vector[1], color: _this.state.legendRows.find(function (x) { return x.label == data.ChartLabel; }).color };
+            });
+            this.state.tableSetter(table);
         }
     };
     WaveformViewerGraph.prototype.componentDidMount = function () {
@@ -66684,7 +66703,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", null,
             React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
-            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
+            React.createElement("div", { id: this.state.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
     return WaveformViewerGraph;
@@ -67014,6 +67033,8 @@ var Legend = (function (_super) {
 exports.default = Legend;
 var Row = function (props) {
     return (React.createElement("tr", null,
+        React.createElement("td", null,
+            React.createElement("input", { name: props.label, className: 'legendCheckbox', type: "checkbox", style: { display: 'none' }, defaultChecked: props.enabled })),
         React.createElement("td", null,
             React.createElement("div", { style: { border: '1px solid #ccc', padding: '1px' } },
                 React.createElement("div", { style: { width: ' 4px', height: 0, border: '5px solid ' + props.color + (props.enabled ? 'FF' : '60'), overflow: 'hidden' }, onClick: props.callback }))),
@@ -69811,24 +69832,96 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(4);
-var _ = __webpack_require__(11);
+__webpack_require__(203);
 var PolarChart = (function (_super) {
     __extends(PolarChart, _super);
     function PolarChart(props) {
-        var _this = _super.call(this, props) || this;
-        _this.state = {
-            data: props.data,
-            callback: props.callback
-        };
-        return _this;
+        return _super.call(this, props) || this;
     }
     PolarChart.prototype.componentWillReceiveProps = function (nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
-            this.setState(nextProps);
-        }
+        var k = 1;
+        this.updatePhasorChart();
+    };
+    PolarChart.prototype.componentDidMount = function () {
+        var ctrl = this;
+        $("#phasor").draggable({ scroll: false, handle: '#phasorhandle' });
+        this.updatePhasorChart();
+    };
+    PolarChart.prototype.updatePhasorChart = function () {
+        var canvas = $("#phasorCanvas");
+        var context = canvas[0].getContext("2d");
+        var padding = 10;
+        var center = { x: canvas.width() / 2, y: canvas.height() / 2 };
+        var chartRadius = Math.min(center.x, center.y) - padding;
+        if (canvas.is(":hidden"))
+            return;
+        context.clearRect(0, 0, canvas.width(), canvas.height());
+        this.drawGrid(context, center, chartRadius);
+        this.drawPhasors(context, center, chartRadius);
+    };
+    PolarChart.prototype.drawPhasors = function (context, center, chartRadius) {
+        var vMax = 0;
+        var iMax = 0;
+        var ctrl = this;
+        context.lineWidth = 3;
+        if (!this.props.data.hasOwnProperty('VAN RMS'))
+            return;
+        var dataV = [
+            { mag: this.props.data['VAN RMS'].data, ang: this.props.data['VAN Phase'].data, color: this.props.data['VAN RMS'].color },
+            { mag: this.props.data['VBN RMS'].data, ang: this.props.data['VBN Phase'].data, color: this.props.data['VBN RMS'].color },
+            { mag: this.props.data['VCN RMS'].data, ang: this.props.data['VCN Phase'].data, color: this.props.data['VCN RMS'].color }
+        ];
+        var dataI = [
+            { mag: this.props.data['IAN RMS'].data, ang: this.props.data['IAN Phase'].data, color: this.props.data['IAN RMS'].color },
+            { mag: this.props.data['IBN RMS'].data, ang: this.props.data['IBN Phase'].data, color: this.props.data['IBN RMS'].color },
+            { mag: this.props.data['ICN RMS'].data, ang: this.props.data['ICN Phase'].data, color: this.props.data['ICN RMS'].color }
+        ];
+        $.each(dataV, function (key, series) {
+            if (series.mag > vMax)
+                vMax = series.mag;
+        });
+        $.each(dataI, function (key, series) {
+            if (series.mag > iMax)
+                iMax = series.mag;
+        });
+        $.each(dataV, function (index, series) {
+            var scale = 0.9 * chartRadius / vMax;
+            context.strokeStyle = series.color;
+            ctrl.drawVector(context, center, series.mag * scale, series.ang);
+            context.setLineDash([]);
+        });
+        $.each(dataI, function (index, series) {
+            var scale = 0.9 * chartRadius / iMax;
+            context.setLineDash([10, 5]);
+            context.strokeStyle = series.color;
+            ctrl.drawVector(context, center, series.mag * scale, series.ang);
+            context.setLineDash([]);
+        });
+    };
+    PolarChart.prototype.drawGrid = function (context, center, chartRadius) {
+        context.lineWidth = 1;
+        context.strokeStyle = "#BBB";
+        for (var i = 0; i < 4; i++)
+            this.drawVector(context, center, chartRadius, i * Math.PI / 2);
+        context.strokeStyle = "#DDD";
+        this.drawCircle(context, center, 0.9 * chartRadius / 2);
+        this.drawCircle(context, center, 0.9 * chartRadius);
+    };
+    PolarChart.prototype.drawVector = function (context, center, r, t) {
+        var x = r * Math.cos(t);
+        var y = r * Math.sin(t);
+        context.beginPath();
+        context.moveTo(center.x, center.y);
+        context.lineTo(center.x + x, center.y - y);
+        context.stroke();
+    };
+    PolarChart.prototype.drawCircle = function (context, center, r) {
+        context.beginPath();
+        context.arc(center.x, center.y, r, 0, 2 * Math.PI);
+        context.stroke();
     };
     PolarChart.prototype.render = function () {
-        return (React.createElement("div", null,
+        return (React.createElement("div", { id: "phasor", className: "ui-widget-content", style: { position: 'absolute', top: '0', width: '300px', height: '320px', display: 'none' } },
             React.createElement("div", { id: "phasorhandle" }),
             React.createElement("div", { id: "phasorchart", style: { width: '300px', height: '300px', zIndex: 1001 } },
                 React.createElement("canvas", { id: "phasorCanvas", width: "300", height: "300", style: { display: 'block' } })),
@@ -69909,7 +70002,7 @@ var Points = (function (_super) {
     };
     Points.prototype.render = function () {
         var _this = this;
-        return (React.createElement("div", { id: "accumulatedpoints", className: "ui-widget-content", style: { width: '520px', height: '260px', display: 'none' } },
+        return (React.createElement("div", { id: "accumulatedpoints", className: "ui-widget-content", style: { position: 'absolute', top: '0', width: '520px', height: '260px', display: 'none' } },
             React.createElement("div", { style: { border: 'black solid 2px' } },
                 React.createElement("div", { id: "accumulatedpointshandle" }),
                 React.createElement("div", { style: { overflowY: 'scroll', height: '200px' } },
@@ -100337,6 +100430,81 @@ var tooltip = $.widget( "ui.tooltip", {
 
 
 }));
+
+/***/ }),
+/* 204 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(4);
+var _ = __webpack_require__(11);
+__webpack_require__(203);
+__webpack_require__(195);
+__webpack_require__(199);
+var Tooltip = (function (_super) {
+    __extends(Tooltip, _super);
+    function Tooltip(props) {
+        return _super.call(this, props) || this;
+    }
+    Tooltip.prototype.componentDidMount = function () {
+        var ctrl = this;
+        $("#unifiedtooltip").draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
+    };
+    Tooltip.prototype.render = function () {
+        var subsecond = ("0000000" + (this.props.hover * 10000 % 10000000)).slice(-7);
+        var format = $.plot.formatDate($.plot.dateGenerator(this.props.hover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + subsecond;
+        var rows = [];
+        _.each(this.props.data, function (data, index) {
+            if (index.indexOf('V') == 0 && $('.legendCheckbox:checked').toArray().map(function (x) { return x.name; }).indexOf(index) >= 0)
+                rows.push(Row({ label: index, data: data.data, color: data.color }));
+        });
+        _.each(this.props.data, function (data, index) {
+            if (index.indexOf('I') == 0 && $('.legendCheckbox:checked').toArray().map(function (x) { return x.name; }).indexOf(index) >= 0)
+                rows.push(Row({ label: index, data: data.data, color: data.color }));
+        });
+        _.each(this.props.data, function (data, index) {
+            if (index.indexOf('V') != 0 && index.indexOf('I') != 0 && $('.legendCheckbox:checked').toArray().map(function (x) { return x.name; }).indexOf(index) >= 0)
+                rows.push(Row({ label: index, data: data.data, color: data.color }));
+        });
+        return (React.createElement("div", { id: "unifiedtooltip", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
+            React.createElement("div", { id: "unifiedtooltiphandle" }),
+            React.createElement("div", { id: "unifiedtooltipcontent" },
+                React.createElement("div", { style: { textAlign: 'center' } },
+                    React.createElement("b", null, format),
+                    React.createElement("br", null),
+                    React.createElement("table", { className: "table" },
+                        React.createElement("tbody", null, rows)))),
+            React.createElement("button", { className: "CloseButton", onClick: function () {
+                    $('#unifiedtooltip').hide();
+                    $('.legendCheckbox').hide();
+                    $('#showtooltip').val('Show Tooltip');
+                } }, "X")));
+    };
+    return Tooltip;
+}(React.Component));
+exports.default = Tooltip;
+var Row = function (row) {
+    return (React.createElement("tr", { key: row.label },
+        React.createElement("td", { className: "dot", style: { background: row.color, width: '12px' } }, "\u00A0\u00A0\u00A0"),
+        React.createElement("td", { style: { textAlign: 'left' } },
+            React.createElement("b", null, row.label)),
+        React.createElement("td", { style: { textAlign: "right" } },
+            React.createElement("b", null, row.data.toFixed(2)))));
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ })
 /******/ ]);
