@@ -1284,7 +1284,7 @@
     <Content Include="Views\System\ValueListGroups.cshtml" />
     <Content Include="Views\System\ValueListItems.cshtml" />
     <Content Include="Views\Main\GraphMeasurements.cshtml" />
-    <Content Include="Views\Main\OpenSEE.cshtml" />
+    <Content Include="Views\Main\OpenSEEold.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
     <Content Include="Views\Main\MeterEventsByLine.cshtml" />
     <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
@@ -1292,7 +1292,7 @@
     <Content Include="Views\Main\Settings.cshtml" />
     <Content Include="Views\Main\QuickSearch.cshtml" />
     <Content Include="tsconfig.json" />
-    <Content Include="Views\Main\OpenSEE2.cshtml" />
+    <Content Include="Views\Main\OpenSEE.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -31,21 +31,62 @@ var Legend = (function (_super) {
         var _this = this;
         if (this.state.data == null)
             return null;
-        var rows = this.state.data.map(function (row) {
-            return React.createElement(Row, { key: row.label, label: row.label, color: row.color, enabled: row.enabled, callback: function () {
-                    row.enabled = !row.enabled;
+        var rows = Object.keys(this.state.data).sort().map(function (row) {
+            return React.createElement(Row, { key: row, label: row, color: _this.state.data[row].color, enabled: _this.state.data[row].enabled, callback: function () {
+                    _this.state.data[row].enabled = !_this.state.data[row].enabled;
                     _this.setState({ data: _this.state.data });
                     _this.state.callback();
                 } });
         });
-        return (React.createElement("table", null,
-            React.createElement("tbody", null, rows)));
+        return (React.createElement("div", null,
+            (Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+                React.createElement("div", { className: "btn-group", style: { width: '100%' } },
+                    React.createElement("button", { className: 'active', style: { width: '25%' }, onClick: this.toggleWave.bind(this) }, "Wave"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Amplitude') }, "Amp"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Phase') }, "Phase"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'RMS') }, "RMS")) : null),
+            React.createElement("table", null,
+                React.createElement("tbody", null, rows))));
+    };
+    Legend.prototype.toggleWave = function (event) {
+        var data = this.state.data;
+        var flag = false;
+        _.each(Object.keys(data).filter(function (d) { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0; }), function (key, i) {
+            if (i == 0)
+                flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag);
+        });
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+        this.setState({ data: data });
+        this.state.callback();
+    };
+    Legend.prototype.toggleAll = function (type, event) {
+        var data = this.state.data;
+        var flag = false;
+        _.each(Object.keys(data).filter(function (d) { return d.indexOf(type) >= 0; }), function (key, i) {
+            if (i == 0)
+                flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag);
+        });
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+        this.setState({ data: data });
+        this.state.callback();
     };
     return Legend;
 }(React.Component));
 exports.default = Legend;
 var Row = function (props) {
     return (React.createElement("tr", null,
+        React.createElement("td", null,
+            React.createElement("input", { name: props.label, className: 'legendCheckbox', type: "checkbox", style: { display: 'none' }, defaultChecked: props.enabled })),
         React.createElement("td", null,
             React.createElement("div", { style: { border: '1px solid #ccc', padding: '1px' } },
                 React.createElement("div", { style: { width: ' 4px', height: 0, border: '5px solid ' + props.color + (props.enabled ? 'FF' : '60'), overflow: 'hidden' }, onClick: props.callback }))),

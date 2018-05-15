@@ -68,6 +68,9 @@ export class OpenSEE extends React.Component<any, any>{
                 breakerdigitals: query['breakerdigitals'],
             });
         });
+
+        ReactDOM.render(<button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button>, document.getElementById('resetBtn'));
+
     }
 
     componentDidMount() {
@@ -116,18 +119,19 @@ export class OpenSEE extends React.Component<any, any>{
             var hqs = queryString.parse(this.history['location'].search);
 
             if(!_.isEqual(qs, hqs))
-                this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
+                this.history['push']('OpenSEE?' + queryString.stringify(prop, { encode: false }));
         });
     }
 
     tableUpdater(obj) {
-        //var table = _.clone(this.state.tableData);
-        //var newTable = _.merge(table, obj);
-        //this.setState({ TableData: newTable });
-
         this.TableData = _.merge(this.TableData, obj);
         this.setState({ TableData: this.TableData });
     }
+
+    resetZoom() {
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1': ''));
+    }
+
 }
 
 ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));

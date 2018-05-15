@@ -30,7 +30,6 @@ import Legend from './Legend';
 import 'flot';
 import './../flot/jquery.flot.crosshair.min.js';
 import './../flot/jquery.flot.navigate.min.js';
-//import './../flot/jquery.flot.resize.min.js';
 import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 import { WheelEvent } from 'react';
@@ -183,7 +182,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
             this.openSEEService.getData(state, "Freq").then(d2 => {
-                legend = legend = this.createLegendRows(data.Data.concat(d2.Data));
+                legend = this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
 
                 this.createDataRows(data, legend);
@@ -244,7 +243,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             _.each(this.state.dataSet.Data, (data, i) => {
                 var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
-                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows.find(x => x.label == data.ChartLabel).color } ;
+                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows[data.ChartLabel].color } ;
             });
             this.state.tableSetter(table);
 
@@ -267,17 +266,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     createLegendRows(data) {
         var ctrl = this;
 
-        var legend = [];
-        data.sort((a, b) => {
-            var keyA = a.ChartLabel,
-                keyB = b.ChartLabel;
-            // Compare the 2 dates
-            if (keyA < keyB) return -1;
-            if (keyA > keyB) return 1;
-            return 0;
-        });
+        var legend = ( this.state.legendRows != undefined ? this.state.legendRows : {});
+
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0,3)) });
+            if(legend[key.ChartLabel]  == undefined)
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0,3)) };
         });
 
         this.setState({ legendRows: legend });
@@ -299,10 +292,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         }
         var newVessel = [];
         $.each(data.Data, (i, key) => {
-            var legendKey = legend.find(x => x.label == key.ChartLabel);
-
-            if (legendKey.enabled)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legendKey.color })
+            if (legend[key.ChartLabel].enabled)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legend[key.ChartLabel].color })
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
@@ -422,11 +413,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             });
 
             ctrl.state.stateSetter({PointsTable: pointsTable});
-            //$('#accumulatedpointscontent').puidatatable('reload');
-
-            //var scrollDiv = $('#accumulatedpointscontent').parent()[0];
-            //scrollDiv.scrollTop = scrollDiv.scrollHeight;
-
         });
     }
 

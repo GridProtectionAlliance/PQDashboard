@@ -44,21 +44,68 @@ export default class Legend extends React.Component<any, any>{
     render() {
         if (this.state.data == null) return null;
 
-        let rows = this.state.data.map(row => {
-            return <Row key={row.label} label={row.label} color={row.color} enabled={row.enabled} callback={() => {
-                row.enabled = !row.enabled;
+        let rows = Object.keys(this.state.data).sort().map(row => {
+            return <Row key={row} label={row} color={this.state.data[row].color} enabled={this.state.data[row].enabled} callback={() => {
+                this.state.data[row].enabled = !this.state.data[row].enabled;
                 this.setState({ data: this.state.data });
                 this.state.callback();
             }} />
         });
 
         return (
+            <div>
+                {(Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+                    <div className="btn-group" style={{ width: '100%' }}>
+                        <button className='active' style={{ width: '25%' }} onClick={this.toggleWave.bind(this)}>Wave</button>
+                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'Amplitude')}>Amp</button>
+                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'Phase')}>Phase</button>
+                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'RMS')}>RMS</button>
+                    </div> : null)}
             <table>
                 <tbody>
                     {rows}
                 </tbody>
-            </table>
+                </table>
+            </div>
         );
+    }
+
+    toggleWave(event) {
+        var data = this.state.data;
+        var flag = false;
+        _.each(Object.keys(data).filter(d => { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0}), (key, i:any) => {
+            if (i == 0) flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag)
+        });
+
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+
+        this.setState({ data: data });
+        this.state.callback();
+    }
+
+    toggleAll(type, event) {
+        var data = this.state.data;
+        var flag = false;
+
+        _.each(Object.keys(data).filter(d => { return d.indexOf(type) >= 0 }), (key, i: any) => {
+            if (i == 0) flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag)
+        });
+
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+
+        this.setState({ data: data });
+        this.state.callback();
+
     }
 }
 

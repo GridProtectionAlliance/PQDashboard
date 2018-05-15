@@ -170,7 +170,7 @@ var WaveformViewerGraph = (function (_super) {
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
             _this.openSEEService.getData(state, "Freq").then(function (d2) {
-                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
+                legend = _this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
                 _this.createDataRows(data, legend);
                 _this.setState({ dataSet: data });
@@ -200,6 +200,7 @@ var WaveformViewerGraph = (function (_super) {
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
+        var _this = this;
         var props = _.clone(this.props);
         var nextPropsClone = _.clone(nextProps);
         delete props.hover;
@@ -219,7 +220,7 @@ var WaveformViewerGraph = (function (_super) {
             _.each(this.state.dataSet.Data, function (data, i) {
                 var vector = _.findLast(data.DataPoints, function (x) { return x[0] <= nextProps.hover; });
                 if (vector)
-                    table[data.ChartLabel] = vector[1];
+                    table[data.ChartLabel] = { data: vector[1], color: _this.state.legendRows[data.ChartLabel].color };
             });
             this.state.tableSetter(table);
         }
@@ -235,17 +236,10 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
         var ctrl = this;
-        var legend = [];
-        data.sort(function (a, b) {
-            var keyA = a.ChartLabel, keyB = b.ChartLabel;
-            if (keyA < keyB)
-                return -1;
-            if (keyA > keyB)
-                return 1;
-            return 0;
-        });
+        var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) });
+            if (legend[key.ChartLabel] == undefined)
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) };
         });
         this.setState({ legendRows: legend });
         return legend;
@@ -264,9 +258,8 @@ var WaveformViewerGraph = (function (_super) {
         }
         var newVessel = [];
         $.each(data.Data, function (i, key) {
-            var legendKey = legend.find(function (x) { return x.label == key.ChartLabel; });
-            if (legendKey.enabled)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legendKey.color });
+            if (legend[key.ChartLabel].enabled)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legend[key.ChartLabel].color });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);
@@ -415,7 +408,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", null,
             React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
-            React.createElement("div", { id: this.state.type + '-legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
+            React.createElement("div", { id: this.state.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
     return WaveformViewerGraph;

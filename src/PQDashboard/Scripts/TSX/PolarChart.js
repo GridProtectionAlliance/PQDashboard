@@ -11,24 +11,14 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
-var _ = require("lodash");
 require("./../jquery-ui.js");
 var PolarChart = (function (_super) {
     __extends(PolarChart, _super);
     function PolarChart(props) {
-        var _this = _super.call(this, props) || this;
-        _this.state = {
-            data: props.data,
-            callback: props.callback
-        };
-        return _this;
+        return _super.call(this, props) || this;
     }
     PolarChart.prototype.componentWillReceiveProps = function (nextProps) {
         var k = 1;
-        if (!(_.isEqual(this.state.data, nextProps.data))) {
-            console.log(nextProps.data);
-            this.setState({ data: nextProps.data });
-        }
         this.updatePhasorChart();
     };
     PolarChart.prototype.componentDidMount = function () {
@@ -53,8 +43,18 @@ var PolarChart = (function (_super) {
         var iMax = 0;
         var ctrl = this;
         context.lineWidth = 3;
-        var dataV = [{ mag: this.state.data['VAN RMS'], ang: this.state.data['VAN Phase'], color: '#A30000' }, { mag: this.state.data['VBN RMS'], ang: this.state.data['VBN Phase'], color: '#0029A3' }, { mag: this.state.data['VCN RMS'], ang: this.state.data['VCN Phase'], color: '#007A29' }];
-        var dataI = [{ mag: this.state.data['IAN RMS'], ang: this.state.data['IAN Phase'], color: '#FF0000' }, { mag: this.state.data['IBN RMS'], ang: this.state.data['IBN Phase'], color: '#0066CC' }, { mag: this.state.data['ICN RMS'], ang: this.state.data['ICN Phase'], color: '#33CC33' }];
+        if (!this.props.data.hasOwnProperty('VAN RMS'))
+            return;
+        var dataV = [
+            { mag: this.props.data['VAN RMS'].data, ang: this.props.data['VAN Phase'].data, color: this.props.data['VAN RMS'].color },
+            { mag: this.props.data['VBN RMS'].data, ang: this.props.data['VBN Phase'].data, color: this.props.data['VBN RMS'].color },
+            { mag: this.props.data['VCN RMS'].data, ang: this.props.data['VCN Phase'].data, color: this.props.data['VCN RMS'].color }
+        ];
+        var dataI = [
+            { mag: this.props.data['IAN RMS'].data, ang: this.props.data['IAN Phase'].data, color: this.props.data['IAN RMS'].color },
+            { mag: this.props.data['IBN RMS'].data, ang: this.props.data['IBN Phase'].data, color: this.props.data['IBN RMS'].color },
+            { mag: this.props.data['ICN RMS'].data, ang: this.props.data['ICN Phase'].data, color: this.props.data['ICN RMS'].color }
+        ];
         $.each(dataV, function (key, series) {
             if (series.mag > vMax)
                 vMax = series.mag;

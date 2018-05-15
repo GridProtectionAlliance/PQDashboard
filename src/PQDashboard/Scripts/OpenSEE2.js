@@ -45609,6 +45609,7 @@ var OpenSEE = (function (_super) {
                 breakerdigitals: query['breakerdigitals'],
             });
         });
+        ReactDOM.render(React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom"), document.getElementById('resetBtn'));
         return _this;
     }
     OpenSEE.prototype.componentDidMount = function () {
@@ -45649,12 +45650,15 @@ var OpenSEE = (function (_super) {
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(_this.history['location'].search);
             if (!_.isEqual(qs, hqs))
-                _this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
+                _this.history['push']('OpenSEE?' + queryString.stringify(prop, { encode: false }));
         });
     };
     OpenSEE.prototype.tableUpdater = function (obj) {
         this.TableData = _.merge(this.TableData, obj);
         this.setState({ TableData: this.TableData });
+    };
+    OpenSEE.prototype.resetZoom = function () {
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1' : ''));
     };
     return OpenSEE;
 }(React.Component));
@@ -66457,7 +66461,7 @@ var WaveformViewerGraph = (function (_super) {
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
             _this.openSEEService.getData(state, "Freq").then(function (d2) {
-                legend = legend = _this.createLegendRows(data.Data.concat(d2.Data));
+                legend = _this.createLegendRows(data.Data.concat(d2.Data));
                 data.Data = data.Data.concat(d2.Data);
                 _this.createDataRows(data, legend);
                 _this.setState({ dataSet: data });
@@ -66507,7 +66511,7 @@ var WaveformViewerGraph = (function (_super) {
             _.each(this.state.dataSet.Data, function (data, i) {
                 var vector = _.findLast(data.DataPoints, function (x) { return x[0] <= nextProps.hover; });
                 if (vector)
-                    table[data.ChartLabel] = { data: vector[1], color: _this.state.legendRows.find(function (x) { return x.label == data.ChartLabel; }).color };
+                    table[data.ChartLabel] = { data: vector[1], color: _this.state.legendRows[data.ChartLabel].color };
             });
             this.state.tableSetter(table);
         }
@@ -66523,17 +66527,10 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
         var ctrl = this;
-        var legend = [];
-        data.sort(function (a, b) {
-            var keyA = a.ChartLabel, keyB = b.ChartLabel;
-            if (keyA < keyB)
-                return -1;
-            if (keyA > keyB)
-                return 1;
-            return 0;
-        });
+        var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
         $.each(data, function (i, key) {
-            legend.push({ label: key.ChartLabel, color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) });
+            if (legend[key.ChartLabel] == undefined)
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) };
         });
         this.setState({ legendRows: legend });
         return legend;
@@ -66552,9 +66549,8 @@ var WaveformViewerGraph = (function (_super) {
         }
         var newVessel = [];
         $.each(data.Data, function (i, key) {
-            var legendKey = legend.find(function (x) { return x.label == key.ChartLabel; });
-            if (legendKey.enabled)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legendKey.color });
+            if (legend[key.ChartLabel].enabled)
+                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legend[key.ChartLabel].color });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);
@@ -66985,7 +66981,7 @@ webpackContext.id = 193;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function($) {
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -67018,15 +67014,54 @@ var Legend = (function (_super) {
         var _this = this;
         if (this.state.data == null)
             return null;
-        var rows = this.state.data.map(function (row) {
-            return React.createElement(Row, { key: row.label, label: row.label, color: row.color, enabled: row.enabled, callback: function () {
-                    row.enabled = !row.enabled;
+        var rows = Object.keys(this.state.data).sort().map(function (row) {
+            return React.createElement(Row, { key: row, label: row, color: _this.state.data[row].color, enabled: _this.state.data[row].enabled, callback: function () {
+                    _this.state.data[row].enabled = !_this.state.data[row].enabled;
                     _this.setState({ data: _this.state.data });
                     _this.state.callback();
                 } });
         });
-        return (React.createElement("table", null,
-            React.createElement("tbody", null, rows)));
+        return (React.createElement("div", null,
+            (Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+                React.createElement("div", { className: "btn-group", style: { width: '100%' } },
+                    React.createElement("button", { className: 'active', style: { width: '25%' }, onClick: this.toggleWave.bind(this) }, "Wave"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Amplitude') }, "Amp"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Phase') }, "Phase"),
+                    React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'RMS') }, "RMS")) : null),
+            React.createElement("table", null,
+                React.createElement("tbody", null, rows))));
+    };
+    Legend.prototype.toggleWave = function (event) {
+        var data = this.state.data;
+        var flag = false;
+        _.each(Object.keys(data).filter(function (d) { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0; }), function (key, i) {
+            if (i == 0)
+                flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag);
+        });
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+        this.setState({ data: data });
+        this.state.callback();
+    };
+    Legend.prototype.toggleAll = function (type, event) {
+        var data = this.state.data;
+        var flag = false;
+        _.each(Object.keys(data).filter(function (d) { return d.indexOf(type) >= 0; }), function (key, i) {
+            if (i == 0)
+                flag = !data[key].enabled;
+            data[key].enabled = flag;
+            $('[name="' + key + '"]').prop('checked', flag);
+        });
+        if (flag)
+            event.target.className = "active";
+        else
+            event.target.className = "";
+        this.setState({ data: data });
+        this.state.callback();
     };
     return Legend;
 }(React.Component));
@@ -67042,6 +67077,7 @@ var Row = function (props) {
             React.createElement("span", { style: { color: props.color, fontSize: 'smaller', fontWeight: 'bold', whiteSpace: 'nowrap' } }, props.label))));
 };
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 195 */
