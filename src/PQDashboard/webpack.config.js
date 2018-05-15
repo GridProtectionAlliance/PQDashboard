@@ -6,7 +6,7 @@ module.exports = {
         OpenSEE: "./Scripts/TSX/openSEE.tsx"
     },
     output: {
-        filename: "./Scripts/[name]2.js"
+        filename: "./Scripts/[name].js"
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",

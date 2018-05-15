@@ -164,17 +164,26 @@ var WaveformViewerGraph = (function (_super) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
             _this.options['grid'].markings.push(_this.highlightCycle(data));
-            var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.Data);
+            var legend = _this.createLegendRows(data.Data);
+            var dataSet = _this.state.dataSet;
+            _.each(data.Data, function (x) {
+            });
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
             _this.createDataRows(data, legend);
             _this.setState({ dataSet: data });
-            _this.openSEEService.getData(state, "Freq").then(function (d2) {
-                legend = _this.createLegendRows(data.Data.concat(d2.Data));
-                data.Data = data.Data.concat(d2.Data);
-                _this.createDataRows(data, legend);
-                _this.setState({ dataSet: data });
-            });
+        });
+        this.openSEEService.getData(state, "Freq").then(function (data) {
+            var legend = _this.createLegendRows(data.Data);
+            var dataSet = _this.state.dataSet;
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
+            _this.createDataRows(dataSet, legend);
+            _this.setState({ dataSet: dataSet });
         });
     };
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
@@ -209,6 +218,10 @@ var WaveformViewerGraph = (function (_super) {
         delete nextPropsClone.stateSetter;
         delete props.tableSetter;
         delete nextPropsClone.tableSetter;
+        delete props.pointsTable;
+        delete nextPropsClone.pointsTable;
+        delete props.tableData;
+        delete nextPropsClone.tableData;
         if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
@@ -239,7 +252,9 @@ var WaveformViewerGraph = (function (_super) {
         var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
         $.each(data, function (i, key) {
             if (legend[key.ChartLabel] == undefined)
-                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)) };
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
+            else
+                legend[key.ChartLabel].data = key.DataPoints;
         });
         this.setState({ legendRows: legend });
         return legend;
@@ -257,9 +272,9 @@ var WaveformViewerGraph = (function (_super) {
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
-        $.each(data.Data, function (i, key) {
-            if (legend[key.ChartLabel].enabled)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legend[key.ChartLabel].color });
+        $.each(Object.keys(legend), function (i, key) {
+            if (legend[key].enabled)
+                newVessel.push({ label: key, data: legend[key].data, color: legend[key].color });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
         this.plot = $.plot($("#" + this.state.type), newVessel, this.options);

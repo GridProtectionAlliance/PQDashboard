@@ -639,8 +639,8 @@
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
-    <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEEold.js" />
+    <Content Include="Scripts\OpenSEEveryold.js" />
     <Content Include="Scripts\OpenSTE.js" />
     <Content Include="Scripts\plotly-latest.min.js" />
     <Content Include="Scripts\PQIByEvent.js" />

@@ -51,6 +51,7 @@ var OpenSEE = (function (_super) {
                 breakerdigitals: query['breakerdigitals'],
             });
         });
+        ReactDOM.render(React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom"), document.getElementById('resetBtn'));
         return _this;
     }
     OpenSEE.prototype.componentDidMount = function () {
@@ -91,12 +92,15 @@ var OpenSEE = (function (_super) {
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(_this.history['location'].search);
             if (!_.isEqual(qs, hqs))
-                _this.history['push']('OpenSEE2?' + queryString.stringify(prop, { encode: false }));
+                _this.history['push']('OpenSEE?' + queryString.stringify(prop, { encode: false }));
         });
     };
     OpenSEE.prototype.tableUpdater = function (obj) {
         this.TableData = _.merge(this.TableData, obj);
         this.setState({ TableData: this.TableData });
+    };
+    OpenSEE.prototype.resetZoom = function () {
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1' : ''));
     };
     return OpenSEE;
 }(React.Component));

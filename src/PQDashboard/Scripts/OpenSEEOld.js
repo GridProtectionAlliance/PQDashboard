@@ -26,27 +26,42 @@
 
 var pointdata = new Array();
 var loadingPanel = null;
-var postedEventId = "";
-var postedEventName = "";
-var postedShowFaultCurves = "";
-var postedShowBreakerDigitals = "";
+
+var postedSystemFrequency = "";
+var postedStationName = "";
 var postedMeterId = "";
-var postedDate = "";
-var postedEventDate = "";
-var postedEventMilliseconds = "";
 var postedMeterName = "";
 var postedLineName = "";
 var postedLineLength = "";
+var postedEventId = "";
+var postedEventName = "";
+var postedEventDate = "";
+var postedDate = "";
+var postedEventMilliseconds = "";
 var postedStartTime = "";
+var postedPhase = "";
 var postedDurationPeriod = "";
 var postedMagnitude = "";
+var postedCalculationCycle = "";
+var postedBreakerNumber = "";
+var postedBreakerPhase = "";
+var postedBreakerTiming = "";
+var postedBreakerSpeed = "";
+var postedBreakerOperation = "";
+var postedShowFaultCurves = "";
+var postedShowBreakerDigitals = "";
+
+var systemFrequency = 60;
+var calculationCycle;
 
 var pointsTable = [];
 var selectedPoint;
 
 var plots = [];
 var plotDataList = [];
+var markingBuilders = [];
 
+var zeroMarker = false;
 var zoom = false;
 var xaxisHover = 0;
 var phasorData = [];
@@ -68,7 +83,6 @@ var colorGray = '#333300';
 var colorPurple = '#9900FF';
 var colorAqua = '#66CCFF';
 var colorTan = '#CC9900';
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 (function ($) {
@@ -135,10 +149,13 @@ var colorTan = '#CC9900';
                         if (axis.delta < 1000) {
                             var format = $.plot.formatDate(new Date(value), "%M:%S");
                             var ticks = Math.floor(value * 10000);
-                            var subsecond = ticks % 10000000;
+                            var subsecond = (ticks % 10000000).toString();
+
+                            while (subsecond.length < 7)
+                                subsecond = "0" + subsecond;
                             
-                            while (subsecond > 0 && subsecond % 10 == 0)
-                                subsecond /= 10;
+                            while (subsecond.length > 1 && subsecond.slice(-1) == "0")
+                                subsecond = subsecond.slice(0, -1);
 
                             if (subsecond != 0)
                                 return format + "." + subsecond;
@@ -178,37 +195,49 @@ var colorTan = '#CC9900';
 $(document).ready(function () {
     buildPage();
 
-    postedEventId = $("#postedEventId")[0].innerHTML;
-    postedEventName = $("#postedEventName")[0].innerHTML;
-    postedShowFaultCurves = $("#postedShowFaultCurves")[0].innerHTML;
-    postedShowBreakerDigitals = $("#postedShowBreakerDigitals")[0].innerHTML;
+    postedSystemFrequency = $("#postedSystemFrequency")[0].innerHTML;
+    postedStationName = $("#postedStationName")[0].innerHTML;
     postedMeterId = $("#postedMeterId")[0].innerHTML;
-    postedDate = $("#postedDate")[0].innerHTML;
-    postedEventDate = $("#postedEventDate")[0].innerHTML;
-    postedEventMilliseconds = $("#postedEventMilliseconds")[0].innerHTML;
     postedMeterName = $("#postedMeterName")[0].innerHTML;
     postedLineName = $("#postedLineName")[0].innerHTML;
     postedLineLength = $("#postedLineLength")[0].innerHTML;
+    postedEventId = $("#postedEventId")[0].innerHTML;
+    postedEventName = $("#postedEventName")[0].innerHTML;
+    postedEventDate = $("#postedEventDate")[0].innerHTML;
+    postedDate = $("#postedDate")[0].innerHTML;
+    postedEventMilliseconds = $("#postedEventMilliseconds")[0].innerHTML;
     postedStartTime = $("#postedStartTime")[0].innerHTML;
+    postedPhase = $("#postedPhase")[0].innerHTML;
     postedDurationPeriod = $("#postedDurationPeriod")[0].innerHTML;
     postedMagnitude = $("#postedMagnitude")[0].innerHTML;
+    postedCalculationCycle = $("#postedCalculationCycle")[0].innerHTML;
+    postedBreakerNumber = $("#postedBreakerNumber")[0].innerHTML;
+    postedBreakerPhase = $("#postedBreakerPhase")[0].innerHTML;
+    postedBreakerTiming = $("#postedBreakerTiming")[0].innerHTML;
+    postedBreakerSpeed = $("#postedBreakerSpeed")[0].innerHTML;
+    postedBreakerOperation = $("#postedBreakerOperation")[0].innerHTML;
+    postedShowFaultCurves = $("#postedShowFaultCurves")[0].innerHTML;
+    postedShowBreakerDigitals = $("#postedShowBreakerDigitals")[0].innerHTML;
 
+    systemFrequency = Number(postedSystemFrequency) || 60;
+    calculationCycle = Number(postedCalculationCycle) || NaN;
     xaxisHover = Number(postedEventMilliseconds);
-
-    $("#showdetails").hide();
-
-    if (parseBoolean(postedShowFaultCurves)) {
-        if (postedEventName == "Fault") {
-            $("#showdetails").show();
-        }
-    }
 
     if (postedMeterId != "") {
         resetWaveformDiv();
         showData();
+
+        //$(window).one('hubConnected', function () {
+        //});
     } else {
         $.unblockUI();
     }
+
+    nextBackSelect($('#next-back-selection option:selected').val());
+
+    $('#next-back-selection').change(function () {
+        nextBackSelect($('#next-back-selection option:selected').val());
+    });
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,7 +250,7 @@ function buildPage() {
 
     $(document).ajaxStart(function () {
         $.blockUI({
-            message: '<div class="wait_container"><img alt="" src="./images/ajax-loader.gif" /><br><div class="wait">Please Wait. Loading...</div></div>'
+            message: '<div class="wait_container"><img alt="" src="/Images/ajax-loader.gif" /><br><div class="wait">Please Wait. Loading...</div></div>'
         });
     });
 
@@ -271,12 +300,12 @@ function buildPage() {
 
 
 function ShowTime(rowdata) {
-    var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * 60.0).toFixed(2) + " cycles";
+    var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * systemFrequency).toFixed(2) + " cycles";
     return html;
 }
 
 function ShowDeltaTime(rowdata) {
-    var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * 60.0).toFixed(2) + " cycles";
+    var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * systemFrequency).toFixed(2) + " cycles";
     return html;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,20 +338,35 @@ function addPlotDiv(id) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function showData() {
-
     // If all exist, then let's act
     if (postedEventName && postedEventId) {
         // Lets build a label for this chart
         var label = "";
         var details = "";
         var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
+        var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
 
-        label += "Line: " + postedLineName;
-        label += separator + "Event Type: " + postedEventName;
+        label += "Station: " + postedStationName;
+        label += separator + "Meter: " + postedMeterName;
+        label += separator + "Line: " + postedLineName;
+        label += "<br />";
+
+        if (postedEventName != "Fault")
+            label += "Event Type: " + postedEventName;
+        else
+            label += "Event Type: " + faultLink;
+
         label += separator + "Event Time: " + postedEventDate;
 
         if (postedStartTime != "")
             details += "Start: " + postedStartTime;
+
+        if (postedPhase != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Phase: " + postedPhase;
+        }
 
         if (postedDurationPeriod != "") {
             if (details != "")
@@ -336,6 +380,42 @@ function showData() {
                 details += separator;
 
             details += "Magnitude: " + postedMagnitude;
+        }
+
+        if (details != "")
+            label += "<br />" + details;
+
+        details = "";
+
+        if (postedBreakerNumber != "")
+            details += "Breaker: " + postedBreakerNumber;
+
+        if (postedBreakerPhase != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Phase: " + postedBreakerPhase;
+        }
+
+        if (postedBreakerTiming != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Timing: " + postedBreakerTiming;
+        }
+
+        if (postedBreakerSpeed != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Speed: " + postedBreakerSpeed;
+        }
+
+        if (postedBreakerOperation != "") {
+            if (details != "")
+                details += separator;
+
+            details += "Operation: " + postedBreakerOperation;
         }
 
         if (details != "")
@@ -375,8 +455,6 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                 order += 20;
             else if (series.MeasurementCharacteristic == "FaultDistance")
                 order += 30;
-            else if (series.MeasurementCharacteristic == "Frequency")
-                order += 40;
 
             if (series.Phase == "AN")
                 order += 0;
@@ -427,13 +505,49 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
     $.ajax({
         type: "POST",
-        url: '../../../signalService.asmx/getFlotData',
+        url: homePath + 'signalService.asmx/getFlotData',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
         success: function (data) {
-            // Set up chart options
+            function highlightCycle(plotIndex, series) {
+                if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
+                    return;
+
+                var dataPointCount = Math.min(128, series.DataPoints.length - 1);
+                var timeStart = series.DataPoints[0][0] / 1000.0;
+                var timeEnd = series.DataPoints[dataPointCount][0] / 1000.0;
+                var samplesPerCycle = Math.round(dataPointCount / (systemFrequency * (timeEnd - timeStart)));
+
+                var endIndex = Math.min(calculationCycle + samplesPerCycle, series.DataPoints.length - 1);
+                var from = series.DataPoints[calculationCycle][0];
+                var to = series.DataPoints[endIndex][0];
+
+                return {
+                    color: "#FFA",
+                    xaxis: {
+                        from: from,
+                        to: to
+                    }
+                };
+            }
+
+            function highlightSample(plotIndex, series) {
+                if (isNaN(calculationCycle) || calculationCycle >= series.DataPoints.length)
+                    return;
+
+                var from = series.DataPoints[calculationCycle][0];
+
+                return {
+                    color: "#EB0",
+                    xaxis: {
+                        from: from,
+                        to: from
+                    }
+                };
+            }
+
             var options = {
                 canvas: true,
                 legend: { show: false },
@@ -497,10 +611,6 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     series.flotSeries.label += " Amplitude";
                 else if (series.MeasurementCharacteristic == "WaveError")
                     series.flotSeries.label += " Error";
-                else if (series.MeasurementCharacteristic == "Frequency")
-                    series.flotSeries.label = "Frequency";
-                else if (series.Phase == "Unknown")
-                    series.flotSeries.label = series.ChannelName;
                 else
                     series.visible = true;
 
@@ -521,6 +631,14 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     series.flotSeries.color = colorVCA;
 
                 series.checked = series.visible;
+
+                if (parseBoolean(postedShowFaultCurves) && !isNaN(calculationCycle)) {
+                    if (series.MeasurementCharacteristic == "Instantaneous") {
+                        series.highlightCycle = function () { return highlightCycle(plotIndex, series); };
+                    } else {
+                        series.highlightSample = function () { return highlightSample(plotIndex, series); };
+                    }
+                }
 
                 plotDataList[plotIndex].push(series);
             });
@@ -582,6 +700,14 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
                 series.checked = series.visible;
 
+                if (parseBoolean(postedShowFaultCurves) && !isNaN(calculationCycle)) {
+                    if (series.MeasurementCharacteristic == "Instantaneous") {
+                        series.highlightCycle = function () { return highlightCycle(plotIndex, series); };
+                    } else {
+                        series.highlightSample = function () { return highlightSample(plotIndex, series); };
+                    }
+                }
+
                 plotDataList[plotIndex].push(series);
             });
 
@@ -623,6 +749,23 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
 
                 series.checked = series.visible;
 
+                series.highlightSample = function () {
+                    var waveform;
+
+                    $.each(data.d, function (_, series) {
+                        if (series.MeasurementCharacteristic == "Instantaneous") {
+                            waveform = series;
+                            return false;
+                        }
+
+                        if (series.MeasurementCharacteristic != "FaultDistance")
+                            waveform = waveform || series;
+                    });
+
+                    series.highlightSample = function () { return highlightSample(plotIndex, waveform); };
+                    return series.highlightSample();
+                };
+
                 plotDataList[plotIndex].push(series);
             });
 
@@ -646,7 +789,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     addPlotDiv("BreakerChart");
                     plotIndex = $("#DockCharts").children().index($("#BreakerChart"));
                 }
-                
+
                 series.flotSeries = {
                     data: [],
                     label: series.ChannelDescription
@@ -672,7 +815,7 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     $.each(plotData, function (_, series) {
                         if (series.MeasurementCharacteristic != "Instantaneous")
                             return;
-                        
+
                         series.visible =
                             series.Phase == "AB" ||
                             series.Phase == "BC" ||
@@ -793,9 +936,8 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             // display data for the first time
             updatePlotData();
 
-            // Assign function to window to
-            // update the markings on the plots
-            window.UpdateMarkings = function () {
+            // Add marking builder to highlight window.opener region
+            markingBuilders.push(function (plotKey, markings) {
                 try {
                     if (!window.opener || !window.opener.Highlight)
                         return;
@@ -803,18 +945,78 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
                     return;
                 }
 
-                $.each(plots, function (key, plot) {
-                    plot.getOptions().grid.markings = [
-                        {
-                            color: "#FFA",
-                            xaxis: {
-                                from: window.opener.Highlight.Start,
-                                to: window.opener.Highlight.End
-                            }
-                        }
-                    ];
+                markings.push({
+                    color: "#FFA",
+                    xaxis: {
+                        from: window.opener.Highlight.Start,
+                        to: window.opener.Highlight.End
+                    }
+                });
+            });
 
+            // Add marking builder to highlight fault calculation cycle
+            markingBuilders.push(function (plotKey, markings) {
+                var highlightCycle;
+                var highlightSample;
+                var highlightFunction;
+
+                $.each(plotDataList[plotKey], function (_, series) {
+                    if (series.visible) {
+                        highlightCycle = highlightCycle || series.highlightCycle;
+                        highlightSample = highlightSample || series.highlightSample;
+                    }
+                });
+
+                highlightFunction = highlightCycle || highlightSample;
+
+                if (highlightFunction && !(highlightCycle && highlightSample)) {
+                    var marking = highlightFunction();
+
+                    if (marking)
+                        markings.push(marking);
+                }
+            });
+
+            if (zeroMarker) {
+                markingBuilders.push(function (plotKey, markings) {
+                    var voltagePlotKey = $("#DockCharts").children().index($("#VoltageChart"));
+                    var currentPlotKey = $("#DockCharts").children().index($("#CurrentChart"));
+
+                    if (plotKey != voltagePlotKey && plotKey != currentPlotKey)
+                        return;
+
+                    markings.push({
+                        color: "#BBB",
+                        yaxis: {
+                            from: 0,
+                            to: 0
+                        }
+                    });
+                });
+            }
+
+            // Assign function to window to
+            // update the markings on the plots
+            window.UpdateMarkings = function (plotKey) {
+                function updateMarkings(plotKey) {
+                    var markings = [];
+                    var plot = plots[plotKey];
+
+                    $.each(markingBuilders, function (_, markingBuilder) {
+                        markingBuilder(plotKey, markings);
+                    });
+
+                    plot.getOptions().grid.markings = markings;
                     plot.draw();
+                }
+
+                if (plotKey) {
+                    updateMarkings(plotKey);
+                    return;
+                }
+
+                $.each(plots, function (plotKey, _) {
+                    updateMarkings(plotKey);
                 });
             };
 
@@ -827,6 +1029,8 @@ function populateDivWithLineChartByInstanceID(theeventinstance) {
             // Update the tooltip with initial values
             updatePhasorChart();
             updateTooltip();
+            $.unblockUI();
+
         },
         failure: function (msg) {
             alert(msg);
@@ -1120,6 +1324,7 @@ function initLegend(key) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function updatePlotData(key) {
+
     function updatePlot(plotKey) {
         var plotData = [];
 
@@ -1129,6 +1334,9 @@ function updatePlotData(key) {
 
             plots[plotKey].setData(plotData);
         });
+
+        if (window.UpdateMarkings)
+            window.UpdateMarkings(plotKey);
 
         // Fix y-axis after updating data
         fixYAxis(plotKey);
@@ -1455,7 +1663,7 @@ function showhidePhasor(thecontrol) {
 
 function showdetails(thecontrol) {
     if (postedEventName == "Fault")
-        var popup = window.open("FaultSpecifics.aspx?eventid=" + postedEventId, postedEventId + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        var popup = window.open(homePath + "FaultSpecifics.aspx?eventid=" + postedEventId, postedEventId + "FaultLocation", "left=0,top=0,width=350,height=300,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1621,7 +1829,8 @@ function updateTooltip() {
     var phasorvalueC = null;
 
     var floatingtooltip = $('#unifiedtooltipcontent');
-    var format = $.plot.formatDate($.plot.dateGenerator(xaxisHover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + (xaxisHover * 10000 % 10000000);
+    var subsecond = ("0000000" + (xaxisHover * 10000 % 10000000)).slice(-7);
+    var format = $.plot.formatDate($.plot.dateGenerator(xaxisHover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + subsecond;
     var tooltiphtml = '<div align="center"><b>' + format + '</b><br /><table align="center">';
 
     $.each(plotDataList, function (key, plotData) {
@@ -1653,4 +1862,12 @@ function updateTooltip() {
 function parseBoolean(postedText) {
     return postedText != "" &&
            postedText != "0";
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function nextBackSelect(nextBackType) {
+    $('.nextbackbutton').hide();
+    $('#' + nextBackType + '-back').show();
+    $('#' + nextBackType + '-next').show();
 }

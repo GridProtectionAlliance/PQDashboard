@@ -174,21 +174,34 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     getEventData(state) {
         this.openSEEService.getData(state, "Time").then(data => {
             this.options['grid'].markings.push(this.highlightCycle(data));
+            var legend = this.createLegendRows(data.Data);
 
-            var legend = this.state.legendRows;
+            var dataSet = this.state.dataSet;
+            _.each(data.Data, x => {
+                
+            });
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
 
-            if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data.Data);
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
-            this.openSEEService.getData(state, "Freq").then(d2 => {
-                legend = this.createLegendRows(data.Data.concat(d2.Data));
-                data.Data = data.Data.concat(d2.Data);
-
-                this.createDataRows(data, legend);
-                this.setState({ dataSet: data });
-            })
         });
+
+        this.openSEEService.getData(state, "Freq").then(data => {
+            var legend = this.createLegendRows(data.Data);
+
+            var dataSet = this.state.dataSet;
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
+
+            this.createDataRows(dataSet, legend);
+            this.setState({ dataSet: dataSet });
+        })
+
 
     }
 
@@ -231,6 +244,13 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         delete nextPropsClone.stateSetter;
         delete props.tableSetter;
         delete nextPropsClone.tableSetter;
+        delete props.pointsTable;
+        delete nextPropsClone.pointsTable;
+        delete props.tableData;
+        delete nextPropsClone.tableData;
+
+
+
         if (!(_.isEqual(props, nextPropsClone))) {
             this.setState(nextProps);
             this.getData(nextProps);
@@ -270,7 +290,9 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
         $.each(data, function (i, key) {
             if(legend[key.ChartLabel]  == undefined)
-                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0,3)) };
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
+            else
+                legend[key.ChartLabel].data = key.DataPoints
         });
 
         this.setState({ legendRows: legend });
@@ -291,9 +313,9 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
-        $.each(data.Data, (i, key) => {
-            if (legend[key.ChartLabel].enabled)
-                newVessel.push({ label: key.ChartLabel, data: key.DataPoints, color: legend[key.ChartLabel].color })
+        $.each(Object.keys(legend), (i, key) => {
+            if (legend[key].enabled)
+                newVessel.push({ label: key, data: legend[key].data, color: legend[key].color })
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);

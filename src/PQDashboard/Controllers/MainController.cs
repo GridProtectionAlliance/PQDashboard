@@ -29,6 +29,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Web.Mvc;
 using FaultData.DataAnalysis;
 using GSF;
@@ -436,17 +437,31 @@ namespace PQDashboard.Controllers
 
         private Dictionary<string, FlotSeries> QueryEventData(int eventID, Meter meter, string type)
         {
-            byte[] timeDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-            DataGroup dataGroup = ToDataGroup(meter, timeDomainData);       
+            string target = "DataGroup" + eventID.ToString() + type;
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+            if (dataGroup == null)
+            {
+
+                byte[] timeDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                dataGroup = ToDataGroup(meter, timeDomainData);
+                s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+            }
             return GetDataLookup(dataGroup, type);
         }
 
         private Dictionary<string, FlotSeries> QueryFrequencyData(int eventID, Meter meter, string type)
         {
-            byte[] frequencyDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-            DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-            double freq = m_dataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-            VICycleDataGroup vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), 60);
+            string target = "VICycleDataGroup" + eventID.ToString() + type;
+
+            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
+            if (vICycleDataGroup == null)
+            {
+                byte[] frequencyDomainData = m_dataContext.Connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
+                double freq = m_dataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+                vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), 60);
+                s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+            }
             return GetFrequencyDataLookup(vICycleDataGroup, type);
         }
 
@@ -663,5 +678,12 @@ namespace PQDashboard.Controllers
 
         #endregion
 
+        #region [ Static ]
+        private static MemoryCache s_memoryCache;
+
+        static MainController() {
+            s_memoryCache = new MemoryCache("openSEE");
+        }
+        #endregion
     }
 }
