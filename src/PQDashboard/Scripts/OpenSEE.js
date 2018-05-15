@@ -85775,6 +85775,7 @@ var WaveformViewerGraph = (function (_super) {
                 arrayIndex: ctrl.state.pointsTable.length
             });
             ctrl.state.stateSetter({ PointsTable: pointsTable });
+            ctrl.setState({ pointsTable: pointsTable });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {

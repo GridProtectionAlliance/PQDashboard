@@ -434,7 +434,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 arrayIndex: ctrl.state.pointsTable.length
             });
 
-            ctrl.state.stateSetter({PointsTable: pointsTable});
+            ctrl.state.stateSetter({ PointsTable: pointsTable });
+            ctrl.setState({ pointsTable: pointsTable });
         });
     }
 
