@@ -163,25 +163,23 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightCycle(data));
-            var legend = _this.createLegendRows(data.Data);
+            _this.options['grid'].markings.push(_this.highlightCycle(data.d));
+            var legend = _this.createLegendRows(data.d.Data);
             var dataSet = _this.state.dataSet;
-            _.each(data.Data, function (x) {
-            });
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.Data);
+                dataSet.Data = dataSet.Data.concat(data.d.Data);
             else
-                dataSet = data;
-            _this.createDataRows(data, legend);
-            _this.setState({ dataSet: data });
+                dataSet = data.d;
+            _this.createDataRows(data.d, legend);
+            _this.setState({ dataSet: data.d });
         });
         this.openSEEService.getData(state, "Freq").then(function (data) {
-            var legend = _this.createLegendRows(data.Data);
+            var legend = _this.createLegendRows(data.d.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.Data);
+                dataSet.Data = dataSet.Data.concat(data.d.Data);
             else
-                dataSet = data;
+                dataSet = data.d;
             _this.createDataRows(dataSet, legend);
             _this.setState({ dataSet: dataSet });
         });
@@ -189,23 +187,23 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightSample(data));
+            _this.options['grid'].markings.push(_this.highlightSample(data.d));
             var legend = _this.state.legendRows;
             if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.Data);
-            _this.createDataRows(data, legend);
-            _this.setState({ dataSet: data });
+                legend = _this.createLegendRows(data.d.Data);
+            _this.createDataRows(data.d, legend);
+            _this.setState({ dataSet: data.d });
         });
     };
     WaveformViewerGraph.prototype.getBreakerDigitalsData = function (state) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightSample(data));
+            _this.options['grid'].markings.push(_this.highlightSample(data.d));
             var legend = _this.state.legendRows;
             if (legend == undefined)
-                legend = _this.createLegendRows(data.Data);
-            _this.createDataRows(data, legend);
-            _this.setState({ dataSet: data });
+                legend = _this.createLegendRows(data.d.Data);
+            _this.createDataRows(data.d, legend);
+            _this.setState({ dataSet: data.d });
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
@@ -369,6 +367,7 @@ var WaveformViewerGraph = (function (_super) {
                 arrayIndex: ctrl.state.pointsTable.length
             });
             ctrl.state.stateSetter({ PointsTable: pointsTable });
+            ctrl.setState({ pointsTable: pointsTable });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {

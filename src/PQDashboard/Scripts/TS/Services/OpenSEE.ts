@@ -20,47 +20,53 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-
-import axios from 'axios';
 import * as moment from 'moment'; 
+declare var homePath: string;
 
 export default class OpenSEEService{
     getData(filters, dataType) {
-        return axios
-            .get(`/Main/GetData?eventId=${filters.eventId}` +
-            `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
-            `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
-            `&pixels=${filters.pixels}` +
-            `&type=${filters.type}` + 
-            `&dataType=${dataType}`)
-            .then(res => {
-                return res.data;
-            });
+        return $.ajax({
+            type: "POST",
+            url: `${homePath}signalService.asmx/GetData?eventId=${filters.eventId}` +
+                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
+                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
+                `&pixels=${filters.pixels}` +
+                `&type=${filters.type}` +
+                `&dataType=${dataType}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
     }
 
     getFaultDistanceData(filters) {
-        return axios
-            .get(`/Main/GetFaultDistanceData?eventId=${filters.eventId}` + 
-                    `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                    `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`)
-            .then(res => {
-                return res.data;
-            });
-
+        return $.ajax({
+            type: "POST",
+            url: `${homePath}signalService.asmx/GetFaultDistanceData?eventId=${filters.eventId}` +
+                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
+                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
+                `&pixels=${filters.pixels}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
     }
 
     getBreakerDigitalsData(filters) {
-        return axios
-            .get(`/Main/GetBreakerData?eventId=${filters.eventId}` + 
-                    `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
-                    `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
-                    `&pixels=${filters.pixels}`+
-                    `&type=${filters.type}`)
-            .then(res => {
-                return res.data;
-            });
-
+        return $.ajax({
+            type: "POST",
+            url: `${homePath}signalService.asmx/GetBreakerData?eventId=${filters.eventId}` +
+                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
+                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
+                 `&pixels=${filters.pixels}`+
+                 `&type=${filters.type}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
     }
 
 

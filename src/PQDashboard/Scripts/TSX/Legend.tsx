@@ -42,7 +42,7 @@ export default class Legend extends React.Component<any, any>{
 
     }
     render() {
-        if (this.state.data == null) return null;
+        if (this.state.data == null || Object.keys(this.state.data).length == 0) return null;
 
         let rows = Object.keys(this.state.data).sort().map(row => {
             return <Row key={row} label={row} color={this.state.data[row].color} enabled={this.state.data[row].enabled} callback={() => {

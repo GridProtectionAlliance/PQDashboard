@@ -29,7 +29,7 @@ var Legend = (function (_super) {
     };
     Legend.prototype.render = function () {
         var _this = this;
-        if (this.state.data == null)
+        if (this.state.data == null || Object.keys(this.state.data).length == 0)
             return null;
         var rows = Object.keys(this.state.data).sort().map(function (row) {
             return React.createElement(Row, { key: row, label: row, color: _this.state.data[row].color, enabled: _this.state.data[row].enabled, callback: function () {

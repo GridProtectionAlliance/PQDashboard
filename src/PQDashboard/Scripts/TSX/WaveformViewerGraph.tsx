@@ -173,30 +173,27 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getEventData(state) {
         this.openSEEService.getData(state, "Time").then(data => {
-            this.options['grid'].markings.push(this.highlightCycle(data));
-            var legend = this.createLegendRows(data.Data);
+            this.options['grid'].markings.push(this.highlightCycle(data.d));
+            var legend = this.createLegendRows(data.d.Data);
 
             var dataSet = this.state.dataSet;
-            _.each(data.Data, x => {
-                
-            });
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.Data);
+                dataSet.Data = dataSet.Data.concat(data.d.Data);
             else
-                dataSet = data;
+                dataSet = data.d;
 
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
+            this.createDataRows(data.d, legend);
+            this.setState({ dataSet: data.d });
         });
 
         this.openSEEService.getData(state, "Freq").then(data => {
-            var legend = this.createLegendRows(data.Data);
+            var legend = this.createLegendRows(data.d.Data);
 
             var dataSet = this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.Data);
+                dataSet.Data = dataSet.Data.concat(data.d.Data);
             else
-                dataSet = data;
+                dataSet = data.d;
 
             this.createDataRows(dataSet, legend);
             this.setState({ dataSet: dataSet });
@@ -207,28 +204,28 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getFaultDistanceData(state) {
         this.openSEEService.getFaultDistanceData(state).then(data => {
-            this.options['grid'].markings.push(this.highlightSample(data));
+            this.options['grid'].markings.push(this.highlightSample(data.d));
 
             var legend = this.state.legendRows;
 
             if (this.state.legendRows == undefined)
-                legend = this.createLegendRows(data.Data);
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
+                legend = this.createLegendRows(data.d.Data);
+            this.createDataRows(data.d, legend);
+            this.setState({ dataSet: data.d });
         });
 
     }
 
     getBreakerDigitalsData(state) {
         this.openSEEService.getBreakerDigitalsData(state).then(data => {
-            this.options['grid'].markings.push(this.highlightSample(data));
+            this.options['grid'].markings.push(this.highlightSample(data.d));
 
             var legend = this.state.legendRows;
 
             if (legend == undefined)
-                legend = this.createLegendRows(data.Data);
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
+                legend = this.createLegendRows(data.d.Data);
+            this.createDataRows(data.d, legend);
+            this.setState({ dataSet: data.d });
         });
 
     }
