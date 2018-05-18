@@ -1255,17 +1255,15 @@ namespace PQDashboard
             }
         }
 
-        public void SaveMultiNoteForEvent(int id, string note, string userId)
+        public void SaveMultiNoteForEvent(List<int> ids, string note, string userId)
         {
             if (note.Trim().Length > 0)
             {
-                DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", id);
-                IEnumerable<Event> events = DataContext.Table<Event>().QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0})", time);
 
-                foreach (Event evt in events) {
+                foreach (int evt in ids) {
                     DataContext.Table<EventNote>().AddNewRecord(new EventNote()
                     {
-                        EventID = evt.ID,
+                        EventID = evt,
                         Note = note,
                         UserAccount = userId,
                         TimeStamp = DateTime.UtcNow
@@ -1313,7 +1311,8 @@ namespace PQDashboard
         public IEnumerable<EventView> GetSimultaneousEvents(int eventId)
         {
             DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -5, {0}) and  DateAdd(SECOND, 5, {0})", time);
+            double window = DataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? DataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? 1.0D;
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -{0}, {1}) and  DateAdd(SECOND, {0}, {1})", window, time);
         }
 
         public IEnumerable<EventView> GetSimultaneousFaultsAndSags(int eventId)
