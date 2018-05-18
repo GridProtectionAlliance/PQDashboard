@@ -1421,6 +1421,141 @@ namespace PQDashboard
             return DataContext.Connection.RetrieveData(query, minuteWindow, date);
         }
 
+        public DataTable GetDisturbances(DateTime date, int minuteWindow)
+        {
+            string query = @"
+                    DECLARE @minuteWindow int = {0}
+                    DECLARE @startDate DATETIME = DATEADD(MINUTE, -1*@minuteWindow, {1}) 
+                    DECLARE @endDate DATETIME = DATEADD(MINUTE, @minuteWindow, {1}) 
+                    DECLARE @worstPhaseID INT = (SELECT ID FROM Phase WHERE Name = 'Worst')
+                    DECLARE @voltageEnvelope varchar(max) = (SELECT TOP 1 Value FROM Setting WHERE Name = 'DefaultVoltageEnvelope')
+
+                    SELECT 
+	                    Event.LineID AS thelineid, 
+	                    Event.ID AS theeventid, 
+	                    Disturbance.ID as disturbanceid,
+	                    EventType.Name AS disturbancetype,
+	                    Phase.Name AS phase,
+                        CASE Disturbance.PerUnitMagnitude
+                            WHEN -1E308 THEN 'NaN'
+                            ELSE CAST(Disturbance.PerUnitMagnitude AS VARCHAR(8))
+                        END AS magnitude,
+                        CASE Disturbance.DurationSeconds
+                            WHEN -1E308 THEN 'NaN'
+                            ELSE CAST(CONVERT(DECIMAL(10,3), Disturbance.DurationSeconds) AS VARCHAR(14))
+                        END AS duration,
+	                    CAST(Disturbance.StartTime AS VARCHAR(26)) AS theinceptiontime,
+                        dbo.DateDiffTicks('1970-01-01', Disturbance.StartTime) / 10000.0 AS startmillis,
+                        dbo.DateDiffTicks('1970-01-01', Disturbance.EndTime) / 10000.0 AS endmillis,
+	                    DisturbanceSeverity.SeverityCode,
+	                    MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
+	                    Line.VoltageKV AS voltage
+                    FROM
+	                    Event JOIN
+	                    Disturbance ON Disturbance.EventID = Event.ID JOIN
+                        Disturbance WorstDisturbance ON
+                            Disturbance.EventID = WorstDisturbance.EventID AND
+                            Disturbance.PerUnitMagnitude = WorstDisturbance.PerUnitMagnitude AND
+                            Disturbance.DurationSeconds = WorstDisturbance.DurationSeconds JOIN
+	                    EventType ON Disturbance.EventTypeID = EventType.ID JOIN
+	                    Phase ON Disturbance.PhaseID = Phase.ID JOIN
+	                    DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
+	                    Meter ON Meter.ID = Event.MeterID JOIN
+	                    Line ON Event.LineID = Line.ID JOIN
+	                    MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID JOIN
+	                    VoltageEnvelope ON VoltageEnvelope.ID = DisturbanceSeverity.VoltageEnvelopeID	
+                    WHERE
+	                    Event.StartTime >= @startDate AND Event.StartTime < @endDate AND 
+                        WorstDisturbance.PhaseID = @worstPhaseID AND
+                        Disturbance.PhaseID <> @worstPhaseID AND
+	                    VoltageEnvelope.Name = COALESCE(@voltageEnvelope, 'ITIC')
+                    ORDER BY
+	                    Event.StartTime ASC
+            ";
+            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+        }
+
+        public DataTable GetFaults(DateTime date, int minuteWindow)
+        {
+            string query = @"
+                    DECLARE @minuteWindow int = {0}
+	                DECLARE @startDate DATETIME = DATEADD(MINUTE, -1*@minuteWindow, {1}) 
+	                DECLARE @endDate DATETIME = DATEADD(MINUTE, @minuteWindow, {1}) 
+
+                	; WITH FaultDetail AS
+                    (
+                        SELECT
+                            FaultSummary.ID AS thefaultid,
+                            Meter.Name AS thesite,
+                            Meter.ShortName AS theshortsite,
+                            MeterLocation.ShortName AS locationname,
+                            Meter.ID AS themeterid,
+                            Line.ID AS thelineid,
+                            Event.ID AS theeventid,
+                            MeterLine.LineName AS thelinename,
+                            Line.VoltageKV AS voltage,
+                            CAST(CAST(Event.StartTime AS TIME) AS NVARCHAR(100)) AS theinceptiontime,
+                            FaultSummary.FaultType AS thefaulttype,
+                            CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE CAST(CAST(FaultSummary.Distance AS DECIMAL(16,2)) AS NVARCHAR(19)) END AS thecurrentdistance,
+                            (SELECT COUNT(*) FROM FaultNote WHERE FaultSummary.ID = FaultNote.FaultSummaryID) as notecount,
+                            ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY FaultSummary.IsSuppressed, FaultSummary.IsSelectedAlgorithm DESC, FaultSummary.Inception) AS rk
+                        FROM
+                            FaultSummary JOIN
+                            Event ON FaultSummary.EventID = Event.ID JOIN
+                            EventType ON Event.EventTypeID = EventType.ID JOIN
+                            Meter ON Event.MeterID = Meter.ID JOIN
+                            MeterLocation ON Meter.MeterLocationID = MeterLocation.ID JOIN
+                            Line ON Event.LineID = Line.ID JOIN
+                            MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+                        WHERE
+                            EventType.Name = 'Fault' AND
+                            Event.StartTime >= @startDate AND Event.StartTime < @endDate
+                    )
+                    SELECT *
+                    FROM FaultDetail
+                    WHERE rk = 1
+            ";
+            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+        }
+
+        public DataTable GetBreakers(DateTime date, int minuteWindow)
+        {
+            string query = @"
+                    DECLARE @minuteWindow int = {0}
+	                DECLARE @startDate DATETIME = DATEADD(MINUTE, -1*@minuteWindow, {1}) 
+	                DECLARE @endDate DATETIME = DATEADD(MINUTE, @minuteWindow, {1}) 
+
+                    SELECT
+                        Meter.ID AS meterid,
+                        Event.ID AS theeventid,
+                        EventType.Name AS eventtype,
+                        BreakerOperation.ID AS breakeroperationid,
+                        CAST(CAST(BreakerOperation.TripCoilEnergized AS TIME) AS NVARCHAR(100)) AS energized,
+                        BreakerOperation.BreakerNumber AS breakernumber,
+                        MeterLine.LineName AS linename,
+                        Phase.Name AS phasename,
+                        CAST(BreakerOperation.BreakerTiming AS DECIMAL(16,5)) AS timing,
+                        CAST(BreakerOperation.StatusTiming AS DECIMAL(16,5)) AS statustiming,
+                        BreakerOperation.BreakerSpeed AS speed,
+                        BreakerOperation.StatusBitChatter AS chatter,
+                        BreakerOperation.DcOffsetDetected AS dcoffset,
+                        BreakerOperationType.Name AS operationtype,
+		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as notecount
+                    FROM
+                        BreakerOperation JOIN
+                        Event ON BreakerOperation.EventID = Event.ID JOIN
+                        EventType ON EventType.ID = Event.EventTypeID JOIN
+                        Meter ON Meter.ID = Event.MeterID JOIN
+                        Line ON Line.ID = Event.LineID JOIN
+                        MeterLine ON MeterLine.LineID = Event.LineID AND MeterLine.MeterID = Meter.ID JOIN
+                        BreakerOperationType ON BreakerOperation.BreakerOperationTypeID = BreakerOperationType.ID JOIN
+                        Phase ON BreakerOperation.PhaseID = Phase.ID
+                    WHERE
+                        TripCoilEnergized >= @startDate AND TripCoilEnergized < @endDate
+                        ";
+            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+        }
+
         #endregion
 
         #region [ PageSettings ]
