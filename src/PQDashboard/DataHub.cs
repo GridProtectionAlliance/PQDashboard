@@ -1429,13 +1429,18 @@ namespace PQDashboard
         {
             Guid userAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
             DashSettings ds = DataContext.Table<DashSettings>().QueryRecordWhere("ID = {0}", id);
-            UserDashSettings uds = DataContext.Table<UserDashSettings>().GetOrAdd(name, userAccountID, value, enabled);
-
+            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecordWhere("Name = {0} AND UserAccountID = {1}", name, userAccountID);
+            if(uds == null)
+            {
+                uds = new UserDashSettings();
+                uds.Name = name;
+                uds.UserAccountID = userAccountID;
+            }
             uds.Value = value;
             uds.Enabled = enabled;
 
             if((uds.Enabled != ds.Enabled) || (uds.Value != ds.Value))
-                DataContext.Table<UserDashSettings>().UpdateRecord(uds);
+                DataContext.Table<UserDashSettings>().AddNewOrUpdateRecord(uds);
             else
                 DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
         }
