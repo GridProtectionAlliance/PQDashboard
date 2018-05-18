@@ -82,104 +82,110 @@
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader">
-    <center>
-        <table>
-            <tbody>
-                <tr>                   
-                    <td align="center" width="200px"><input class="form-control" id="datePicker" /></td>
-                    <td align="center" width="100px"><span>(+/- min)</span></td>
-                    <td align="center" width="50px"><input id="minutes" value="10" class="form-control" /></td>
-                    <td align="center" width="50px"><button class="btn btn-primary" onclick="apply()">Apply</button></td>
-                    <td align="center" width="50px"><button class="btn" onclick="openMultiNoteModalAll()"><span class="glyphicon glyphicon-pencil"></span></button></td>
-                </tr>
-            </tbody>
-        </table>
-    </center>
-</div>
+    <div class="gridheader">
+        <center>
+            <span>Quick Search</span>
+        </center>
+    </div>
+
+    <div class="gridheader">
+        <center>
+            <table>
+                <tbody>
+                    <tr>
+                        <td align="center" width="200px"><input class="form-control" id="datePicker" /></td>
+                        <td align="center" width="100px"><span>(+/- min)</span></td>
+                        <td align="center" width="50px"><input id="minutes" value="10" class="form-control" /></td>
+                        <td align="center" width="50px"><button class="btn btn-primary" onclick="apply()">Apply</button></td>
+                        <td align="center" width="50px"><button class="btn" onclick="openMultiNoteModalAll()"><span class="glyphicon glyphicon-pencil"></span></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </center>
+    </div>
 
 
-<div style="height: 100%; width: 100%;">
-    <div class="gridheader">Events</div>
-    <div style="display: inline-block" id="eventTable"></div>
-    <div class="gridheader">Disturbances</div>
-    <div style="display: inline-block" id="disturbanceTable"></div>
-    <div class="gridheader">Faults</div>
-    <div style="display: inline-block" id="faultTable"></div>
-    <div class="gridheader">Breaker</div>
-    <div style="display: inline-block" id="breakerTable"></div>
-
-</div>
-
-<!-- Modals -->
-<div id="notesModal" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 50%">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Add a note to event record <span id="eventId"></span></h4>
-            </div>
-            <div id="previousNotesDiv">
-
-            </div>
-            <div class="modal-body">
-                <textarea wrap="hard" id="note" class="form-control"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveNote()">Add Note</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
+    <div style="height: 100%; width: 100%;">
+        <div class="gridheader">Events</div>
+        <div style="display: inline-block" id="eventTable"></div>
+        <div class="gridheader">Disturbances</div>
+        <div style="display: inline-block" id="disturbanceTable"></div>
+        <div class="gridheader">Faults</div>
+        <div style="display: inline-block" id="faultTable"></div>
+        <div class="gridheader">Breaker</div>
+        <div style="display: inline-block" id="breakerTable"></div>
 
     </div>
-</div>
 
-<div id="multiNotesModal" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 50%">
+    <!-- Modals -->
+    <div id="notesModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%">
 
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Add a note to associated event records</h4>
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add a note to event record <span id="eventId"></span></h4>
+                </div>
+                <div id="previousNotesDiv">
+
+                </div>
+                <div class="modal-body">
+                    <textarea wrap="hard" id="note" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="saveNote()">Add Note</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <textarea wrap="hard" id="multiNote" class="form-control"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveMultiNote()" data-dismiss="modal">Add Note</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
+
         </div>
-
     </div>
-</div>
 
+    <div id="multiNotesModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%">
 
-<div id="multiNotesModalAll" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 50%">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add a note to associated event records</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea wrap="hard" id="multiNote" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="saveMultiNote()" data-dismiss="modal">Add Note</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
 
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Add a note to all listed event records</h4>
-            </div>
-            <div class="modal-body">
-                <textarea wrap="hard" id="multiNoteAll" class="form-control"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveMultiNoteAll()" data-dismiss="modal">Add Note</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
         </div>
-
     </div>
-</div>
 
-<script>
+
+    <div id="multiNotesModalAll" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add a note to all listed event records</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea wrap="hard" id="multiNoteAll" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="saveMultiNoteAll()" data-dismiss="modal">Add Note</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
 
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     var disabledList = $.jStorage.get('disabledList');
@@ -492,7 +498,7 @@
         });
     }
 
-</script>
+    </script>
 
 </body>
 </html>
