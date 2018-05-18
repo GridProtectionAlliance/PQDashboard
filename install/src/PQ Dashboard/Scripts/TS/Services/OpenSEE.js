@@ -1,70 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var axios_1 = require("axios");
 var OpenSEEService = (function () {
     function OpenSEEService() {
     }
-    OpenSEEService.prototype.getVoltageEventData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetVoltageEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getVoltageFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetVoltageFrequencyData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentEventData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetCurrentEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
-            .then(function (res) {
-            return res.data;
-        });
-    };
-    OpenSEEService.prototype.getCurrentFrequencyData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
-            .then(function (res) {
-            return res.data;
+    OpenSEEService.prototype.getData = function (filters, dataType) {
+        return $.ajax({
+            type: "POST",
+            url: homePath + "signalService.asmx/GetData?eventId=" + filters.eventId +
+                ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
+                ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
+                ("&pixels=" + filters.pixels) +
+                ("&type=" + filters.type) +
+                ("&dataType=" + dataType),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
         });
     };
     OpenSEEService.prototype.getFaultDistanceData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetFaultDistanceData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels))
-            .then(function (res) {
-            return res.data;
+        return $.ajax({
+            type: "POST",
+            url: homePath + "signalService.asmx/GetFaultDistanceData?eventId=" + filters.eventId +
+                ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
+                ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
+                ("&pixels=" + filters.pixels),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
         });
     };
     OpenSEEService.prototype.getBreakerDigitalsData = function (filters) {
-        return axios_1.default
-            .get("/Main/GetEventData?eventId=" + filters.eventId +
-            ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
-            ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
-            ("&pixels=" + filters.pixels) +
-            ("&type=" + filters.type))
-            .then(function (res) {
-            return res.data;
+        return $.ajax({
+            type: "POST",
+            url: homePath + "signalService.asmx/GetBreakerData?eventId=" + filters.eventId +
+                ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
+                ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
+                ("&pixels=" + filters.pixels) +
+                ("&type=" + filters.type),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
         });
     };
     return OpenSEEService;

@@ -22,8 +22,6 @@
     //*****************************************************************************************************@
 
 @using System.Data
-@using System.Net.Http
-@using System.Security.Policy
 @using GSF.Data.Model
 @using System.Data;
 @using GSF.Data
@@ -35,12 +33,9 @@
 @using System.Web
 @using System.Web.Script.Serialization
 @using GSF.Configuration
-@using RazorEngine.Templating
-@using GSF.Web
 @using GSF.Web.Model
 @using Newtonsoft.Json
 @using openXDA.Model
-
 @{
     const string NextBackForSystem = "GetPreviousAndNextEventIdsForSystem";
     const string NextBackForStation = "GetPreviousAndNextEventIdsForMeterLocation";
@@ -61,10 +56,10 @@
 
     Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
     {
-        { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
-        { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+    { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+    { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
     };
 
     string postedURLQueryString = string.Concat(parameters.AllKeys
@@ -156,6 +151,7 @@
                 nextBackLookup[procedure] = Tuple.Create(back, next);
             }
         }
+
         if (new[] { "Fault", "RecloseIntoFault" }.Contains(postedEventName))
         {
             FaultSummary thesummary = dataContext.Table<FaultSummary>().QueryRecordsWhere("EventID = {0} AND IsSelectedAlgorithm = 1", theEvent.ID).OrderBy(row => row.IsSuppressed).ThenBy(row => row.Inception).FirstOrDefault();
@@ -200,7 +196,7 @@
                     postedBreakerPhase = dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", breakerRow.PhaseID).Name;
                     postedBreakerTiming = breakerRow.BreakerTiming.ToString();
                     postedBreakerSpeed = breakerRow.BreakerSpeed.ToString();
-                    postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = @breakerOperationTypeID", DataExtensions.DefaultTimeoutDuration, breakerRow.BreakerOperationTypeID).ToString();
+                    postedBreakerOperation = dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = {0}", breakerRow.BreakerOperationTypeID).ToString();
                 }
             }
         }
@@ -240,75 +236,37 @@
     <link rel="stylesheet" href="~/Content/OpenSEE.css" type="text/css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/Font-Awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
+    <style>
+        .btn-group button {
+            background-color: #3498db; /* Green background */
+            border: 1px solid #2980b9; /* Green border */
+            color: white; /* White text */
+            cursor: pointer; /* Pointer/hand icon */
+            float: left; /* Float the buttons side by side */
+        }
 
-    <script type="text/javascript" src="~/Scripts/jquery-2.2.3.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.crosshair.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.navigate.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.resize.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.js"></script>
-    @*<script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-        <script type="text/javascript" src="~/signalr/hubs"></script>
-        <script type="text/javascript" src="~/Scripts/Site.js"></script>*@
+            .btn-group button:not(:last-child) {
+                border-right: none; /* Prevent double borders */
+            }
+
+        /* Clear floats (clearfix hack) */
+        .btn-group:after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Add a background color on hover */
+        .btn-group button:hover {
+            background-color: #3cb0fd;
+        }
+        .btn-group button.active {
+            background-color: #3cb0fd;
+        }
+    </style>
 </head>
 <body>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventId">@eventID</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedSystemFrequency">@postedSystemFrequency</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedStationName">@postedStationName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterId">@postedMeterId</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMeterName">@postedMeterName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedLineName">@postedLineName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedLineLength">@postedLineLength</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventName">@postedEventName</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventDate">@postedEventDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDate">@postedDate</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedEventMilliseconds">@postedEventMilliseconds</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedStartTime">@postedStartTime</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedPhase">@postedPhase</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedDurationPeriod">@postedDurationPeriod</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedCalculationCycle">@postedCalculationCycle</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedMagnitude">@postedMagnitude</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerNumber">@postedBreakerNumber</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerPhase">@postedBreakerPhase</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerTiming">@postedBreakerTiming</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerSpeed">@postedBreakerSpeed</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedBreakerOperation">@postedBreakerOperation</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedShowFaultCurves">@postedShowFaultCurves</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedShowBreakerDigitals">@postedShowBreakerDigitals</div>
-    <div style="visibility:hidden; width: 0; height: 0;" id="postedErrorMessage">@postedErrorMessage</div>
-
-    <div id="unifiedtooltip" class="ui-widget-content">
-        <div id="unifiedtooltiphandle"></div>
-        <div id="unifiedtooltipcontent"></div>
-        <button class="CloseButton" onclick="showhideTooltip($('#showtooltip')[0]);">X</button>
-    </div>
-
-    <div id="accumulatedpoints" class="ui-widget-content">
-        <div style="border: black solid 2px;">
-            <div id="accumulatedpointshandle"></div>
-            <div style="overflow-y: scroll; height: 200px"><div id="accumulatedpointscontent"></div></div>
-            <div style="margin: 5px; text-align: right">
-                <input class="smallbutton" type="button" value="Remove" onclick="RemovePoint()" />
-                <input class="smallbutton" type="button" value="Pop" onclick="popAccumulatedPoints()" />
-                <input class="smallbutton" type="button" value="Clear" onclick="clearAccumulatedPoints()" />
-            </div>
-            <button class="CloseButton" style="top: 2px; right: 2px" onclick="showhidePoints($('#showpoints')[0]);">X</button>
-        </div>
-    </div>
-
-    <div id="phasor" class="ui-widget-content" style="width:300px; height:320px;">
-        <div id="phasorhandle"></div>
-        <div id="phasorchart" style="width: 300px; height: 300px; z-index: 1001;">
-            <canvas id="phasorCanvas" width="300" height="300" style="display: block;"></canvas>
-        </div>
-        <button class="CloseButton" onclick="showhidePhasor($('#showphasor')[0]);">X</button>
-    </div>
-
-    <div style="width: 100%">
+    <div id="pageHeader" style="width: 100%">
         <table style="width: 100%">
             <tr>
                 <td style="text-align: left; width: 10%"><img alt="" src="~/Images/GPA-Logo---30-pix(on-white).png" /></td>
@@ -326,7 +284,7 @@
     <div class="DockWaveformHeader">
         <table style="width: 75%; margin: 0 auto">
             <tr>
-                <td style="text-align: center"><input class="smallbutton" type="button" value="Reset Zoom" id="resetZoom" /></td>
+                <td style="text-align: center" id="resetBtn"></td>
                 <td style="text-align: center"><input class="smallbutton" type="button" value="Show Points" onclick="showhidePoints(this);" id="showpoints" /></td>
 
                 <td style="text-align: center">
@@ -354,15 +312,184 @@
     </div>
 
     <div id="DockCharts"></div>
+    <script src="~/Scripts/jquery-2.1.3.min.js"></script>
 
     <script>
-    var SeriesList;
-    var homePath = '@Html.Raw(Url.Content("~/"))';
+        var SeriesList;
+        var homePath = '@Html.Raw(Url.Content("~/"))';
+        const postedSystemFrequency = Number('@postedSystemFrequency') || 60;
+        const postedStationName = '@postedStationName';
+        const postedMeterId = '@postedMeterId';
+        const postedMeterName = '@postedMeterName';
+        const postedLineName = '@postedLineName';
+        const postedLineLength = '@postedLineLength';
+        const postedEventId = '@eventID';
+        const postedEventName = '@postedEventName';
+        const postedEventDate = '@postedEventDate';
+        const postedDate = '@postedDate';
+        const postedEventMilliseconds = '@postedEventMilliseconds';
+        const postedStartTime = '@postedStartTime';
+        const postedPhase = '@postedPhase';
+        const postedDurationPeriod = '@postedDurationPeriod';
+        const postedMagnitude = '@postedMagnitude';
+        const postedCalculationCycle = '@postedCalculationCycle';
+        const postedBreakerNumber = '@postedBreakerNumber';
+        const postedBreakerPhase = '@postedBreakerPhase';
+        const postedBreakerTiming = '@postedBreakerTiming';
+        const postedBreakerSpeed = '@postedBreakerSpeed';
+        const postedBreakerOperation = '@postedBreakerOperation';
+        const postedShowFaultCurves = '@postedShowFaultCurves';
+        const postedShowBreakerDigitals = '@postedShowBreakerDigitals';
 
-    $(function(){
-        SeriesList = @Html.Raw(postedSeriesList);
-        $('#next-back-selection').val('@Html.Raw(navigation)');
-    });
+        showData();
+
+        nextBackSelect($('#next-back-selection option:selected').val());
+
+        $('#next-back-selection').change(function () {
+            nextBackSelect($('#next-back-selection option:selected').val());
+        });
+
+        window.onwheel = function (event, info) {
+            if (event.path[0].tagName == "CANVAS") {
+                event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
+                return false;
+            }
+            else
+                return true;
+        }
+
+
+        function showData() {
+            // If all exist, then let's act
+            if (postedEventName && postedEventId) {
+                // Lets build a label for this chart
+                var label = "";
+                var details = "";
+                var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
+                var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
+
+                label += "Station: " + postedStationName;
+                label += separator + "Meter: " + postedMeterName;
+                label += separator + "Line: " + postedLineName;
+                label += "<br />";
+
+                if (postedEventName != "Fault")
+                    label += "Event Type: " + postedEventName;
+                else
+                    label += "Event Type: " + faultLink;
+
+                label += separator + "Event Time: " + postedEventDate;
+
+                if (postedStartTime != "")
+                    details += "Start: " + postedStartTime;
+
+                if (postedPhase != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Phase: " + postedPhase;
+                }
+
+                if (postedDurationPeriod != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Duration: " + postedDurationPeriod;
+                }
+
+                if (postedMagnitude != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Magnitude: " + postedMagnitude;
+                }
+
+                if (details != "")
+                    label += "<br />" + details;
+
+                details = "";
+
+                if (postedBreakerNumber != "")
+                    details += "Breaker: " + postedBreakerNumber;
+
+                if (postedBreakerPhase != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Phase: " + postedBreakerPhase;
+                }
+
+                if (postedBreakerTiming != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Timing: " + postedBreakerTiming;
+                }
+
+                if (postedBreakerSpeed != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Speed: " + postedBreakerSpeed;
+                }
+
+                if (postedBreakerOperation != "") {
+                    if (details != "")
+                        details += separator;
+
+                    details += "Operation: " + postedBreakerOperation;
+                }
+
+                if (details != "")
+                    label += "<br />" + details;
+
+                document.getElementById('TitleData').innerHTML = label;
+
+            }
+        }
+
+        function nextBackSelect(nextBackType) {
+            $('.nextbackbutton').hide();
+            $('#' + nextBackType + '-back').show();
+            $('#' + nextBackType + '-next').show();
+        }
+
+        function showhidePoints(thecontrol) {
+            if (thecontrol.value == "Show Points") {
+                thecontrol.value = "Hide Points";
+                $('#accumulatedpoints').show();
+
+            } else {
+                thecontrol.value = "Show Points";
+                $('#accumulatedpoints').hide();
+
+            }
+        }
+
+        function showhideTooltip(thecontrol) {
+            if (thecontrol.value == "Show Tooltip") {
+                thecontrol.value = "Hide Tooltip";
+                $('#unifiedtooltip').show();
+                $('.legendCheckbox').show();
+
+            } else {
+                thecontrol.value = "Show Tooltip";
+                $('#unifiedtooltip').hide();
+                $('.legendCheckbox').hide();
+            }
+        }
+
+        function showhidePhasor(thecontrol) {
+            if (thecontrol.value == "Show Phasor") {
+                thecontrol.value = "Hide Phasor";
+                $('#phasor').show();
+            } else {
+                thecontrol.value = "Show Phasor";
+                $('#phasor').hide();
+            }
+        }
+
+
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
 </body>
