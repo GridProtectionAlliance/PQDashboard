@@ -28,33 +28,21 @@ import * as _ from "lodash";
 export default class Legend extends React.Component<any, any>{
     constructor(props) {
         super(props);
-
-        this.state = {
-            data: props.data,
-            callback: props.callback
-        }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
-            this.setState(nextProps);
-        }
-
-    }
     render() {
-        if (this.state.data == null || Object.keys(this.state.data).length == 0) return null;
+        if (this.props.data == null || Object.keys(this.props.data).length == 0) return null;
 
-        let rows = Object.keys(this.state.data).sort().map(row => {
-            return <Row key={row} label={row} color={this.state.data[row].color} enabled={this.state.data[row].enabled} callback={() => {
-                this.state.data[row].enabled = !this.state.data[row].enabled;
-                this.setState({ data: this.state.data });
-                this.state.callback();
+        let rows = Object.keys(this.props.data).sort().map(row => {
+            return <Row key={row} label={row} color={this.props.data[row].color} enabled={this.props.data[row].enabled} callback={() => {
+                this.props.data[row].enabled = !this.props.data[row].enabled;
+                this.props.callback();
             }} />
         });
 
         return (
             <div>
-                {(Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+                {(Object.keys(this.props.data)[0].indexOf('V') == 0 || Object.keys(this.props.data)[0].indexOf('I') == 0 ?
                     <div className="btn-group" style={{ width: '100%' }}>
                         <button className='active' style={{ width: '25%' }} onClick={this.toggleWave.bind(this)}>Wave</button>
                         <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'Amplitude')}>Amp</button>
@@ -71,7 +59,7 @@ export default class Legend extends React.Component<any, any>{
     }
 
     toggleWave(event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
         _.each(Object.keys(data).filter(d => { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0}), (key, i:any) => {
             if (i == 0) flag = !data[key].enabled;
@@ -84,12 +72,11 @@ export default class Legend extends React.Component<any, any>{
         else
             event.target.className = "";
 
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
     }
 
     toggleAll(type, event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
 
         _.each(Object.keys(data).filter(d => { return d.indexOf(type) >= 0 }), (key, i: any) => {
@@ -103,8 +90,7 @@ export default class Legend extends React.Component<any, any>{
         else
             event.target.className = "";
 
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
 
     }
 }

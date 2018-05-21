@@ -130,6 +130,8 @@ namespace PQDashboard
                     }
                 }
             }
+            if (dict.Count == 0) return null;
+
             double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
             List<FlotSeries> returnList = new List<FlotSeries>();
@@ -167,7 +169,7 @@ namespace PQDashboard
 
             int calcCycle = m_dataContext.Connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", endTime, startTime, evt.MeterID, evt.LineID);
+            table = m_dataContext.Connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 KeyValuePair<string, FlotSeries> temp = QueryFaultDistanceData(int.Parse(row["ID"].ToString()), meter);
@@ -177,6 +179,7 @@ namespace PQDashboard
                     dict.Add(temp.Key, temp.Value);
             }
 
+            if (dict.Count == 0) return null;
             double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
             List<FlotSeries> returnList = new List<FlotSeries>();
@@ -224,6 +227,7 @@ namespace PQDashboard
                 }
             }
 
+            if (dict.Count == 0) return null;
             double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
             List<FlotSeries> returnList = new List<FlotSeries>();

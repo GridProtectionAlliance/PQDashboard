@@ -33,8 +33,6 @@ export default class Points extends React.Component<any, any>{
         super(props);
 
         this.state = {
-            data: props.pointsTable,
-            callback: props.callback,
             selectedPoint: -1
         };
 
@@ -44,11 +42,11 @@ export default class Points extends React.Component<any, any>{
     componentDidMount() {
         var ctrl = this;
         ($("#accumulatedpoints") as any).draggable({ scroll: false, handle: '#accumulatedpointshandle' });
-        this.buildTable();
+        this.buildTable(this.props);
 
     }
 
-    buildTable() {
+    buildTable(props) {
         var ctrl = this;
         ($('#accumulatedpointscontent') as any).puidatatable({
             stickyHeader: false,
@@ -63,15 +61,13 @@ export default class Points extends React.Component<any, any>{
                 { field: 'deltatime', headerText: 'Delta Time', content: function (data) { return ctrl.showDeltaTime(data) } },
                 { field: 'deltavalue', headerText: 'Delta Value' }
             ],
-            datasource: ctrl.state.data
+            datasource: props.pointsTable
         });
     }
     componentWillReceiveProps(nextProps) {
-        if (!(_.isEqual(this.state.data, nextProps.pointsTable))) {
-            this.setState({ data: nextProps.pointsTable }, () => {
-                ($('#accumulatedpointscontent') as any).puidatatable('reset');
-                this.buildTable();
-            });
+        if (!(_.isEqual(this.props.pointsTable, nextProps.pointsTable))) {           
+            ($('#accumulatedpointscontent') as any).puidatatable('reset');
+            this.buildTable(nextProps);
         }
 
     }
@@ -99,7 +95,7 @@ export default class Points extends React.Component<any, any>{
     }
 
     removePoint() {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         var selectedPoint = this.state.selectedPoint;
 
         if (selectedPoint === data.length - 1) {
@@ -127,25 +123,25 @@ export default class Points extends React.Component<any, any>{
         }
         selectedPoint = -1;
 
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });
         this.setState({ selectedPoint: selectedPoint});
     }
 
     popAccumulatedPoints() {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         if (data.length > 0)
             data.pop();
 
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });      
 
     }
 
     clearAccumulatedPoints() {
-        this.state.callback({
+        this.props.callback({
             PointsTable: []
         });
 

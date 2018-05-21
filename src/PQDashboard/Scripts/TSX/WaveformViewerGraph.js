@@ -39,7 +39,8 @@ var WaveformViewerGraph = (function (_super) {
             hover: props.hover,
             tableData: props.tableData,
             pointsTable: props.pointsTable,
-            tableSetter: props.tableSetter
+            tableSetter: props.tableSetter,
+            display: props.display
         };
         ctrl.options = {
             canvas: true,
@@ -188,9 +189,7 @@ var WaveformViewerGraph = (function (_super) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
             _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.d.Data);
+            var legend = _this.createLegendRows(data.d.Data);
             _this.createDataRows(data.d, legend);
             _this.setState({ dataSet: data.d });
         });
@@ -199,9 +198,7 @@ var WaveformViewerGraph = (function (_super) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
             _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.state.legendRows;
-            if (legend == undefined)
-                legend = _this.createLegendRows(data.d.Data);
+            var legend = _this.createLegendRows(data.d.Data);
             _this.createDataRows(data.d, legend);
             _this.setState({ dataSet: data.d });
         });
@@ -420,7 +417,7 @@ var WaveformViewerGraph = (function (_super) {
             };
     };
     WaveformViewerGraph.prototype.render = function () {
-        return (React.createElement("div", null,
+        return (React.createElement("div", { style: { display: (this.state.display ? 'block' : 'none') } },
             React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
             React.createElement("div", { id: this.state.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
