@@ -34,9 +34,8 @@ var OpenSEE = (function (_super) {
             EndDate: query['EndDate'],
             displayVolt: true,
             displayCur: true,
-            faultcurves: query['faultcurves'],
-            breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            faultcurves: Boolean(query['faultcurves']),
+            breakerdigitals: Boolean(query['breakerdigitals']),
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],
@@ -68,26 +67,26 @@ var OpenSEE = (function (_super) {
         this.resizeId = setTimeout(function () {
             _this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+                Height: _this.calculateHeights(_this.state)
             });
         }, 500);
     };
     OpenSEE.prototype.render = function () {
+        var height = this.calculateHeights(this.state);
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
             React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
             React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this) }),
             React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals })));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals })));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
         this.setState(obj, function () {
             var prop = _.clone(_this.state);
             delete prop.Hover;
-            delete prop.Height;
             delete prop.Width;
             delete prop.TableData;
             delete prop.PointsTable;
@@ -104,7 +103,10 @@ var OpenSEE = (function (_super) {
         this.setState({ TableData: this.TableData });
     };
     OpenSEE.prototype.resetZoom = function () {
-        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1' : ''));
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
+    };
+    OpenSEE.prototype.calculateHeights = function (obj) {
+        return (window.innerHeight - $('#pageHeader').height() - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals));
     };
     return OpenSEE;
 }(React.Component));

@@ -5,8 +5,8 @@ var OpenSEEService = (function () {
     }
     OpenSEEService.prototype.getData = function (filters, dataType) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +
@@ -20,8 +20,8 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getFaultDistanceData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetFaultDistanceData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetFaultDistanceData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels),
@@ -33,8 +33,8 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getBreakerDigitalsData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetBreakerData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetBreakerData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +

@@ -51,9 +51,8 @@ export class OpenSEE extends React.Component<any, any>{
             EndDate: query['EndDate'],
             displayVolt: true,
             displayCur: true,
-            faultcurves: query['faultcurves'],
-            breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - $('#pageHeader').height()-30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            faultcurves: Boolean(query['faultcurves']),
+            breakerdigitals: Boolean(query['breakerdigitals']),
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],
@@ -66,8 +65,8 @@ export class OpenSEE extends React.Component<any, any>{
                 eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
                 StartDate: query['StartDate'],
                 EndDate: query['EndDate'],
-                faultcurves: query['faultcurves'],
-                breakerdigitals: query['breakerdigitals'],
+                faultcurves: Boolean(query['faultcurves']),
+                breakerdigitals: Boolean(query['breakerdigitals']),
             });
         });
 
@@ -88,22 +87,24 @@ export class OpenSEE extends React.Component<any, any>{
         this.resizeId = setTimeout(() => {
             this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (Number(this.state.displayVolt) + Number(this.state.displayCur) + Number(this.state.FaultCurves) + Number(this.state.BreakerDigitals))
+                Height: this.calculateHeights(this.state)
             });
         }, 500);
     }
 
     render() {
+        var height = this.calculateHeights(this.state);
+
         return ( 
             <div className="panel-body collapse in" style={{ padding: '0' }}>
                 <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)}/>
                 <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} />
                 <Tooltip data={this.state.TableData} hover={this.state.Hover}/>
 
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.faultcurves}></WaveformViewerGraph>
-                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} showXAxis={true} height={this.state.Height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.breakerdigitals}></WaveformViewerGraph>                
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.faultcurves}></WaveformViewerGraph>
+                <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.breakerdigitals}></WaveformViewerGraph>                
             </div>
         );
     }
@@ -112,7 +113,6 @@ export class OpenSEE extends React.Component<any, any>{
         this.setState(obj, () => {
             var prop = _.clone(this.state);
             delete prop.Hover;
-            delete prop.Height;
             delete prop.Width;
             delete prop.TableData;
             delete prop.PointsTable;
@@ -133,7 +133,11 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     resetZoom() {
-        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1': ''));
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1': ''));
+    }
+
+    calculateHeights(obj: any) {
+        return (window.innerHeight - $('#pageHeader').height() - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals))
     }
 
 }

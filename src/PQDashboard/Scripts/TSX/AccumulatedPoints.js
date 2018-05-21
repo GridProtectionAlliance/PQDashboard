@@ -19,8 +19,6 @@ var Points = (function (_super) {
     function Points(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            data: props.pointsTable,
-            callback: props.callback,
             selectedPoint: -1
         };
         return _this;
@@ -28,9 +26,9 @@ var Points = (function (_super) {
     Points.prototype.componentDidMount = function () {
         var ctrl = this;
         $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle' });
-        this.buildTable();
+        this.buildTable(this.props);
     };
-    Points.prototype.buildTable = function () {
+    Points.prototype.buildTable = function (props) {
         var ctrl = this;
         $('#accumulatedpointscontent').puidatatable({
             stickyHeader: false,
@@ -45,16 +43,13 @@ var Points = (function (_super) {
                 { field: 'deltatime', headerText: 'Delta Time', content: function (data) { return ctrl.showDeltaTime(data); } },
                 { field: 'deltavalue', headerText: 'Delta Value' }
             ],
-            datasource: ctrl.state.data
+            datasource: props.pointsTable
         });
     };
     Points.prototype.componentWillReceiveProps = function (nextProps) {
-        var _this = this;
-        if (!(_.isEqual(this.state.data, nextProps.pointsTable))) {
-            this.setState({ data: nextProps.pointsTable }, function () {
-                $('#accumulatedpointscontent').puidatatable('reset');
-                _this.buildTable();
-            });
+        if (!(_.isEqual(this.props.pointsTable, nextProps.pointsTable))) {
+            $('#accumulatedpointscontent').puidatatable('reset');
+            this.buildTable(nextProps);
         }
     };
     Points.prototype.render = function () {
@@ -74,7 +69,7 @@ var Points = (function (_super) {
                     } }, "X"))));
     };
     Points.prototype.removePoint = function () {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         var selectedPoint = this.state.selectedPoint;
         if (selectedPoint === data.length - 1) {
             data.pop();
@@ -96,21 +91,21 @@ var Points = (function (_super) {
             data.splice(selectedPoint, 1);
         }
         selectedPoint = -1;
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });
         this.setState({ selectedPoint: selectedPoint });
     };
     Points.prototype.popAccumulatedPoints = function () {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         if (data.length > 0)
             data.pop();
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });
     };
     Points.prototype.clearAccumulatedPoints = function () {
-        this.state.callback({
+        this.props.callback({
             PointsTable: []
         });
     };

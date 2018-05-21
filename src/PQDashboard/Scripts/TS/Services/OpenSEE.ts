@@ -26,8 +26,8 @@ declare var homePath: string;
 export default class OpenSEEService{
     getData(filters, dataType) {
         return $.ajax({
-            type: "POST",
-            url: `${homePath}signalService.asmx/GetData?eventId=${filters.eventId}` +
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
                 `&pixels=${filters.pixels}` +
@@ -42,8 +42,8 @@ export default class OpenSEEService{
 
     getFaultDistanceData(filters) {
         return $.ajax({
-            type: "POST",
-            url: `${homePath}signalService.asmx/GetFaultDistanceData?eventId=${filters.eventId}` +
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetFaultDistanceData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
                 `&pixels=${filters.pixels}`,
@@ -56,8 +56,8 @@ export default class OpenSEEService{
 
     getBreakerDigitalsData(filters) {
         return $.ajax({
-            type: "POST",
-            url: `${homePath}signalService.asmx/GetBreakerData?eventId=${filters.eventId}` +
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetBreakerData?eventId=${filters.eventId}` +
                  `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                  `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
                  `&pixels=${filters.pixels}`+

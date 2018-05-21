@@ -160,31 +160,39 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getEventData(state) {
         this.openSEEService.getData(state, "Time").then(data => {
-            if (data.d == null) return;
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj[(state.type == "Voltage" ? 'displayVolt' : 'displayCur')] = false;
+                    this.props.stateSetter(obj);
+                }
+                return;
 
-            this.options['grid'].markings.push(this.highlightCycle(data.d));
-            var legend = this.createLegendRows(data.d.Data);
+            }
+
+            this.options['grid'].markings.push(this.highlightCycle(data));
+            var legend = this.createLegendRows(data.Data);
 
             var dataSet = this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
+                dataSet = data;
 
-            this.createDataRows(data.d, legend);
-            this.setState({ dataSet: data.d });
+            this.createDataRows(data, legend);
+            this.setState({ dataSet: data });
         });
 
         this.openSEEService.getData(state, "Freq").then(data => {
-            if (data.d == null) return;
+            if (data == null) return;
 
-            var legend = this.createLegendRows(data.d.Data);
+            var legend = this.createLegendRows(data.Data);
 
             var dataSet = this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
+                dataSet = data;
 
             this.createDataRows(dataSet, legend);
             this.setState({ dataSet: dataSet });
@@ -195,25 +203,42 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     getFaultDistanceData(state) {
         this.openSEEService.getFaultDistanceData(state).then(data => {
-            if (data.d == null) return;
-            this.options['grid'].markings.push(this.highlightSample(data.d));
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['faultcurves'] = false;
+                    this.props.stateSetter(obj);
+                }
+                return;
 
-            var legend = this.createLegendRows(data.d.Data);
-            this.createDataRows(data.d, legend);
-            this.setState({ dataSet: data.d });
+            }
+
+            this.options['grid'].markings.push(this.highlightSample(data));
+
+            var legend = this.createLegendRows(data.Data);
+            this.createDataRows(data, legend);
+            this.setState({ dataSet: data });
         });
 
     }
 
     getBreakerDigitalsData(state) {
         this.openSEEService.getBreakerDigitalsData(state).then(data => {
-            if (data.d == null) return;
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['breakerdigitals'] = false;
+                    this.props.stateSetter(obj);
+                }
+                return;
 
-            this.options['grid'].markings.push(this.highlightSample(data.d));
+            }
 
-            var legend = this.createLegendRows(data.d.Data);
-            this.createDataRows(data.d, legend);
-            this.setState({ dataSet: data.d });
+            this.options['grid'].markings.push(this.highlightSample(data));
+
+            var legend = this.createLegendRows(data.Data);
+            this.createDataRows(data, legend);
+            this.setState({ dataSet: data });
         });
 
     }
@@ -291,11 +316,9 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         var startString = this.props.startDate;
         var endString = this.props.endDate;
         if (this.props.startDate == null) {
-            this.setState({ startDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         if (this.props.endDate == null) {
-            this.setState({ endDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
@@ -366,7 +389,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             if (xmin == xaxis.options.xmin && xmax == xaxis.options.xmax)
                 return;
 
-            //console.log(ctrl.getDateString(xmin), ctrl.getDateString(xmax));
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
 
         });
@@ -493,7 +515,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     render() {
         return (
             <div style={{display: (this.props.display ? 'block' : 'none')}}>
-                <div id={this.props.type} style={{ height: (this.props.showXAxis ? this.props.height : this.props.height - 20), float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
+                <div id={this.props.type} style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
                 <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto'}}>
                     <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} />
                 </div>

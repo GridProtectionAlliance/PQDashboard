@@ -25,6 +25,7 @@ using GSF.Web.Security;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Owin;
+using System.Web.Http;
 
 [assembly: OwinStartupAttribute(typeof(PQDashboard.Startup))]
 namespace PQDashboard
@@ -43,6 +44,22 @@ namespace PQDashboard
 
             // Load ServiceHub SignalR class
             app.MapSignalR(hubConfig);
+
+            // Configure Web API for self-host. 
+            HttpConfiguration config = new HttpConfiguration();
+
+            //  Enable attribute based routing
+            //Map custom API controllers
+            config.Routes.MapHttpRoute(
+                name: "OpenSEE",
+                routeTemplate: "api/OpenSEE/{action}",
+                defaults: new
+                {
+                    controller = "OpenSEE"
+                }
+            );
+
+            app.UseWebApi(config);
         }
     }
 }

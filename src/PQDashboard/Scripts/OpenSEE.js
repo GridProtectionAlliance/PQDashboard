@@ -49206,8 +49206,8 @@ var OpenSEEService = (function () {
     }
     OpenSEEService.prototype.getData = function (filters, dataType) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +
@@ -49221,8 +49221,8 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getFaultDistanceData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetFaultDistanceData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetFaultDistanceData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels),
@@ -49234,8 +49234,8 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getBreakerDigitalsData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetBreakerData?eventId=" + filters.eventId +
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetBreakerData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +
@@ -64033,9 +64033,8 @@ var OpenSEE = (function (_super) {
             EndDate: query['EndDate'],
             displayVolt: true,
             displayCur: true,
-            faultcurves: query['faultcurves'],
-            breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            faultcurves: Boolean(query['faultcurves']),
+            breakerdigitals: Boolean(query['breakerdigitals']),
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],
@@ -64048,8 +64047,8 @@ var OpenSEE = (function (_super) {
                 eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
                 StartDate: query['StartDate'],
                 EndDate: query['EndDate'],
-                faultcurves: query['faultcurves'],
-                breakerdigitals: query['breakerdigitals'],
+                faultcurves: Boolean(query['faultcurves']),
+                breakerdigitals: Boolean(query['breakerdigitals']),
             });
         });
         ReactDOM.render(React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom"), document.getElementById('resetBtn'));
@@ -64067,26 +64066,26 @@ var OpenSEE = (function (_super) {
         this.resizeId = setTimeout(function () {
             _this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (Number(_this.state.displayVolt) + Number(_this.state.displayCur) + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+                Height: _this.calculateHeights(_this.state)
             });
         }, 500);
     };
     OpenSEE.prototype.render = function () {
+        var height = this.calculateHeights(this.state);
         return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
             React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
             React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this) }),
             React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals })));
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves }),
+            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals })));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
         this.setState(obj, function () {
             var prop = _.clone(_this.state);
             delete prop.Hover;
-            delete prop.Height;
             delete prop.Width;
             delete prop.TableData;
             delete prop.PointsTable;
@@ -64103,7 +64102,10 @@ var OpenSEE = (function (_super) {
         this.setState({ TableData: this.TableData });
     };
     OpenSEE.prototype.resetZoom = function () {
-        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1' : ''));
+        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
+    };
+    OpenSEE.prototype.calculateHeights = function (obj) {
+        return (window.innerHeight - $('#pageHeader').height() - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals));
     };
     return OpenSEE;
 }(React.Component));
@@ -84000,27 +84002,33 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
-            if (data.d == null)
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj[(state.type == "Voltage" ? 'displayVolt' : 'displayCur')] = false;
+                    _this.props.stateSetter(obj);
+                }
                 return;
-            _this.options['grid'].markings.push(_this.highlightCycle(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
+            }
+            _this.options['grid'].markings.push(_this.highlightCycle(data));
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+                dataSet = data;
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
         this.openSEEService.getData(state, "Freq").then(function (data) {
-            if (data.d == null)
+            if (data == null)
                 return;
-            var legend = _this.createLegendRows(data.d.Data);
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
+                dataSet = data;
             _this.createDataRows(dataSet, legend);
             _this.setState({ dataSet: dataSet });
         });
@@ -84028,23 +84036,35 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
-            if (data.d == null)
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['faultcurves'] = false;
+                    _this.props.stateSetter(obj);
+                }
                 return;
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            }
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.getBreakerDigitalsData = function (state) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
-            if (data.d == null)
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['breakerdigitals'] = false;
+                    _this.props.stateSetter(obj);
+                }
                 return;
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            }
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
@@ -84102,11 +84122,9 @@ var WaveformViewerGraph = (function (_super) {
         var startString = this.props.startDate;
         var endString = this.props.endDate;
         if (this.props.startDate == null) {
-            this.setState({ startDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         if (this.props.endDate == null) {
-            this.setState({ endDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
@@ -84261,7 +84279,7 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.render = function () {
         return (React.createElement("div", { style: { display: (this.props.display ? 'block' : 'none') } },
-            React.createElement("div", { id: this.props.type, style: { height: (this.props.showXAxis ? this.props.height : this.props.height - 20), float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { id: this.props.type, style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
             React.createElement("div", { id: this.props.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
