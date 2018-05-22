@@ -64083,6 +64083,7 @@ var OpenSEE = (function (_super) {
             forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item2, "meter-next", "&navigation=meter", ">"));
             forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item2, "line-next", "&navigation=line", ">"));
             _this.setState({
+                PostedData: data,
                 backButtons: back,
                 forwardButtons: forward
             }, function () {
@@ -64150,7 +64151,7 @@ var OpenSEE = (function (_super) {
                                 React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
-                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), systemFrequency: this.state.PostedData.postedSystemFrequency }),
+                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
                 React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
@@ -64224,7 +64225,6 @@ var OpenSEE = (function (_super) {
         }
     };
     OpenSEE.prototype.showData = function (data) {
-        console.log(data);
         if (data.postedEventName != undefined) {
             var label = "";
             var details = "";
@@ -84122,6 +84122,7 @@ var WaveformViewerGraph = (function (_super) {
                 }
             }
         };
+        ctrl.clickHandled = false;
         return _this;
     }
     WaveformViewerGraph.prototype.getColor = function (label, index) {
@@ -84379,6 +84380,7 @@ var WaveformViewerGraph = (function (_super) {
         var ctrl = this;
         $("#" + this.props.type).off("plotselected");
         $("#" + ctrl.props.type).bind("plotselected", function (event, ranges) {
+            ctrl.clickHandled = true;
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to) });
         });
     };
@@ -84396,8 +84398,10 @@ var WaveformViewerGraph = (function (_super) {
             var time;
             var deltatime;
             var deltavalue;
-            if (!item)
+            if (ctrl.clickHandled || !item) {
+                ctrl.clickHandled = false;
                 return;
+            }
             var pointsTable = _.clone(ctrl.props.pointsTable);
             time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;
@@ -85115,11 +85119,11 @@ var Points = (function (_super) {
         });
     };
     Points.prototype.showTime = function (rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     };
     Points.prototype.showDeltaTime = function (rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     };
     return Points;

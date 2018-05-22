@@ -92,6 +92,7 @@ export class OpenSEE extends React.Component<any, any>{
             forward.push(this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item2, "line-next", "&navigation=line", ">"));
 
             this.setState({
+                PostedData: data,
                 backButtons: back,
                 forwardButtons: forward
             }, () => {
@@ -167,7 +168,7 @@ export class OpenSEE extends React.Component<any, any>{
                     </div>
                     <div className="panel-body collapse in" style={{ padding: '0' }}>
                         <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)} />
-                        <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} systemFrequency={this.state.PostedData.postedSystemFrequency} />
+                        <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
                         <Tooltip data={this.state.TableData} hover={this.state.Hover} />
 
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
@@ -256,8 +257,6 @@ export class OpenSEE extends React.Component<any, any>{
 
     showData(data) {
         // If all exist, then let's act
-        console.log(data);
-
         if (data.postedEventName != undefined) {
             // Lets build a label for this chart
             var label = "";

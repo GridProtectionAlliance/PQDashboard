@@ -147,12 +147,12 @@ export default class Points extends React.Component<any, any>{
     }
 
     showTime(rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     }
 
     showDeltaTime(rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     }
 

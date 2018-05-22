@@ -39,6 +39,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     openSEEService: OpenSEEService;
     plot: any;
     options: object;
+    clickHandled: boolean;
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -107,6 +108,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 }
             }
         }
+
+        ctrl.clickHandled = false;
     }
 
     getColor(label, index) {
@@ -396,6 +399,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         var ctrl = this;
         $("#" + this.props.type).off("plotselected");    
         $("#" + ctrl.props.type).bind("plotselected", function (event, ranges) {
+            ctrl.clickHandled = true;
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to)});
         });
     }
@@ -416,8 +420,11 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             var deltatime;
             var deltavalue;
 
-            if (!item)
+            if (ctrl.clickHandled || !item) {
+                ctrl.clickHandled = false;
                 return;
+
+            }
 
             var pointsTable = _.clone(ctrl.props.pointsTable);
 
