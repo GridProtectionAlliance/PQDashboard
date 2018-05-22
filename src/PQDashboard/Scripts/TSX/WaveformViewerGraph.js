@@ -359,7 +359,7 @@ var WaveformViewerGraph = (function (_super) {
             if (!item)
                 return;
             var pointsTable = _.clone(ctrl.props.pointsTable);
-            time = (item.datapoint[0] - Number(postedEventMilliseconds)) / 1000.0;
+            time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;
             deltavalue = 0.0;
             if (pointsTable.length > 0) {

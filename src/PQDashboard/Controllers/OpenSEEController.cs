@@ -278,8 +278,6 @@ namespace OpenSEE.Controller
 
             Dictionary<string, dynamic> returnDict = new Dictionary<string, dynamic>();
 
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-
             EventView theEvent = m_dataContext.Table<EventView>().QueryRecordWhere("ID = {0}", eventId);
 
             returnDict.Add("postedSystemFrequency", m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? "60.0");

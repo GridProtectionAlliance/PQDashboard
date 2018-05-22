@@ -110,11 +110,11 @@ var Points = (function (_super) {
         });
     };
     Points.prototype.showTime = function (rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
         return html;
     };
     Points.prototype.showDeltaTime = function (rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
         return html;
     };
     return Points;

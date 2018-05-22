@@ -39,7 +39,10 @@ var OpenSEE = (function (_super) {
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],
-            TableData: {}
+            TableData: {},
+            backButtons: [],
+            forwardButtons: [],
+            PostedData: {}
         };
         _this.TableData = {};
         _this.history['listen'](function (location, action) {
@@ -57,7 +60,28 @@ var OpenSEE = (function (_super) {
     OpenSEE.prototype.componentDidMount = function () {
         var _this = this;
         window.addEventListener("resize", this.handleScreenSizeChange.bind(this));
-        this.openSEEService.getHeaderData(this.state).done(function (data) { return _this.showData(data); });
+        this.openSEEService.getHeaderData(this.state).done(function (data) {
+            _this.showData(data);
+            var back = [];
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForSystem.m_Item1, "system-back", "&navigation=system", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeterLocation.m_Item1, "station-back", "&navigation=station", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item1, "meter-back", "&navigation=meter", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item1, "line-back", "&navigation=line", "<"));
+            var forward = [];
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForSystem.m_Item2, "system-next", "&navigation=system", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeterLocation.m_Item2, "station-next", "&navigation=station", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item2, "meter-next", "&navigation=meter", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item2, "line-next", "&navigation=line", ">"));
+            _this.setState({
+                backButtons: back,
+                forwardButtons: forward
+            }, function () {
+                _this.nextBackSelect($('#next-back-selection option:selected').val());
+                $('#next-back-selection').change(function () {
+                    _this.nextBackSelect($('#next-back-selection option:selected').val());
+                });
+            });
+        });
     };
     OpenSEE.prototype.componentWillUnmount = function () {
         $(window).off('resize');
@@ -73,6 +97,7 @@ var OpenSEE = (function (_super) {
         }, 500);
     };
     OpenSEE.prototype.render = function () {
+        var _this = this;
         var height = this.calculateHeights(this.state);
         return (React.createElement("div", null,
             React.createElement("div", { id: "pageHeader", style: { width: '100%' } },
@@ -90,15 +115,37 @@ var OpenSEE = (function (_super) {
                                 React.createElement("div", null,
                                     React.createElement("span", { id: "TitleData" }),
                                     "\u00A0\u00A0\u00A0",
-                                    React.createElement("a", { type: "button", target: "_blank", href: xdaInstance + " /Workbench/Event.cshtml?EventID=" + this.state.eventid }, "edit"))))))),
+                                    React.createElement("a", { type: "button", target: "_blank", id: "editButton" }, "edit"))))))),
+            React.createElement("div", { className: "DockWaveformHeader" },
+                React.createElement("table", { style: { width: '75%', margin: '0 auto' } },
+                    React.createElement("tbody", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom")),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Points", onClick: function () { return _this.showhidePoints(); }, id: "showpoints" })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                this.state.backButtons,
+                                React.createElement("select", { id: "next-back-selection", defaultValue: "system" },
+                                    React.createElement("option", { value: "system" }, "System"),
+                                    React.createElement("option", { value: "station" }, "Station"),
+                                    React.createElement("option", { value: "meter" }, "Meter"),
+                                    React.createElement("option", { value: "line" }, "Line")),
+                                this.state.forwardButtons),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Tooltip", onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Phasor", onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
+                            React.createElement("td", { style: { textAlign: 'center', display: 'none' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
-                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this) }),
+                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), systemFrequency: this.state.PostedData.postedSystemFrequency }),
                 React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
-                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt }),
-                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur }),
-                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves }),
-                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals }))));
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals, postedData: this.state.PostedData }))));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
@@ -110,6 +157,9 @@ var OpenSEE = (function (_super) {
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
+            delete prop.backButtons;
+            delete prop.forwardButtons;
+            delete prop.PostedData;
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(_this.history['location'].search);
             if (!_.isEqual(qs, hqs))
@@ -164,7 +214,8 @@ var OpenSEE = (function (_super) {
         }
     };
     OpenSEE.prototype.showData = function (data) {
-        if (data.postedEventName && data.postedEventId) {
+        console.log(data);
+        if (data.postedEventName != undefined) {
             var label = "";
             var details = "";
             var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
@@ -178,19 +229,19 @@ var OpenSEE = (function (_super) {
             else
                 label += "Event Type: " + faultLink;
             label += separator + "Event Time: " + data.postedEventDate;
-            if (data.postedStartTime != "")
+            if (data.postedStartTime != undefined)
                 details += "Start: " + data.postedStartTime;
-            if (data.postedPhase != "") {
+            if (data.postedPhase != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Phase: " + data.postedPhase;
             }
-            if (data.postedDurationPeriod != "") {
+            if (data.postedDurationPeriod != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Duration: " + data.postedDurationPeriod;
             }
-            if (data.postedMagnitude != "") {
+            if (data.postedMagnitude != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Magnitude: " + data.postedMagnitude;
@@ -198,24 +249,24 @@ var OpenSEE = (function (_super) {
             if (details != "")
                 label += "<br />" + details;
             details = "";
-            if (data.postedBreakerNumber != "")
+            if (data.postedBreakerNumber != undefined)
                 details += "Breaker: " + data.postedBreakerNumber;
-            if (data.postedBreakerPhase != "") {
+            if (data.postedBreakerPhase != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Phase: " + data.postedBreakerPhase;
             }
-            if (data.postedBreakerTiming != "") {
+            if (data.postedBreakerTiming != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Timing: " + data.postedBreakerTiming;
             }
-            if (data.postedBreakerSpeed != "") {
+            if (data.postedBreakerSpeed != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Speed: " + data.postedBreakerSpeed;
             }
-            if (data.postedBreakerOperation != "") {
+            if (data.postedBreakerOperation != undefined) {
                 if (details != "")
                     details += separator;
                 details += "Operation: " + data.postedBreakerOperation;
@@ -223,16 +274,18 @@ var OpenSEE = (function (_super) {
             if (details != "")
                 label += "<br />" + details;
             document.getElementById('TitleData').innerHTML = label;
+            if (data.xdaInstance != undefined)
+                $('#editButton').prop('href', data.xdaInstance + "/Workbench/Event.cshtml?EventID=" + this.state.eventid);
         }
     };
-    OpenSEE.prototype.NextBackButton = function (evt, id, postedURLQueryString, text) {
+    OpenSEE.prototype.nextBackButton = function (evt, id, postedURLQueryString, text) {
         if (evt != null) {
-            var title = evt.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+            var title = evt.StartTime;
             var url = "?eventid=" + evt.ID + postedURLQueryString;
-            return React.createElement("a", { href: url, id: id, className: 'nextbackbutton smallbutton', title: title, style: { padding: '4px 20px' } }, text);
+            return React.createElement("a", { href: url, id: id, key: id, className: 'nextbackbutton smallbutton', title: title, style: { padding: '4px 20px' } }, text);
         }
         else
-            return React.createElement("a", { href: '#', id: id, className: 'nextbackbutton smallbutton-disabled', title: 'No event', style: { padding: '4px 20px' } }, text);
+            return React.createElement("a", { href: '#', id: id, key: id, className: 'nextbackbutton smallbutton-disabled', title: 'No event', style: { padding: '4px 20px' } }, text);
     };
     return OpenSEE;
 }(React.Component));
