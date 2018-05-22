@@ -20,14 +20,11 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-import * as moment from 'moment'; 
-declare var homePath: string;
-
 export default class OpenSEEService{
     getData(filters, dataType) {
         return $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
+            url: `${window.location.origin}/api/OpenSEE/GetData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
                 `&pixels=${filters.pixels}` +
@@ -43,7 +40,7 @@ export default class OpenSEEService{
     getFaultDistanceData(filters) {
         return $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/GetFaultDistanceData?eventId=${filters.eventId}` +
+            url: `${window.location.origin}/api/OpenSEE/GetFaultDistanceData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
                 `&pixels=${filters.pixels}`,
@@ -57,7 +54,7 @@ export default class OpenSEEService{
     getBreakerDigitalsData(filters) {
         return $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/GetBreakerData?eventId=${filters.eventId}` +
+            url: `${window.location.origin}/api/OpenSEE/GetBreakerData?eventId=${filters.eventId}` +
                  `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
                  `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}`+
                  `&pixels=${filters.pixels}`+
@@ -69,5 +66,16 @@ export default class OpenSEEService{
         });
     }
 
+    getHeaderData(filters) {
+        return $.ajax({
+            type: "GET",
+            url: `${window.location.origin}/api/OpenSEE/GetHeaderData?eventId=${filters.eventid}` +
+                `${filters.breakeroperation != undefined ? `&breakeroperation=${filters.breakeroperation}` : ``}` ,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+    }
 
 }

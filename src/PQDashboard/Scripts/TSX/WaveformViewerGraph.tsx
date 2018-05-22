@@ -34,9 +34,6 @@ import './../flot/jquery.flot.selection.min.js';
 import './../flot/jquery.flot.time.min.js';
 import { WheelEvent } from 'react';
 
-declare var systemFrequency: any;
-declare var postedEventMilliseconds: any;
-
 
 export default class WaveformViewerGraph extends React.Component<any, any>{
     openSEEService: OpenSEEService;
@@ -424,7 +421,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
             var pointsTable = _.clone(ctrl.props.pointsTable);
 
-            time = (item.datapoint[0] - Number(postedEventMilliseconds)) / 1000.0;
+            time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;
             deltavalue = 0.0;
 

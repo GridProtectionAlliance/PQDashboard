@@ -45,6 +45,17 @@ var OpenSEEService = (function () {
             async: true
         });
     };
+    OpenSEEService.prototype.getHeaderData = function (filters) {
+        return $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetHeaderData?eventId=" + filters.eventid +
+                ("" + (filters.breakeroperation != undefined ? "&breakeroperation=" + filters.breakeroperation : "")),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+    };
     return OpenSEEService;
 }());
 exports.default = OpenSEEService;

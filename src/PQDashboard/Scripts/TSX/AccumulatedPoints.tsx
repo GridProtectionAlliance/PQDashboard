@@ -26,8 +26,6 @@ import * as _ from "lodash";
 import './../jquery-ui.js';
 import './../PrimeUI/primeui.js';
 
-declare var postedSystemFrequency: any;
-
 export default class Points extends React.Component<any, any>{
     constructor(props) {
         super(props);
@@ -149,12 +147,12 @@ export default class Points extends React.Component<any, any>{
     }
 
     showTime(rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
         return html;
     }
 
     showDeltaTime(rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * this.props.postedSystemFrequency).toFixed(2) + " cycles";
         return html;
     }
 

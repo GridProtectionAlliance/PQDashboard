@@ -152,7 +152,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
-            if (data.d == null) {
+            if (data == null) {
                 if (state.display) {
                     var obj = {};
                     obj[(state.type == "Voltage" ? 'displayVolt' : 'displayCur')] = false;
@@ -160,25 +160,25 @@ var WaveformViewerGraph = (function (_super) {
                 }
                 return;
             }
-            _this.options['grid'].markings.push(_this.highlightCycle(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
+            _this.options['grid'].markings.push(_this.highlightCycle(data));
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+                dataSet = data;
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
         this.openSEEService.getData(state, "Freq").then(function (data) {
-            if (data.d == null)
+            if (data == null)
                 return;
-            var legend = _this.createLegendRows(data.d.Data);
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
+                dataSet = data;
             _this.createDataRows(dataSet, legend);
             _this.setState({ dataSet: dataSet });
         });
@@ -186,7 +186,7 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
-            if (data.d == null) {
+            if (data == null) {
                 if (state.display) {
                     var obj = {};
                     obj['faultcurves'] = false;
@@ -194,16 +194,16 @@ var WaveformViewerGraph = (function (_super) {
                 }
                 return;
             }
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.getBreakerDigitalsData = function (state) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
-            if (data.d == null) {
+            if (data == null) {
                 if (state.display) {
                     var obj = {};
                     obj['breakerdigitals'] = false;
@@ -211,10 +211,10 @@ var WaveformViewerGraph = (function (_super) {
                 }
                 return;
             }
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {

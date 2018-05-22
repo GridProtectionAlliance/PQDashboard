@@ -27,15 +27,16 @@ using GSF.Web;
 using GSF.Web.Model;
 using Microsoft.AspNet.SignalR;
 using openXDA.Model;
-using PQDashboard.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Web;
 using System.Web.Http;
+using System.Web.Script.Serialization;
 
 namespace OpenSEE.Controller
 {
@@ -254,6 +255,136 @@ namespace OpenSEE.Controller
 
             return returnDict;
 
+        }
+
+        [HttpGet]
+        public Dictionary<string, dynamic> GetHeaderData() {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventId = int.Parse(query["eventId"]);
+            string breakerOperationID = (query.ContainsKey("breakeroperation") ? query["breakeroperation"] : "-1");
+
+            const string NextBackForSystem = "GetPreviousAndNextEventIdsForSystem";
+            const string NextBackForStation = "GetPreviousAndNextEventIdsForMeterLocation";
+            const string NextBackForMeter = "GetPreviousAndNextEventIdsForMeter";
+            const string NextBackForLine = "GetPreviousAndNextEventIdsForLine";
+
+            Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
+            {
+            { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+            { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+            { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+            { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+            };
+
+            Dictionary<string, dynamic> returnDict = new Dictionary<string, dynamic>();
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+
+            EventView theEvent = m_dataContext.Table<EventView>().QueryRecordWhere("ID = {0}", eventId);
+
+            returnDict.Add("postedSystemFrequency", m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? "60.0");
+            returnDict.Add("postedStationName", theEvent.StationName);
+            returnDict.Add("postedMeterId", theEvent.MeterID.ToString());
+            returnDict.Add("postedMeterName", theEvent.MeterName);
+            returnDict.Add("postedLineName", theEvent.LineName);
+            returnDict.Add("postedLineLength", theEvent.Length.ToString());
+
+            returnDict.Add("postedEventName", theEvent.EventTypeName);
+            returnDict.Add("postedEventDate", theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
+            returnDict.Add("postedDate", theEvent.StartTime.ToShortDateString());
+            returnDict.Add("postedEventMilliseconds", theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString());
+
+            returnDict.Add("xdaInstance", m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'"));
+
+            using (IDbCommand cmd = m_dataContext.Connection.Connection.CreateCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@EventID", eventId));
+                cmd.CommandTimeout = 300;
+
+                foreach (string procedure in nextBackLookup.Keys.ToList())
+                {
+                    EventView back = null;
+                    EventView next = null;
+                    int backID = -1;
+                    int nextID = -1;
+
+                    cmd.CommandText = procedure;
+
+                    using (IDataReader rdr = cmd.ExecuteReader())
+                    {
+                        rdr.Read();
+
+                        if (!rdr.IsDBNull(0))
+                        {
+                            backID = rdr.GetInt32(0);
+                        }
+
+                        if (!rdr.IsDBNull(1))
+                        {
+                            nextID = rdr.GetInt32(1);
+                        }
+                    }
+
+                    back = m_dataContext.Table<EventView>().QueryRecordWhere("ID = {0}", backID);
+                    next = m_dataContext.Table<EventView>().QueryRecordWhere("ID = {0}", nextID);
+                    nextBackLookup[procedure] = Tuple.Create(back, next);
+                }
+            }
+
+            returnDict.Add("nextBackLookup", nextBackLookup);
+
+            if (new List<string>() { "Fault", "RecloseIntoFault" }.Contains(returnDict["postedEventName"]))
+            {
+                FaultSummary thesummary = m_dataContext.Table<FaultSummary>().QueryRecordsWhere("EventID = {0} AND IsSelectedAlgorithm = 1", theEvent.ID).OrderBy(row => row.IsSuppressed).ThenBy(row => row.Inception).FirstOrDefault();
+
+                if ((object)thesummary != null)
+                {
+                    returnDict.Add("postedStartTime", thesummary.Inception.TimeOfDay.ToString());
+                    returnDict.Add("postedPhase", thesummary.FaultType);
+                    returnDict.Add("postedDurationPeriod", thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles");
+                    returnDict.Add("postedMagnitude", thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)");
+                    returnDict.Add("postedCalculationCycle", thesummary.CalculationCycle.ToString());
+                }
+            }
+            else if (new List<string>() { "Sag", "Swell" }.Contains(returnDict["postedEventName"]))
+            {
+                openXDA.Model.Disturbance disturbance = m_dataContext.Table<openXDA.Model.Disturbance>().QueryRecordsWhere("EventID = {0}", theEvent.ID).Where(row => row.EventTypeID == theEvent.EventTypeID).OrderBy(row => row.StartTime).FirstOrDefault();
+
+                if ((object)disturbance != null)
+                {
+                    returnDict.Add("postedStartTime", disturbance.StartTime.TimeOfDay.ToString());
+                    returnDict.Add("postedPhase", m_dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", disturbance.PhaseID).Name);
+                    returnDict.Add("postedDurationPeriod", disturbance.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles");
+
+                    if (disturbance.PerUnitMagnitude != -1.0e308)
+                    {
+                        returnDict.Add("postedMagnitude", disturbance.PerUnitMagnitude.ToString("N3", CultureInfo.InvariantCulture) + " pu (RMS)");
+                    }
+                }
+            }
+
+            if (breakerOperationID != "")
+            {
+                int id;
+
+                if (int.TryParse(breakerOperationID, out id))
+                {
+                    BreakerOperation breakerRow = m_dataContext.Table<BreakerOperation>().QueryRecordWhere("ID = {0}", id);
+
+                    if ((object)breakerRow != null)
+                    {
+                        returnDict.Add("postedBreakerNumber", breakerRow.BreakerNumber);
+                        returnDict.Add("postedBreakerPhase", m_dataContext.Table<Phase>().QueryRecordWhere("ID = {0}", breakerRow.PhaseID).Name);
+                        returnDict.Add("postedBreakerTiming", breakerRow.BreakerTiming.ToString());
+                        returnDict.Add("postedBreakerSpeed", breakerRow.BreakerSpeed.ToString());
+                        returnDict.Add("postedBreakerOperation", m_dataContext.Connection.ExecuteScalar("SELECT Name FROM BreakerOperationType WHERE ID = {0}", breakerRow.BreakerOperationTypeID).ToString());
+                    }
+                }
+            }
+
+
+            return returnDict;
         }
         #endregion
 
