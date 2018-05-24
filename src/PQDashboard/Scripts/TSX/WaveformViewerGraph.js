@@ -82,6 +82,7 @@ var WaveformViewerGraph = (function (_super) {
                 }
             }
         };
+        ctrl.clickHandled = false;
         return _this;
     }
     WaveformViewerGraph.prototype.getColor = function (label, index) {
@@ -339,6 +340,7 @@ var WaveformViewerGraph = (function (_super) {
         var ctrl = this;
         $("#" + this.props.type).off("plotselected");
         $("#" + ctrl.props.type).bind("plotselected", function (event, ranges) {
+            ctrl.clickHandled = true;
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to) });
         });
     };
@@ -356,8 +358,10 @@ var WaveformViewerGraph = (function (_super) {
             var time;
             var deltatime;
             var deltavalue;
-            if (!item)
+            if (ctrl.clickHandled || !item) {
+                ctrl.clickHandled = false;
                 return;
+            }
             var pointsTable = _.clone(ctrl.props.pointsTable);
             time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;

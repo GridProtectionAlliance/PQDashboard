@@ -73,6 +73,7 @@ var OpenSEE = (function (_super) {
             forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item2, "meter-next", "&navigation=meter", ">"));
             forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item2, "line-next", "&navigation=line", ">"));
             _this.setState({
+                PostedData: data,
                 backButtons: back,
                 forwardButtons: forward
             }, function () {
@@ -140,7 +141,7 @@ var OpenSEE = (function (_super) {
                                 React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
-                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), systemFrequency: this.state.PostedData.postedSystemFrequency }),
+                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
                 React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
@@ -214,7 +215,6 @@ var OpenSEE = (function (_super) {
         }
     };
     OpenSEE.prototype.showData = function (data) {
-        console.log(data);
         if (data.postedEventName != undefined) {
             var label = "";
             var details = "";

@@ -105,7 +105,7 @@
     </div>
 
 
-    <div style="height: 100%; width: 100%;">
+    <div style="height: 100%; width: 100%;overflow-y: auto">
         <div class="gridheader">Events</div>
         <div style="display: inline-block" id="eventTable"></div>
         <div class="gridheader">Disturbances</div>
@@ -195,7 +195,7 @@
     $(document).ready(function () {
         $(window).on('hubConnected', function () {
             $('#datePicker').daterangepicker({
-                timePicker: true,
+                timePicker: false,
                 timePickerIncrement: 1,
                 timePicker24Hour: true,
                 singleDatePicker: true,
@@ -232,7 +232,7 @@
             });
 
             $('#eventTable').puidatatable({
-                scrollable: true,
+                scrollable: false,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
                 columns: [
@@ -269,7 +269,7 @@
             });
 
             $('#disturbanceTable').puidatatable({
-                scrollable: true,
+                scrollable: false,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
                 sortMode: 'multiple',
@@ -325,7 +325,7 @@
             fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
             $('#faultTable').puidatatable({
-                scrollable: true,
+                scrollable: false,
                 scrollHeight: '100%',
                 columns: columns,
                 datasource: data
@@ -343,29 +343,7 @@
                 scrollHeight: '100%',
                 columns: [
                     { headerStyle: 'width: 40px',content: function (row) { return '<input type="checkbox" class="' + row.theeventid + '" checked />' } },
-                    {
-                        field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
-                            function (row, options, td) {
-                                if (row.notecount > 0)
-                                    td.addClass('note');
-
-                                var title = "";
-                                var bgColor = "initial";
-
-                                if (row.dcoffset != 0) {
-                                    title = "title='DC offset logic applied'";
-                                    bgColor = "aqua";
-                                }
-
-                                var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
-                                var svg = "";
-
-                                if (row.chatter != 0)
-                                    svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
-
-                                return a + svg;
-                            }
-                    },
+                    { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true },
                     { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
                     { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true },
                     { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
