@@ -139,8 +139,8 @@
                 <h4 class="modal-title">Add a note to associated event records</h4>
             </div>
             <div class="modal-body">
-                <div >
-                    <table class="table"id="multiNoteEvents">
+                <div style="max-height: 500px;overflow-y: auto" >
+                    <table class="table"  id="multiNoteEvents">
                         <thead>
                             <tr><td><input id ="multiSelectAll" type="checkbox" onchange="selectAllMultiNotes(this)" checked/></td><td>Line</td><td>StartTime</td><td>Type</td></tr>
                         </thead>
@@ -239,43 +239,8 @@
         if (data.theeventtype == "Fault")
             html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
 
-        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events (+/- @timeWindow sec)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
-        dataHub.getSimultaneousEvents(data.theeventid).done(function (data) {
-
-            var html = "<style>" +
-                            ".listtable{" +
-                                "min-width: 150px;" +
-                                "max-height: 400px;" +
-                                "display: block;" +
-                            "}" +
-                            ".contextmenu1.list-group{" +
-                                "margin: 0;" +
-                            "}" +
-                            ".listtr:hover{" +
-                                "background-color: #66BB6A;" +
-                            "}" +
-                        "</style>" +
-                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
-
-            $.each(data, function (index, object) {
-                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
-            });
-
-            html += "</table>";
-
-
-            jsPanel.contextmenu('#simultaneousFaultsAndSags', {
-                border: '1px solid gray',
-                contentSize: 'auto auto',
-                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
-                content: html,
-                callback: function (panel) {
-                    panel.css('z-index', '2001')
-                },
-                trigger: 'left'
-
-            });
-        });
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events <br> (+/- <input id="timeWindow" onchange="updateSimultaneousEvents('+data.theeventid+ ')" style="width: 100px" value="@timeWindow" /> sec)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default"><span id="simultaneousCount"></span> Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
+        updateSimultaneousEvents(data.theeventid);
 
         html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
         dataHub.getEventsForLineLastSixtyDays(data.theeventid).done(function (data) {
@@ -344,6 +309,50 @@
         });
 
     }
+
+    function updateSimultaneousEvents(theeventid) {
+        var timeWindow = $('#timeWindow').val();
+        if(timeWindow == undefined) timeWindow = @timeWindow;
+        dataHub.getSimultaneousEvents(theeventid, timeWindow).done(function (d) {
+            $('#simultaneousCount').html(d.length);
+
+            var html = "<style>" +
+                ".listtable{" +
+                "min-width: 150px;" +
+                "max-height: 400px;" +
+                "display: block;" +
+                "}" +
+                ".contextmenu1.list-group{" +
+                "margin: 0;" +
+                "}" +
+                ".listtr:hover{" +
+                "background-color: #66BB6A;" +
+                "}" +
+                "</style>" +
+                "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+
+            $.each(d, function (index, object) {
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+            });
+
+            html += "</table>";
+
+
+            jsPanel.contextmenu('#simultaneousFaultsAndSags', {
+                border: '1px solid gray',
+                contentSize: 'auto auto',
+                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
+                content: html,
+                callback: function (panel) {
+                    panel.css('z-index', '2001')
+                },
+                trigger: 'left'
+
+            });
+        });
+
+    }
+
 
     function leftClick(word) {
         $(Object.keys(event), function (i, key) {
@@ -494,7 +503,7 @@
     }
 
     function openMultiNoteModal(eventId) {
-        dataHub.getSimultaneousEvents(eventId).done(function (data) {
+        dataHub.getSimultaneousEvents(eventId, $('#timeWindow').val()).done(function (data) {
             $('#eventId').text(eventId);
             $('#multiNote').val('');
             $('#multiNoteEvents tbody').children().remove()

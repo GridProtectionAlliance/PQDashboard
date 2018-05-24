@@ -1308,10 +1308,9 @@ namespace PQDashboard
 
         #region [ MeterEventsByLine Operations ]
 
-        public IEnumerable<EventView> GetSimultaneousEvents(int eventId)
+        public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window)
         {
             DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            double window = DataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? DataContext.Connection.ExecuteScalar<double?>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? 1.0D;
             return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -{0}, {1}) and  DateAdd(SECOND, {0}, {1})", window, time);
         }
 
