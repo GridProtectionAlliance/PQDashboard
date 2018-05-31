@@ -239,7 +239,7 @@
         if (data.theeventtype == "Fault")
             html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
 
-        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events <br> (+/- <input id="timeWindow" onchange="updateSimultaneousEvents('+data.theeventid+ ')" style="width: 100px" value="@timeWindow" /> sec)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default"><span id="simultaneousCount"></span> Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events <br> (+/- <input id="timeWindow" onchange="updateSimultaneousEvents(' + data.theeventid + ')" style="width: 60px" value="@timeWindow" /> <select id="timeUnits" onchange="updateSimultaneousEvents(' + data.theeventid + ')"><option value="7">Year</option><option value="6">Month</option><option value="5">Week</option><option value="4">Day</option><option value="3">Hour</option><option value="2">Minute</option><option value="1" selected>Second</option><option value="0">Millisecond</option></select>)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default"><span id="simultaneousCount"></span> Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
         updateSimultaneousEvents(data.theeventid);
 
         html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
@@ -312,8 +312,12 @@
 
     function updateSimultaneousEvents(theeventid) {
         var timeWindow = $('#timeWindow').val();
-        if(timeWindow == undefined) timeWindow = @timeWindow;
-        dataHub.getSimultaneousEvents(theeventid, timeWindow).done(function (d) {
+        var timeUnits = $('#timeUnits').val();
+
+        if (timeWindow == undefined) timeWindow = @timeWindow;
+        if (timeUnits == undefined) timeUnits = 1;
+
+        dataHub.getSimultaneousEvents(theeventid, timeWindow, timeUnits).done(function (d) {
             $('#simultaneousCount').html(d.length);
 
             var html = "<style>" +

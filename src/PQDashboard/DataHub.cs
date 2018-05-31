@@ -59,6 +59,7 @@ namespace PQDashboard
         private readonly DataContext m_coreContext;
         private bool m_disposed;
         private readonly DataSubscriptionOperations m_dataSubscriptionOperations;
+        enum TimeUnits { Millisecond, Second, Minute, Hour, Day, Week, Month, Year };
 
 
         #endregion
@@ -1308,10 +1309,10 @@ namespace PQDashboard
 
         #region [ MeterEventsByLine Operations ]
 
-        public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window)
+        public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window, int timeUnit)
         {
             DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(SECOND, -{0}, {1}) and  DateAdd(SECOND, {0}, {1})", window, time);
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", -{0}, {1}) and  DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", {0}, {1})", window, time);
         }
 
         public IEnumerable<EventView> GetSimultaneousFaultsAndSags(int eventId)
