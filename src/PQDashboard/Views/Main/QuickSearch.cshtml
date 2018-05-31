@@ -36,7 +36,7 @@
 }
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" style="height: 100%;">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Head1">
     <title>QuickSearch</title>
 
@@ -81,7 +81,7 @@
     @Scripts.Render("~/Scripts/random")
 </head>
 
-<body style="height: 100%;">
+<body>
     <div class="gridheader">
         <center>
             <span>Quick Search</span>
@@ -94,9 +94,24 @@
                 <tbody>
                     <tr>
                         <td align="center" width="200px"><input class="form-control" id="datePicker" /></td>
-                        <td align="center" width="100px"><span>(+/- min)</span></td>
+                        <td align="center" width="50px">
+                            <span>(+/-)</span>
+                        </td>
                         <td align="center" width="50px"><input id="minutes" value="10" class="form-control" /></td>
-                        <td align="center" width="50px"><button class="btn btn-primary" onclick="apply()">Apply</button></td>
+                        <td align="center" width="100px">
+                            <select id="timeUnits" class="form-control">
+                                <option value="7">Year</option>
+                                <option value="6">Month</option>
+                                <option value="5">Week</option>
+                                <option value="4">Day</option>
+                                <option value="3">Hour</option>
+                                <option value="2" selected>Minute</option>
+                                <option value="1">Second</option>
+                                <option value="0">Millisecond</option>
+                            </select>
+                        </td>
+
+                        <td align="center" width="100px"><button style="margin: 10px" class="btn btn-primary" onclick="apply()">Apply</button></td>
                         <td align="center" width="50px"><button class="btn" onclick="openMultiNoteModalAll()"><span class="glyphicon glyphicon-pencil"></span></button></td>
                     </tr>
                 </tbody>
@@ -105,7 +120,7 @@
     </div>
 
 
-    <div style="height: 100%; width: 100%;overflow-y: auto">
+    <div id="chartsDiv" style="width: 100%;overflow-y: auto">
         <div class="gridheader">Events</div>
         <div style="display: inline-block" id="eventTable"></div>
         <div class="gridheader">Disturbances</div>
@@ -193,15 +208,16 @@
     var json = [];
 
     $(document).ready(function () {
+        $('#chartsDiv').css('max-height', window.innerHeight - 77)
         $(window).on('hubConnected', function () {
             $('#datePicker').daterangepicker({
-                timePicker: false,
+                timePicker: true,
                 timePickerIncrement: 1,
                 timePicker24Hour: true,
                 singleDatePicker: true,
                 showDropdowns: true,
                 locale: {
-                    format: 'MM/DD/YYYY HH:mm'
+                    format: 'MM/DD/YYYY HH:mm:ss'
                 }
             });
         })
@@ -209,10 +225,10 @@
     });
 
     function apply() {
-        getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val());
-        getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val());
-        getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val());
-        getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val());
+        getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
+        getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
+        getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
+        getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
 
     }
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
@@ -223,8 +239,8 @@
 
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
-    function getEvents(date, minuteWindow) {
-        dataHub.getEvents(date, minuteWindow).done(function (data) {
+    function getEvents(date, minuteWindow, timeUnits) {
+        dataHub.getEvents(date, minuteWindow, timeUnits).done(function (data) {
             json = data;
             $.each(data, function (_, obj) {
                 obj.voltage = Number(obj.voltage);
@@ -252,8 +268,8 @@
         });
     }
 
-    function getDisturbances(date, minuteWindow) {
-        dataHub.getDisturbances(date, minuteWindow).done(function (data) {
+    function getDisturbances(date, minuteWindow, timeUnits) {
+        dataHub.getDisturbances(date, minuteWindow, timeUnits).done(function (data) {
             json = data;
 
             $.each(json, function (_, obj) {
@@ -294,8 +310,8 @@
 
     }
 
-    function getFaults(date, minuteWindow) {
-        dataHub.getFaults(date, minuteWindow).done(function (data) {
+    function getFaults(date, minuteWindow, timeUnits) {
+        dataHub.getFaults(date, minuteWindow, timeUnits).done(function (data) {
             $.each(data, function (i, d) {
                 d['theeventtype'] = "Fault";
                 if (d.causecode !== undefined) includeCauseCode = true;
@@ -334,8 +350,8 @@
 
     }
 
-    function getBreakers(date, minuteWindow) {
-        dataHub.getBreakers(date, minuteWindow).done(function (data) {
+    function getBreakers(date, minuteWindow, timeUnits) {
+        dataHub.getBreakers(date, minuteWindow, timeUnits).done(function (data) {
             fixNumbers(data, ['timing', 'statustiming', 'speed']);
 
             $('#breakerTable').puidatatable({
