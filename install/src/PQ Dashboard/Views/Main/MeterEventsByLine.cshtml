@@ -45,7 +45,7 @@
     }
 
     string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
     string context = parameters["context"] ?? "day";
 }
 
@@ -139,7 +139,17 @@
                 <h4 class="modal-title">Add a note to associated event records</h4>
             </div>
             <div class="modal-body">
-                <textarea wrap="hard" id="multiNote" class="form-control"></textarea>
+                <div style="max-height: 500px;overflow-y: auto" >
+                    <table class="table"  id="multiNoteEvents">
+                        <thead>
+                            <tr><td><input id ="multiSelectAll" type="checkbox" onchange="selectAllMultiNotes(this)" checked/></td><td>Line</td><td>StartTime</td><td>Type</td></tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+                <textarea wrap="hard" id="multiNote" class="form-control" rows="6"></textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="saveMultiNote()" data-dismiss="modal">Add Note</button>
@@ -229,83 +239,8 @@
         if (data.theeventtype == "Fault")
             html += '<tr><td style="width: 50%">View table of Fault details</td><td colspan="2" style="width:auto">' + makeFaultSpecificsButton_html(data) + '</td></tr>';
 
-        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Faults and Sags (+/- @timeWindow sec)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default">' + data.SimultaneousFAndSCount + ' Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
-        dataHub.getSimultaneousFaultsAndSags(data.theeventid).done(function (data) {
-
-            var html = "<style>" +
-                            ".listtable{" +
-                                "min-width: 150px;" +
-                                "max-height: 400px;" +
-                                "display: block;" +
-                            "}" +
-                            ".contextmenu1.list-group{" +
-                                "margin: 0;" +
-                            "}" +
-                            ".listtr:hover{" +
-                                "background-color: #66BB6A;" +
-                            "}" +
-                        "</style>" +
-                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
-
-            $.each(data, function (index, object) {
-                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
-            });
-
-            html += "</table>";
-
-
-            jsPanel.contextmenu('#simultaneousFaultsAndSags', {
-                border: '1px solid gray',
-                contentSize: 'auto auto',
-                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
-                content: html,
-                callback: function (panel) {
-                    panel.css('z-index', '2001')
-                },
-                trigger: 'left'
-
-            });
-        });
-
-        html += '<tr><td style="width: 50%">List <b>simultaneous</b> events (+/- 5 sec)</td><td colspan="2" style="width: auto"><button id="simultaneousEvents" class="btn btn-default">' + data.SimultaneousCount + ' Events Found</button></td></tr>';
-        dataHub.getSimultaneousEvents(data.theeventid).done(function (data) {
-            //console.log(data);
-
-            var html = "<style>" +
-                            ".listtable{" +
-                                "min-width: 150px;" +
-                                "max-height: 400px;" +
-                                "display: block;" +
-                            "}" +
-                            ".contextmenu1.list-group{" +
-                                "margin: 0;" +
-                            "}" +
-                            ".listtr:hover{" +
-                                "background-color: #66BB6A;" +
-                            "}" +
-                        "</style>" +
-                        //"<ul class='list-group contextmenu1' >" +
-                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
-
-            $.each(data, function (index, object) {
-                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
-            });
-
-            html += "</table>";
-
-
-            jsPanel.contextmenu('#simultaneousEvents', {
-                border: '1px solid gray',
-                contentSize: 'auto auto',
-                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
-                content: html,
-                callback: function (panel) {
-                    panel.css('z-index', '2001')
-                },
-                trigger: 'left'
-
-            });
-        });
+        html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events <br> (+/- <input id="timeWindow" onchange="updateSimultaneousEvents(' + data.theeventid + ')" style="width: 60px" value="@timeWindow" /> <select id="timeUnits" onchange="updateSimultaneousEvents(' + data.theeventid + ')"><option value="7">Year</option><option value="6">Month</option><option value="5">Week</option><option value="4">Day</option><option value="3">Hour</option><option value="2">Minute</option><option value="1" selected>Second</option><option value="0">Millisecond</option></select>)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default"><span id="simultaneousCount"></span> Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
+        updateSimultaneousEvents(data.theeventid);
 
         html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
         dataHub.getEventsForLineLastSixtyDays(data.theeventid).done(function (data) {
@@ -355,15 +290,6 @@
         if (testForStuff(data)) {
             html += '<table class="jsPanelTable table"><tr class="gridheader"><th colspan="3">Get Results From Enabled Extended Analytics</th></tr>';
 
-
-            //if (data.pqiexists > 0) {
-            //    html += '<tr><td style="width: 50%">PQI</td><td style="width: 5%; padding: 0">' + makePQIButton_html(data) + '</td><td style="width: auto"><span id="'+data.theeventid+'pqicount">0</span> Devices Impacted</td></tr>';
-            //}
-
-            //dataHub.getPQICount(data.theeventid).done(function (count) {
-            //    $('#' + data.theeventid + 'pqicount').text(count);
-            //});
-
             $.each(data.ServiceList.split(','), function (i, k) {
                 if (data[k] !== null && data[k] !== undefined)
                     html += '<tr><td style="width: 50%">' + k + '</td><td style="width: 5%; padding: 0">' + makeEASDetailsButton_html(data, data[k], '@Html.Raw(Url.Content("~/"))' + k + '.aspx', '@Html.Raw(Url.Content("~/Images/"))' + k + '.png', 'Launch ' + k + ' Page') + '</td><td style="width: auto">Confidence: ' + data[k] + '</td></tr>';
@@ -383,6 +309,54 @@
         });
 
     }
+
+    function updateSimultaneousEvents(theeventid) {
+        var timeWindow = $('#timeWindow').val();
+        var timeUnits = $('#timeUnits').val();
+
+        if (timeWindow == undefined) timeWindow = @timeWindow;
+        if (timeUnits == undefined) timeUnits = 1;
+
+        dataHub.getSimultaneousEvents(theeventid, timeWindow, timeUnits).done(function (d) {
+            $('#simultaneousCount').html(d.length);
+
+            var html = "<style>" +
+                ".listtable{" +
+                "min-width: 150px;" +
+                "max-height: 400px;" +
+                "display: block;" +
+                "}" +
+                ".contextmenu1.list-group{" +
+                "margin: 0;" +
+                "}" +
+                ".listtr:hover{" +
+                "background-color: #66BB6A;" +
+                "}" +
+                "</style>" +
+                "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+
+            $.each(d, function (index, object) {
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+            });
+
+            html += "</table>";
+
+
+            jsPanel.contextmenu('#simultaneousFaultsAndSags', {
+                border: '1px solid gray',
+                contentSize: 'auto auto',
+                contentOverflow: { horizontal: 'hidden', vertical: 'auto' },
+                content: html,
+                callback: function (panel) {
+                    panel.css('z-index', '2001')
+                },
+                trigger: 'left'
+
+            });
+        });
+
+    }
+
 
     function leftClick(word) {
         $(Object.keys(event), function (i, key) {
@@ -533,13 +507,37 @@
     }
 
     function openMultiNoteModal(eventId) {
+        dataHub.getSimultaneousEvents(eventId, $('#timeWindow').val()).done(function (data) {
             $('#eventId').text(eventId);
             $('#multiNote').val('');
+            $('#multiNoteEvents tbody').children().remove()
+            $.each(data, function (i, d) {
+
+                $('#multiNoteEvents tbody').append('<tr><td><input type="checkbox" onchange="updateSelectAll()" id="'+ d.ID + '" checked/></td><td>' + d.LineName + '</td><td>' + d.StartTime + '</td><td>' + d.EventTypeName + '</td></tr>')
+            })
+
             $('#multiNotesModal').modal('show');
+            
+        });
     }
 
+    function updateSelectAll() {
+        var flag = true;
+        $.each($('#multiNoteEvents tbody input').toArray(), function (i, d) {
+            flag = $(d).prop('checked');
+            if (!flag) return false;
+        });
+
+        $('#multiSelectAll').prop('checked', flag);
+
+    }
+    function selectAllMultiNotes(checkBox) {
+        $('#multiNoteEvents tbody input').prop('checked', $(checkBox).prop('checked'))
+    }
+
+
     function saveMultiNote() {
-        dataHub.saveMultiNoteForEvent($('#eventId').text(), $('#multiNote').val(), userId);
+        dataHub.saveMultiNoteForEvent($('#multiNoteEvents tbody input:checked').toArray().map(x => $(x).attr('id')), $('#multiNote').val(), userId);
     }
 
 </script>

@@ -79,41 +79,4 @@ public SignalCode.eventSet getSignalDataByIDAndType(string EventInstanceID, Stri
         return sc.getSignalDataByIDAndType(EventInstanceID, DataType);
 
     }
-
-    [WebMethod]
-    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public OpenSEE.JsonReturn GetData()
-    {
-        Context.Response.Clear();
-        Context.Response.ContentType = "application/json";
-        OpenSEE openSEE = new OpenSEE();
-        return openSEE.GetData(HttpContext.Current.Request);
-
-    }
-
-    [WebMethod]
-    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public OpenSEE.JsonReturn GetFaultDistanceData()
-    {
-        Context.Response.Clear();
-        Context.Response.ContentType = "application/json";
-        OpenSEE openSEE = new OpenSEE();
-        return openSEE.GetFaultDistanceData(HttpContext.Current.Request);
-
-    }
-
-    [WebMethod]
-    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-    public OpenSEE.JsonReturn GetBreakerData()
-    {
-        Context.Response.Clear();
-        Context.Response.ContentType = "application/json";
-        OpenSEE openSEE = new OpenSEE();
-        return openSEE.GetBreakerData(HttpContext.Current.Request);
-
-    }
-
-
-
-
 }

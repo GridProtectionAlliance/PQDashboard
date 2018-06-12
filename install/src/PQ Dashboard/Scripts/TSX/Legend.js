@@ -15,31 +15,20 @@ var _ = require("lodash");
 var Legend = (function (_super) {
     __extends(Legend, _super);
     function Legend(props) {
-        var _this = _super.call(this, props) || this;
-        _this.state = {
-            data: props.data,
-            callback: props.callback
-        };
-        return _this;
+        return _super.call(this, props) || this;
     }
-    Legend.prototype.componentWillReceiveProps = function (nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
-            this.setState(nextProps);
-        }
-    };
     Legend.prototype.render = function () {
         var _this = this;
-        if (this.state.data == null || Object.keys(this.state.data).length == 0)
+        if (this.props.data == null || Object.keys(this.props.data).length == 0)
             return null;
-        var rows = Object.keys(this.state.data).sort().map(function (row) {
-            return React.createElement(Row, { key: row, label: row, color: _this.state.data[row].color, enabled: _this.state.data[row].enabled, callback: function () {
-                    _this.state.data[row].enabled = !_this.state.data[row].enabled;
-                    _this.setState({ data: _this.state.data });
-                    _this.state.callback();
+        var rows = Object.keys(this.props.data).sort().map(function (row) {
+            return React.createElement(Row, { key: row, label: row, color: _this.props.data[row].color, enabled: _this.props.data[row].enabled, callback: function () {
+                    _this.props.data[row].enabled = !_this.props.data[row].enabled;
+                    _this.props.callback();
                 } });
         });
         return (React.createElement("div", null,
-            (Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+            (Object.keys(this.props.data)[0].indexOf('V') == 0 || Object.keys(this.props.data)[0].indexOf('I') == 0 ?
                 React.createElement("div", { className: "btn-group", style: { width: '100%' } },
                     React.createElement("button", { className: 'active', style: { width: '25%' }, onClick: this.toggleWave.bind(this) }, "Wave"),
                     React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Amplitude') }, "Amp"),
@@ -49,7 +38,7 @@ var Legend = (function (_super) {
                 React.createElement("tbody", null, rows))));
     };
     Legend.prototype.toggleWave = function (event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
         _.each(Object.keys(data).filter(function (d) { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0; }), function (key, i) {
             if (i == 0)
@@ -61,11 +50,10 @@ var Legend = (function (_super) {
             event.target.className = "active";
         else
             event.target.className = "";
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
     };
     Legend.prototype.toggleAll = function (type, event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
         _.each(Object.keys(data).filter(function (d) { return d.indexOf(type) >= 0; }), function (key, i) {
             if (i == 0)
@@ -77,8 +65,7 @@ var Legend = (function (_super) {
             event.target.className = "active";
         else
             event.target.className = "";
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
     };
     return Legend;
 }(React.Component));

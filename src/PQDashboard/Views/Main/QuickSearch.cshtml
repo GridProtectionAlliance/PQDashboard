@@ -214,6 +214,7 @@
                 timePicker: true,
                 timePickerIncrement: 1,
                 timePicker24Hour: true,
+                timePickerSeconds: true,
                 singleDatePicker: true,
                 showDropdowns: true,
                 locale: {
@@ -225,10 +226,10 @@
     });
 
     function apply() {
-        getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
-        getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
-        getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
-        getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val(), $('#timeUnits').val());
+        getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+        getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+        getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+        getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
 
     }
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {

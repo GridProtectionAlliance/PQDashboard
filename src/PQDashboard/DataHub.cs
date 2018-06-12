@@ -1340,7 +1340,9 @@ namespace PQDashboard
 
                     DECLARE @localEventDate DATE = CAST({1} AS DATE)
 	                DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
-
+                    
+                    ; WITH cte AS
+                    (
                     SELECT
                         Event.LineID AS thelineid, 
                         Event.ID AS theeventid, 
@@ -1369,7 +1371,9 @@ namespace PQDashboard
                         Line ON Event.LineID = Line.ID JOIN
                         MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
                     WHERE
-                        Event.StartTime >= @startDate AND Event.StartTime < @endDate
+                        Event.StartTime >= @startDate AND Event.StartTime < @endDate AND (Phase.ID IS NULL OR Phase.Name <> 'Worst')
+                    )
+                    SELECT * FROM cte WHERE RowPriority = 1
                     ORDER BY StartTime
 
             ";

@@ -76,7 +76,7 @@
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime</center>
+<div class="gridheader"><center>Disturbances for @theEvent.MeterName for @theEvent.StartTime</center>
 </div>
 
 
@@ -199,7 +199,7 @@
 
     function makeNoteButton_html(id) {
         var return_html = "";
-        return_html += '<button><span onclick="openNoteModal(' + id.theeventid + ')" class="glyphicon glyphicon-pencil"></span></button>';
+        return_html += '<button onclick="openNoteModal(' + id.theeventid + ')"><span  class="glyphicon glyphicon-pencil"><span id="' + id.theeventid + 'asterisk" style="color: green; position: sticky; bottom: 0">' + (id.notes > 0 ? '*' : '') +'</span></span></button>';
         return (return_html);
     }
 

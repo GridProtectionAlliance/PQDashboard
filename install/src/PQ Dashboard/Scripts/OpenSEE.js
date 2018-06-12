@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 152);
+/******/ 	return __webpack_require__(__webpack_require__.s = 145);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1902,7 +1902,7 @@
             try {
                 oldLocale = globalLocale._abbr;
                 var aliasedRequire = require;
-                __webpack_require__(196)("./" + name);
+                __webpack_require__(170)("./" + name);
                 getSetGlobalLocale(oldLocale);
             } catch (e) {}
         }
@@ -4574,7 +4574,7 @@
 
 })));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(19)(module)))
 
 /***/ }),
 /* 1 */
@@ -15138,23 +15138,22 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 3 */,
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(153);
+  module.exports = __webpack_require__(146);
 } else {
-  module.exports = __webpack_require__(154);
+  module.exports = __webpack_require__(147);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15214,7 +15213,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15256,7 +15255,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 module.exports = emptyFunction;
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -32358,10 +32357,10 @@ module.exports = emptyFunction;
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(194), __webpack_require__(26)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(168), __webpack_require__(19)(module)))
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32458,7 +32457,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32482,7 +32481,7 @@ module.exports = emptyObject;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32496,7 +32495,7 @@ module.exports = emptyObject;
 
 
 
-var emptyFunction = __webpack_require__(6);
+var emptyFunction = __webpack_require__(5);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -32551,8 +32550,7 @@ module.exports = warning;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 11 */,
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! jQuery UI - v1.11.1 - 2014-08-13
@@ -48935,7 +48933,7 @@ var tooltip = $.widget( "ui.tooltip", {
 }));
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48949,9 +48947,9 @@ var tooltip = $.widget( "ui.tooltip", {
 
 
 if (process.env.NODE_ENV !== 'production') {
-  var invariant = __webpack_require__(5);
-  var warning = __webpack_require__(10);
-  var ReactPropTypesSecret = __webpack_require__(155);
+  var invariant = __webpack_require__(4);
+  var warning = __webpack_require__(9);
+  var ReactPropTypesSecret = __webpack_require__(148);
   var loggedTypeFailures = {};
 }
 
@@ -49002,7 +49000,7 @@ module.exports = checkPropTypes;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49041,7 +49039,7 @@ var ExecutionEnvironment = {
 module.exports = ExecutionEnvironment;
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49083,7 +49081,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 module.exports = getActiveElement;
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49154,7 +49152,7 @@ function shallowEqual(objA, objB) {
 module.exports = shallowEqual;
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49169,7 +49167,7 @@ module.exports = shallowEqual;
  * 
  */
 
-var isTextNode = __webpack_require__(158);
+var isTextNode = __webpack_require__(151);
 
 /*eslint-disable no-bitwise */
 
@@ -49197,7 +49195,7 @@ function containsNode(outerNode, innerNode) {
 module.exports = containsNode;
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49208,8 +49206,8 @@ var OpenSEEService = (function () {
     }
     OpenSEEService.prototype.getData = function (filters, dataType) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetData?eventId=" + filters.eventId +
+            type: "GET",
+            url: window.location.origin + "/api/OpenSEE/GetData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +
@@ -49223,8 +49221,8 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getFaultDistanceData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetFaultDistanceData?eventId=" + filters.eventId +
+            type: "GET",
+            url: window.location.origin + "/api/OpenSEE/GetFaultDistanceData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels),
@@ -49236,12 +49234,23 @@ var OpenSEEService = (function () {
     };
     OpenSEEService.prototype.getBreakerDigitalsData = function (filters) {
         return $.ajax({
-            type: "POST",
-            url: homePath + "signalService.asmx/GetBreakerData?eventId=" + filters.eventId +
+            type: "GET",
+            url: window.location.origin + "/api/OpenSEE/GetBreakerData?eventId=" + filters.eventId +
                 ("" + (filters.startDate != undefined ? "&startDate=" + filters.startDate : "")) +
                 ("" + (filters.endDate != undefined ? "&endDate=" + filters.endDate : "")) +
                 ("&pixels=" + filters.pixels) +
                 ("&type=" + filters.type),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+    };
+    OpenSEEService.prototype.getHeaderData = function (filters) {
+        return $.ajax({
+            type: "GET",
+            url: window.location.origin + "/api/OpenSEE/GetHeaderData?eventId=" + filters.eventid +
+                ("" + (filters.breakeroperation != undefined ? "&breakeroperation=" + filters.breakeroperation : "")),
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
@@ -49255,12 +49264,7 @@ exports.default = OpenSEEService;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 19 */,
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */,
-/* 24 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49328,7 +49332,7 @@ module.exports = warning;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 25 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49395,7 +49399,7 @@ var createPath = exports.createPath = function createPath(location) {
 };
 
 /***/ }),
-/* 26 */
+/* 19 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -49423,7 +49427,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 27 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49500,7 +49504,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 28 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49639,7 +49643,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 29 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49702,7 +49706,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 30 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49765,7 +49769,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 31 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49891,7 +49895,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 32 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -49954,7 +49958,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 33 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50062,7 +50066,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 34 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50125,7 +50129,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 35 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50234,7 +50238,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 36 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50370,7 +50374,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 37 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50464,7 +50468,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 38 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50526,7 +50530,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 39 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50649,7 +50653,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 40 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50772,7 +50776,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 41 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -50884,7 +50888,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 42 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51039,7 +51043,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 43 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51131,7 +51135,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 44 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51314,7 +51318,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 45 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51381,7 +51385,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 46 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51465,7 +51469,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 47 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51529,7 +51533,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 48 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51609,7 +51613,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 49 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51689,7 +51693,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 50 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51769,7 +51773,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 51 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51872,7 +51876,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 52 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -51976,7 +51980,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 53 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52047,7 +52051,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 54 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52114,7 +52118,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 55 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52185,7 +52189,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 56 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52256,7 +52260,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 57 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52322,7 +52326,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 58 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52393,7 +52397,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 59 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52468,7 +52472,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 60 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52564,7 +52568,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 61 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52660,7 +52664,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 62 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52747,7 +52751,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 63 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52831,7 +52835,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 64 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -52901,7 +52905,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 65 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53011,7 +53015,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 66 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53124,7 +53128,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 67 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53188,7 +53192,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 68 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53275,7 +53279,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 69 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53353,7 +53357,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 70 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53435,7 +53439,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 71 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53514,7 +53518,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 72 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53594,7 +53598,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 73 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53675,7 +53679,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 74 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53802,7 +53806,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 75 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -53930,7 +53934,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 76 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54031,7 +54035,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 77 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54159,7 +54163,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 78 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54317,7 +54321,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 79 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54431,7 +54435,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 80 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54530,7 +54534,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 81 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54616,7 +54620,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 82 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54752,7 +54756,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 83 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54825,7 +54829,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 84 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -54921,7 +54925,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 85 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55007,7 +55011,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 86 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55100,7 +55104,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 87 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55191,7 +55195,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 88 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55305,7 +55309,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 89 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55435,7 +55439,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 90 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55520,7 +55524,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 91 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55611,7 +55615,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 92 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55751,7 +55755,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 93 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55825,7 +55829,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 94 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -55947,7 +55951,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 95 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56048,7 +56052,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 96 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56164,7 +56168,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 97 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56232,7 +56236,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 98 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56326,7 +56330,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 99 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56411,7 +56415,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 100 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56519,7 +56523,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 101 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56683,7 +56687,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 102 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56769,7 +56773,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 103 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56855,7 +56859,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 104 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -56919,7 +56923,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 105 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57016,7 +57020,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 106 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57082,7 +57086,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 107 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57209,7 +57213,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 108 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57300,7 +57304,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 109 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57391,7 +57395,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 110 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57455,7 +57459,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 111 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57583,7 +57587,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 112 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57713,7 +57717,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 113 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57782,7 +57786,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 114 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57847,7 +57851,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 115 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -57926,7 +57930,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 116 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58112,7 +58116,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 117 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58214,7 +58218,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 118 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58278,7 +58282,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 119 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58353,7 +58357,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 120 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58513,7 +58517,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 121 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58690,7 +58694,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 122 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58762,7 +58766,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 123 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58877,7 +58881,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 124 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -58992,7 +58996,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 125 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59084,7 +59088,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 126 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59157,7 +59161,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 127 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59220,7 +59224,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 128 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59353,7 +59357,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 129 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59446,7 +59450,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 130 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59517,7 +59521,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 131 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59637,7 +59641,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 132 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59708,7 +59712,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 133 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59774,7 +59778,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 134 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -59900,7 +59904,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 135 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -59998,7 +60002,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 136 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60093,7 +60097,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 137 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60155,7 +60159,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 138 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60217,7 +60221,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 139 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js language configuration
@@ -60340,7 +60344,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 140 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60495,7 +60499,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 141 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60597,7 +60601,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 142 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60659,7 +60663,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 143 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60721,7 +60725,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 144 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60804,7 +60808,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 145 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60876,7 +60880,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 146 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -60940,7 +60944,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 147 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -61054,7 +61058,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 148 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -61161,7 +61165,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 149 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -61268,7 +61272,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 150 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8 alpha.
@@ -63987,7 +63991,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 151 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8.3.
@@ -64000,7 +64004,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 152 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64016,16 +64020,16 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-var ReactDOM = __webpack_require__(156);
-var OpenSEE_1 = __webpack_require__(18);
-var createBrowserHistory_1 = __webpack_require__(184);
-var queryString = __webpack_require__(191);
-var _ = __webpack_require__(7);
-var WaveformViewerGraph_1 = __webpack_require__(195);
-var PolarChart_1 = __webpack_require__(201);
-var AccumulatedPoints_1 = __webpack_require__(202);
-var Tooltip_1 = __webpack_require__(204);
+var React = __webpack_require__(3);
+var ReactDOM = __webpack_require__(149);
+var OpenSEE_1 = __webpack_require__(16);
+var createBrowserHistory_1 = __webpack_require__(158);
+var queryString = __webpack_require__(165);
+var _ = __webpack_require__(6);
+var WaveformViewerGraph_1 = __webpack_require__(169);
+var PolarChart_1 = __webpack_require__(175);
+var AccumulatedPoints_1 = __webpack_require__(176);
+var Tooltip_1 = __webpack_require__(178);
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
     function OpenSEE(props) {
@@ -64038,13 +64042,17 @@ var OpenSEE = (function (_super) {
             eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
             StartDate: query['StartDate'],
             EndDate: query['EndDate'],
-            faultcurves: query['faultcurves'],
-            breakerdigitals: query['breakerdigitals'],
-            Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(Boolean(query['faultcurves'])) + Number(Boolean(query['breakerdigitals']))),
+            displayVolt: true,
+            displayCur: true,
+            faultcurves: query['faultcurves'] == '1' || query['faultcurves'] == 'true',
+            breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],
-            TableData: {}
+            TableData: {},
+            backButtons: [],
+            forwardButtons: [],
+            PostedData: {}
         };
         _this.TableData = {};
         _this.history['listen'](function (location, action) {
@@ -64053,15 +64061,38 @@ var OpenSEE = (function (_super) {
                 eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
                 StartDate: query['StartDate'],
                 EndDate: query['EndDate'],
-                faultcurves: query['faultcurves'],
-                breakerdigitals: query['breakerdigitals'],
+                faultcurves: query['faultcurves'] == '1' || query['faultcurves'] == 'true',
+                breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
             });
         });
-        ReactDOM.render(React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom"), document.getElementById('resetBtn'));
         return _this;
     }
     OpenSEE.prototype.componentDidMount = function () {
+        var _this = this;
         window.addEventListener("resize", this.handleScreenSizeChange.bind(this));
+        this.openSEEService.getHeaderData(this.state).done(function (data) {
+            _this.showData(data);
+            var back = [];
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForSystem.m_Item1, "system-back", "&navigation=system", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeterLocation.m_Item1, "station-back", "&navigation=station", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item1, "meter-back", "&navigation=meter", "<"));
+            back.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item1, "line-back", "&navigation=line", "<"));
+            var forward = [];
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForSystem.m_Item2, "system-next", "&navigation=system", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeterLocation.m_Item2, "station-next", "&navigation=station", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForMeter.m_Item2, "meter-next", "&navigation=meter", ">"));
+            forward.push(_this.nextBackButton(data.nextBackLookup.GetPreviousAndNextEventIdsForLine.m_Item2, "line-next", "&navigation=line", ">"));
+            _this.setState({
+                PostedData: data,
+                backButtons: back,
+                forwardButtons: forward
+            }, function () {
+                _this.nextBackSelect($('#next-back-selection option:selected').val());
+                $('#next-back-selection').change(function () {
+                    _this.nextBackSelect($('#next-back-selection option:selected').val());
+                });
+            });
+        });
     };
     OpenSEE.prototype.componentWillUnmount = function () {
         $(window).off('resize');
@@ -64072,33 +64103,78 @@ var OpenSEE = (function (_super) {
         this.resizeId = setTimeout(function () {
             _this.setState({
                 Width: window.innerWidth,
-                Height: (window.innerHeight - $('#pageHeader').height() - 30) / (2 + Number(_this.state.FaultCurves) + Number(_this.state.BreakerDigitals))
+                Height: _this.calculateHeights(_this.state)
             });
         }, 500);
     };
     OpenSEE.prototype.render = function () {
-        return (React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
-            React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
-            React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this) }),
-            React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }),
-            React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }),
-            (this.state.faultcurves ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }) : ''),
-            (this.state.breakerdigitals ? React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), showXAxis: true, height: this.state.Height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this) }) : '')));
+        var _this = this;
+        var height = this.calculateHeights(this.state);
+        return (React.createElement("div", null,
+            React.createElement("div", { id: "pageHeader", style: { width: '100%' } },
+                React.createElement("table", { style: { width: '100%' } },
+                    React.createElement("tbody", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", { style: { textAlign: 'left', width: '10%' } },
+                                React.createElement("img", { src: '../Images/GPA-Logo---30-pix(on-white).png' })),
+                            React.createElement("td", { style: { textAlign: 'center', width: '80%' } },
+                                React.createElement("img", { src: '../Images/openSEET.png' })),
+                            React.createElement("td", { style: { textAlign: 'right', verticalAlign: 'top', whiteSpace: 'nowrap', width: '10%' } },
+                                React.createElement("img", { alt: "", src: "../Images/GPA-Logo.png", style: { display: 'none' } }))),
+                        React.createElement("tr", null,
+                            React.createElement("td", { colSpan: 3, style: { textAlign: 'center' } },
+                                React.createElement("div", null,
+                                    React.createElement("span", { id: "TitleData" }),
+                                    "\u00A0\u00A0\u00A0",
+                                    React.createElement("a", { type: "button", target: "_blank", id: "editButton" }, "edit"))))))),
+            React.createElement("div", { className: "DockWaveformHeader" },
+                React.createElement("table", { style: { width: '75%', margin: '0 auto' } },
+                    React.createElement("tbody", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom")),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Points", onClick: function () { return _this.showhidePoints(); }, id: "showpoints" })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                this.state.backButtons,
+                                React.createElement("select", { id: "next-back-selection", defaultValue: "system" },
+                                    React.createElement("option", { value: "system" }, "System"),
+                                    React.createElement("option", { value: "station" }, "Station"),
+                                    React.createElement("option", { value: "meter" }, "Meter"),
+                                    React.createElement("option", { value: "line" }, "Line")),
+                                this.state.forwardButtons),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Tooltip", onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Phasor", onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
+                            React.createElement("td", { style: { textAlign: 'center', display: 'none' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
+            React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
+                React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
+                React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
+                React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves, postedData: this.state.PostedData }),
+                React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "B", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.breakerdigitals, postedData: this.state.PostedData }))));
     };
     OpenSEE.prototype.stateSetter = function (obj) {
         var _this = this;
         this.setState(obj, function () {
             var prop = _.clone(_this.state);
             delete prop.Hover;
-            delete prop.Height;
             delete prop.Width;
             delete prop.TableData;
             delete prop.PointsTable;
+            delete prop.displayCur;
+            delete prop.displayVolt;
+            delete prop.backButtons;
+            delete prop.forwardButtons;
+            delete prop.PostedData;
             var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
             var hqs = queryString.parse(_this.history['location'].search);
             if (!_.isEqual(qs, hqs))
-                _this.history['push']('OpenSEE?' + queryString.stringify(prop, { encode: false }));
+                _this.history['push'](_this.history['location'].pathname + '?' + queryString.stringify(prop, { encode: false }));
         });
     };
     OpenSEE.prototype.tableUpdater = function (obj) {
@@ -64106,7 +64182,120 @@ var OpenSEE = (function (_super) {
         this.setState({ TableData: this.TableData });
     };
     OpenSEE.prototype.resetZoom = function () {
-        this.history['push']('OpenSEE?eventid=' + this.state.eventid + (this.state.faultcurves == 1 ? '&faultcurves=1' : '') + (this.state.breakerdigitals == 1 ? '&breakerdigitals=1' : ''));
+        this.history['push'](this.history['location'].pathname + '?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
+    };
+    OpenSEE.prototype.calculateHeights = function (obj) {
+        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals));
+    };
+    OpenSEE.prototype.nextBackSelect = function (nextBackType) {
+        $('.nextbackbutton').hide();
+        $('#' + nextBackType + '-back').show();
+        $('#' + nextBackType + '-next').show();
+    };
+    OpenSEE.prototype.showhidePoints = function () {
+        if ($('#showpoints').val() == "Show Points") {
+            $('#showpoints').val("Hide Points");
+            $('#accumulatedpoints').show();
+        }
+        else {
+            $('#showpoints').val("Show Points");
+            $('#accumulatedpoints').hide();
+        }
+    };
+    OpenSEE.prototype.showhideTooltip = function () {
+        if ($('#showtooltip').val() == "Show Tooltip") {
+            $('#showtooltip').val("Hide Tooltip");
+            $('#unifiedtooltip').show();
+            $('.legendCheckbox').show();
+        }
+        else {
+            $('#showtooltip').val("Show Tooltip");
+            $('#unifiedtooltip').hide();
+            $('.legendCheckbox').hide();
+        }
+    };
+    OpenSEE.prototype.showhidePhasor = function () {
+        if ($('#showphasor').val() == "Show Phasor") {
+            $('#showphasor').val("Hide Phasor");
+            $('#phasor').show();
+        }
+        else {
+            $('#showphasor').val("Show Phasor");
+            $('#phasor').hide();
+        }
+    };
+    OpenSEE.prototype.showData = function (data) {
+        if (data.postedEventName != undefined) {
+            var label = "";
+            var details = "";
+            var separator = "&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;";
+            var faultLink = '<a href="#" title="Click for fault details" onClick="showdetails(this);">Fault</a>';
+            label += "Station: " + data.postedStationName;
+            label += separator + "Meter: " + data.postedMeterName;
+            label += separator + "Line: " + data.postedLineName;
+            label += "<br />";
+            if (data.postedEventName != "Fault")
+                label += "Event Type: " + data.postedEventName;
+            else
+                label += "Event Type: " + faultLink;
+            label += separator + "Event Time: " + data.postedEventDate;
+            if (data.postedStartTime != undefined)
+                details += "Start: " + data.postedStartTime;
+            if (data.postedPhase != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Phase: " + data.postedPhase;
+            }
+            if (data.postedDurationPeriod != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Duration: " + data.postedDurationPeriod;
+            }
+            if (data.postedMagnitude != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Magnitude: " + data.postedMagnitude;
+            }
+            if (details != "")
+                label += "<br />" + details;
+            details = "";
+            if (data.postedBreakerNumber != undefined)
+                details += "Breaker: " + data.postedBreakerNumber;
+            if (data.postedBreakerPhase != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Phase: " + data.postedBreakerPhase;
+            }
+            if (data.postedBreakerTiming != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Timing: " + data.postedBreakerTiming;
+            }
+            if (data.postedBreakerSpeed != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Speed: " + data.postedBreakerSpeed;
+            }
+            if (data.postedBreakerOperation != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Operation: " + data.postedBreakerOperation;
+            }
+            if (details != "")
+                label += "<br />" + details;
+            document.getElementById('TitleData').innerHTML = label;
+            if (data.xdaInstance != undefined)
+                $('#editButton').prop('href', data.xdaInstance + "/Workbench/Event.cshtml?EventID=" + this.state.eventid);
+        }
+    };
+    OpenSEE.prototype.nextBackButton = function (evt, id, postedURLQueryString, text) {
+        if (evt != null) {
+            var title = evt.StartTime;
+            var url = "?eventid=" + evt.ID + postedURLQueryString;
+            return React.createElement("a", { href: url, id: id, key: id, className: 'nextbackbutton smallbutton', title: title, style: { padding: '4px 20px' } }, text);
+        }
+        else
+            return React.createElement("a", { href: '#', id: id, key: id, className: 'nextbackbutton smallbutton-disabled', title: 'No event', style: { padding: '4px 20px' } }, text);
     };
     return OpenSEE;
 }(React.Component));
@@ -64116,7 +64305,7 @@ ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('Doc
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 153 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64129,7 +64318,7 @@ ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('Doc
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(8),n=__webpack_require__(5),p=__webpack_require__(9),q=__webpack_require__(6),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
+var m=__webpack_require__(7),n=__webpack_require__(4),p=__webpack_require__(8),q=__webpack_require__(5),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
 60112,B="function"===typeof Symbol&&Symbol.iterator;function C(a){for(var b=arguments.length-1,e="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);n(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",e)}var D={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};
 function E(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}E.prototype.isReactComponent={};E.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?C("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};E.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};function F(){}F.prototype=E.prototype;function G(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}var H=G.prototype=new F;
 H.constructor=G;m(H,E.prototype);H.isPureReactComponent=!0;var I={current:null},J=Object.prototype.hasOwnProperty,K={key:!0,ref:!0,__self:!0,__source:!0};
@@ -64145,7 +64334,7 @@ Y=X&&W||X;module.exports=Y["default"]?Y["default"]:Y;
 
 
 /***/ }),
-/* 154 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64166,12 +64355,12 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(8);
-var invariant = __webpack_require__(5);
-var emptyObject = __webpack_require__(9);
-var warning = __webpack_require__(10);
-var emptyFunction = __webpack_require__(6);
-var checkPropTypes = __webpack_require__(13);
+var _assign = __webpack_require__(7);
+var invariant = __webpack_require__(4);
+var emptyObject = __webpack_require__(8);
+var warning = __webpack_require__(9);
+var emptyFunction = __webpack_require__(5);
+var checkPropTypes = __webpack_require__(11);
 
 // TODO: this is special because it gets imported during build.
 
@@ -65567,7 +65756,7 @@ module.exports = react;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 155 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65586,7 +65775,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 156 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65624,15 +65813,15 @@ if (process.env.NODE_ENV === 'production') {
   // DCE check should happen before ReactDOM bundle executes so that
   // DevTools can report bad minification during injection.
   checkDCE();
-  module.exports = __webpack_require__(157);
+  module.exports = __webpack_require__(150);
 } else {
-  module.exports = __webpack_require__(160);
+  module.exports = __webpack_require__(153);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 157 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65648,7 +65837,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var ba=__webpack_require__(5),ea=__webpack_require__(4),m=__webpack_require__(14),A=__webpack_require__(8),C=__webpack_require__(6),fa=__webpack_require__(15),ha=__webpack_require__(16),ja=__webpack_require__(17),ka=__webpack_require__(9);
+var ba=__webpack_require__(4),ea=__webpack_require__(3),m=__webpack_require__(12),A=__webpack_require__(7),C=__webpack_require__(5),fa=__webpack_require__(13),ha=__webpack_require__(14),ja=__webpack_require__(15),ka=__webpack_require__(8);
 function D(a){for(var b=arguments.length-1,c="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);ba(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",c)}ea?void 0:D("227");
 function ma(a,b,c,d,e,f,h,g,k){this._hasCaughtError=!1;this._caughtError=null;var v=Array.prototype.slice.call(arguments,3);try{b.apply(c,v)}catch(l){this._caughtError=l,this._hasCaughtError=!0}}
 var E={_caughtError:null,_hasCaughtError:!1,_rethrowError:null,_hasRethrowError:!1,invokeGuardedCallback:function(a,b,c,d,e,f,h,g,k){ma.apply(E,arguments)},invokeGuardedCallbackAndCatchFirstError:function(a,b,c,d,e,f,h,g,k){E.invokeGuardedCallback.apply(this,arguments);if(E.hasCaughtError()){var v=E.clearCaughtError();E._hasRethrowError||(E._hasRethrowError=!0,E._rethrowError=v)}},rethrowCaughtError:function(){return na.apply(E,arguments)},hasCaughtError:function(){return E._hasCaughtError},clearCaughtError:function(){if(E._hasCaughtError){var a=
@@ -65885,7 +66074,7 @@ X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.2",r
 
 
 /***/ }),
-/* 158 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65900,7 +66089,7 @@ X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.2",r
  * @typechecks
  */
 
-var isNode = __webpack_require__(159);
+var isNode = __webpack_require__(152);
 
 /**
  * @param {*} object The object to check.
@@ -65913,7 +66102,7 @@ function isTextNode(object) {
 module.exports = isTextNode;
 
 /***/ }),
-/* 159 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65941,7 +66130,7 @@ function isNode(object) {
 module.exports = isNode;
 
 /***/ }),
-/* 160 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65962,19 +66151,19 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var invariant = __webpack_require__(5);
-var React = __webpack_require__(4);
-var warning = __webpack_require__(10);
-var ExecutionEnvironment = __webpack_require__(14);
-var _assign = __webpack_require__(8);
-var emptyFunction = __webpack_require__(6);
-var checkPropTypes = __webpack_require__(13);
-var getActiveElement = __webpack_require__(15);
-var shallowEqual = __webpack_require__(16);
-var containsNode = __webpack_require__(17);
-var emptyObject = __webpack_require__(9);
-var hyphenateStyleName = __webpack_require__(161);
-var camelizeStyleName = __webpack_require__(163);
+var invariant = __webpack_require__(4);
+var React = __webpack_require__(3);
+var warning = __webpack_require__(9);
+var ExecutionEnvironment = __webpack_require__(12);
+var _assign = __webpack_require__(7);
+var emptyFunction = __webpack_require__(5);
+var checkPropTypes = __webpack_require__(11);
+var getActiveElement = __webpack_require__(13);
+var shallowEqual = __webpack_require__(14);
+var containsNode = __webpack_require__(15);
+var emptyObject = __webpack_require__(8);
+var hyphenateStyleName = __webpack_require__(154);
+var camelizeStyleName = __webpack_require__(156);
 
 // Relying on the `invariant()` implementation lets us
 // have preserve the format and params in the www builds.
@@ -82603,7 +82792,7 @@ module.exports = reactDom;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 161 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82618,7 +82807,7 @@ module.exports = reactDom;
 
 
 
-var hyphenate = __webpack_require__(162);
+var hyphenate = __webpack_require__(155);
 
 var msPattern = /^ms-/;
 
@@ -82645,7 +82834,7 @@ function hyphenateStyleName(string) {
 module.exports = hyphenateStyleName;
 
 /***/ }),
-/* 162 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82681,7 +82870,7 @@ function hyphenate(string) {
 module.exports = hyphenate;
 
 /***/ }),
-/* 163 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82696,7 +82885,7 @@ module.exports = hyphenate;
 
 
 
-var camelize = __webpack_require__(164);
+var camelize = __webpack_require__(157);
 
 var msPattern = /^-ms-/;
 
@@ -82724,7 +82913,7 @@ function camelizeStyleName(string) {
 module.exports = camelizeStyleName;
 
 /***/ }),
-/* 164 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82759,26 +82948,7 @@ function camelize(string) {
 module.exports = camelize;
 
 /***/ }),
-/* 165 */,
-/* 166 */,
-/* 167 */,
-/* 168 */,
-/* 169 */,
-/* 170 */,
-/* 171 */,
-/* 172 */,
-/* 173 */,
-/* 174 */,
-/* 175 */,
-/* 176 */,
-/* 177 */,
-/* 178 */,
-/* 179 */,
-/* 180 */,
-/* 181 */,
-/* 182 */,
-/* 183 */,
-/* 184 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82790,23 +82960,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _warning = __webpack_require__(24);
+var _warning = __webpack_require__(17);
 
 var _warning2 = _interopRequireDefault(_warning);
 
-var _invariant = __webpack_require__(185);
+var _invariant = __webpack_require__(159);
 
 var _invariant2 = _interopRequireDefault(_invariant);
 
-var _LocationUtils = __webpack_require__(186);
+var _LocationUtils = __webpack_require__(160);
 
-var _PathUtils = __webpack_require__(25);
+var _PathUtils = __webpack_require__(18);
 
-var _createTransitionManager = __webpack_require__(189);
+var _createTransitionManager = __webpack_require__(163);
 
 var _createTransitionManager2 = _interopRequireDefault(_createTransitionManager);
 
-var _DOMUtils = __webpack_require__(190);
+var _DOMUtils = __webpack_require__(164);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -83091,7 +83261,7 @@ var createBrowserHistory = function createBrowserHistory() {
 exports.default = createBrowserHistory;
 
 /***/ }),
-/* 185 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83148,7 +83318,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 186 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83159,15 +83329,15 @@ exports.locationsAreEqual = exports.createLocation = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _resolvePathname = __webpack_require__(187);
+var _resolvePathname = __webpack_require__(161);
 
 var _resolvePathname2 = _interopRequireDefault(_resolvePathname);
 
-var _valueEqual = __webpack_require__(188);
+var _valueEqual = __webpack_require__(162);
 
 var _valueEqual2 = _interopRequireDefault(_valueEqual);
 
-var _PathUtils = __webpack_require__(25);
+var _PathUtils = __webpack_require__(18);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -83232,7 +83402,7 @@ var locationsAreEqual = exports.locationsAreEqual = function locationsAreEqual(a
 };
 
 /***/ }),
-/* 187 */
+/* 161 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -83309,7 +83479,7 @@ function resolvePathname(to) {
 /* harmony default export */ __webpack_exports__["default"] = (resolvePathname);
 
 /***/ }),
-/* 188 */
+/* 162 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -83354,7 +83524,7 @@ function valueEqual(a, b) {
 /* harmony default export */ __webpack_exports__["default"] = (valueEqual);
 
 /***/ }),
-/* 189 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83362,7 +83532,7 @@ function valueEqual(a, b) {
 
 exports.__esModule = true;
 
-var _warning = __webpack_require__(24);
+var _warning = __webpack_require__(17);
 
 var _warning2 = _interopRequireDefault(_warning);
 
@@ -83445,7 +83615,7 @@ var createTransitionManager = function createTransitionManager() {
 exports.default = createTransitionManager;
 
 /***/ }),
-/* 190 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83506,13 +83676,13 @@ var isExtraneousPopstateEvent = exports.isExtraneousPopstateEvent = function isE
 };
 
 /***/ }),
-/* 191 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-const strictUriEncode = __webpack_require__(192);
-const decodeComponent = __webpack_require__(193);
+const strictUriEncode = __webpack_require__(166);
+const decodeComponent = __webpack_require__(167);
 
 function encoderForArrayFormat(options) {
 	switch (options.arrayFormat) {
@@ -83727,7 +83897,7 @@ exports.parseUrl = (input, options) => {
 
 
 /***/ }),
-/* 192 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83736,7 +83906,7 @@ module.exports = str => encodeURIComponent(str).replace(/[!'()*]/g, x => `%${x.c
 
 
 /***/ }),
-/* 193 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83837,7 +84007,7 @@ module.exports = function (encodedURI) {
 
 
 /***/ }),
-/* 194 */
+/* 168 */
 /***/ (function(module, exports) {
 
 var g;
@@ -83864,7 +84034,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 195 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -83880,16 +84050,16 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-var OpenSEE_1 = __webpack_require__(18);
-var _ = __webpack_require__(7);
+var React = __webpack_require__(3);
+var OpenSEE_1 = __webpack_require__(16);
+var _ = __webpack_require__(6);
 var moment = __webpack_require__(0);
-var Legend_1 = __webpack_require__(197);
-__webpack_require__(150);
-__webpack_require__(198);
-__webpack_require__(199);
-__webpack_require__(200);
-__webpack_require__(151);
+var Legend_1 = __webpack_require__(171);
+__webpack_require__(143);
+__webpack_require__(172);
+__webpack_require__(173);
+__webpack_require__(174);
+__webpack_require__(144);
 var WaveformViewerGraph = (function (_super) {
     __extends(WaveformViewerGraph, _super);
     function WaveformViewerGraph(props) {
@@ -83897,19 +84067,8 @@ var WaveformViewerGraph = (function (_super) {
         _this.openSEEService = new OpenSEE_1.default();
         var ctrl = _this;
         ctrl.state = {
-            eventId: props.eventId,
-            startDate: props.startDate,
-            endDate: props.endDate,
-            type: props.type,
-            pixels: props.pixels,
-            stateSetter: props.stateSetter,
             legendRow: [],
-            dataSet: [],
-            height: props.height,
-            hover: props.hover,
-            tableData: props.tableData,
-            pointsTable: props.pointsTable,
-            tableSetter: props.tableSetter
+            dataSet: []
         };
         ctrl.options = {
             canvas: true,
@@ -83963,6 +84122,7 @@ var WaveformViewerGraph = (function (_super) {
                 }
             }
         };
+        ctrl.clickHandled = false;
         return _this;
     }
     WaveformViewerGraph.prototype.getColor = function (label, index) {
@@ -84018,7 +84178,7 @@ var WaveformViewerGraph = (function (_super) {
         }
     };
     WaveformViewerGraph.prototype.getData = function (state) {
-        switch (state.type) {
+        switch (this.props.type) {
             case 'F':
                 this.getFaultDistanceData(state);
                 break;
@@ -84033,23 +84193,33 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getEventData = function (state) {
         var _this = this;
         this.openSEEService.getData(state, "Time").then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightCycle(data.d));
-            var legend = _this.createLegendRows(data.d.Data);
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj[(state.type == "Voltage" ? 'displayVolt' : 'displayCur')] = false;
+                    _this.props.stateSetter(obj);
+                }
+                return;
+            }
+            _this.options['grid'].markings.push(_this.highlightCycle(data));
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+                dataSet = data;
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
         this.openSEEService.getData(state, "Freq").then(function (data) {
-            var legend = _this.createLegendRows(data.d.Data);
+            if (data == null)
+                return;
+            var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.d.Data);
+                dataSet.Data = dataSet.Data.concat(data.Data);
             else
-                dataSet = data.d;
+                dataSet = data;
             _this.createDataRows(dataSet, legend);
             _this.setState({ dataSet: dataSet });
         });
@@ -84057,23 +84227,35 @@ var WaveformViewerGraph = (function (_super) {
     WaveformViewerGraph.prototype.getFaultDistanceData = function (state) {
         var _this = this;
         this.openSEEService.getFaultDistanceData(state).then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.state.legendRows;
-            if (_this.state.legendRows == undefined)
-                legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['faultcurves'] = false;
+                    _this.props.stateSetter(obj);
+                }
+                return;
+            }
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.getBreakerDigitalsData = function (state) {
         var _this = this;
         this.openSEEService.getBreakerDigitalsData(state).then(function (data) {
-            _this.options['grid'].markings.push(_this.highlightSample(data.d));
-            var legend = _this.state.legendRows;
-            if (legend == undefined)
-                legend = _this.createLegendRows(data.d.Data);
-            _this.createDataRows(data.d, legend);
-            _this.setState({ dataSet: data.d });
+            if (data == null) {
+                if (state.display) {
+                    var obj = {};
+                    obj['breakerdigitals'] = false;
+                    _this.props.stateSetter(obj);
+                }
+                return;
+            }
+            _this.options['grid'].markings.push(_this.highlightSample(data));
+            var legend = _this.createLegendRows(data.Data);
+            _this.createDataRows(data, legend);
+            _this.setState({ dataSet: data });
         });
     };
     WaveformViewerGraph.prototype.componentWillReceiveProps = function (nextProps) {
@@ -84091,36 +84273,35 @@ var WaveformViewerGraph = (function (_super) {
         delete props.tableData;
         delete nextPropsClone.tableData;
         if (!(_.isEqual(props, nextPropsClone))) {
-            this.setState(nextProps);
             this.getData(nextProps);
         }
         else if (this.props.hover != nextProps.hover) {
             if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
-            var table = _.clone(this.state.tableData);
+            var table = _.clone(this.props.tableData);
             _.each(this.state.dataSet.Data, function (data, i) {
                 var vector = _.findLast(data.DataPoints, function (x) { return x[0] <= nextProps.hover; });
                 if (vector)
                     table[data.ChartLabel] = { data: vector[1], color: _this.state.legendRows[data.ChartLabel].color };
             });
-            this.state.tableSetter(table);
+            this.props.tableSetter(table);
         }
     };
     WaveformViewerGraph.prototype.componentDidMount = function () {
-        this.getData(this.state);
+        this.getData(this.props);
     };
     WaveformViewerGraph.prototype.componentWillUnmount = function () {
-        $("#" + this.state.type).off("plotselected");
-        $("#" + this.state.type).off("plotzoom");
-        $("#" + this.state.type).off("plothover");
-        $("#" + this.state.type).off("plotclick");
+        $("#" + this.props.type).off("plotselected");
+        $("#" + this.props.type).off("plotzoom");
+        $("#" + this.props.type).off("plothover");
+        $("#" + this.props.type).off("plotclick");
     };
     WaveformViewerGraph.prototype.createLegendRows = function (data) {
         var ctrl = this;
         var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
         $.each(data, function (i, key) {
             if (legend[key.ChartLabel] == undefined)
-                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.state.type == "F" || ctrl.state.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.props.type == "F" || ctrl.props.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
             else
                 legend[key.ChartLabel].data = key.DataPoints;
         });
@@ -84129,14 +84310,12 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.createDataRows = function (data, legend) {
         var ctrl = this;
-        var startString = this.state.startDate;
-        var endString = this.state.endDate;
-        if (this.state.startDate == null) {
-            this.setState({ startDate: moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        var startString = this.props.startDate;
+        var endString = this.props.endDate;
+        if (this.props.startDate == null) {
             startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
-        if (this.state.endDate == null) {
-            this.setState({ endDate: moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS') });
+        if (this.props.endDate == null) {
             endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
         }
         var newVessel = [];
@@ -84145,7 +84324,7 @@ var WaveformViewerGraph = (function (_super) {
                 newVessel.push({ label: key, data: legend[key].data, color: legend[key].color });
         });
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
-        this.plot = $.plot($("#" + this.state.type), newVessel, this.options);
+        this.plot = $.plot($("#" + this.props.type), newVessel, this.options);
         this.plotSelected();
         this.plotZoom();
         this.plotHover();
@@ -84153,12 +84332,12 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.plotZoom = function () {
         var ctrl = this;
-        $("#" + this.state.type).off("plotzoom");
-        $("#" + ctrl.state.type).bind("plotzoom", function (event) {
+        $("#" + this.props.type).off("plotzoom");
+        $("#" + ctrl.props.type).bind("plotzoom", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
-            var xcenter = ctrl.state.hover;
+            var xcenter = ctrl.props.hover;
             var xmin = xaxis.options.min;
             var xmax = xaxis.options.max;
             var datamin = xaxis.datamin;
@@ -84194,34 +84373,37 @@ var WaveformViewerGraph = (function (_super) {
             }
             if (xmin == xaxis.options.xmin && xmax == xaxis.options.xmax)
                 return;
-            ctrl.state.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
+            ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
         });
     };
     WaveformViewerGraph.prototype.plotSelected = function () {
         var ctrl = this;
-        $("#" + this.state.type).off("plotselected");
-        $("#" + ctrl.state.type).bind("plotselected", function (event, ranges) {
-            ctrl.state.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to) });
+        $("#" + this.props.type).off("plotselected");
+        $("#" + ctrl.props.type).bind("plotselected", function (event, ranges) {
+            ctrl.clickHandled = true;
+            ctrl.props.stateSetter({ StartDate: ctrl.getDateString(ranges.xaxis.from), EndDate: ctrl.getDateString(ranges.xaxis.to) });
         });
     };
     WaveformViewerGraph.prototype.plotHover = function () {
         var ctrl = this;
-        $("#" + this.state.type).off("plothover");
-        $("#" + ctrl.state.type).bind("plothover", function (event, pos, item) {
-            ctrl.state.stateSetter({ Hover: pos.x });
+        $("#" + this.props.type).off("plothover");
+        $("#" + ctrl.props.type).bind("plothover", function (event, pos, item) {
+            ctrl.props.stateSetter({ Hover: pos.x });
         });
     };
     WaveformViewerGraph.prototype.plotClick = function () {
         var ctrl = this;
-        $("#" + this.state.type).off("plotclick");
-        $("#" + ctrl.state.type).bind("plotclick", function (event, pos, item) {
+        $("#" + this.props.type).off("plotclick");
+        $("#" + ctrl.props.type).bind("plotclick", function (event, pos, item) {
             var time;
             var deltatime;
             var deltavalue;
-            if (!item)
+            if (ctrl.clickHandled || !item) {
+                ctrl.clickHandled = false;
                 return;
-            var pointsTable = _.clone(ctrl.state.pointsTable);
-            time = (item.datapoint[0] - Number(postedEventMilliseconds)) / 1000.0;
+            }
+            var pointsTable = _.clone(ctrl.props.pointsTable);
+            time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;
             deltavalue = 0.0;
             if (pointsTable.length > 0) {
@@ -84234,10 +84416,9 @@ var WaveformViewerGraph = (function (_super) {
                 thevalue: item.datapoint[1].toFixed(3),
                 deltatime: deltatime,
                 deltavalue: deltavalue.toFixed(3),
-                arrayIndex: ctrl.state.pointsTable.length
+                arrayIndex: ctrl.props.pointsTable.length
             });
-            ctrl.state.stateSetter({ PointsTable: pointsTable });
-            ctrl.setState({ pointsTable: pointsTable });
+            ctrl.props.stateSetter({ PointsTable: pointsTable });
         });
     };
     WaveformViewerGraph.prototype.defaultTickFormatter = function (value, axis) {
@@ -84257,6 +84438,7 @@ var WaveformViewerGraph = (function (_super) {
         return base * Math.floor(n / base);
     };
     WaveformViewerGraph.prototype.handleSeriesLegendClick = function () {
+        this.setState({ legendRows: this.state.legendRows });
         this.createDataRows(this.state.dataSet, this.state.legendRows);
     };
     WaveformViewerGraph.prototype.getMillisecondTime = function (date) {
@@ -84290,9 +84472,9 @@ var WaveformViewerGraph = (function (_super) {
             };
     };
     WaveformViewerGraph.prototype.render = function () {
-        return (React.createElement("div", null,
-            React.createElement("div", { id: this.state.type, style: { height: (this.props.showXAxis ? this.state.height : this.state.height - 20), float: 'left', width: this.state.pixels - 220 } }),
-            React.createElement("div", { id: this.state.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.state.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
+        return (React.createElement("div", { style: { display: (this.props.display ? 'block' : 'none') } },
+            React.createElement("div", { id: this.props.type, style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { id: this.props.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto' } },
                 React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this) }))));
     };
     return WaveformViewerGraph;
@@ -84302,256 +84484,256 @@ exports.default = WaveformViewerGraph;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 196 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./af": 27,
-	"./af.js": 27,
-	"./ar": 28,
-	"./ar-dz": 29,
-	"./ar-dz.js": 29,
-	"./ar-kw": 30,
-	"./ar-kw.js": 30,
-	"./ar-ly": 31,
-	"./ar-ly.js": 31,
-	"./ar-ma": 32,
-	"./ar-ma.js": 32,
-	"./ar-sa": 33,
-	"./ar-sa.js": 33,
-	"./ar-tn": 34,
-	"./ar-tn.js": 34,
-	"./ar.js": 28,
-	"./az": 35,
-	"./az.js": 35,
-	"./be": 36,
-	"./be.js": 36,
-	"./bg": 37,
-	"./bg.js": 37,
-	"./bm": 38,
-	"./bm.js": 38,
-	"./bn": 39,
-	"./bn.js": 39,
-	"./bo": 40,
-	"./bo.js": 40,
-	"./br": 41,
-	"./br.js": 41,
-	"./bs": 42,
-	"./bs.js": 42,
-	"./ca": 43,
-	"./ca.js": 43,
-	"./cs": 44,
-	"./cs.js": 44,
-	"./cv": 45,
-	"./cv.js": 45,
-	"./cy": 46,
-	"./cy.js": 46,
-	"./da": 47,
-	"./da.js": 47,
-	"./de": 48,
-	"./de-at": 49,
-	"./de-at.js": 49,
-	"./de-ch": 50,
-	"./de-ch.js": 50,
-	"./de.js": 48,
-	"./dv": 51,
-	"./dv.js": 51,
-	"./el": 52,
-	"./el.js": 52,
-	"./en-au": 53,
-	"./en-au.js": 53,
-	"./en-ca": 54,
-	"./en-ca.js": 54,
-	"./en-gb": 55,
-	"./en-gb.js": 55,
-	"./en-ie": 56,
-	"./en-ie.js": 56,
-	"./en-il": 57,
-	"./en-il.js": 57,
-	"./en-nz": 58,
-	"./en-nz.js": 58,
-	"./eo": 59,
-	"./eo.js": 59,
-	"./es": 60,
-	"./es-do": 61,
-	"./es-do.js": 61,
-	"./es-us": 62,
-	"./es-us.js": 62,
-	"./es.js": 60,
-	"./et": 63,
-	"./et.js": 63,
-	"./eu": 64,
-	"./eu.js": 64,
-	"./fa": 65,
-	"./fa.js": 65,
-	"./fi": 66,
-	"./fi.js": 66,
-	"./fo": 67,
-	"./fo.js": 67,
-	"./fr": 68,
-	"./fr-ca": 69,
-	"./fr-ca.js": 69,
-	"./fr-ch": 70,
-	"./fr-ch.js": 70,
-	"./fr.js": 68,
-	"./fy": 71,
-	"./fy.js": 71,
-	"./gd": 72,
-	"./gd.js": 72,
-	"./gl": 73,
-	"./gl.js": 73,
-	"./gom-latn": 74,
-	"./gom-latn.js": 74,
-	"./gu": 75,
-	"./gu.js": 75,
-	"./he": 76,
-	"./he.js": 76,
-	"./hi": 77,
-	"./hi.js": 77,
-	"./hr": 78,
-	"./hr.js": 78,
-	"./hu": 79,
-	"./hu.js": 79,
-	"./hy-am": 80,
-	"./hy-am.js": 80,
-	"./id": 81,
-	"./id.js": 81,
-	"./is": 82,
-	"./is.js": 82,
-	"./it": 83,
-	"./it.js": 83,
-	"./ja": 84,
-	"./ja.js": 84,
-	"./jv": 85,
-	"./jv.js": 85,
-	"./ka": 86,
-	"./ka.js": 86,
-	"./kk": 87,
-	"./kk.js": 87,
-	"./km": 88,
-	"./km.js": 88,
-	"./kn": 89,
-	"./kn.js": 89,
-	"./ko": 90,
-	"./ko.js": 90,
-	"./ky": 91,
-	"./ky.js": 91,
-	"./lb": 92,
-	"./lb.js": 92,
-	"./lo": 93,
-	"./lo.js": 93,
-	"./lt": 94,
-	"./lt.js": 94,
-	"./lv": 95,
-	"./lv.js": 95,
-	"./me": 96,
-	"./me.js": 96,
-	"./mi": 97,
-	"./mi.js": 97,
-	"./mk": 98,
-	"./mk.js": 98,
-	"./ml": 99,
-	"./ml.js": 99,
-	"./mn": 100,
-	"./mn.js": 100,
-	"./mr": 101,
-	"./mr.js": 101,
-	"./ms": 102,
-	"./ms-my": 103,
-	"./ms-my.js": 103,
-	"./ms.js": 102,
-	"./mt": 104,
-	"./mt.js": 104,
-	"./my": 105,
-	"./my.js": 105,
-	"./nb": 106,
-	"./nb.js": 106,
-	"./ne": 107,
-	"./ne.js": 107,
-	"./nl": 108,
-	"./nl-be": 109,
-	"./nl-be.js": 109,
-	"./nl.js": 108,
-	"./nn": 110,
-	"./nn.js": 110,
-	"./pa-in": 111,
-	"./pa-in.js": 111,
-	"./pl": 112,
-	"./pl.js": 112,
-	"./pt": 113,
-	"./pt-br": 114,
-	"./pt-br.js": 114,
-	"./pt.js": 113,
-	"./ro": 115,
-	"./ro.js": 115,
-	"./ru": 116,
-	"./ru.js": 116,
-	"./sd": 117,
-	"./sd.js": 117,
-	"./se": 118,
-	"./se.js": 118,
-	"./si": 119,
-	"./si.js": 119,
-	"./sk": 120,
-	"./sk.js": 120,
-	"./sl": 121,
-	"./sl.js": 121,
-	"./sq": 122,
-	"./sq.js": 122,
-	"./sr": 123,
-	"./sr-cyrl": 124,
-	"./sr-cyrl.js": 124,
-	"./sr.js": 123,
-	"./ss": 125,
-	"./ss.js": 125,
-	"./sv": 126,
-	"./sv.js": 126,
-	"./sw": 127,
-	"./sw.js": 127,
-	"./ta": 128,
-	"./ta.js": 128,
-	"./te": 129,
-	"./te.js": 129,
-	"./tet": 130,
-	"./tet.js": 130,
-	"./tg": 131,
-	"./tg.js": 131,
-	"./th": 132,
-	"./th.js": 132,
-	"./tl-ph": 133,
-	"./tl-ph.js": 133,
-	"./tlh": 134,
-	"./tlh.js": 134,
-	"./tr": 135,
-	"./tr.js": 135,
-	"./tzl": 136,
-	"./tzl.js": 136,
-	"./tzm": 137,
-	"./tzm-latn": 138,
-	"./tzm-latn.js": 138,
-	"./tzm.js": 137,
-	"./ug-cn": 139,
-	"./ug-cn.js": 139,
-	"./uk": 140,
-	"./uk.js": 140,
-	"./ur": 141,
-	"./ur.js": 141,
-	"./uz": 142,
-	"./uz-latn": 143,
-	"./uz-latn.js": 143,
-	"./uz.js": 142,
-	"./vi": 144,
-	"./vi.js": 144,
-	"./x-pseudo": 145,
-	"./x-pseudo.js": 145,
-	"./yo": 146,
-	"./yo.js": 146,
-	"./zh-cn": 147,
-	"./zh-cn.js": 147,
-	"./zh-hk": 148,
-	"./zh-hk.js": 148,
-	"./zh-tw": 149,
-	"./zh-tw.js": 149
+	"./af": 20,
+	"./af.js": 20,
+	"./ar": 21,
+	"./ar-dz": 22,
+	"./ar-dz.js": 22,
+	"./ar-kw": 23,
+	"./ar-kw.js": 23,
+	"./ar-ly": 24,
+	"./ar-ly.js": 24,
+	"./ar-ma": 25,
+	"./ar-ma.js": 25,
+	"./ar-sa": 26,
+	"./ar-sa.js": 26,
+	"./ar-tn": 27,
+	"./ar-tn.js": 27,
+	"./ar.js": 21,
+	"./az": 28,
+	"./az.js": 28,
+	"./be": 29,
+	"./be.js": 29,
+	"./bg": 30,
+	"./bg.js": 30,
+	"./bm": 31,
+	"./bm.js": 31,
+	"./bn": 32,
+	"./bn.js": 32,
+	"./bo": 33,
+	"./bo.js": 33,
+	"./br": 34,
+	"./br.js": 34,
+	"./bs": 35,
+	"./bs.js": 35,
+	"./ca": 36,
+	"./ca.js": 36,
+	"./cs": 37,
+	"./cs.js": 37,
+	"./cv": 38,
+	"./cv.js": 38,
+	"./cy": 39,
+	"./cy.js": 39,
+	"./da": 40,
+	"./da.js": 40,
+	"./de": 41,
+	"./de-at": 42,
+	"./de-at.js": 42,
+	"./de-ch": 43,
+	"./de-ch.js": 43,
+	"./de.js": 41,
+	"./dv": 44,
+	"./dv.js": 44,
+	"./el": 45,
+	"./el.js": 45,
+	"./en-au": 46,
+	"./en-au.js": 46,
+	"./en-ca": 47,
+	"./en-ca.js": 47,
+	"./en-gb": 48,
+	"./en-gb.js": 48,
+	"./en-ie": 49,
+	"./en-ie.js": 49,
+	"./en-il": 50,
+	"./en-il.js": 50,
+	"./en-nz": 51,
+	"./en-nz.js": 51,
+	"./eo": 52,
+	"./eo.js": 52,
+	"./es": 53,
+	"./es-do": 54,
+	"./es-do.js": 54,
+	"./es-us": 55,
+	"./es-us.js": 55,
+	"./es.js": 53,
+	"./et": 56,
+	"./et.js": 56,
+	"./eu": 57,
+	"./eu.js": 57,
+	"./fa": 58,
+	"./fa.js": 58,
+	"./fi": 59,
+	"./fi.js": 59,
+	"./fo": 60,
+	"./fo.js": 60,
+	"./fr": 61,
+	"./fr-ca": 62,
+	"./fr-ca.js": 62,
+	"./fr-ch": 63,
+	"./fr-ch.js": 63,
+	"./fr.js": 61,
+	"./fy": 64,
+	"./fy.js": 64,
+	"./gd": 65,
+	"./gd.js": 65,
+	"./gl": 66,
+	"./gl.js": 66,
+	"./gom-latn": 67,
+	"./gom-latn.js": 67,
+	"./gu": 68,
+	"./gu.js": 68,
+	"./he": 69,
+	"./he.js": 69,
+	"./hi": 70,
+	"./hi.js": 70,
+	"./hr": 71,
+	"./hr.js": 71,
+	"./hu": 72,
+	"./hu.js": 72,
+	"./hy-am": 73,
+	"./hy-am.js": 73,
+	"./id": 74,
+	"./id.js": 74,
+	"./is": 75,
+	"./is.js": 75,
+	"./it": 76,
+	"./it.js": 76,
+	"./ja": 77,
+	"./ja.js": 77,
+	"./jv": 78,
+	"./jv.js": 78,
+	"./ka": 79,
+	"./ka.js": 79,
+	"./kk": 80,
+	"./kk.js": 80,
+	"./km": 81,
+	"./km.js": 81,
+	"./kn": 82,
+	"./kn.js": 82,
+	"./ko": 83,
+	"./ko.js": 83,
+	"./ky": 84,
+	"./ky.js": 84,
+	"./lb": 85,
+	"./lb.js": 85,
+	"./lo": 86,
+	"./lo.js": 86,
+	"./lt": 87,
+	"./lt.js": 87,
+	"./lv": 88,
+	"./lv.js": 88,
+	"./me": 89,
+	"./me.js": 89,
+	"./mi": 90,
+	"./mi.js": 90,
+	"./mk": 91,
+	"./mk.js": 91,
+	"./ml": 92,
+	"./ml.js": 92,
+	"./mn": 93,
+	"./mn.js": 93,
+	"./mr": 94,
+	"./mr.js": 94,
+	"./ms": 95,
+	"./ms-my": 96,
+	"./ms-my.js": 96,
+	"./ms.js": 95,
+	"./mt": 97,
+	"./mt.js": 97,
+	"./my": 98,
+	"./my.js": 98,
+	"./nb": 99,
+	"./nb.js": 99,
+	"./ne": 100,
+	"./ne.js": 100,
+	"./nl": 101,
+	"./nl-be": 102,
+	"./nl-be.js": 102,
+	"./nl.js": 101,
+	"./nn": 103,
+	"./nn.js": 103,
+	"./pa-in": 104,
+	"./pa-in.js": 104,
+	"./pl": 105,
+	"./pl.js": 105,
+	"./pt": 106,
+	"./pt-br": 107,
+	"./pt-br.js": 107,
+	"./pt.js": 106,
+	"./ro": 108,
+	"./ro.js": 108,
+	"./ru": 109,
+	"./ru.js": 109,
+	"./sd": 110,
+	"./sd.js": 110,
+	"./se": 111,
+	"./se.js": 111,
+	"./si": 112,
+	"./si.js": 112,
+	"./sk": 113,
+	"./sk.js": 113,
+	"./sl": 114,
+	"./sl.js": 114,
+	"./sq": 115,
+	"./sq.js": 115,
+	"./sr": 116,
+	"./sr-cyrl": 117,
+	"./sr-cyrl.js": 117,
+	"./sr.js": 116,
+	"./ss": 118,
+	"./ss.js": 118,
+	"./sv": 119,
+	"./sv.js": 119,
+	"./sw": 120,
+	"./sw.js": 120,
+	"./ta": 121,
+	"./ta.js": 121,
+	"./te": 122,
+	"./te.js": 122,
+	"./tet": 123,
+	"./tet.js": 123,
+	"./tg": 124,
+	"./tg.js": 124,
+	"./th": 125,
+	"./th.js": 125,
+	"./tl-ph": 126,
+	"./tl-ph.js": 126,
+	"./tlh": 127,
+	"./tlh.js": 127,
+	"./tr": 128,
+	"./tr.js": 128,
+	"./tzl": 129,
+	"./tzl.js": 129,
+	"./tzm": 130,
+	"./tzm-latn": 131,
+	"./tzm-latn.js": 131,
+	"./tzm.js": 130,
+	"./ug-cn": 132,
+	"./ug-cn.js": 132,
+	"./uk": 133,
+	"./uk.js": 133,
+	"./ur": 134,
+	"./ur.js": 134,
+	"./uz": 135,
+	"./uz-latn": 136,
+	"./uz-latn.js": 136,
+	"./uz.js": 135,
+	"./vi": 137,
+	"./vi.js": 137,
+	"./x-pseudo": 138,
+	"./x-pseudo.js": 138,
+	"./yo": 139,
+	"./yo.js": 139,
+	"./zh-cn": 140,
+	"./zh-cn.js": 140,
+	"./zh-hk": 141,
+	"./zh-hk.js": 141,
+	"./zh-tw": 142,
+	"./zh-tw.js": 142
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -84567,10 +84749,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 196;
+webpackContext.id = 170;
 
 /***/ }),
-/* 197 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84586,36 +84768,25 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-var _ = __webpack_require__(7);
+var React = __webpack_require__(3);
+var _ = __webpack_require__(6);
 var Legend = (function (_super) {
     __extends(Legend, _super);
     function Legend(props) {
-        var _this = _super.call(this, props) || this;
-        _this.state = {
-            data: props.data,
-            callback: props.callback
-        };
-        return _this;
+        return _super.call(this, props) || this;
     }
-    Legend.prototype.componentWillReceiveProps = function (nextProps) {
-        if (!(_.isEqual(this.props, nextProps))) {
-            this.setState(nextProps);
-        }
-    };
     Legend.prototype.render = function () {
         var _this = this;
-        if (this.state.data == null || Object.keys(this.state.data).length == 0)
+        if (this.props.data == null || Object.keys(this.props.data).length == 0)
             return null;
-        var rows = Object.keys(this.state.data).sort().map(function (row) {
-            return React.createElement(Row, { key: row, label: row, color: _this.state.data[row].color, enabled: _this.state.data[row].enabled, callback: function () {
-                    _this.state.data[row].enabled = !_this.state.data[row].enabled;
-                    _this.setState({ data: _this.state.data });
-                    _this.state.callback();
+        var rows = Object.keys(this.props.data).sort().map(function (row) {
+            return React.createElement(Row, { key: row, label: row, color: _this.props.data[row].color, enabled: _this.props.data[row].enabled, callback: function () {
+                    _this.props.data[row].enabled = !_this.props.data[row].enabled;
+                    _this.props.callback();
                 } });
         });
         return (React.createElement("div", null,
-            (Object.keys(this.state.data)[0].indexOf('V') == 0 || Object.keys(this.state.data)[0].indexOf('I') == 0 ?
+            (Object.keys(this.props.data)[0].indexOf('V') == 0 || Object.keys(this.props.data)[0].indexOf('I') == 0 ?
                 React.createElement("div", { className: "btn-group", style: { width: '100%' } },
                     React.createElement("button", { className: 'active', style: { width: '25%' }, onClick: this.toggleWave.bind(this) }, "Wave"),
                     React.createElement("button", { style: { width: '25%' }, onClick: this.toggleAll.bind(this, 'Amplitude') }, "Amp"),
@@ -84625,7 +84796,7 @@ var Legend = (function (_super) {
                 React.createElement("tbody", null, rows))));
     };
     Legend.prototype.toggleWave = function (event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
         _.each(Object.keys(data).filter(function (d) { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0; }), function (key, i) {
             if (i == 0)
@@ -84637,11 +84808,10 @@ var Legend = (function (_super) {
             event.target.className = "active";
         else
             event.target.className = "";
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
     };
     Legend.prototype.toggleAll = function (type, event) {
-        var data = this.state.data;
+        var data = this.props.data;
         var flag = false;
         _.each(Object.keys(data).filter(function (d) { return d.indexOf(type) >= 0; }), function (key, i) {
             if (i == 0)
@@ -84653,8 +84823,7 @@ var Legend = (function (_super) {
             event.target.className = "active";
         else
             event.target.className = "";
-        this.setState({ data: data });
-        this.state.callback();
+        this.props.callback();
     };
     return Legend;
 }(React.Component));
@@ -84673,7 +84842,7 @@ var Row = function (props) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 198 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8.3.
@@ -84686,7 +84855,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 199 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8.3.
@@ -84699,7 +84868,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 200 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* Javascript plotting library for jQuery, version 0.8.3.
@@ -84712,7 +84881,7 @@ Licensed under the MIT license.
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 201 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84728,8 +84897,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-__webpack_require__(12);
+var React = __webpack_require__(3);
+__webpack_require__(10);
 var PolarChart = (function (_super) {
     __extends(PolarChart, _super);
     function PolarChart(props) {
@@ -84834,7 +85003,7 @@ exports.default = PolarChart;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 202 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -84850,17 +85019,15 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-var _ = __webpack_require__(7);
-__webpack_require__(12);
-__webpack_require__(203);
+var React = __webpack_require__(3);
+var _ = __webpack_require__(6);
+__webpack_require__(10);
+__webpack_require__(177);
 var Points = (function (_super) {
     __extends(Points, _super);
     function Points(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            data: props.pointsTable,
-            callback: props.callback,
             selectedPoint: -1
         };
         return _this;
@@ -84868,9 +85035,9 @@ var Points = (function (_super) {
     Points.prototype.componentDidMount = function () {
         var ctrl = this;
         $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle' });
-        this.buildTable();
+        this.buildTable(this.props);
     };
-    Points.prototype.buildTable = function () {
+    Points.prototype.buildTable = function (props) {
         var ctrl = this;
         $('#accumulatedpointscontent').puidatatable({
             stickyHeader: false,
@@ -84885,16 +85052,13 @@ var Points = (function (_super) {
                 { field: 'deltatime', headerText: 'Delta Time', content: function (data) { return ctrl.showDeltaTime(data); } },
                 { field: 'deltavalue', headerText: 'Delta Value' }
             ],
-            datasource: ctrl.state.data
+            datasource: props.pointsTable
         });
     };
     Points.prototype.componentWillReceiveProps = function (nextProps) {
-        var _this = this;
-        if (!(_.isEqual(this.state.data, nextProps.pointsTable))) {
-            this.setState({ data: nextProps.pointsTable }, function () {
-                $('#accumulatedpointscontent').puidatatable('reset');
-                _this.buildTable();
-            });
+        if (!(_.isEqual(this.props.pointsTable, nextProps.pointsTable))) {
+            $('#accumulatedpointscontent').puidatatable('reset');
+            this.buildTable(nextProps);
         }
     };
     Points.prototype.render = function () {
@@ -84914,7 +85078,7 @@ var Points = (function (_super) {
                     } }, "X"))));
     };
     Points.prototype.removePoint = function () {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         var selectedPoint = this.state.selectedPoint;
         if (selectedPoint === data.length - 1) {
             data.pop();
@@ -84936,30 +85100,30 @@ var Points = (function (_super) {
             data.splice(selectedPoint, 1);
         }
         selectedPoint = -1;
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });
         this.setState({ selectedPoint: selectedPoint });
     };
     Points.prototype.popAccumulatedPoints = function () {
-        var data = _.clone(this.state.data);
+        var data = _.clone(this.props.pointsTable);
         if (data.length > 0)
             data.pop();
-        this.state.callback({
+        this.props.callback({
             PointsTable: data
         });
     };
     Points.prototype.clearAccumulatedPoints = function () {
-        this.state.callback({
+        this.props.callback({
             PointsTable: []
         });
     };
     Points.prototype.showTime = function (rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     };
     Points.prototype.showDeltaTime = function (rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * postedSystemFrequency).toFixed(2) + " cycles";
+        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     };
     return Points;
@@ -84969,7 +85133,7 @@ exports.default = Points;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 203 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($, jQuery) {/**
@@ -98946,7 +99110,7 @@ PUI.resolveUserAgent();
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(1)))
 
 /***/ }),
-/* 204 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -98962,11 +99126,11 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(4);
-var _ = __webpack_require__(7);
-__webpack_require__(12);
-__webpack_require__(150);
-__webpack_require__(151);
+var React = __webpack_require__(3);
+var _ = __webpack_require__(6);
+__webpack_require__(10);
+__webpack_require__(143);
+__webpack_require__(144);
 var Tooltip = (function (_super) {
     __extends(Tooltip, _super);
     function Tooltip(props) {
