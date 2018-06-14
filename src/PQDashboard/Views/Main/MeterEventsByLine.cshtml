@@ -507,7 +507,13 @@
     }
 
     function openMultiNoteModal(eventId) {
-        dataHub.getSimultaneousEvents(eventId, $('#timeWindow').val()).done(function (data) {
+        var timeWindow = $('#timeWindow').val();
+        var timeUnits = $('#timeUnits').val();
+
+        if (timeWindow == undefined) timeWindow = @timeWindow;
+        if (timeUnits == undefined) timeUnits = 1;
+
+        dataHub.getSimultaneousEvents(eventId, timeWindow, timeUnits).done(function (data) {
             $('#eventId').text(eventId);
             $('#multiNote').val('');
             $('#multiNoteEvents tbody').children().remove()
