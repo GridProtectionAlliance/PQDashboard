@@ -53,6 +53,7 @@ export class OpenSEE extends React.Component<any, any>{
             displayCur: true,
             faultcurves: query['faultcurves'] == '1' || query['faultcurves'] == 'true',
             breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
+            breakeroperation: (query['breakeroperation'] != undefined ? query['breakeroperation'] : undefined),
             Width: window.innerWidth,
             Hover: 0,
             PointsTable: [],

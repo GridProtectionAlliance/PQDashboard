@@ -415,7 +415,7 @@
     function makeOpenSEEButton_htmlBreaker(id) {
         var return_html = "";
         //return_html += '<div style="cursor: pointer;">';
-        return_html += '<button onClick="OpenWindowToOpenSEEBreaker(' + id.theeventid + ');" title="Launch OpenSEE Waveform Viewer">';
+        return_html += '<button onClick="OpenWindowToOpenSEEBreaker(' + id.theeventid + ',' + id.breakeroperationid + ');" title="Launch OpenSEE Waveform Viewer">';
         return_html += '<img src="@Html.Raw(Url.Content("~/Images/seeButton.png"))" /></button>';
         //return_html += '</div>';
         return (return_html);
@@ -439,8 +439,8 @@
         return false;
     }
 
-    function OpenWindowToOpenSEEBreaker(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&breakerdigitals=1", id + "openSEE");
+    function OpenWindowToOpenSEEBreaker(id, breaker) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&breakerdigitals=1" + "&breakeroperationid=" + breaker, id + "openSEE");
         return false;
     }
 
