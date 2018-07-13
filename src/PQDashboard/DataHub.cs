@@ -1408,7 +1408,8 @@ namespace PQDashboard
                         dbo.DateDiffTicks('1970-01-01', Disturbance.EndTime) / 10000.0 AS endmillis,
 	                    DisturbanceSeverity.SeverityCode,
 	                    MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
-	                    Line.VoltageKV AS voltage
+	                    Line.VoltageKV AS voltage,
+		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as Note
                     FROM
 	                    Event JOIN
 	                    Disturbance ON Disturbance.EventID = Event.ID JOIN
@@ -1456,7 +1457,7 @@ namespace PQDashboard
                             CAST(CAST(Event.StartTime AS TIME) AS NVARCHAR(100)) AS theinceptiontime,
                             FaultSummary.FaultType AS thefaulttype,
                             CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE CAST(CAST(FaultSummary.Distance AS DECIMAL(16,2)) AS NVARCHAR(19)) END AS thecurrentdistance,
-                            (SELECT COUNT(*) FROM FaultNote WHERE FaultSummary.ID = FaultNote.FaultSummaryID) as notecount,
+		                    (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as Note,
                             ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY FaultSummary.IsSuppressed, FaultSummary.IsSelectedAlgorithm DESC, FaultSummary.Inception) AS rk
                         FROM
                             FaultSummary JOIN
@@ -1499,7 +1500,7 @@ namespace PQDashboard
                         BreakerOperation.StatusBitChatter AS chatter,
                         BreakerOperation.DcOffsetDetected AS dcoffset,
                         BreakerOperationType.Name AS operationtype,
-		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as notecount
+		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as Note
                     FROM
                         BreakerOperation JOIN
                         Event ON BreakerOperation.EventID = Event.ID JOIN
