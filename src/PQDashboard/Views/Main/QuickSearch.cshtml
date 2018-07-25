@@ -527,7 +527,7 @@
     }
 
     function saveMultiNoteAll() {
-        dataHub.saveMultiNoteForAllEvents($.unique($('input[type=checkbox]:checked').toArray().map(x => $(x).attr('class'))), $('#multiNoteAll').val(), userId).done(function () {
+        dataHub.saveMultiNoteForAllEvents($.unique($('input[type=checkbox]:checked').toArray().map(function (x) { return $(x).attr('class') })), $('#multiNoteAll').val(), userId).done(function () {
             apply();
         });
     }

@@ -548,7 +548,7 @@
 
 
     function saveMultiNote() {
-        dataHub.saveMultiNoteForEvent($('#multiNoteEvents tbody input:checked').toArray().map(x => $(x).attr('id')), $('#multiNote').val(), userId);
+        dataHub.saveMultiNoteForEvent($('#multiNoteEvents tbody input:checked').toArray().map(function (x) { return $(x).attr('id') }), $('#multiNote').val(), userId);
     }
 
 </script>

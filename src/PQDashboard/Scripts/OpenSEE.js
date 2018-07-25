@@ -15157,6 +15157,103 @@ if (process.env.NODE_ENV === 'production') {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+
+/* eslint-disable no-unused-vars */
+var getOwnPropertySymbols = Object.getOwnPropertySymbols;
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function toObject(val) {
+	if (val === null || val === undefined) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+function shouldUseNative() {
+	try {
+		if (!Object.assign) {
+			return false;
+		}
+
+		// Detect buggy property enumeration order in older V8 versions.
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
+		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
+		test1[5] = 'de';
+		if (Object.getOwnPropertyNames(test1)[0] === '5') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test2 = {};
+		for (var i = 0; i < 10; i++) {
+			test2['_' + String.fromCharCode(i)] = i;
+		}
+		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+			return test2[n];
+		});
+		if (order2.join('') !== '0123456789') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test3 = {};
+		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+			test3[letter] = letter;
+		});
+		if (Object.keys(Object.assign({}, test3)).join('') !==
+				'abcdefghijklmnopqrst') {
+			return false;
+		}
+
+		return true;
+	} catch (err) {
+		// We don't expect any of the above to throw, but better to be safe.
+		return false;
+	}
+}
+
+module.exports = shouldUseNative() ? Object.assign : function (target, source) {
+	var from;
+	var to = toObject(target);
+	var symbols;
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = Object(arguments[s]);
+
+		for (var key in from) {
+			if (hasOwnProperty.call(from, key)) {
+				to[key] = from[key];
+			}
+		}
+
+		if (getOwnPropertySymbols) {
+			symbols = getOwnPropertySymbols(from);
+			for (var i = 0; i < symbols.length; i++) {
+				if (propIsEnumerable.call(from, symbols[i])) {
+					to[symbols[i]] = from[symbols[i]];
+				}
+			}
+		}
+	}
+
+	return to;
+};
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {/**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -15213,7 +15310,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15255,7 +15352,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 module.exports = emptyFunction;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -32360,103 +32457,6 @@ module.exports = emptyFunction;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(168), __webpack_require__(19)(module)))
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
-object-assign
-(c) Sindre Sorhus
-@license MIT
-*/
-
-
-/* eslint-disable no-unused-vars */
-var getOwnPropertySymbols = Object.getOwnPropertySymbols;
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-
-function toObject(val) {
-	if (val === null || val === undefined) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-function shouldUseNative() {
-	try {
-		if (!Object.assign) {
-			return false;
-		}
-
-		// Detect buggy property enumeration order in older V8 versions.
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
-		test1[5] = 'de';
-		if (Object.getOwnPropertyNames(test1)[0] === '5') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test2 = {};
-		for (var i = 0; i < 10; i++) {
-			test2['_' + String.fromCharCode(i)] = i;
-		}
-		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
-			return test2[n];
-		});
-		if (order2.join('') !== '0123456789') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test3 = {};
-		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
-			test3[letter] = letter;
-		});
-		if (Object.keys(Object.assign({}, test3)).join('') !==
-				'abcdefghijklmnopqrst') {
-			return false;
-		}
-
-		return true;
-	} catch (err) {
-		// We don't expect any of the above to throw, but better to be safe.
-		return false;
-	}
-}
-
-module.exports = shouldUseNative() ? Object.assign : function (target, source) {
-	var from;
-	var to = toObject(target);
-	var symbols;
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = Object(arguments[s]);
-
-		for (var key in from) {
-			if (hasOwnProperty.call(from, key)) {
-				to[key] = from[key];
-			}
-		}
-
-		if (getOwnPropertySymbols) {
-			symbols = getOwnPropertySymbols(from);
-			for (var i = 0; i < symbols.length; i++) {
-				if (propIsEnumerable.call(from, symbols[i])) {
-					to[symbols[i]] = from[symbols[i]];
-				}
-			}
-		}
-	}
-
-	return to;
-};
-
-
-/***/ }),
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -32495,7 +32495,7 @@ module.exports = emptyObject;
 
 
 
-var emptyFunction = __webpack_require__(5);
+var emptyFunction = __webpack_require__(6);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -48947,7 +48947,7 @@ var tooltip = $.widget( "ui.tooltip", {
 
 
 if (process.env.NODE_ENV !== 'production') {
-  var invariant = __webpack_require__(4);
+  var invariant = __webpack_require__(5);
   var warning = __webpack_require__(9);
   var ReactPropTypesSecret = __webpack_require__(148);
   var loggedTypeFailures = {};
@@ -64025,7 +64025,7 @@ var ReactDOM = __webpack_require__(149);
 var OpenSEE_1 = __webpack_require__(16);
 var createBrowserHistory_1 = __webpack_require__(158);
 var queryString = __webpack_require__(165);
-var _ = __webpack_require__(6);
+var _ = __webpack_require__(7);
 var WaveformViewerGraph_1 = __webpack_require__(169);
 var PolarChart_1 = __webpack_require__(175);
 var AccumulatedPoints_1 = __webpack_require__(176);
@@ -64319,7 +64319,7 @@ ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('Doc
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(7),n=__webpack_require__(4),p=__webpack_require__(8),q=__webpack_require__(5),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
+var m=__webpack_require__(4),n=__webpack_require__(5),p=__webpack_require__(8),q=__webpack_require__(6),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
 60112,B="function"===typeof Symbol&&Symbol.iterator;function C(a){for(var b=arguments.length-1,e="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);n(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",e)}var D={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};
 function E(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}E.prototype.isReactComponent={};E.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?C("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};E.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};function F(){}F.prototype=E.prototype;function G(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}var H=G.prototype=new F;
 H.constructor=G;m(H,E.prototype);H.isPureReactComponent=!0;var I={current:null},J=Object.prototype.hasOwnProperty,K={key:!0,ref:!0,__self:!0,__source:!0};
@@ -64356,11 +64356,11 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(7);
-var invariant = __webpack_require__(4);
+var _assign = __webpack_require__(4);
+var invariant = __webpack_require__(5);
 var emptyObject = __webpack_require__(8);
 var warning = __webpack_require__(9);
-var emptyFunction = __webpack_require__(5);
+var emptyFunction = __webpack_require__(6);
 var checkPropTypes = __webpack_require__(11);
 
 // TODO: this is special because it gets imported during build.
@@ -65838,7 +65838,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var ba=__webpack_require__(4),ea=__webpack_require__(3),m=__webpack_require__(12),A=__webpack_require__(7),C=__webpack_require__(5),fa=__webpack_require__(13),ha=__webpack_require__(14),ja=__webpack_require__(15),ka=__webpack_require__(8);
+var ba=__webpack_require__(5),ea=__webpack_require__(3),m=__webpack_require__(12),A=__webpack_require__(4),C=__webpack_require__(6),fa=__webpack_require__(13),ha=__webpack_require__(14),ja=__webpack_require__(15),ka=__webpack_require__(8);
 function D(a){for(var b=arguments.length-1,c="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);ba(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",c)}ea?void 0:D("227");
 function ma(a,b,c,d,e,f,h,g,k){this._hasCaughtError=!1;this._caughtError=null;var v=Array.prototype.slice.call(arguments,3);try{b.apply(c,v)}catch(l){this._caughtError=l,this._hasCaughtError=!0}}
 var E={_caughtError:null,_hasCaughtError:!1,_rethrowError:null,_hasRethrowError:!1,invokeGuardedCallback:function(a,b,c,d,e,f,h,g,k){ma.apply(E,arguments)},invokeGuardedCallbackAndCatchFirstError:function(a,b,c,d,e,f,h,g,k){E.invokeGuardedCallback.apply(this,arguments);if(E.hasCaughtError()){var v=E.clearCaughtError();E._hasRethrowError||(E._hasRethrowError=!0,E._rethrowError=v)}},rethrowCaughtError:function(){return na.apply(E,arguments)},hasCaughtError:function(){return E._hasCaughtError},clearCaughtError:function(){if(E._hasCaughtError){var a=
@@ -66152,12 +66152,12 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var invariant = __webpack_require__(4);
+var invariant = __webpack_require__(5);
 var React = __webpack_require__(3);
 var warning = __webpack_require__(9);
 var ExecutionEnvironment = __webpack_require__(12);
-var _assign = __webpack_require__(7);
-var emptyFunction = __webpack_require__(5);
+var _assign = __webpack_require__(4);
+var emptyFunction = __webpack_require__(6);
 var checkPropTypes = __webpack_require__(11);
 var getActiveElement = __webpack_require__(13);
 var shallowEqual = __webpack_require__(14);
@@ -83682,51 +83682,54 @@ var isExtraneousPopstateEvent = exports.isExtraneousPopstateEvent = function isE
 
 "use strict";
 
-const strictUriEncode = __webpack_require__(166);
-const decodeComponent = __webpack_require__(167);
+var strictUriEncode = __webpack_require__(166);
+var objectAssign = __webpack_require__(4);
+var decodeComponent = __webpack_require__(167);
 
-function encoderForArrayFormat(options) {
-	switch (options.arrayFormat) {
+function encoderForArrayFormat(opts) {
+	switch (opts.arrayFormat) {
 		case 'index':
-			return (key, value, index) => {
+			return function (key, value, index) {
 				return value === null ? [
-					encode(key, options),
+					encode(key, opts),
 					'[',
 					index,
 					']'
 				].join('') : [
-					encode(key, options),
+					encode(key, opts),
 					'[',
-					encode(index, options),
+					encode(index, opts),
 					']=',
-					encode(value, options)
+					encode(value, opts)
 				].join('');
 			};
+
 		case 'bracket':
-			return (key, value) => {
-				return value === null ? encode(key, options) : [
-					encode(key, options),
+			return function (key, value) {
+				return value === null ? encode(key, opts) : [
+					encode(key, opts),
 					'[]=',
-					encode(value, options)
+					encode(value, opts)
 				].join('');
 			};
+
 		default:
-			return (key, value) => {
-				return value === null ? encode(key, options) : [
-					encode(key, options),
+			return function (key, value) {
+				return value === null ? encode(key, opts) : [
+					encode(key, opts),
 					'=',
-					encode(value, options)
+					encode(value, opts)
 				].join('');
 			};
 	}
 }
 
-function parserForArrayFormat(options) {
-	let result;
+function parserForArrayFormat(opts) {
+	var result;
 
-	switch (options.arrayFormat) {
+	switch (opts.arrayFormat) {
 		case 'index':
-			return (key, value, accumulator) => {
+			return function (key, value, accumulator) {
 				result = /\[(\d*)\]$/.exec(key);
 
 				key = key.replace(/\[\d*\]$/, '');
@@ -83742,25 +83745,25 @@ function parserForArrayFormat(options) {
 
 				accumulator[key][result[1]] = value;
 			};
+
 		case 'bracket':
-			return (key, value, accumulator) => {
+			return function (key, value, accumulator) {
 				result = /(\[\])$/.exec(key);
 				key = key.replace(/\[\]$/, '');
 
 				if (!result) {
 					accumulator[key] = value;
 					return;
-				}
-
-				if (accumulator[key] === undefined) {
+				} else if (accumulator[key] === undefined) {
 					accumulator[key] = [value];
 					return;
 				}
 
 				accumulator[key] = [].concat(accumulator[key], value);
 			};
+
 		default:
-			return (key, value, accumulator) => {
+			return function (key, value, accumulator) {
 				if (accumulator[key] === undefined) {
 					accumulator[key] = value;
 					return;
@@ -83771,9 +83774,9 @@ function parserForArrayFormat(options) {
 	}
 }
 
-function encode(value, options) {
-	if (options.encode) {
-		return options.strict ? strictUriEncode(value) : encodeURIComponent(value);
+function encode(value, opts) {
+	if (opts.encode) {
+		return opts.strict ? strictUriEncode(value) : encodeURIComponent(value);
 	}
 
 	return value;
@@ -83782,60 +83785,65 @@ function encode(value, options) {
 function keysSorter(input) {
 	if (Array.isArray(input)) {
 		return input.sort();
-	}
-
-	if (typeof input === 'object') {
-		return keysSorter(Object.keys(input))
-			.sort((a, b) => Number(a) - Number(b))
-			.map(key => input[key]);
+	} else if (typeof input === 'object') {
+		return keysSorter(Object.keys(input)).sort(function (a, b) {
+			return Number(a) - Number(b);
+		}).map(function (key) {
+			return input[key];
+		});
 	}
 
 	return input;
 }
 
-function extract(input) {
-	const queryStart = input.indexOf('?');
+function extract(str) {
+	var queryStart = str.indexOf('?');
 	if (queryStart === -1) {
 		return '';
 	}
-	return input.slice(queryStart + 1);
+	return str.slice(queryStart + 1);
 }
 
-function parse(input, options) {
-	options = Object.assign({arrayFormat: 'none'}, options);
+function parse(str, opts) {
+	opts = objectAssign({arrayFormat: 'none'}, opts);
 
-	const formatter = parserForArrayFormat(options);
+	var formatter = parserForArrayFormat(opts);
 
 	// Create an object with no prototype
-	const ret = Object.create(null);
+	// https://github.com/sindresorhus/query-string/issues/47
+	var ret = Object.create(null);
 
-	if (typeof input !== 'string') {
+	if (typeof str !== 'string') {
 		return ret;
 	}
 
-	input = input.trim().replace(/^[?#&]/, '');
+	str = str.trim().replace(/^[?#&]/, '');
 
-	if (!input) {
+	if (!str) {
 		return ret;
 	}
 
-	for (const param of input.split('&')) {
-		let [key, value] = param.replace(/\+/g, ' ').split('=');
+	str.split('&').forEach(function (param) {
+		var parts = param.replace(/\+/g, ' ').split('=');
+		// Firefox (pre 40) decodes `%3D` to `=`
+		// https://github.com/sindresorhus/query-string/pull/37
+		var key = parts.shift();
+		var val = parts.length > 0 ? parts.join('=') : undefined;
 
-		// Missing `=` should be `null`:
+		// missing `=` should be `null`:
 		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		value = value === undefined ? null : decodeComponent(value);
+		val = val === undefined ? null : decodeComponent(val);
 
-		formatter(decodeComponent(key), value, ret);
-	}
+		formatter(decodeComponent(key), val, ret);
+	});
 
-	return Object.keys(ret).sort().reduce((result, key) => {
-		const value = ret[key];
-		if (Boolean(value) && typeof value === 'object' && !Array.isArray(value)) {
+	return Object.keys(ret).sort().reduce(function (result, key) {
+		var val = ret[key];
+		if (Boolean(val) && typeof val === 'object' && !Array.isArray(val)) {
 			// Sort object keys, not values
-			result[key] = keysSorter(value);
+			result[key] = keysSorter(val);
 		} else {
-			result[key] = value;
+			result[key] = val;
 		}
 
 		return result;
@@ -83845,54 +83853,56 @@ function parse(input, options) {
 exports.extract = extract;
 exports.parse = parse;
 
-exports.stringify = (obj, options) => {
-	const defaults = {
+exports.stringify = function (obj, opts) {
+	var defaults = {
 		encode: true,
 		strict: true,
 		arrayFormat: 'none'
 	};
 
-	options = Object.assign(defaults, options);
+	opts = objectAssign(defaults, opts);
 
-	if (options.sort === false) {
-		options.sort = () => {};
+	if (opts.sort === false) {
+		opts.sort = function () {};
 	}
 
-	const formatter = encoderForArrayFormat(options);
+	var formatter = encoderForArrayFormat(opts);
 
-	return obj ? Object.keys(obj).sort(options.sort).map(key => {
-		const value = obj[key];
+	return obj ? Object.keys(obj).sort(opts.sort).map(function (key) {
+		var val = obj[key];
 
-		if (value === undefined) {
+		if (val === undefined) {
 			return '';
 		}
 
-		if (value === null) {
-			return encode(key, options);
+		if (val === null) {
+			return encode(key, opts);
 		}
 
-		if (Array.isArray(value)) {
-			const result = [];
+		if (Array.isArray(val)) {
+			var result = [];
 
-			for (const value2 of value.slice()) {
-				if (value2 === undefined) {
-					continue;
+			val.slice().forEach(function (val2) {
+				if (val2 === undefined) {
+					return;
 				}
 
-				result.push(formatter(key, value2, result.length));
-			}
+				result.push(formatter(key, val2, result.length));
+			});
 
 			return result.join('&');
 		}
 
-		return encode(key, options) + '=' + encode(value, options);
-	}).filter(x => x.length > 0).join('&') : '';
+		return encode(key, opts) + '=' + encode(val, opts);
+	}).filter(function (x) {
+		return x.length > 0;
+	}).join('&') : '';
 };
 
-exports.parseUrl = (input, options) => {
+exports.parseUrl = function (str, opts) {
 	return {
-		url: input.split('?')[0] || '',
-		query: parse(extract(input), options)
+		url: str.split('?')[0] || '',
+		query: parse(extract(str), opts)
 	};
 };
 
@@ -83903,7 +83913,11 @@ exports.parseUrl = (input, options) => {
 
 "use strict";
 
-module.exports = str => encodeURIComponent(str).replace(/[!'()*]/g, x => `%${x.charCodeAt(0).toString(16).toUpperCase()}`);
+module.exports = function (str) {
+	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+		return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+	});
+};
 
 
 /***/ }),
@@ -84053,7 +84067,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(3);
 var OpenSEE_1 = __webpack_require__(16);
-var _ = __webpack_require__(6);
+var _ = __webpack_require__(7);
 var moment = __webpack_require__(0);
 var Legend_1 = __webpack_require__(171);
 __webpack_require__(143);
@@ -84770,7 +84784,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(3);
-var _ = __webpack_require__(6);
+var _ = __webpack_require__(7);
 var Legend = (function (_super) {
     __extends(Legend, _super);
     function Legend(props) {
@@ -84835,10 +84849,18 @@ var Row = function (props) {
             React.createElement("input", { name: props.label, className: 'legendCheckbox', type: "checkbox", style: { display: 'none' }, defaultChecked: props.enabled })),
         React.createElement("td", null,
             React.createElement("div", { style: { border: '1px solid #ccc', padding: '1px' } },
-                React.createElement("div", { style: { width: ' 4px', height: 0, border: '5px solid ' + props.color + (props.enabled ? 'FF' : '60'), overflow: 'hidden' }, onClick: props.callback }))),
+                React.createElement("div", { style: { width: ' 4px', height: 0, border: '5px solid', borderColor: (props.enabled ? convertHex(props.color, 100) : convertHex(props.color, 50)), overflow: 'hidden' }, onClick: props.callback }))),
         React.createElement("td", null,
             React.createElement("span", { style: { color: props.color, fontSize: 'smaller', fontWeight: 'bold', whiteSpace: 'nowrap' } }, props.label))));
 };
+function convertHex(hex, opacity) {
+    hex = hex.replace('#', '');
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+    var result = 'rgba(' + r + ',' + g + ',' + b + ',' + opacity / 100 + ')';
+    return result;
+}
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -85021,7 +85043,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(3);
-var _ = __webpack_require__(6);
+var _ = __webpack_require__(7);
 __webpack_require__(10);
 __webpack_require__(177);
 var Points = (function (_super) {
@@ -99128,7 +99150,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(3);
-var _ = __webpack_require__(6);
+var _ = __webpack_require__(7);
 __webpack_require__(10);
 __webpack_require__(143);
 __webpack_require__(144);
