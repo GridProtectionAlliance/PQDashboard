@@ -44,6 +44,7 @@ using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using Microsoft.AspNet.SignalR.Json;
 using Newtonsoft.Json;
+using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard

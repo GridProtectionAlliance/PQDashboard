@@ -24,7 +24,7 @@
 using System.Collections.Generic;
 using GSF.Data.Model;
 using GSF.Web.Model;
-using PQDashboard.Model;
+using openXDA.Model;
 
 namespace PQDashboard
 {
@@ -34,7 +34,7 @@ namespace PQDashboard
         {
             Dictionary<string, string> settings = new Dictionary<string, string>();
 
-            foreach (Settings setting in dataContext.Table<Settings>().QueryRecords("Name", new RecordRestriction("Scope = {0}", scope)))
+            foreach (Setting setting in dataContext.Table<Setting>().QueryRecords("Name", new RecordRestriction("Scope = {0}", scope)))
             {
                 if (!string.IsNullOrEmpty(setting.Name))
                     settings.Add(setting.Name, setting.Value);

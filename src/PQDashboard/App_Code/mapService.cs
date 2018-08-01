@@ -51,9 +51,8 @@ using GSF.Threading;
 using GSF.Web;
 using openHistorian.XDALink;
 using PQDashboard;
-using PQDashboard.Model;
+using openXDA.Model;
 using GSF.Web.Model;
-using Meter = openXDA.Model.Meter;
 using GSF.Collections;
 
 /// <summary>
@@ -303,17 +302,17 @@ public class mapService : WebService
             string filterExpression = "";
             if (contourQuery.MeterIds == 0.ToString())
             {
-                meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
             }
             else
             {
-                int meterGroupId = conn.ExecuteScalar<int>("Select MeterGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
+                int assetGroupId = conn.ExecuteScalar<int>("Select AssetGroupID FROM DeviceFilter WHERE ID = {0}", contourQuery.MeterIds);
                 filterExpression = conn.ExecuteScalar<string>("Select FilterExpression FROM DeviceFilter WHERE ID = {0}", int.Parse(contourQuery.MeterIds));
 
-                if (meterGroupId == 0)
-                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
+                if (assetGroupId == 0)
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{contourQuery.UserName}')))");
                 else
-                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+                    meterIds = conn.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {assetGroupId})");
             }
 
             if (filterExpression != "")
@@ -507,7 +506,7 @@ public class mapService : WebService
         using (IDbCommand cmd = conn.Connection.CreateCommand())
         {
 
-            var meters = dataContext.Table<Meter>().QueryRecordsWhere ("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
+            var meters = dataContext.Table<Meter>().QueryRecordsWhere ("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
 
             if (!string.IsNullOrEmpty(contourQuery.Meters))
             {
@@ -566,7 +565,7 @@ public class mapService : WebService
 
         using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
         {
-            var meters = (new TableOperations<openXDA.Model.Meter>(connection)).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
+            var meters = (new TableOperations<Meter>(connection)).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", contourQuery.UserName);
 
             if (!string.IsNullOrEmpty(contourQuery.Meters))
             {

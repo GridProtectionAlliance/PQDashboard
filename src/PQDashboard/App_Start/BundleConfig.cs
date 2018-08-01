@@ -17,8 +17,7 @@ namespace PQDashboard
 
             bundles.Add(new ScriptBundle("~/Scripts/others").Include(
                 "~/Scripts/site.js",
-                "~/Scripts/overview.js",
-                "~/Scripts/MeterActivity.js"
+                "~/Scripts/overview.js"
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
@@ -28,9 +27,9 @@ namespace PQDashboard
 
 
             bundles.Add(new ScriptBundle("~/Scripts/jquery").Include(
-                "~/Scripts/jquery-2.1.1.js",
+                "~/Scripts/jquery-3.3.1.js",
                 "~/Scripts/jquery-ui.js",
-                "~/Scripts/jquery.signalR-2.2.0.js",
+                "~/Scripts/jquery.signalR.js",
                 "~/Scripts/jquery.blockUI.js",
                 "~/Scripts/jquery.sparkline.js",
                 "~/Scripts/jstorage.js",

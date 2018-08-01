@@ -48,6 +48,7 @@ using AlarmRangeLimit = openXDA.Model.AlarmRangeLimit;
 using Meter = openXDA.Model.Meter;
 using DefaultAlarmRangeLimit = openXDA.Model.DefaultAlarmRangeLimit;
 using Event = openXDA.Model.Event;
+using openXDA.Model;
 
 namespace PQDashboard
 {
@@ -58,7 +59,6 @@ namespace PQDashboard
         // Fields
         private readonly DataContext m_coreContext;
         private bool m_disposed;
-        private readonly DataSubscriptionOperations m_dataSubscriptionOperations;
         enum TimeUnits { Millisecond, Second, Minute, Hour, Day, Week, Month, Year };
 
 
@@ -69,7 +69,6 @@ namespace PQDashboard
         public DataHub() : base(MvcApplication.LogStatusMessage, MvcApplication.LogException)
         {
             m_coreContext = new DataContext("securityProvider",exceptionHandler: MvcApplication.LogException);
-            m_dataSubscriptionOperations = new DataSubscriptionOperations(this, MvcApplication.LogStatusMessage, MvcApplication.LogException);
 
         }
 
@@ -167,140 +166,16 @@ namespace PQDashboard
 
         // Client-side script functionality
 
-        #region [ Page Table Operations ]
-
-        [RecordOperation(typeof(Page), RecordOperation.QueryRecordCount)]
-        public int QueryPageCount(string filterText)
-        {
-            return m_coreContext.Table<Page>().QueryRecordCount();
-        }
-
-        [RecordOperation(typeof(Page), RecordOperation.QueryRecords)]
-        public IEnumerable<Page> QueryPages(string sortField, bool ascending, int page, int pageSize, string filterText)
-        {
-            return m_coreContext.Table<Page>().QueryRecords(sortField, ascending, page, pageSize);
-        }
-
-        [RecordOperation(typeof(Page), RecordOperation.DeleteRecord)]
-        public void DeletePage(int id)
-        {
-            m_coreContext.Table<Page>().DeleteRecord(id);
-        }
-
-        [RecordOperation(typeof(Page), RecordOperation.CreateNewRecord)]
-        public Page NewPage()
-        {
-            return new Page();
-        }
-
-        [RecordOperation(typeof(Page), RecordOperation.AddNewRecord)]
-        public void AddNewPage(Page record)
-        {
-            record.CreatedOn = DateTime.UtcNow;
-            m_coreContext.Table<Page>().AddNewRecord(record);
-        }
-
-        [RecordOperation(typeof(Page), RecordOperation.UpdateRecord)]
-        public void UpdatePage(Page record)
-        {
-            m_coreContext.Table<Page>().UpdateRecord(record);
-        }
-
-        #endregion
-
-        #region [ ValueListGroup Table Operations ]
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecordCount)]
-        public int QueryValueListGroupCount(string filterText)
-        {
-            return m_coreContext.Table<ValueListGroup>().QueryRecordCount();
-        }
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.QueryRecords)]
-        public IEnumerable<ValueListGroup> QueryValueListGroups(string sortField, bool ascending, int page, int pageSize, string filterText)
-        {
-            return m_coreContext.Table<ValueListGroup>().QueryRecords(sortField, ascending, page, pageSize);
-        }
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.DeleteRecord)]
-        public void DeleteValueListGroup(int id)
-        {
-            m_coreContext.Table<ValueListGroup>().DeleteRecord(id);
-        }
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.CreateNewRecord)]
-        public ValueListGroup NewValueListGroup()
-        {
-            return new ValueListGroup();
-        }
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.AddNewRecord)]
-        public void AddNewValueListGroup(ValueListGroup record)
-        {
-            record.CreatedOn = DateTime.UtcNow;
-            m_coreContext.Table<ValueListGroup>().AddNewRecord(record);
-        }
-
-        [RecordOperation(typeof(ValueListGroup), RecordOperation.UpdateRecord)]
-        public void UpdateValueListGroup(ValueListGroup record)
-        {
-            m_coreContext.Table<ValueListGroup>().UpdateRecord(record);
-        }
-
-        #endregion
-
-        #region [ ValueList Table Operations ]
-
-
-        [RecordOperation(typeof(ValueList), RecordOperation.QueryRecordCount)]
-        public int QueryValueListCount(int parentID, string filterText)
-        {
-            return m_coreContext.Table<ValueList>().QueryRecordCount(new RecordRestriction("GroupID = {0}", parentID));
-        }
-
-        [RecordOperation(typeof(ValueList), RecordOperation.QueryRecords)]
-        public IEnumerable<ValueList> QueryValueListItems(int parentID, string sortField, bool ascending, int page, int pageSize, string filterText)
-        {
-            return m_coreContext.Table<ValueList>().QueryRecords(sortField, ascending, page, pageSize, new RecordRestriction("GroupID = {0}", parentID));
-        }
-
-        [RecordOperation(typeof(ValueList), RecordOperation.DeleteRecord)]
-        public void DeleteValueList(int id)
-        {
-            m_coreContext.Table<ValueList>().DeleteRecord(id);
-        }
-
-        [RecordOperation(typeof(ValueList), RecordOperation.CreateNewRecord)]
-        public ValueList NewValueList()
-        {
-            return new ValueList();
-        }
-
-        [RecordOperation(typeof(ValueList), RecordOperation.AddNewRecord)]
-        public void AddNewValueList(ValueList record)
-        {
-            record.CreatedOn = DateTime.UtcNow;
-            m_coreContext.Table<ValueList>().AddNewRecord(record);
-        }
-
-        [RecordOperation(typeof(ValueList), RecordOperation.UpdateRecord)]
-        public void UpdateValueList(ValueList record)
-        {
-            m_coreContext.Table<ValueList>().UpdateRecord(record);
-        }
-
-        #endregion
-
         #region [ Page Load Operations]
 
-        public IEnumerable<MeterID> GetMetersByGroup(int meterGroup)
+        public IEnumerable<Meter> GetMetersByGroup(int assetGroup)
         {
-            return DataContext.Table<MeterID>().QueryRecords(restriction: new RecordRestriction("ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {0})", meterGroup));
+            return DataContext.Table<Meter>().QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {0})", assetGroup);
         }
 
-        public IEnumerable<MeterID> GetMeters(int deviceFilter, string userName)
+        public DataTable GetMeters(int deviceFilter, string userName)
         {
-            DeviceFilter df = DataContext.Table<DeviceFilter>().QueryRecord(new RecordRestriction("ID = {0}", deviceFilter));
+            DeviceFilter df = DataContext.Table<DeviceFilter>().QueryRecordWhere("ID = {0}", deviceFilter);
             DataTable table;
 
             try
@@ -308,24 +183,24 @@ namespace PQDashboard
                 string filterExpression = null;
                 if (df == null)
                 {
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
-                    return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
+                    return table;
                 }
 
-                if (df.MeterGroupID == 0)
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{df.UserAccount}')))");
+                if (df.AssetGroupID == 0)
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{df.UserAccount}')))");
                 else
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {df.MeterGroupID})");
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {df.AssetGroupID})");
 
                 if (df.FilterExpression != "")
-                    return table.Select(df.FilterExpression).Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+                    return table;
             }
             catch (Exception)
             {
-                return new List<MeterID>();
+                return new DataTable();
             }
 
-            return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+            return table;
         }
 
 
@@ -1224,7 +1099,7 @@ namespace PQDashboard
                 FaultSummaryID = id,
                 Note = note,
                 UserAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId),
-                TimeStamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow
             });
         }
 
@@ -1251,7 +1126,7 @@ namespace PQDashboard
                     EventID = id,
                     Note = note,
                     UserAccount = userId,
-                    TimeStamp = DateTime.UtcNow
+                    Timestamp = DateTime.UtcNow
                 });
             }
         }
@@ -1267,7 +1142,7 @@ namespace PQDashboard
                         EventID = evt,
                         Note = note,
                         UserAccount = userId,
-                        TimeStamp = DateTime.UtcNow
+                        Timestamp = DateTime.UtcNow
                     });
                 }
             }
@@ -1284,7 +1159,7 @@ namespace PQDashboard
                         EventID = id,
                         Note = note,
                         UserAccount = userId,
-                        TimeStamp = DateTime.UtcNow
+                        Timestamp = DateTime.UtcNow
                     });
                 }
             }
@@ -1576,27 +1451,27 @@ namespace PQDashboard
             DataContext.Table<DeviceFilter>().DeleteRecord(new RecordRestriction("ID = {0}", id));
         }
 
-        public IEnumerable<MeterID> DeviceFilterPreview(int meterGroupId, string filterExpression, string userName)
+        public DataTable DeviceFilterPreview(int assetGroupId, string filterExpression, string userName)
         {
             DataTable table;
 
             try
             {
 
-                if (meterGroupId == 0)
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
+                if (assetGroupId == 0)
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{userName}')))");
                 else
-                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID = {meterGroupId})");
+                    table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {assetGroupId})");
 
                 if (filterExpression != "")
-                    return table.Select(filterExpression).Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+                    return table;
             }
             catch (Exception)
             {
-                return new List<MeterID>();
+                return new DataTable();
             }
 
-            return table.Select().Select(row => DataContext.Table<MeterID>().LoadRecord(row));
+            return table;
         }
 
 
@@ -1701,7 +1576,7 @@ namespace PQDashboard
                 {
                     if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
                     {
-                        trendingDataSet.ChannelData.Add(new PQDashboard.Model.TrendingDataPoint());
+                        trendingDataSet.ChannelData.Add(new openXDA.Model.TrendingDataPoint());
                         trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
                     }
 
@@ -1778,7 +1653,7 @@ namespace PQDashboard
             return false;
         }
 
-        public IEnumerable<FileGroupsForOverview> QueryFileGroupsForOverview(DateTime startTime, DateTime endTime)
+        public DataTable QueryFileGroupsForOverview(DateTime startTime, DateTime endTime)
         {
             string userSID = GetCurrentUserSIDOrExternal();
             DataTable table = new DataTable();
@@ -1794,7 +1669,9 @@ namespace PQDashboard
                                 FROM UserMeter
                                 WHERE UserName=@userSID
                                 ) AND
-                                ProcessingStartTime BETWEEN @startTime AND @endTime";
+                                ProcessingStartTime BETWEEN @startTime AND @endTime
+                        ORDER BY FG.ID, FG.ProcessingStartTime DESC
+                        ";
 
                     sc.CommandType = CommandType.Text;
                     IDbDataParameter param1 = sc.CreateParameter();
@@ -1816,11 +1693,7 @@ namespace PQDashboard
                     IDataReader rdr = sc.ExecuteReader();
                     table.Load(rdr);
 
-                    var returnValue = table.Select().Select(row => DataContext.Table<FileGroupsForOverview>().LoadRecord(row))
-                                                    .DistinctBy(row => row.ID)
-                                                    .OrderByDescending(row => row.ProcessingStartTime);
-
-                    return returnValue;
+                    return table;
                 }
             }
             else
@@ -1852,7 +1725,7 @@ namespace PQDashboard
             int recordCount = -1;
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<PQDashboard.Model.FileGroup>().QueryRecordCountWhere("[FileGroup].ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN [FileGroup] ON [FileGroup].ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
+                recordCount = DataContext.Table<FileGroup>().QueryRecordCountWhere("[FileGroup].ID IN (SELECT [Event].FileGroupID FROM [Event] LEFT JOIN [FileGroup] ON [FileGroup].ID = [Event].FileGroupID WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
             }
 
             return recordCount;
@@ -1867,7 +1740,7 @@ namespace PQDashboard
             return userSID;
         }
 
-        public IEnumerable<MeterActivity> QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false, bool sortByEvents = false)
+        public DataTable QueryMeterActivity(DateTime startTime, string orderBy, int numberOfResults, bool ascending = false, bool sortByEvents = false)
         {
             string userSID = GetCurrentUserSIDOrExternal();
 
@@ -1967,12 +1840,7 @@ namespace PQDashboard
                 IDataReader rdr = sc.ExecuteReader();
                 table.Load(rdr);
 
-                if (ascending)
-                {
-                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).OrderBy(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row)).ThenBy(row => typeof(MeterActivity).GetProperty(thenBy).GetValue(row));
-                }
-                else
-                    return table.Select().Select(row => DataContext.Table<MeterActivity>().LoadRecord(row)).Where(row => row.Events30Days != 0).OrderByDescending(row => typeof(MeterActivity).GetProperty(orderBy).GetValue(row));
+                return table;
             }
         }
 
@@ -2015,17 +1883,17 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.Line>().QueryRecordCountWhere("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
+                recordCount = DataContext.Table<Line>().QueryRecordCountWhere("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime);
             }
 
             return recordCount;
         }
 
-        public IEnumerable<PQDashboard.Model.Line> QueryLineRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        public IEnumerable<Line> QueryLineRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {//**
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                return DataContext.Table<Model.Line>().QueryRecords(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
+                return DataContext.Table<Line>().QueryRecords(restriction: new RecordRestriction("[Line].ID IN (SELECT DISTINCT [Event].LineID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + "," + timeSpanValue + ",{0})))", startTime)); ;
             }
             else
             {
@@ -2039,17 +1907,17 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
+                recordCount = DataContext.Table<FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
             }
 
             return recordCount;
         }
 
-        public IEnumerable<PQDashboard.Model.FaultSummary> QueryFaultSummaryRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        public IEnumerable<FaultSummary> QueryFaultSummaryRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {//**
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                return DataContext.Table<Model.FaultSummary>().QueryRecords(restriction: new RecordRestriction("[FaultSummary].EventID IN " +
+                return DataContext.Table<FaultSummary>().QueryRecords(restriction: new RecordRestriction("[FaultSummary].EventID IN " +
                                             "(SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0})))" +
                                             " AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime));
             }
@@ -2059,7 +1927,7 @@ namespace PQDashboard
             }
         }
 
-        public IEnumerable<FaultSummarysForOverview> QueryFaultSummarysForOverviewRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
+        public DataTable QueryFaultSummarysForOverviewRecords(DateTime startTime, string timeSpanUnit, int timeSpanValue)
         {
             DataTable table = new DataTable();
 
@@ -2096,7 +1964,7 @@ namespace PQDashboard
                     IDataReader rdr = sc.ExecuteReader();
                     table.Load(rdr);
 
-                    return table.Select().Select(row => DataContext.Table<FaultSummarysForOverview>().LoadRecord(row));
+                    return table;
                 }
             } 
             else
@@ -2111,7 +1979,7 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'AN' OR [FaultSummary].FaultType = 'BN' OR [FaultSummary].FaultType = 'CN') AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
+                recordCount = DataContext.Table<FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'AN' OR [FaultSummary].FaultType = 'BN' OR [FaultSummary].FaultType = 'CN') AND ([FaultSummary].IsSelectedAlgorithm <> 0 AND [FaultSummary].IsValid <> 0 AND [FaultSummary].IsSuppressed = 0)", startTime);
             }
 
             return recordCount;
@@ -2123,7 +1991,7 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'AB' OR [FaultSummary].FaultType = 'BC' OR [FaultSummary].FaultType = 'CA') AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime);
+                recordCount = DataContext.Table<FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'AB' OR [FaultSummary].FaultType = 'BC' OR [FaultSummary].FaultType = 'CA') AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime);
             }
 
             return recordCount;
@@ -2135,7 +2003,7 @@ namespace PQDashboard
 
             if (ValidatePassedTimeSpanUnit(timeSpanUnit))
             {
-                recordCount = DataContext.Table<Model.FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'ABC') AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime);
+                recordCount = DataContext.Table<FaultSummary>().QueryRecordCountWhere("[FaultSummary].EventID IN (SELECT [Event].ID FROM [Event] WHERE ([Event].StartTime >= {0} AND [Event].StartTime < DATEADD(" + timeSpanUnit + ", " + timeSpanValue + ",{0}))) AND ([FaultSummary].FaultType = 'ABC') AND (FaultSummary.IsSelectedAlgorithm <> 0 AND FaultSummary.IsValid <> 0 AND FaultSummary.IsSuppressed = 0)", startTime);
             }
 
             return recordCount;
@@ -2239,68 +2107,6 @@ namespace PQDashboard
             }
 
             return table;
-        }
-
-        #endregion
-
-        #region [ Data Subscription Operations ]
-
-        // These functions are dependent on subscriptions to data where each client connection can customize the subscriptions, so an instance
-        // of the DataHubSubscriptionClient is created per SignalR DataHub client connection to manage the subscription life-cycles.
-
-        public IEnumerable<MeasurementValue> GetMeasurements()
-        {
-            return m_dataSubscriptionOperations.GetMeasurements();
-        }
-
-        public IEnumerable<DeviceDetail> GetDeviceDetails()
-        {
-            return m_dataSubscriptionOperations.GetDeviceDetails();
-        }
-
-        public IEnumerable<MeasurementDetail> GetMeasurementDetails()
-        {
-            return m_dataSubscriptionOperations.GetMeasurementDetails();
-        }
-
-        public IEnumerable<PhasorDetail> GetPhasorDetails()
-        {
-            return m_dataSubscriptionOperations.GetPhasorDetails();
-        }
-
-        public IEnumerable<SchemaVersion> GetSchemaVersion()
-        {
-            return m_dataSubscriptionOperations.GetSchemaVersion();
-        }
-
-        public IEnumerable<MeasurementValue> GetStats()
-        {
-            return m_dataSubscriptionOperations.GetStats();
-        }
-
-        public IEnumerable<StatusLight> GetLights()
-        {
-            return m_dataSubscriptionOperations.GetLights();
-        }
-
-        public void InitializeSubscriptions()
-        {
-            m_dataSubscriptionOperations.InitializeSubscriptions();
-        }
-
-        public void TerminateSubscriptions()
-        {
-            m_dataSubscriptionOperations.TerminateSubscriptions();
-        }
-
-        public void UpdateFilters(string filterExpression)
-        {
-            m_dataSubscriptionOperations.UpdateFilters(filterExpression);
-        }
-
-        public void StatSubscribe(string filterExpression)
-        {
-            m_dataSubscriptionOperations.StatSubscribe(filterExpression);
         }
 
         #endregion

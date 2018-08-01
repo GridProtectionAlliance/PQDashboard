@@ -30,6 +30,7 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Web;
 using GSF.Web.Model;
+using openXDA.Model;
 using Path = System.Web.VirtualPathUtility;
 
 namespace PQDashboard.Model
@@ -148,70 +149,6 @@ namespace PQDashboard.Model
             }
         }
 
-        /// <summary>
-        /// Renders client-side Javascript function for looking up value list values based on key.
-        /// </summary>
-        /// <param name="groupName">Value list group name as defined in ValueListGroup table.</param>
-        /// <param name="valueListName">Name of associative array, defaults to <paramref name="groupName"/> + Values.</param>
-        /// <param name="lookupFunctionName">Name of lookup function, defaults to lookup + <paramref name="groupName"/>.ToTitleCase() + Value.</param>
-        /// <returns>Client-side Javascript lookup function.</returns>
-        public string RenderValueListClientLookupFunction(string groupName, string valueListName = null, string lookupFunctionName = null)
-        {
-            StringBuilder javascript = new StringBuilder();
-
-            if (string.IsNullOrWhiteSpace(valueListName))
-                valueListName = $"{groupName}Values";
-
-            if (string.IsNullOrWhiteSpace(lookupFunctionName))
-                lookupFunctionName = $"lookup{groupName.ToTitleCase()}Value";
-
-            // Do some minimal validation on identifier names
-            valueListName = valueListName.RemoveWhiteSpace().RemoveControlCharacters();
-            lookupFunctionName = lookupFunctionName.RemoveWhiteSpace().RemoveControlCharacters();
-
-            javascript.AppendLine($"var {valueListName} = [];\r\n");
-
-            int key = DataContext.Connection.ExecuteScalar<int?>("SELECT ID FROM ValueListGroup WHERE Name={0} AND Enabled <> 0", groupName) ?? 0;
-
-            foreach (ValueList valueList in DataContext.Table<ValueList>().QueryRecords("SortOrder", new RecordRestriction("GroupID = {0} AND Enabled <> 0 AND Hidden = 0", key)))
-            {
-                javascript.AppendLine($"        {valueListName}[{valueList.Key}] = \"{valueList.Text.JavaScriptEncode()}\";");
-            }
-
-            javascript.AppendLine($"\r\n        function {lookupFunctionName}(value) {{");
-            javascript.AppendLine($"            return {valueListName}[value];");
-            javascript.AppendLine("        }");
-
-            return javascript.ToString();
-        }
-
-        /// <summary>
-        /// Generates template based select field based on reflected modeled table field attributes with values derived from ValueList table.
-        /// </summary>
-        /// <typeparam name="T">Modeled table for select field.</typeparam>
-        /// <param name="groupName">Value list group name as defined in ValueListGroup table.</param>
-        /// <param name="fieldName">Field name for value of select field.</param>
-        /// <param name="optionLabelFieldName">Field name for label of option data, defaults to "Text"</param>
-        /// <param name="optionValueFieldName">Field name for ID of option data, defaults to "Key".</param>
-        /// <param name="optionSortFieldName">Field name for sort order of option data, defaults to "SortOrder"</param>
-        /// <param name="fieldLabel">Label name for select field, pulls from <see cref="LabelAttribute"/> if defined, otherwise defaults to <paramref name="fieldName"/>.</param>
-        /// <param name="fieldID">ID to use for select field; defaults to select + <paramref name="fieldName"/>.</param>
-        /// <param name="groupDataBinding">Data-bind operations to apply to outer form-group div, if any.</param>
-        /// <param name="labelDataBinding">Data-bind operations to apply to label, if any.</param>
-        /// <param name="customDataBinding">Extra custom data-binding operations to apply to field, if any.</param>
-        /// <param name="dependencyFieldName">Defines default "enabled" subordinate data-bindings based a single boolean field, e.g., a check-box.</param>
-        /// <param name="optionDataBinding">Data-bind operations to apply to each option value, if any.</param>
-        /// <param name="toolTip">Tool tip text to apply to field, if any.</param>
-        /// <param name="initialFocus">Use field for initial focus.</param>
-        /// <returns>Generated HTML for new text field based on modeled table field attributes.</returns>
-        public string AddValueListSelectField<T>(string fieldName, string groupName, string optionLabelFieldName = "Text", string optionValueFieldName = "Key", string optionSortFieldName = "SortOrder", string fieldLabel = null, string fieldID = null, string groupDataBinding = null, string labelDataBinding = null, string customDataBinding = null, string dependencyFieldName = null, string optionDataBinding = null, string toolTip = null, bool initialFocus = false) where T : class, new()
-        {
-            int key = DataContext.Connection.ExecuteScalar<int?>("SELECT ID FROM ValueListGroup WHERE Name={0} AND Enabled <> 0", groupName) ?? 0;
-
-            RecordRestriction restriction = new RecordRestriction("GroupID = {0} AND Enabled <> 0 AND Hidden = 0", key);
-
-            return DataContext.AddSelectField<T, ValueList>(fieldName, optionValueFieldName, optionLabelFieldName, optionSortFieldName, fieldLabel, fieldID, groupDataBinding, labelDataBinding, null, customDataBinding, dependencyFieldName, optionDataBinding, toolTip, initialFocus, restriction);
-        }
 
         /// <summary>
         /// Renders client-side configuration script for paged view model.

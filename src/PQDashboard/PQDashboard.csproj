@@ -259,14 +259,10 @@
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
-    <Compile Include="Controllers\SecurityController.cs" />
-    <Compile Include="Controllers\SettingsController.cs" />
-    <Compile Include="Controllers\SystemController.cs" />
     <Compile Include="DataHub.cs" />
-    <Compile Include="DataSubscriptionHubClient.cs" />
-    <Compile Include="DataSubscriptionOperations.cs" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -368,49 +364,12 @@
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Compile Include="Model\AppModel.cs" />
-    <Compile Include="Model\Channel.cs" />
-    <Compile Include="Model\ContourClasses.cs" />
-    <Compile Include="Model\DashSettings.cs" />
-    <Compile Include="Model\DataFile.cs" />
-    <Compile Include="Model\DeviceDetail.cs" />
-    <Compile Include="Model\DeviceFilter.cs" />
-    <Compile Include="Model\Disturbance.cs" />
-    <Compile Include="Model\DisturbanceSeverity.cs" />
-    <Compile Include="Model\FaultNote.cs" />
-    <Compile Include="Model\FaultSummary.cs" />
-    <Compile Include="Model\FileGroup.cs" />
-    <Compile Include="Model\GlobalSettings.cs" />
-    <Compile Include="Model\Line.cs" />
-    <Compile Include="Model\MeasurementDetail.cs" />
-    <Compile Include="Model\MeasurementValue.cs" />
-    <Compile Include="Model\MeterActivity.cs" />
-    <Compile Include="Model\MeterGroup.cs" />
-    <Compile Include="Model\MeterID.cs" />
-    <Compile Include="Model\MeterLocationsEventView.cs" />
-    <Compile Include="Model\Page.cs" />
-    <Compile Include="Model\PhasorDetail.cs" />
-    <Compile Include="Model\SavedViews.cs" />
-    <Compile Include="Model\SchemaVersion.cs" />
-    <Compile Include="Model\Settings.cs" />
-    <Compile Include="Model\StatusLight.cs" />
-    <Compile Include="Model\TrendingData.cs" />
-    <Compile Include="Model\ValueList.cs" />
-    <Compile Include="Model\ValueListGroup.cs" />
-    <Content Include="Images\ConfigImages\configure.png" />
-    <Content Include="Images\ConfigImages\contactUs.png" />
-    <Content Include="Images\ConfigImages\doc.png" />
-    <Content Include="Images\ConfigImages\documentation.png" />
-    <Content Include="Images\ConfigImages\help.png" />
-    <Content Include="Images\ConfigImages\lock.png" />
-    <Content Include="Images\ConfigImages\qmark.png" />
-    <Content Include="Images\ConfigImages\tools.png" />
     <Content Include="Images\PQI.png" />
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Compile Include="Model\WorkbenchVoltageCurveView.cs" />
     <Content Include="PQI.aspx.cs">
       <DependentUpon>PQI.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -431,9 +390,6 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
-    <Content Include="Scripts\jquery-3.3.1.min.js" />
-    <Content Include="Scripts\jquery-3.3.1.slim.js" />
-    <Content Include="Scripts\jquery-3.3.1.slim.min.js" />
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\TSX\AccumulatedPoints.js" />
     <Content Include="Scripts\TSX\Legend.js" />
@@ -449,6 +405,8 @@
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
     <Content Include="webpack.config.js" />
+    <Content Include="Views\Main\MeterActivity.cshtml" />
+    <Content Include="Views\Email\UpdateSettings.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
@@ -606,32 +564,17 @@
     <Content Include="Scripts\flot\LICENSE.txt" />
     <Content Include="Scripts\heatmap.js" />
     <Content Include="Scripts\ie11-compatibility-functions.js" />
-    <Content Include="Scripts\jquery-2.1.1.js" />
-    <Content Include="Scripts\jquery-2.1.3.min.js" />
-    <Content Include="Scripts\jquery-2.2.3.js" />
     <Content Include="Scripts\jquery-ui.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
     <Content Include="Scripts\jquery.jspanel-compiled.js" />
     <Content Include="Scripts\jquery.jspanel.js" />
-    <Content Include="Scripts\jquery.jspanel.min.js" />
-    <Content Include="Scripts\jquery.signalR-2.2.0.js" />
-    <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
-    <Content Include="Scripts\jquery-3.3.1.slim.min.map" />
-    <Content Include="Scripts\jquery-3.3.1.min.map" />
+    <Content Include="Scripts\jquery.signalR.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.sparkline.js" />
     <Content Include="Scripts\jquery.validate.js" />
-    <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\jstorage.js" />
     <Content Include="Scripts\keydragzoom.js" />
-    <Content Include="Scripts\knockout-3.4.0.debug.js" />
-    <Content Include="Scripts\knockout-3.4.0.js" />
-    <Content Include="Scripts\knockout.mapping-latest.debug.js" />
-    <Content Include="Scripts\knockout.mapping-latest.js" />
-    <Content Include="Scripts\knockout.validation.js" />
-    <Content Include="Scripts\knockout.validation.min.js" />
     <Content Include="Scripts\leaflet-heatmap.js" />
     <Content Include="Scripts\Leaflet\images\layers-2x.png" />
     <Content Include="Scripts\Leaflet\images\layers.png" />
@@ -644,7 +587,6 @@
     <Content Include="Scripts\Leaflet\leaflet.js" />
     <Content Include="Scripts\Leaflet\leaflet1.0.css" />
     <Content Include="Scripts\Leaflet\leaflet1.0.js" />
-    <Content Include="Scripts\MeterActivity.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
@@ -1286,20 +1228,11 @@
     <Content Include="Views\Main\Documents.cshtml" />
     <Content Include="Views\Main\Help.cshtml" />
     <Content Include="Views\Main\Home.cshtml" />
-    <Content Include="Views\Security\Groups.cshtml" />
-    <Content Include="Views\Security\Users.cshtml" />
-    <Content Include="Views\Settings\Home.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\PagedViewModel.cshtml" />
     <Content Include="Views\Shared\SecurityError.cshtml" />
     <Content Include="Views\Shared\_ErrorLayout.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\System\Home.cshtml" />
-    <Content Include="Views\System\MenuItems.cshtml" />
-    <Content Include="Views\System\Menus.cshtml" />
-    <Content Include="Views\System\Pages.cshtml" />
-    <Content Include="Views\System\ValueListGroups.cshtml" />
-    <Content Include="Views\System\ValueListItems.cshtml" />
     <Content Include="Views\Main\GraphMeasurements.cshtml" />
     <Content Include="Views\Main\OpenSEEold.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
@@ -1313,14 +1246,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Images\playericons\" />
-    <Folder Include="Images\StatusLights\" />
     <Folder Include="KML\" />
-    <Folder Include="Views\Home\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />
-    <Content Include="Scripts\knockout.validation.min.js.map" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

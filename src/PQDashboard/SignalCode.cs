@@ -533,10 +533,9 @@ namespace PQDashboard
         /// </summary>
         /// <param name="eventData"></param>
         /// <returns></returns>
-        private DataGroup ToDataSeries(EventData eventData)
+        private DataGroup ToDataSeries(Meter meter, EventData eventData)
         {
-            DataGroup dataGroup = new DataGroup();
-            dataGroup.FromData(eventData.FrequencyDomainData);
+            DataGroup dataGroup = ToDataGroup(meter, eventData.TimeDomainData);
             return dataGroup;
         }
 
@@ -589,7 +588,7 @@ namespace PQDashboard
                 Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", theevent.LineID);
 
                 cycleDataRows = (new TableOperations<EventData>(connection)).QueryRecordsWhere("ID = {0}", theevent.EventData.ID).ToList();
-                cycleCurves = cycleDataRows.Select(ToDataSeries).ToList();
+                cycleCurves = cycleDataRows.Select(row => ToDataSeries(themeter, row)).ToList();
 
                 //RMS, Phase angle, Peak, and Error
                 //VAN, VBN, VCN, IAN, IBN, ICN, IR
