@@ -1,0 +1,174 @@
+﻿@*//******************************************************************************************************
+//  UpdateSettings.cshtml - Gbtc
+//
+//  Copyright © 2018, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  07/31/2018 - Billy Ernest
+//       Generated original version of source code.
+//
+//*******************************************************************************************************@
+@using PQDashboard.Model
+@using GSF.Web.Model
+@using openXDA.Model
+
+@model AppModel
+@{
+    Layout = "";
+    DataContext dataContext = Model.DataContext;
+    ConfirmableUserAccount confirmableUserAccount;
+    Dictionary<string, string> carrierList = new Dictionary<string, string>() {
+        { "Alltel", "message.alltelwireless.com"},
+        { "AT&T", "txt.att.net"},
+        { "Boost Mobile", "myboostmobile.com"},
+        { "Cricket Wireless", "mms.cricketwireless.net"},
+        { "Sprint", "messaging.sprintpcs.com"},
+        { "T-Mobile", "tmomail.net"},
+        { "U.S. Cellular", "email.uscc.net"},
+        { "Verizon", "vtext.com"},
+        { "Virgin Mobile", "vmobl.com"},
+        { "Republic Wireless", "text.republicwireless.com"}
+    };
+
+    if (ViewBag.account == null)
+    {
+        ViewBag.account = new ConfirmableUserAccount();
+        ViewBag.account.Name = "";
+        ViewBag.account.Email = "";
+        ViewBag.account.Phone = "@";
+    }
+
+    Dictionary<string, string> regions = dataContext.Table<AssetGroup>().QueryRecords().ToDictionary(ag => ag.Name, ag => ag.ID.ToString());
+    Dictionary<string, string> jobs = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE SMS <> 1 AND ID IN (SELECT EmailTypeID FROM EventEmailParameters))").ToDictionary(j => j.Name, j => j.ID.ToString());
+    Dictionary<string, string> sms = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE SMS = 1 AND ID IN (SELECT EmailTypeID FROM EventEmailParameters))").ToDictionary(j => j.Name, j => j.ID.ToString());
+    UserAccountEmailType jobRecord = dataContext.Table<UserAccountEmailType>().QueryRecordWhere("UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0)", ViewBag.account.ID);
+    UserAccountEmailType smsRecord = dataContext.Table<UserAccountEmailType>().QueryRecordWhere("UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0)", ViewBag.account.ID);
+    UserAccountAssetGroup regionRecord = dataContext.Table<UserAccountAssetGroup>().QueryRecordWhere("UserAccountID = {0}", ViewBag.account.ID);
+}
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Update Email Settings</title>
+    @Styles.Render("~/Content/bootstrap/bootstrap")
+    @Scripts.Render("~/Scripts/jquery")
+    @Scripts.Render("~/Scripts/bootstrap")
+</head>
+
+<body>
+    <div class="container">
+        @if (ViewBag.isRegistered) {
+        <h1>Update openXDA Email Settings - @ViewBag.username</h1>
+        }
+        else{ 
+        <h1>Sign Up for openXDA Emails - @ViewBag.username</h1>
+        }
+        <hr />
+        <div class="well">
+            <form action="./HandleUpdateSettingForm" method="post">
+                @AntiForgery.GetHtml()
+                <p>This page is used to sign up for and manage the self subscription email service.  Once you submit your request
+                you will need to verify your email address and, if applicable, your phone number.  You will begin recieving emails and 
+                messages from openXDA once you have been approved by the system administrator.  The information you recieve should not
+                be shared or forwarded to anyone without permission to prevent TVA rules and guidelines from being broken.</p>
+                
+                <p>You only need to provide a cell phone number if you wish to recieve SMS messages.  Selecting "None" for the email template field will unsubscribe you from emails.
+                Selecting "None" for the SMS template field will unsubscribe you from sms messages.  Hitting the unsubscribe button
+                will remove you completely from the system.</p>
+                <hr />
+                @if(!ViewBag.account.EmailConfirmed || (!ViewBag.account.PhoneConfirmed && smsRecord != null))
+                {
+                <div class="well" >
+                    <p style="color:red; font:bold">
+                        Unconfirmed emails and sms numbers will not be able to recieve messages until they have 
+                        been confirmed.  A confirmation number has been sent to your email address and sms number and 
+                        can be enter by following the appropriate verify link.
+                    </p>
+                    <ul>
+                        @if (!ViewBag.account.EmailConfirmed)
+                        {
+                        <li><span style="color:red; font-weight:bold">Email Unverified...&nbsp;&nbsp;&nbsp;</span><a href="./Verify/email">Verify</a></li>
+                        }
+                        @if (!ViewBag.account.PhoneConfirmed && smsRecord != null)
+                        {
+                        <li><span style="color:red; font-weight:bold">SMS Unverified...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a href="./Verify/sms">Verify</a></li>
+                        }
+                    </ul>                  
+                </div>
+                }
+                <input name="username" value="@ViewBag.username" hidden/>
+                <input name="sid" value="@ViewBag.usersid" hidden/>
+                <div class="form-group">
+                    <label for="email">Email address:</label>
+                    <input type="email" class="form-control" name="email" value="@ViewBag.account.Email">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Cell Number: </label>
+                    <input type="number" class="form-control" name="phone" value="@ViewBag.account.Phone.Split('@')[0]">
+                </div>
+                <div class="form-group">
+                    <label for="carrier">Cell Carrier:</label>
+                    <select class="form-control" name="carrier">
+                        @foreach (KeyValuePair<string, string> kvp in carrierList) {
+                        <option value="@kvp.Value" @(kvp.Value == ViewBag.account.Phone.Split('@')[1]? "selected": null)>@kvp.Key</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="region">Region:</label>
+                    <select class="form-control" name="region">
+                        @foreach (KeyValuePair<string, string> kvp in regions) {
+                        <option value="@kvp.Value" @(kvp.Value == (regionRecord?.AssetGroupID.ToString() ?? "-1")? "selected": null)>@kvp.Key</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="job">Email Template:</label>
+                    <select class="form-control" name="job">
+                        <option value="0">None</option>
+                        @foreach (KeyValuePair<string, string> kvp in jobs) {
+                        <option value="@kvp.Value" @(kvp.Value == (jobRecord?.EmailTypeID.ToString() ?? "-1")? "selected": null)>@kvp.Key</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sms">SMS Template:</label>
+                    <select class="form-control" name="sms">
+                        <option value="0">None</option>
+                        @foreach (KeyValuePair<string, string> kvp in sms) {
+                        <option value="@kvp.Value" @(kvp.Value == (smsRecord?.EmailTypeID.ToString() ?? "-1")? "selected": null)>@kvp.Key</option>
+                        }
+                    </select>
+                </div>
+                @if (!ViewBag.isRegistered)
+                {
+                <input type="submit" name="submit" value="Sign Up" class="btn btn-default"/>
+                }
+                @if (ViewBag.isRegistered) {
+                <input type="submit" name="submit" value="Update" class="btn btn-default"/>
+
+                <input type="submit" name="submit" value="Unsubscribe" class="btn btn-default"/>
+                }
+
+            </form>        
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    $('.container').height(window.innerHeight);
+</script>

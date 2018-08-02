@@ -407,6 +407,8 @@
     <Content Include="webpack.config.js" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
+    <Content Include="Views\Email\Message.cshtml" />
+    <Content Include="Views\Email\Verify.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
