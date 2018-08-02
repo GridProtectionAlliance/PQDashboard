@@ -3719,14 +3719,14 @@ function loadLeafletMap(theDiv) {
             loadDoc("/KML/" + kmlData.Value, function (data) {
                 if (data == null) return;
 
-                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent) {
+                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().text()) {
                     var legend = L.control({ position: 'topright' });
 
                     legend.onAdd = function (map) {
 
                         var div = L.DomUtil.create('div', 'info legend');
 
-                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent;
+                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().text();
 
                         return div;
                     };
