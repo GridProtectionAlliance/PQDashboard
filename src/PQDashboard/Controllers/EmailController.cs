@@ -41,6 +41,7 @@ using FaultData.DataAnalysis;
 using GSF;
 using GSF.Data;
 using GSF.Identity;
+using GSF.Security;
 using GSF.Security.Model;
 using GSF.Web.Model;
 using GSF.Web.Security;
@@ -240,8 +241,10 @@ namespace PQDashboard.Controllers
 
         #region [ Helper Functions ]
         private void HandleSignUp(UpdateSettingModel formData) {
-
-            // Create new user
+            //UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
+            //userInfo.Initialize();
+            //// Create new user
+            //m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, Phone, FirstName, LastName) VALUES ({0}, {1}, {2}, {3}, {4})", formData.sid, formData.email, formData.phone + "@" + formData.carrier, userInfo.FirstName, userInfo.LastName);
             m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, Phone) VALUES ({0}, {1}, {2})", formData.sid, formData.email, formData.phone + "@" + formData.carrier);
 
             ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", formData.sid);
@@ -292,7 +295,7 @@ namespace PQDashboard.Controllers
             // generate code for email confirmation
             Random generator = new Random();
             string code = generator.Next(0, 999999).ToString("D6");
-            s_memoryCache.Add("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+            s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
             SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email.");
 
             // generate code for sms confirmation
@@ -300,7 +303,7 @@ namespace PQDashboard.Controllers
             {
                 generator = new Random();
                 code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Add("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
                 SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms.");
             }
 
@@ -338,7 +341,7 @@ namespace PQDashboard.Controllers
                 // generate code for email confirmation
                 Random generator = new Random();
                 string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Add("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
                 SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email");
 
             }
@@ -349,7 +352,7 @@ namespace PQDashboard.Controllers
                 user.PhoneConfirmed = false;
                 Random generator = new Random();
                 string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Add("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
                 SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
 
             }
@@ -422,7 +425,7 @@ namespace PQDashboard.Controllers
                     return RedirectToAction("Verify", new { id = formData.type });
                 }
                 m_dataContext.Connection.ExecuteNonQuery($"UPDATE UserAccount Set {(formData.type == "email" ? "EmailConfirmed" : "PhoneConfirmed")} = 1 WHERE ID = '{user.ID}'");
-
+                s_memoryCache.Remove(formData.type + user.ID.ToString());
             }
             else
             {
@@ -443,7 +446,7 @@ namespace PQDashboard.Controllers
                 // generate code for email confirmation
                 Random generator = new Random();
                 string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Add("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
                 SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email");
 
             }
@@ -453,7 +456,7 @@ namespace PQDashboard.Controllers
             {
                 Random generator = new Random();
                 string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Add("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
                 SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
             }
 

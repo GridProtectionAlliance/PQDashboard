@@ -90,7 +90,7 @@
                 Selecting "None" for the SMS template field will unsubscribe you from sms messages.  Hitting the unsubscribe button
                 will remove you completely from the system.</p>
                 <hr />
-                @if(!ViewBag.account.EmailConfirmed || (!ViewBag.account.PhoneConfirmed && smsRecord != null))
+                @if((!ViewBag.account.EmailConfirmed  && jobRecord != null)|| (!ViewBag.account.PhoneConfirmed && smsRecord != null))
                 {
                 <div class="well" >
                     <p style="color:red; font:bold">
@@ -99,7 +99,7 @@
                         can be enter by following the appropriate verify link.
                     </p>
                     <ul>
-                        @if (!ViewBag.account.EmailConfirmed)
+                        @if (!ViewBag.account.EmailConfirmed && jobRecord != null)
                         {
                         <li><span style="color:red; font-weight:bold">Email Unverified...&nbsp;&nbsp;&nbsp;</span><a href="./Verify/email">Verify</a></li>
                         }
