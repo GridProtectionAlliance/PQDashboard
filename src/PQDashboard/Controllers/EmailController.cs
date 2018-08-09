@@ -21,33 +21,24 @@
 //
 //******************************************************************************************************
 
-
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Mail;
 using System.Runtime.Caching;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Web.Mvc;
-using FaultData.DataAnalysis;
-using GSF;
 using GSF.Data;
+using GSF.Data.Model;
 using GSF.Identity;
 using GSF.Security;
-using GSF.Security.Model;
 using GSF.Web.Model;
-using GSF.Web.Security;
-using Newtonsoft.Json.Linq;
 using openXDA.Model;
 using PQDashboard.Model;
+using Random = GSF.Security.Cryptography.Random;
 
 namespace PQDashboard.Controllers
 {
@@ -104,15 +95,6 @@ namespace PQDashboard.Controllers
 
         #endregion
 
-        #region [ Static ]
-        private static MemoryCache s_memoryCache;
-
-        static EmailController()
-        {
-            s_memoryCache = new MemoryCache("EmailController");
-        }
-        #endregion
-
         #region [ Methods ]
 
         /// <summary>
@@ -137,20 +119,21 @@ namespace PQDashboard.Controllers
         }
 
         #region [ View Actions ]
+
         public ActionResult UpdateSettings()
         {
             m_appModel.ConfigureView(Url.RequestContext, "UpdateSettings", ViewBag);
 
             try
             {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.username = HttpContext.User.Identity.Name;
                 ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
                 ViewBag.account = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", ViewBag.usersid);
                 ViewBag.isRegistered = ViewBag.account != null;
             }
-            catch (Exception ex)
+            catch
             {
-                ViewBag.username = "External";
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "This may be due to an error determining your user identity.");
             }
 
             return View();
@@ -163,7 +146,7 @@ namespace PQDashboard.Controllers
             try
             {
                 ViewBag.Type = id;
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.username = HttpContext.User.Identity.Name;
                 ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
                 ViewBag.account = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", ViewBag.usersid);
                 ViewBag.ExpiredCode = TempData["ExpiredCode"];
@@ -171,9 +154,9 @@ namespace PQDashboard.Controllers
                 TempData["ExpiredCode"] = null;
                 TempData["BadCode"] = null;
             }
-            catch (Exception ex)
+            catch
             {
-                ViewBag.username = "External";
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "This may be due to an error determining your user identity.");
             }
 
             return View();
@@ -182,15 +165,21 @@ namespace PQDashboard.Controllers
         #endregion
 
         #region [ Post Actions ]
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult HandleUpdateSettingForm(UpdateSettingModel formData) {
+        public ActionResult HandleUpdateSettingForm(UpdateSettingModel formData)
+        {
+            string username = HttpContext.User.Identity.Name;
+            string usersid = UserInfo.UserNameToSID(username);
+
+            if (username != formData.username || usersid != formData.sid)
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
             if (formData.submit == "Sign Up")
                 HandleSignUp(formData);
             else if (formData.submit == "Update")
                 HandleUpdate(formData);
-            else if (formData.submit == "Unsubscribe")
-                HandleUnsubscribe(formData);
 
             return RedirectToAction("UpdateSettings");
         }
@@ -199,7 +188,13 @@ namespace PQDashboard.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult VerifyCode(VerifyCodeModel formData)
         {
+            string username = HttpContext.User.Identity.Name;
+            string usersid = UserInfo.UserNameToSID(username);
             ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", formData.accountid);
+
+            if (username != user.Name && usersid != user.Name)
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
             if (formData.submit == "Submit")
                 return HandleVerifySubmit(formData, user);
             else if (formData.submit == "Resend Code")
@@ -209,13 +204,18 @@ namespace PQDashboard.Controllers
             return View("Message");
         }
 
-
         #endregion
 
         #region [ Get Actions ]
+
         [HttpGet]
         public ActionResult ApproveUser(string id)
         {
+            ActionResult adminValidationResult = ValidateAdminRequest();
+
+            if (adminValidationResult != null)
+                return adminValidationResult;
+
             ConfirmableUserAccount confirmableUserAccount = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", Guid.Parse(id));
             m_dataContext.Connection.ExecuteNonQuery("UPDATE UserAccount SET Approved = 1 WHERE ID = {0}", confirmableUserAccount.ID);
 
@@ -229,9 +229,14 @@ namespace PQDashboard.Controllers
         [HttpGet]
         public ActionResult DenyUser(string id)
         {
+            ActionResult adminValidationResult = ValidateAdminRequest();
+
+            if (adminValidationResult != null)
+                return adminValidationResult;
+
             ConfirmableUserAccount confirmableUserAccount = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", Guid.Parse(id));
             string accountName = UserInfo.SIDToAccountName(confirmableUserAccount.Name);
-            CascadeDelete("UserAccount", $"ID='{id}'");
+            CascadeDelete("UserAccount", $"ID='{id.Replace("'", "''")}'");
             ViewBag.Message = accountName + " has been denied.";
             SendEmail(confirmableUserAccount.Email, "openXDA Email Service has been denied.", "openXDA Email Service has been denied.");
             return View("Message");
@@ -240,190 +245,203 @@ namespace PQDashboard.Controllers
         #endregion
 
         #region [ Helper Functions ]
-        private void HandleSignUp(UpdateSettingModel formData) {
+
+        private void HandleSignUp(UpdateSettingModel formData)
+        {
             //UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
             //userInfo.Initialize();
             //// Create new user
             //m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, Phone, FirstName, LastName) VALUES ({0}, {1}, {2}, {3}, {4})", formData.sid, formData.email, formData.phone + "@" + formData.carrier, userInfo.FirstName, userInfo.LastName);
-            m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, Phone) VALUES ({0}, {1}, {2})", formData.sid, formData.email, formData.phone + "@" + formData.carrier);
 
+            m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name) VALUES ({0})", formData.sid);
+
+            HandleUpdate(formData);
+
+            // email system admin for approval
             ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", formData.sid);
-
-            // link new user to correct asset group
-            UserAccountAssetGroup userAccountAssetGroup = m_dataContext.Table<UserAccountAssetGroup>().QueryRecordWhere("UserAccountID = {0}", user.ID);
-
-            if (userAccountAssetGroup == null) {
-
-                userAccountAssetGroup.UserAccountID = user.ID;
-                userAccountAssetGroup.AssetGroupID = formData.region;
-                userAccountAssetGroup.Dashboard = false;
-                userAccountAssetGroup.Email = true;
-                
-                m_dataContext.Table<UserAccountAssetGroup>().AddNewRecord(userAccountAssetGroup);
-            }
-            else
-            {
-                userAccountAssetGroup.AssetGroupID = formData.region;
-                userAccountAssetGroup.Email = true;
-
-                m_dataContext.Table<UserAccountAssetGroup>().UpdateRecord(userAccountAssetGroup);
-            }
-
-            // link new user to email type for the emails
-            EmailType emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("EmailCategoryID = (SELECT ID FROM EmailCategory WHERE Name = 'Event') AND XSLTemplateID = {0}", formData.job);
-            UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
-
-            if (emailType != null) {
-                userAccountEmailType.UserAccountID = user.ID;
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
-            }
-
-            // link new user to email type for the sms
-            emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("EmailCategoryID = (SELECT ID FROM EmailCategory WHERE Name = 'Event') AND XSLTemplateID = {0}", formData.sms);
-            userAccountEmailType = new UserAccountEmailType();
-
-            if (emailType != null)
-            {
-                userAccountEmailType.UserAccountID = user.ID;
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
-            }
-
+            AssetGroup assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordWhere("ID = {0}", formData.region);
+            EmailType emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("ID = {0}", formData.job);
+            XSLTemplate xslTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordWhere("ID = {0}", emailType?.XSLTemplateID ?? 0);
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
+            string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.ApprovalAddress'");
+            string templateName = xslTemplate?.Name ?? "None";
 
-            // generate code for email confirmation
-            Random generator = new Random();
-            string code = generator.Next(0, 999999).ToString("D6");
-            s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-            SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email.");
-
-            // generate code for sms confirmation
-            if (!string.IsNullOrEmpty(user.Phone))
-            {
-                generator = new Random();
-                code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms.");
-            }
-
-            // email system admin for approval 
-            string recipient = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.ApprovalAddress'");
-            AssetGroup assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordWhere("ID = {0}", userAccountAssetGroup.AssetGroupID);
-            XSLTemplate xSLTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordWhere("ID = {0}", formData.job);
+            if (formData.job == -1)
+                templateName = "All emails";
 
             string body = @"
                 <html>
-                    <p>"+ formData.username + @" requests access to the openXDA Event Email Service. </p>
+                    <p>" + formData.username + @" requests access to the openXDA Event Email Service.</p>
                     <table>
                         <tr><td>Email:</td><td>" + formData.email + @"</td></tr>
                         <tr><td>Phone:</td><td>" + formData.phone + @"</td></tr>
                         <tr><td>Region:</td><td>" + assetGroup.Name + @"</td></tr>
-                        <tr><td>Job:</td><td>" + xSLTemplate.Name + @"</td></tr>
+                        <tr><td>Job:</td><td>" + templateName + @"</td></tr>
                     </table>
                     <a href='" + url + @"/email/approveuser/" + user.ID + @"'>Approve</a>
                     <a href='" + url + @"/email/denyuser/" + user.ID + @"'>Deny</a>
-
                 </html>
             ";
-            SendEmail(recipient, formData.username + " requests access to the openXDA Event Email Service.", body);
+
+            if (!string.IsNullOrEmpty(admin))
+                SendEmail(admin, formData.username + " requests access to the openXDA Event Email Service.", body);
         }
 
-        private void HandleUpdate(UpdateSettingModel formData) {
-            ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", formData.sid);
+        private void HandleUpdate(UpdateSettingModel formData)
+        {
+            TableOperations<ConfirmableUserAccount> userAccountTable = m_dataContext.Table<ConfirmableUserAccount>();
+            ConfirmableUserAccount userAccount = userAccountTable.QueryRecordWhere("Name = {0}", formData.sid);
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
 
             // if email changed force reconfirmation
-            if (user.Email != formData.email) {
-                user.Email = formData.email;
-                user.EmailConfirmed = false;
+            if (userAccount.Email != formData.email)
+            {
+                userAccount.Email = formData.email;
+                userAccount.EmailConfirmed = false;
 
-                // generate code for email confirmation
-                Random generator = new Random();
-                string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email");
-
+                if (!string.IsNullOrEmpty(formData.email))
+                {
+                    // generate code for email confirmation
+                    string code = Random.Int32Between(0, 999999).ToString("D6");
+                    s_memoryCache.Set("email" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                    SendEmail(userAccount.Email, "openXDA Event Email Service requries you to confirm your email.", $"From your workstation, input {code} at {url}/email/verify/email");
+                }
             }
 
             // if phone changed force reconfirmation
-            if (user.Phone != formData.phone + "@" + formData.carrier) {
-                user.Phone = formData.phone + "@" + formData.carrier;
-                user.PhoneConfirmed = false;
-                Random generator = new Random();
-                string code = generator.Next(0, 999999).ToString("D6");
-                s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
-
-            }
-
-            m_dataContext.Table<ConfirmableUserAccount>().UpdateRecord(user);
-
-            // update link to asset group
-            UserAccountAssetGroup userAccountAssetGroup = m_dataContext.Table<UserAccountAssetGroup>().QueryRecordWhere("UserAccountID = {0}", user.ID);
-
-            if(userAccountAssetGroup.AssetGroupID != formData.region)
+            if (userAccount.Phone != formData.phone + "@" + formData.carrier)
             {
-                userAccountAssetGroup.AssetGroupID = formData.region;
-                m_dataContext.Table<UserAccountAssetGroup>().UpdateRecord(userAccountAssetGroup);
+                userAccount.Phone = formData.phone;
+                userAccount.PhoneConfirmed = false;
+
+                if (!string.IsNullOrEmpty(formData.phone))
+                {
+                    userAccount.Phone += $"@{formData.carrier}";
+
+                    // generate code for sms confirmation
+                    string code = Random.Int32Between(0, 999999).ToString("D6");
+                    s_memoryCache.Set("sms" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
+                    SendEmail(userAccount.Phone, "openXDA Event Email Service requries you to confirm your sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
+                }
             }
 
+            userAccountTable.UpdateRecord(userAccount);
 
-            // update link to email type for the emails
-            EmailType emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("EmailCategoryID = (SELECT ID FROM EmailCategory WHERE Name = 'Event') AND XSLTemplateID = {0}", formData.job);
-            UserAccountEmailType userAccountEmailType = m_dataContext.Table<UserAccountEmailType>().QueryRecordWhere("EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0) AND UserAccountID = {0}", user.ID);
+            if (formData.region != -1)
+            {
+                // update link to asset group
+                TableOperations<UserAccountAssetGroup> userAccountAssetGroupTable = m_dataContext.Table<UserAccountAssetGroup>();
+                UserAccountAssetGroup userAccountAssetGroup = userAccountAssetGroupTable.QueryRecordWhere("UserAccountID = {0} AND AssetGroupID = {1}", userAccount.ID, formData.region);
 
-            if (formData.job == 0 && userAccountEmailType != null) {
-                m_dataContext.Table<UserAccountEmailType>().DeleteRecord(userAccountEmailType);
-            }
-            else if (userAccountEmailType == null)
-            {
-                userAccountEmailType = new UserAccountEmailType();
-                userAccountEmailType.UserAccountID = user.ID;
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
-            }
-            else if (emailType.ID != userAccountEmailType.EmailTypeID)
-            {
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().UpdateRecord(userAccountEmailType);
+                if (userAccountAssetGroup == null)
+                    userAccountAssetGroup = userAccountAssetGroupTable.QueryRecordWhere("UserAccountID = {0} AND Email <> 0", userAccount.ID);
+
+                if (userAccountAssetGroup == null)
+                    userAccountAssetGroup = new UserAccountAssetGroup();
+
+                if (userAccountAssetGroup.ID == 0)
+                {
+                    userAccountAssetGroup.UserAccountID = userAccount.ID;
+                    userAccountAssetGroup.AssetGroupID = formData.region;
+                    userAccountAssetGroup.Dashboard = false;
+                    userAccountAssetGroup.Email = true;
+                    userAccountAssetGroupTable.AddNewRecord(userAccountAssetGroup);
+                }
+                else if (userAccountAssetGroup.AssetGroupID != formData.region || !userAccountAssetGroup.Email)
+                {
+                    userAccountAssetGroup.AssetGroupID = formData.region;
+                    userAccountAssetGroup.Email = true;
+                    userAccountAssetGroupTable.UpdateRecord(userAccountAssetGroup);
+                }
             }
 
-            // update link to email type for the sns
-            emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("EmailCategoryID = (SELECT ID FROM EmailCategory WHERE Name = 'Event') AND XSLTemplateID = {0}", formData.job);
-            userAccountEmailType = m_dataContext.Table<UserAccountEmailType>().QueryRecordWhere("EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0) AND UserAccountID = {0}", user.ID);
+            // update links between user account and email type
+            TableOperations<EmailType> emailTypeTable = m_dataContext.Table<EmailType>();
+            TableOperations<UserAccountEmailType> userAccountEmailTypeTable = m_dataContext.Table<UserAccountEmailType>();
+            List<UserAccountEmailType> existingUserAccountEmailTypes = userAccountEmailTypeTable.QueryRecordsWhere("UserAccountID = {0}", userAccount.ID).ToList();
+            List<UserAccountEmailType> newUserAccountEmailTypes = new List<UserAccountEmailType>();
+            EmailCategory eventEmailCategory = m_dataContext.Table<EmailCategory>().QueryRecordWhere("Name = 'Event'");
 
-            if (formData.job == 0 && userAccountEmailType != null)
+            if (formData.job != 0)
             {
-                m_dataContext.Table<UserAccountEmailType>().DeleteRecord(userAccountEmailType);
+                RecordRestriction emailTypeRestriction = new RecordRestriction("SMS = 0 AND EmailCategoryID = {0}", eventEmailCategory.ID);
+
+                if (formData.job > 0)
+                    emailTypeRestriction &= new RecordRestriction("ID = {0}", formData.job);
+
+                IEnumerable<EmailType> emailTypes = emailTypeTable.QueryRecords(emailTypeRestriction);
+
+                if (formData.job == -2)
+                {
+                    // No change to existing email subscriptions
+                    List<int> existingEmailTypes = existingUserAccountEmailTypes
+                        .Select(userAccountEmailType => userAccountEmailType.EmailTypeID)
+                        .ToList();
+
+                    emailTypes = emailTypes.Where(emailType => existingEmailTypes.Contains(emailType.ID));
+                }
+
+                foreach (EmailType emailType in emailTypes)
+                {
+                    UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
+                    userAccountEmailType.UserAccountID = userAccount.ID;
+                    userAccountEmailType.EmailTypeID = emailType.ID;
+                    newUserAccountEmailTypes.Add(userAccountEmailType);
+                }
             }
-            else if (formData.job > 0 && userAccountEmailType == null)
+
+            if (formData.sms != 0)
             {
-                userAccountEmailType = new UserAccountEmailType();
-                userAccountEmailType.UserAccountID = user.ID;
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
+                RecordRestriction smsTypeRestriction = new RecordRestriction("SMS <> 0 AND EmailCategoryID = {0}", eventEmailCategory.ID);
+
+                if (formData.sms != -1)
+                    smsTypeRestriction &= new RecordRestriction("ID = {0}", formData.sms);
+
+                IEnumerable<EmailType> smsTypes = emailTypeTable.QueryRecords(smsTypeRestriction);
+
+                if (formData.sms == -2)
+                {
+                    // No change to existing SMS subscriptions
+                    List<int> existingEmailTypes = existingUserAccountEmailTypes
+                        .Select(userAccountEmailType => userAccountEmailType.EmailTypeID)
+                        .ToList();
+
+                    smsTypes = smsTypes.Where(smsType => existingEmailTypes.Contains(smsType.ID));
+                }
+
+                foreach (EmailType smsType in smsTypes)
+                {
+                    UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
+                    userAccountEmailType.UserAccountID = userAccount.ID;
+                    userAccountEmailType.EmailTypeID = smsType.ID;
+                    newUserAccountEmailTypes.Add(userAccountEmailType);
+                }
             }
-            else if (emailType.ID != userAccountEmailType.EmailTypeID)
+
+            for (int i = 0; i < existingUserAccountEmailTypes.Count; i++)
             {
-                userAccountEmailType.EmailTypeID = emailType.ID;
-                m_dataContext.Table<UserAccountEmailType>().UpdateRecord(userAccountEmailType);
+                if (i < newUserAccountEmailTypes.Count)
+                    newUserAccountEmailTypes[i].ID = existingUserAccountEmailTypes[i].ID;
+                else
+                    userAccountEmailTypeTable.DeleteRecord(newUserAccountEmailTypes[i]);
             }
+
+            foreach (UserAccountEmailType userAccountEmailType in newUserAccountEmailTypes)
+                userAccountEmailTypeTable.AddNewOrUpdateRecord(userAccountEmailType);
         }
 
-        private void HandleUnsubscribe(UpdateSettingModel formData) {
-            // cascade delete out all references to user
-            CascadeDelete("UserAccount", $"Name = '{formData.sid}'");
-        }
-
-        private ActionResult HandleVerifySubmit(VerifyCodeModel formData, ConfirmableUserAccount user) {
-            if (s_memoryCache.Contains(formData.type + user.ID.ToString())){
+        private ActionResult HandleVerifySubmit(VerifyCodeModel formData, ConfirmableUserAccount user)
+        {
+            if (s_memoryCache.Contains(formData.type + user.ID.ToString()))
+            {
                 string code = s_memoryCache.Get(formData.type + user.ID.ToString()).ToString();
-                if (code != formData.code.ToString())
+
+                if (code != formData.code.ToString("D6"))
                 {
                     TempData["BadCode"] = true;
                     return RedirectToAction("Verify", new { id = formData.type });
                 }
+
                 m_dataContext.Connection.ExecuteNonQuery($"UPDATE UserAccount Set {(formData.type == "email" ? "EmailConfirmed" : "PhoneConfirmed")} = 1 WHERE ID = '{user.ID}'");
                 s_memoryCache.Remove(formData.type + user.ID.ToString());
             }
@@ -444,35 +462,48 @@ namespace PQDashboard.Controllers
             if (formData.type == "email")
             {
                 // generate code for email confirmation
-                Random generator = new Random();
-                string code = generator.Next(0, 999999).ToString("D6");
+                string code = Random.Int32Between(0, 999999).ToString("D6");
                 s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Email, "openXDA Event Email Service requries you to confirm you email.", $"From your workstation, input {code} at {url}/email/verify/email");
-
+                SendEmail(user.Email, "openXDA Event Email Service requries you to confirm your email.", $"From your workstation, input {code} at {url}/email/verify/email");
             }
 
             // if phone changed force reconfirmation
             if (formData.type == "sms")
             {
-                Random generator = new Random();
-                string code = generator.Next(0, 999999).ToString("D6");
+                string code = Random.Int32Between(0, 999999).ToString("D6");
                 s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm you sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
+                SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm your sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
             }
 
             return RedirectToAction("Verify", new { id = formData.type });
         }
 
+        private ActionResult ValidateAdminRequest()
+        {
+            string username = HttpContext.User.Identity.Name;
+            ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
+            securityProvider.PassthroughPrincipal = HttpContext.User;
+
+            if (!securityProvider.Authenticate())
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
+            SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
+            SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+
+            if (!approverPrincipal.IsInRole("Administrator"))
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
+            return null;
+        }
 
         #endregion
 
         #region [ Misc ]
+
         private void CascadeDelete(string tableName, string criterion)
         {
-
             using (IDbCommand sc = m_dataContext.Connection.Connection.CreateCommand())
             {
-
                 sc.CommandText = "DECLARE @context VARBINARY(128)\n SELECT @context = CONVERT(VARBINARY(128), CONVERT(VARCHAR(128), @userName))\n SET CONTEXT_INFO @context";
                 IDbDataParameter param = sc.CreateParameter();
                 param.ParameterName = "@userName";
@@ -480,7 +511,6 @@ namespace PQDashboard.Controllers
                 sc.Parameters.Add(param);
                 sc.ExecuteNonQuery();
                 sc.Parameters.Clear();
-
 
                 sc.CommandText = "dbo.UniversalCascadeDelete";
                 sc.CommandType = CommandType.StoredProcedure;
@@ -545,7 +575,19 @@ namespace PQDashboard.Controllers
                 smtpClient.Send(emailMessage);
             }
         }
+
         #endregion
+
+        #endregion
+
+        #region [ Static ]
+
+        private static MemoryCache s_memoryCache;
+
+        static EmailController()
+        {
+            s_memoryCache = new MemoryCache("EmailController");
+        }
 
         #endregion
     }
