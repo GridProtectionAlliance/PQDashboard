@@ -423,7 +423,7 @@ namespace PQDashboard.Controllers
                 if (i < newUserAccountEmailTypes.Count)
                     newUserAccountEmailTypes[i].ID = existingUserAccountEmailTypes[i].ID;
                 else
-                    userAccountEmailTypeTable.DeleteRecord(newUserAccountEmailTypes[i]);
+                    userAccountEmailTypeTable.DeleteRecord(existingUserAccountEmailTypes[i]);
             }
 
             foreach (UserAccountEmailType userAccountEmailType in newUserAccountEmailTypes)
