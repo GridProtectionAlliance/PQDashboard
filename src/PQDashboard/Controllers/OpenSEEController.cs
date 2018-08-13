@@ -77,19 +77,22 @@ namespace OpenSEE.Controller
         #region [ Methods ]
 
         /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="MainController"/> object and optionally releases the managed resources.
+        /// Releases the unmanaged resources used by the <see cref="OpenSEEController"/> object and optionally releases the managed resources.
         /// </summary>
-        public void Dispose()
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected override void Dispose(bool disposing)
         {
             if (!m_disposed)
             {
                 try
                 {
-                    m_dataContext?.Dispose();
+                    if (disposing)
+                        m_dataContext?.Dispose();
                 }
                 finally
                 {
                     m_disposed = true;          // Prevent duplicate dispose.
+                    base.Dispose(disposing);    // Call base class Dispose().
                 }
             }
         }
