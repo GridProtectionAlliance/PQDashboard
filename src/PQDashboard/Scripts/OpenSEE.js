@@ -84347,25 +84347,27 @@ var WaveformViewerGraph = (function (_super) {
     };
     WaveformViewerGraph.prototype.plotZoom = function () {
         var ctrl = this;
-        $("#" + this.props.type).off("plotzoom");
-        $("#" + ctrl.props.type).bind("plotzoom", function (event) {
+        $("#" + this.props.type + " .flot-overlay").off("mousewheel");
+        $("#" + ctrl.props.type + " .flot-overlay").bind("mousewheel", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
             var xcenter = ctrl.props.hover;
-            var xmin = xaxis.options.min;
-            var xmax = xaxis.options.max;
-            var datamin = xaxis.datamin;
-            var datamax = xaxis.datamax;
+            var startDate = ctrl.props.startDate;
+            var endDate = ctrl.props.endDate;
+            var xmin;
+            var xmax;
             var deltaMagnitude;
             var delta;
             var factor;
-            if (xmin == null)
-                xmin = datamin;
-            if (xmax == null)
-                xmax = datamax;
-            if (xmin == null || xmax == null)
-                return;
+            if (startDate == null || endDate == null) {
+                xmin = xaxis.min || xaxis.datamin;
+                xmax = xaxis.max || xaxis.datamax;
+            }
+            else {
+                xmin = ctrl.getMillisecondTime(startDate);
+                xmax = ctrl.getMillisecondTime(endDate);
+            }
             xcenter = Math.max(xcenter, xmin);
             xcenter = Math.min(xcenter, xmax);
             if (event.originalEvent.wheelDelta != undefined)
