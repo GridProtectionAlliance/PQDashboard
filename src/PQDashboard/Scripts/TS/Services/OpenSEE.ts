@@ -25,24 +25,59 @@
 declare var homePath: string;
 
 export default class OpenSEEService{
-    getData(filters, dataType) {
-        return $.ajax({
+    waveformDataHandle: any;
+    frequencyDataHandle: any;
+    faultDistanceDataHandle: any;
+    breakerDigitalsDataHandle: any;
+    headerDataHandle: any;
+
+    getWaveformData(filters) {
+        if (this.waveformDataHandle !== undefined)
+            this.waveformDataHandle.abort();
+
+        this.waveformDataHandle = $.ajax({
             type: "GET",
             url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
                 `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
                 `&pixels=${filters.pixels}` +
                 `&type=${filters.type}` +
-                `&dataType=${dataType}`,
+                `&dataType=Time`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
+
+        return this.waveformDataHandle;
+    }
+
+    getFrequencyData(filters) {
+        if (this.frequencyDataHandle !== undefined)
+            this.frequencyDataHandle.abort();
+
+        this.frequencyDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
+                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
+                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
+                `&pixels=${filters.pixels}` +
+                `&type=${filters.type}` +
+                `&dataType=Freq`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.frequencyDataHandle;
     }
 
     getFaultDistanceData(filters) {
-        return $.ajax({
+        if (this.faultDistanceDataHandle !== undefined)
+            this.faultDistanceDataHandle.abort();
+
+        this.faultDistanceDataHandle = $.ajax({
             type: "GET",
             url: `${homePath}api/OpenSEE/GetFaultDistanceData?eventId=${filters.eventId}` +
                 `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
@@ -53,10 +88,15 @@ export default class OpenSEEService{
             cache: true,
             async: true
         });
+
+        return this.faultDistanceDataHandle;
     }
 
     getBreakerDigitalsData(filters) {
-        return $.ajax({
+        if (this.breakerDigitalsDataHandle !== undefined)
+            this.breakerDigitalsDataHandle.abort();
+
+        this.breakerDigitalsDataHandle = $.ajax({
             type: "GET",
             url: `${homePath}api/OpenSEE/GetBreakerData?eventId=${filters.eventId}` +
                  `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` + 
@@ -68,10 +108,15 @@ export default class OpenSEEService{
             cache: true,
             async: true
         });
+
+        return this.breakerDigitalsDataHandle;
     }
 
     getHeaderData(filters) {
-        return $.ajax({
+        if (this.headerDataHandle !== undefined)
+            this.headerDataHandle.abort();
+
+        this.headerDataHandle = $.ajax({
             type: "GET",
             url: `${homePath}api/OpenSEE/GetHeaderData?eventId=${filters.eventid}` +
                 `${filters.breakeroperation != undefined ? `&breakeroperation=${filters.breakeroperation}` : ``}` ,
@@ -80,6 +125,8 @@ export default class OpenSEEService{
             cache: true,
             async: true
         });
+
+        return this.headerDataHandle;
     }
 
 }

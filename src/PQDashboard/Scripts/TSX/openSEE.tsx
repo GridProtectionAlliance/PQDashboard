@@ -35,6 +35,7 @@ import Tooltip from './Tooltip';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
+    historyHandle: any;
     openSEEService: OpenSEEService;
     resizeId: any;
     TableData: object;
@@ -77,6 +78,7 @@ export class OpenSEE extends React.Component<any, any>{
 
     componentDidMount() {
         window.addEventListener("resize", this.handleScreenSizeChange.bind(this));
+
         this.openSEEService.getHeaderData(this.state).done(data => {
             this.showData(data);
 
@@ -182,8 +184,8 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     stateSetter(obj) {
-        this.setState(obj, () => {
-            var prop = _.clone(this.state);
+        function toQueryString(state) {
+            var prop = _.clone(state);
             delete prop.Hover;
             delete prop.Width;
             delete prop.TableData;
@@ -193,12 +195,20 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.backButtons;
             delete prop.forwardButtons;
             delete prop.PostedData;
+            return queryString.stringify(prop, { encode: false });
+        }
 
-            var qs = queryString.parse(queryString.stringify(prop, { encode: false }));
-            var hqs = queryString.parse(this.history['location'].search);
+        var oldQueryString = toQueryString(this.state);
+        var oldQuery = queryString.parse(oldQueryString);
 
-            if(!_.isEqual(qs, hqs))
-                this.history['push'](this.history['location'].pathname+ '?' + queryString.stringify(prop, { encode: false }));
+        this.setState(obj, () => {
+            var newQueryString = toQueryString(this.state);
+            var newQuery = queryString.parse(newQueryString);
+
+            if (!_.isEqual(oldQuery, newQuery)) {
+                clearTimeout(this.historyHandle);
+                this.historyHandle = setTimeout(() => this.history['push'](this.history['location'].pathname + '?' + newQueryString), 500);
+            }
         });
     }
 
@@ -208,7 +218,8 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     resetZoom() {
-        this.history['push'](this.history['location'].pathname + '?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1': ''));
+        clearTimeout(this.historyHandle);
+        this.history['push'](this.history['location'].pathname + '?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
     }
 
     calculateHeights(obj: any) {

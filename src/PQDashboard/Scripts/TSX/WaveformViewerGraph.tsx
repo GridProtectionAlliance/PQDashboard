@@ -159,7 +159,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
     getEventData(state) {
-        this.openSEEService.getData(state, "Time").then(data => {
+        this.openSEEService.getWaveformData(state).then(data => {
             if (data == null) {
                 if (state.display) {
                     var obj = {};
@@ -183,7 +183,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.setState({ dataSet: data });
         });
 
-        this.openSEEService.getData(state, "Freq").then(data => {
+        this.openSEEService.getFrequencyData(state).then(data => {
             if (data == null) return;
 
             var legend = this.createLegendRows(data.Data);
@@ -197,8 +197,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(dataSet, legend);
             this.setState({ dataSet: dataSet });
         })
-
-
     }
 
     getFaultDistanceData(state) {
@@ -219,7 +217,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
-
     }
 
     getBreakerDigitalsData(state) {
@@ -240,9 +237,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
-
     }
-
 
     componentWillReceiveProps(nextProps) {
         var props = _.clone(this.props) as any;
@@ -259,43 +254,52 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         delete props.tableData;
         delete nextPropsClone.tableData;
 
-
+        if (nextProps.startDate && nextProps.endDate) {
+            if (this.props.startDate != nextProps.startDate || this.props.endDate != nextProps.endDate) {
+                var xaxis = this.plot.getAxes().xaxis;
+                var xmin = this.getMillisecondTime(nextProps.startDate);
+                var xmax = this.getMillisecondTime(nextProps.endDate);
+                xaxis.options.min = xmin;
+                xaxis.options.max = xmax;
+                this.plot.setupGrid();
+                this.plot.draw();
+            }
+        }
 
         if (!(_.isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
-
         }
         else if (this.props.hover != nextProps.hover) {
-            if(this.plot)
+            if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
+
             var table = _.clone(this.props.tableData);
+
             _.each(this.state.dataSet.Data, (data, i) => {
                 var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
-                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows[data.ChartLabel].color } ;
+                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows[data.ChartLabel].color };
             });
+
             this.props.tableSetter(table);
-
         }
-
     }
-
 
     componentDidMount() {
         this.getData(this.props);
     }
+
     componentWillUnmount() {
         $("#" + this.props.type).off("plotselected");
         $("#" + this.props.type).off("plotzoom");
         $("#" + this.props.type).off("plothover");
         $("#" + this.props.type).off("plotclick");
-
     }
 
     createLegendRows(data) {
         var ctrl = this;
 
-        var legend = ( this.state.legendRows != undefined ? this.state.legendRows : {});
+        var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
 
         $.each(data, function (i, key) {
             if(legend[key.ChartLabel]  == undefined)
