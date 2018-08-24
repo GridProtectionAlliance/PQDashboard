@@ -40,6 +40,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     plot: any;
     options: object;
     clickHandled: boolean;
+    panCenter: number;
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -109,6 +110,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             }
         }
 
+        ctrl.panCenter = null;
         ctrl.clickHandled = false;
     }
 
@@ -290,10 +292,14 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
     componentWillUnmount() {
-        $("#" + this.props.type).off("plotselected");
-        $("#" + this.props.type).off("plotzoom");
-        $("#" + this.props.type).off("plothover");
-        $("#" + this.props.type).off("plotclick");
+        var placeholder = $("#" + this.props.type);
+        var overlay = $("#" + this.props.type + " .flot-overlay");
+        placeholder.off("plotselected");
+        placeholder.off("plothover");
+        placeholder.off("plotclick");
+
+        overlay.off(".plotZoom");
+        overlay.off(".plotPan");
     }
 
     createLegendRows(data) {
@@ -333,14 +339,15 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         this.plot = $.plot($("#" + this.props.type), newVessel, this.options);
         this.plotSelected();
         this.plotZoom();
+        this.plotPan();
         this.plotHover();
         this.plotClick();
     }
 
     plotZoom() {
         var ctrl = this;
-        $("#" + this.props.type + " .flot-overlay").off("mousewheel");
-        $("#" + ctrl.props.type + " .flot-overlay").bind("mousewheel", function (event) {
+        $("#" + this.props.type + " .flot-overlay").off("mousewheel.plotZoom");
+        $("#" + ctrl.props.type + " .flot-overlay").bind("mousewheel.plotZoom", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
@@ -391,6 +398,60 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 return;
 
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
+        });
+    }
+
+    plotPan() {
+        var ctrl = this;
+        var overlay = $("#" + this.props.type + " .flot-overlay");
+
+        overlay.off("mousedown.plotPan");
+        overlay.on("mousedown.plotPan", function (e) {
+            if (e.which !== 1) {
+                ctrl.clickHandled = true;
+                return;
+            }
+
+            if (e.shiftKey) {
+                ctrl.panCenter = e.pageX;
+                ctrl.plot.suspendSelection();
+
+                $(document).one("mouseup", function (e) {
+                    if (e.which === 1 && ctrl.panCenter !== null) {
+                        ctrl.panCenter = null;
+                        ctrl.plot.resumeSelection();
+                    }
+                });
+            }
+
+            ctrl.clickHandled = false;
+        });
+
+        overlay.off("mousemove.plotPan");
+        overlay.on("mousemove.plotPan", function (e) {
+            if (ctrl.panCenter !== null) {
+                var panDistance = ctrl.panCenter - e.pageX;
+
+                var xaxis = ctrl.plot.getAxes().xaxis;
+                var xaxisDistance = panDistance / xaxis.scale;
+                var xmin = xaxis.min || xaxis.datamin;
+                var xmax = xaxis.max || xaxis.datamax;
+
+                var startDate = ctrl.props.startDate;
+                var endDate = ctrl.props.endDate;
+
+                if (startDate != null && endDate != null) {
+                    xmin = ctrl.getMillisecondTime(startDate);
+                    xmax = ctrl.getMillisecondTime(endDate);
+                }
+
+                xmin += xaxisDistance;
+                xmax += xaxisDistance;
+                ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
+
+                ctrl.panCenter -= panDistance;
+                ctrl.clickHandled = true;
+            }
         });
     }
 
