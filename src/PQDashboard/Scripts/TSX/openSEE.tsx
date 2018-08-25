@@ -57,6 +57,9 @@ export class OpenSEE extends React.Component<any, any>{
             breakeroperation: (query['breakeroperation'] != undefined ? query['breakeroperation'] : undefined),
             Width: window.innerWidth,
             Hover: 0,
+            pointsButtonText: "Show Points",
+            tooltipButtonText: "Show Tooltip",
+            phasorButtonText: "Show Phasor",
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -149,7 +152,7 @@ export class OpenSEE extends React.Component<any, any>{
                             <tbody>
                                 <tr>
                                     <td style={{ textAlign: 'center' }}><button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Show Points" onClick={() => this.showhidePoints()} id="showpoints" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.pointsButtonText} onClick={() => this.showhidePoints()} id="showpoints" /></td>
 
                                     <td style={{ textAlign: 'center' }}>
                                         {this.state.backButtons}
@@ -162,8 +165,8 @@ export class OpenSEE extends React.Component<any, any>{
                                         {this.state.forwardButtons}
                                     </td>
 
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Show Tooltip" onClick={() => this.showhideTooltip()} id="showtooltip" /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Show Phasor" onClick={() => this.showhidePhasor()} id="showphasor" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} id="showtooltip" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} id="showphasor" /></td>
                                     <td style={{ textAlign: 'center', display: 'none' }}><input className="smallbutton" type="button" value="Export Data" onClick={() => { }} id="exportdata" /></td>
                                 </tr>
                             </tbody>
@@ -172,7 +175,7 @@ export class OpenSEE extends React.Component<any, any>{
                     <div className="panel-body collapse in" style={{ padding: '0' }}>
                         <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)} />
                         <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
-                        <Tooltip data={this.state.TableData} hover={this.state.Hover} />
+                        <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
 
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
@@ -189,6 +192,9 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.Hover;
             delete prop.Width;
             delete prop.TableData;
+            delete prop.phasorButtonText;
+            delete prop.pointsButtonText;
+            delete prop.tooltipButtonText;
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
@@ -233,36 +239,34 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     showhidePoints() {
-        if ($('#showpoints').val() == "Show Points") {
-            $('#showpoints').val("Hide Points");
+        if (this.state.pointsButtonText == "Show Points") {
+            this.setState({ pointsButtonText: "Hide Points" });
             $('#accumulatedpoints').show();
-
         } else {
-            $('#showpoints').val("Show Points");
+            this.setState({ pointsButtonText: "Show Points" });
             $('#accumulatedpoints').hide();
-
         }
     }
 
     showhideTooltip() {
-        if ($('#showtooltip').val()  == "Show Tooltip") {
-            $('#showtooltip').val("Hide Tooltip");
+        if (this.state.tooltipButtonText == "Show Tooltip") {
+            this.setState({ tooltipButtonText: "Hide Tooltip" });
             $('#unifiedtooltip').show();
             $('.legendCheckbox').show();
 
         } else {
-            $('#showtooltip').val("Show Tooltip");
+            this.setState({ tooltipButtonText: "Show Tooltip" });
             $('#unifiedtooltip').hide();
             $('.legendCheckbox').hide();
         }
     }
 
     showhidePhasor() {
-        if ($('#showphasor').val() == "Show Phasor") {
-            $('#showphasor').val("Hide Phasor");
+        if (this.state.phasorButtonText == "Show Phasor") {
+            this.setState({ phasorButtonText: "Hide Phasor" });
             $('#phasor').show();
         } else {
-            $('#showphasor').val("Show Phasor");
+            this.setState({ phasorButtonText: "Show Phasor" });
             $('#phasor').hide();
         }
     }

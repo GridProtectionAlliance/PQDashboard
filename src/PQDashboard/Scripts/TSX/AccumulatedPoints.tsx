@@ -21,7 +21,6 @@
 //
 //******************************************************************************************************
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import './../jquery-ui.js';
 import './../PrimeUI/primeui.js';
@@ -33,15 +32,11 @@ export default class Points extends React.Component<any, any>{
         this.state = {
             selectedPoint: -1
         };
-
-
     }
 
     componentDidMount() {
-        var ctrl = this;
         ($("#accumulatedpoints") as any).draggable({ scroll: false, handle: '#accumulatedpointshandle' });
         this.buildTable(this.props);
-
     }
 
     buildTable(props) {
@@ -62,12 +57,12 @@ export default class Points extends React.Component<any, any>{
             datasource: props.pointsTable
         });
     }
+
     componentWillReceiveProps(nextProps) {
         if (!(_.isEqual(this.props.pointsTable, nextProps.pointsTable))) {           
             ($('#accumulatedpointscontent') as any).puidatatable('reset');
             this.buildTable(nextProps);
         }
-
     }
 
     render() {
@@ -82,8 +77,8 @@ export default class Points extends React.Component<any, any>{
                         <input className="smallbutton" type="button" value="Clear" onClick={() => this.clearAccumulatedPoints()} />
                     </div>
                     <button className="CloseButton" style={{ top: '2px', right: '2px' }} onClick={() => {
+                        this.props.callback({ pointsButtonText: "Show Points" });
                         $('#accumulatedpoints').hide();
-                        $('#showpoints').val('Show Points');
                     }}>X</button>
                 </div>
 
@@ -135,15 +130,12 @@ export default class Points extends React.Component<any, any>{
         this.props.callback({
             PointsTable: data
         });      
-
     }
 
     clearAccumulatedPoints() {
         this.props.callback({
             PointsTable: []
         });
-
-
     }
 
     showTime(rowdata) {
@@ -155,6 +147,4 @@ export default class Points extends React.Component<any, any>{
         var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
         return html;
     }
-
-
 }

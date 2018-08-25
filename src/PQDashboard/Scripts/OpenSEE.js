@@ -109,6 +109,9 @@ var OpenSEE = (function (_super) {
             breakeroperation: (query['breakeroperation'] != undefined ? query['breakeroperation'] : undefined),
             Width: window.innerWidth,
             Hover: 0,
+            pointsButtonText: "Show Points",
+            tooltipButtonText: "Show Tooltip",
+            phasorButtonText: "Show Phasor",
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -195,7 +198,7 @@ var OpenSEE = (function (_super) {
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom")),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Points", onClick: function () { return _this.showhidePoints(); }, id: "showpoints" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.pointsButtonText, onClick: function () { return _this.showhidePoints(); }, id: "showpoints" })),
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 this.state.backButtons,
                                 React.createElement("select", { id: "next-back-selection", defaultValue: "system" },
@@ -205,15 +208,15 @@ var OpenSEE = (function (_super) {
                                     React.createElement("option", { value: "line" }, "Line")),
                                 this.state.forwardButtons),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Tooltip", onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.tooltipButtonText, onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Show Phasor", onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.phasorButtonText, onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
                             React.createElement("td", { style: { textAlign: 'center', display: 'none' } },
                                 React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
                 React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
-                React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover }),
+                React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover, callback: this.stateSetter.bind(this) }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves, postedData: this.state.PostedData }),
@@ -226,6 +229,9 @@ var OpenSEE = (function (_super) {
             delete prop.Hover;
             delete prop.Width;
             delete prop.TableData;
+            delete prop.phasorButtonText;
+            delete prop.pointsButtonText;
+            delete prop.tooltipButtonText;
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
@@ -262,34 +268,34 @@ var OpenSEE = (function (_super) {
         $('#' + nextBackType + '-next').show();
     };
     OpenSEE.prototype.showhidePoints = function () {
-        if ($('#showpoints').val() == "Show Points") {
-            $('#showpoints').val("Hide Points");
+        if (this.state.pointsButtonText == "Show Points") {
+            this.setState({ pointsButtonText: "Hide Points" });
             $('#accumulatedpoints').show();
         }
         else {
-            $('#showpoints').val("Show Points");
+            this.setState({ pointsButtonText: "Show Points" });
             $('#accumulatedpoints').hide();
         }
     };
     OpenSEE.prototype.showhideTooltip = function () {
-        if ($('#showtooltip').val() == "Show Tooltip") {
-            $('#showtooltip').val("Hide Tooltip");
+        if (this.state.tooltipButtonText == "Show Tooltip") {
+            this.setState({ tooltipButtonText: "Hide Tooltip" });
             $('#unifiedtooltip').show();
             $('.legendCheckbox').show();
         }
         else {
-            $('#showtooltip').val("Show Tooltip");
+            this.setState({ tooltipButtonText: "Show Tooltip" });
             $('#unifiedtooltip').hide();
             $('.legendCheckbox').hide();
         }
     };
     OpenSEE.prototype.showhidePhasor = function () {
-        if ($('#showphasor').val() == "Show Phasor") {
-            $('#showphasor').val("Hide Phasor");
+        if (this.state.phasorButtonText == "Show Phasor") {
+            this.setState({ phasorButtonText: "Hide Phasor" });
             $('#phasor').show();
         }
         else {
-            $('#showphasor').val("Show Phasor");
+            this.setState({ phasorButtonText: "Show Phasor" });
             $('#phasor').hide();
         }
     };
@@ -85085,13 +85091,14 @@ var PolarChart = (function (_super) {
         context.stroke();
     };
     PolarChart.prototype.render = function () {
+        var _this = this;
         return (React.createElement("div", { id: "phasor", className: "ui-widget-content", style: { position: 'absolute', top: '0', width: '300px', height: '320px', display: 'none' } },
             React.createElement("div", { id: "phasorhandle" }),
             React.createElement("div", { id: "phasorchart", style: { width: '300px', height: '300px', zIndex: 1001 } },
                 React.createElement("canvas", { id: "phasorCanvas", width: "300", height: "300", style: { display: 'block' } })),
             React.createElement("button", { className: "CloseButton", onClick: function () {
+                    _this.props.callback({ phasorButtonText: "Show Phasor" });
                     $('#phasor').hide();
-                    $('#showphasor').val('Show Phasor');
                 } }, "X")));
     };
     return PolarChart;
@@ -85131,7 +85138,6 @@ var Points = (function (_super) {
         return _this;
     }
     Points.prototype.componentDidMount = function () {
-        var ctrl = this;
         $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle' });
         this.buildTable(this.props);
     };
@@ -85171,8 +85177,8 @@ var Points = (function (_super) {
                     React.createElement("input", { className: "smallbutton", type: "button", value: "Pop", onClick: function () { return _this.popAccumulatedPoints(); } }),
                     React.createElement("input", { className: "smallbutton", type: "button", value: "Clear", onClick: function () { return _this.clearAccumulatedPoints(); } })),
                 React.createElement("button", { className: "CloseButton", style: { top: '2px', right: '2px' }, onClick: function () {
+                        _this.props.callback({ pointsButtonText: "Show Points" });
                         $('#accumulatedpoints').hide();
-                        $('#showpoints').val('Show Points');
                     } }, "X"))));
     };
     Points.prototype.removePoint = function () {
@@ -99239,6 +99245,7 @@ var Tooltip = (function (_super) {
         $("#unifiedtooltip").draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
     };
     Tooltip.prototype.render = function () {
+        var _this = this;
         var subsecond = ("0000000" + (this.props.hover * 10000 % 10000000)).slice(-7);
         var format = $.plot.formatDate($.plot.dateGenerator(this.props.hover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + subsecond;
         var rows = [];
@@ -99263,9 +99270,9 @@ var Tooltip = (function (_super) {
                     React.createElement("table", { className: "table" },
                         React.createElement("tbody", null, rows)))),
             React.createElement("button", { className: "CloseButton", onClick: function () {
+                    _this.props.callback({ tooltipButtonText: "Show Tooltip" });
                     $('#unifiedtooltip').hide();
                     $('.legendCheckbox').hide();
-                    $('#showtooltip').val('Show Tooltip');
                 } }, "X")));
     };
     return Tooltip;

@@ -144,8 +144,8 @@ export default class PolarChart extends React.Component<any, any>{
                     <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' }}></canvas>
                 </div>
                 <button className="CloseButton" onClick={() => {
+                    this.props.callback({ phasorButtonText: "Show Phasor" });
                     $('#phasor').hide();
-                    $('#showphasor').val('Show Phasor');
                 }}>X</button>
 
             </div>
