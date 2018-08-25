@@ -85009,11 +85009,9 @@ var PolarChart = (function (_super) {
         return _super.call(this, props) || this;
     }
     PolarChart.prototype.componentWillReceiveProps = function (nextProps) {
-        var k = 1;
         this.updatePhasorChart();
     };
     PolarChart.prototype.componentDidMount = function () {
-        var ctrl = this;
         $("#phasor").draggable({ scroll: false, handle: '#phasorhandle' });
         this.updatePhasorChart();
     };
@@ -85072,14 +85070,14 @@ var PolarChart = (function (_super) {
         context.lineWidth = 1;
         context.strokeStyle = "#BBB";
         for (var i = 0; i < 4; i++)
-            this.drawVector(context, center, chartRadius, i * Math.PI / 2);
+            this.drawVector(context, center, chartRadius, i * 90);
         context.strokeStyle = "#DDD";
         this.drawCircle(context, center, 0.9 * chartRadius / 2);
         this.drawCircle(context, center, 0.9 * chartRadius);
     };
     PolarChart.prototype.drawVector = function (context, center, r, t) {
-        var x = r * Math.cos(t);
-        var y = r * Math.sin(t);
+        var x = r * Math.cos(t * Math.PI / 180);
+        var y = r * Math.sin(t * Math.PI / 180);
         context.beginPath();
         context.moveTo(center.x, center.y);
         context.lineTo(center.x + x, center.y - y);

@@ -564,7 +564,7 @@ namespace OpenSEE.Controller
                     MeasurementType = cdg.Phase.SeriesInfo.Channel.MeasurementType.Name,
                     Phase = cdg.Phase.SeriesInfo.Channel.Phase.Name,
                     SeriesType = cdg.Phase.SeriesInfo.Channel.MeasurementType.Name,
-                    DataPoints = cdg.Phase.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    DataPoints = cdg.Phase.Multiply(180.0D / Math.PI).DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
                     ChartLabel = GetChartLabel(cdg.Phase.SeriesInfo.Channel, "Phase")
                 };
                 dataLookup.Add(flotSeriesPolarAngle.ChartLabel, flotSeriesPolarAngle);

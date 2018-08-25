@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import './../jquery-ui.js';
 
@@ -32,13 +31,10 @@ export default class PolarChart extends React.Component<any, any>{
     }
 
     componentWillReceiveProps(nextProps) {
-        var k = 1;
         this.updatePhasorChart();
-
     }
 
     componentDidMount() {
-        var ctrl = this;
         ($("#phasor") as any).draggable({ scroll: false, handle: '#phasorhandle' });
         this.updatePhasorChart();
     }
@@ -57,7 +53,6 @@ export default class PolarChart extends React.Component<any, any>{
        context.clearRect(0, 0, canvas.width(), canvas.height());
        this.drawGrid(context, center, chartRadius);
        this.drawPhasors(context, center, chartRadius);
-
     }
 
     drawPhasors(context, center, chartRadius) {
@@ -84,12 +79,11 @@ export default class PolarChart extends React.Component<any, any>{
             if (series.mag > vMax)
                 vMax = series.mag;
         });
+
         $.each(dataI, function (key, series) {
             if (series.mag > iMax)
                 iMax = series.mag;
         });
-
-
 
         $.each(dataV, function (index: number, series) {
             var scale = 0.9 * chartRadius / vMax;
@@ -113,7 +107,7 @@ export default class PolarChart extends React.Component<any, any>{
         context.strokeStyle = "#BBB";
 
         for (var i = 0; i < 4; i++)
-            this.drawVector(context, center, chartRadius, i * Math.PI / 2);
+            this.drawVector(context, center, chartRadius, i * 90);
 
         context.strokeStyle = "#DDD";
         this.drawCircle(context, center, 0.9 * chartRadius / 2);
@@ -121,8 +115,8 @@ export default class PolarChart extends React.Component<any, any>{
     }
 
     drawVector(context, center, r, t) {
-        var x = r * Math.cos(t);
-        var y = r * Math.sin(t);
+        var x = r * Math.cos(t * Math.PI / 180);
+        var y = r * Math.sin(t * Math.PI / 180);
 
         context.beginPath();
         context.moveTo(center.x, center.y);
