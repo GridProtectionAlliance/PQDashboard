@@ -40,6 +40,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     plot: any;
     options: object;
     clickHandled: boolean;
+    panCenter: number;
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -109,6 +110,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             }
         }
 
+        ctrl.panCenter = null;
         ctrl.clickHandled = false;
     }
 
@@ -159,7 +161,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
     getEventData(state) {
-        this.openSEEService.getData(state, "Time").then(data => {
+        this.openSEEService.getWaveformData(state).then(data => {
             if (data == null) {
                 if (state.display) {
                     var obj = {};
@@ -183,7 +185,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.setState({ dataSet: data });
         });
 
-        this.openSEEService.getData(state, "Freq").then(data => {
+        this.openSEEService.getFrequencyData(state).then(data => {
             if (data == null) return;
 
             var legend = this.createLegendRows(data.Data);
@@ -197,8 +199,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(dataSet, legend);
             this.setState({ dataSet: dataSet });
         })
-
-
     }
 
     getFaultDistanceData(state) {
@@ -219,7 +219,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
-
     }
 
     getBreakerDigitalsData(state) {
@@ -240,9 +239,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.createDataRows(data, legend);
             this.setState({ dataSet: data });
         });
-
     }
-
 
     componentWillReceiveProps(nextProps) {
         var props = _.clone(this.props) as any;
@@ -259,43 +256,56 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         delete props.tableData;
         delete nextPropsClone.tableData;
 
-
+        if (nextProps.startDate && nextProps.endDate) {
+            if (this.props.startDate != nextProps.startDate || this.props.endDate != nextProps.endDate) {
+                var xaxis = this.plot.getAxes().xaxis;
+                var xmin = this.getMillisecondTime(nextProps.startDate);
+                var xmax = this.getMillisecondTime(nextProps.endDate);
+                xaxis.options.min = xmin;
+                xaxis.options.max = xmax;
+                this.plot.setupGrid();
+                this.plot.draw();
+            }
+        }
 
         if (!(_.isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
-
         }
         else if (this.props.hover != nextProps.hover) {
-            if(this.plot)
+            if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
+
             var table = _.clone(this.props.tableData);
+
             _.each(this.state.dataSet.Data, (data, i) => {
                 var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
-                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows[data.ChartLabel].color } ;
+                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows[data.ChartLabel].color };
             });
+
             this.props.tableSetter(table);
-
         }
-
     }
-
 
     componentDidMount() {
         this.getData(this.props);
     }
-    componentWillUnmount() {
-        $("#" + this.props.type).off("plotselected");
-        $("#" + this.props.type).off("plotzoom");
-        $("#" + this.props.type).off("plothover");
-        $("#" + this.props.type).off("plotclick");
 
+    componentWillUnmount() {
+        var placeholder = $("#" + this.props.type);
+        var overlay = $("#" + this.props.type + " .flot-overlay");
+        placeholder.off("plotselected");
+        placeholder.off("plothover");
+        placeholder.off("plotclick");
+
+        overlay.off(".plotZoom");
+        overlay.off(".plotPan");
     }
 
     createLegendRows(data) {
         var ctrl = this;
 
-        var legend = ( this.state.legendRows != undefined ? this.state.legendRows : {});
+        var legend = (this.state.legendRows != undefined ? this.state.legendRows : {});
 
         $.each(data, function (i, key) {
             if(legend[key.ChartLabel]  == undefined)
@@ -310,8 +320,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
     createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
-
-        
         var ctrl = this;
         var startString = this.props.startDate;
         var endString = this.props.endDate;
@@ -331,35 +339,35 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         this.plot = $.plot($("#" + this.props.type), newVessel, this.options);
         this.plotSelected();
         this.plotZoom();
+        this.plotPan();
         this.plotHover();
         this.plotClick();
     }
 
     plotZoom() {
         var ctrl = this;
-        $("#" + this.props.type).off("plotzoom");
-        $("#" + ctrl.props.type).bind("plotzoom", function (event) {
+        $("#" + this.props.type + " .flot-overlay").off("mousewheel.plotZoom");
+        $("#" + ctrl.props.type + " .flot-overlay").bind("mousewheel.plotZoom", function (event) {
             var minDelta = null;
             var maxDelta = 5;
             var xaxis = ctrl.plot.getAxes().xaxis;
             var xcenter = ctrl.props.hover;
-            var xmin = xaxis.options.min;
-            var xmax = xaxis.options.max;
-            var datamin = xaxis.datamin;
-            var datamax = xaxis.datamax;
+            var startDate = ctrl.props.startDate;
+            var endDate = ctrl.props.endDate;
 
+            var xmin;
+            var xmax;
             var deltaMagnitude;
             var delta;
             var factor;
 
-            if (xmin == null)
-                xmin = datamin;
-
-            if (xmax == null)
-                xmax = datamax;
-
-            if (xmin == null || xmax == null)
-                return;
+            if (startDate == null || endDate == null) {
+                xmin = xaxis.min || xaxis.datamin;
+                xmax = xaxis.max || xaxis.datamax;
+            } else {
+                xmin = ctrl.getMillisecondTime(startDate);
+                xmax = ctrl.getMillisecondTime(endDate);
+            }
 
             xcenter = Math.max(xcenter, xmin);
             xcenter = Math.min(xcenter, xmax);
@@ -390,9 +398,61 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
                 return;
 
             ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
+        });
+    }
 
+    plotPan() {
+        var ctrl = this;
+        var overlay = $("#" + this.props.type + " .flot-overlay");
+
+        overlay.off("mousedown.plotPan");
+        overlay.on("mousedown.plotPan", function (e) {
+            if (e.which !== 1) {
+                ctrl.clickHandled = true;
+                return;
+            }
+
+            if (e.shiftKey) {
+                ctrl.panCenter = e.pageX;
+                ctrl.plot.suspendSelection();
+
+                $(document).one("mouseup", function (e) {
+                    if (e.which === 1 && ctrl.panCenter !== null) {
+                        ctrl.panCenter = null;
+                        ctrl.plot.resumeSelection();
+                    }
+                });
+            }
+
+            ctrl.clickHandled = false;
         });
 
+        overlay.off("mousemove.plotPan");
+        overlay.on("mousemove.plotPan", function (e) {
+            if (ctrl.panCenter !== null) {
+                var panDistance = ctrl.panCenter - e.pageX;
+
+                var xaxis = ctrl.plot.getAxes().xaxis;
+                var xaxisDistance = panDistance / xaxis.scale;
+                var xmin = xaxis.min || xaxis.datamin;
+                var xmax = xaxis.max || xaxis.datamax;
+
+                var startDate = ctrl.props.startDate;
+                var endDate = ctrl.props.endDate;
+
+                if (startDate != null && endDate != null) {
+                    xmin = ctrl.getMillisecondTime(startDate);
+                    xmax = ctrl.getMillisecondTime(endDate);
+                }
+
+                xmin += xaxisDistance;
+                xmax += xaxisDistance;
+                ctrl.props.stateSetter({ StartDate: ctrl.getDateString(xmin), EndDate: ctrl.getDateString(xmax) });
+
+                ctrl.panCenter -= panDistance;
+                ctrl.clickHandled = true;
+            }
+        });
     }
 
     plotSelected() {

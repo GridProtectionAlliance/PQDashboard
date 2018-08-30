@@ -76,15 +76,6 @@
     <div id="DockCharts"></div>
     <script>
         var homePath = '@Html.Raw(Url.Content("~/"))';
-
-        window.onwheel = function (event, info) {
-            if (event.path[0].tagName == "CANVAS") {
-                event.path[1].dispatchEvent(new WheelEvent('plotzoom', event));
-                return false;
-            }
-            else
-                return true;
-        }
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
 </body>

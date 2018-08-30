@@ -223,6 +223,10 @@ namespace PQDashboard.Controllers
                 return adminValidationResult;
 
             ConfirmableUserAccount confirmableUserAccount = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", Guid.Parse(id));
+
+            if (confirmableUserAccount == null)
+                return HttpNotFound();
+
             m_dataContext.Connection.ExecuteNonQuery("UPDATE UserAccount SET Approved = 1 WHERE ID = {0}", confirmableUserAccount.ID);
 
             string accountName = UserInfo.SIDToAccountName(confirmableUserAccount.Name);
@@ -240,9 +244,14 @@ namespace PQDashboard.Controllers
             if (adminValidationResult != null)
                 return adminValidationResult;
 
-            ConfirmableUserAccount confirmableUserAccount = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", Guid.Parse(id));
+            Guid userID = Guid.Parse(id);
+            ConfirmableUserAccount confirmableUserAccount = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("ID = {0}", userID);
+
+            if (confirmableUserAccount == null)
+                return HttpNotFound();
+
             string accountName = UserInfo.SIDToAccountName(confirmableUserAccount.Name);
-            CascadeDelete("UserAccount", $"ID='{id.Replace("'", "''")}'");
+            CascadeDelete("UserAccount", $"ID='{userID}'");
             ViewBag.Message = accountName + " has been denied.";
             SendEmail(confirmableUserAccount.Email, "openXDA Email Service has been denied.", "openXDA Email Service has been denied.");
             return View("Message");
@@ -556,6 +565,9 @@ namespace PQDashboard.Controllers
 
         #region [ Misc ]
 
+        // Be careful calling this method!
+        // The table name and criterion are both used in dynamic SQL
+        // and are therefore SQL injectable.
         private void CascadeDelete(string tableName, string criterion)
         {
             using (IDbCommand sc = m_dataContext.Connection.Connection.CreateCommand())

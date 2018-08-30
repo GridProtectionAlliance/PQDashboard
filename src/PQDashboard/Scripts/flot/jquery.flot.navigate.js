@@ -129,9 +129,9 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
             c.left = e.pageX - c.left;
             c.top = e.pageY - c.top;
             if (zoomOut)
-                plot.zoomOut({ center: c });
+                plot.zoomOut({ center: c, zoomingOut: zoomOut });
             else
-                plot.zoom({ center: c });
+                plot.zoom({ center: c, zoomingOut: zoomOut });
         }
 
         function onMouseWheel(e, delta) {

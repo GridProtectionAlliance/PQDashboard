@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import './../jquery-ui.js';
 import 'flot';
@@ -36,7 +35,6 @@ export default class Tooltip extends React.Component<any, any>{
         var ctrl = this;
         ($("#unifiedtooltip") as any).draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
     }
-
 
     render() {
         var subsecond = ("0000000" + (this.props.hover * 10000 % 10000000)).slice(-7);
@@ -74,9 +72,9 @@ export default class Tooltip extends React.Component<any, any>{
                     </div>
                 </div>
                 <button className="CloseButton" onClick={() => {
+                    this.props.callback({ tooltipButtonText: "Show Tooltip" });
                     $('#unifiedtooltip').hide();
                     $('.legendCheckbox').hide();
-                    $('#showtooltip').val('Show Tooltip');
                 }}>X</button>
             </div>
         );
