@@ -22,8 +22,14 @@ namespace PQDashboard
 
             bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
                 "~/Scripts/bootstrap-3.3.2.min.js",
-                "~/Scripts/bootstrap-multiselect.js"
+                "~/Scripts/bootstrap-multiselect.js",
+                "~/Scripts/bootstrap-fullscreen-select.js"
             ));
+
+            bundles.Add(new ScriptBundle("~/Scripts/bootstrap-fullscreen-select").Include(
+                "~/Scripts/bootstrap-fullscreen-select.js"
+            ));
+
 
 
             bundles.Add(new ScriptBundle("~/Scripts/jquery").Include(
@@ -81,7 +87,8 @@ namespace PQDashboard
                 "~/Content/bootstrap-3.3.2.min.css",
                 "~/Content/themes/redmond/jquery-ui.css",
                 "~/Content/bootstrap-multiselect.css",
-                "~/Content/jquery.jspanel.min.css"
+                "~/Content/jquery.jspanel.min.css",
+                "~/Content/bootstrap-fullscreen-select.css"
             ));
 
             bundles.Add(new StyleBundle("~/Content/primeui").Include(

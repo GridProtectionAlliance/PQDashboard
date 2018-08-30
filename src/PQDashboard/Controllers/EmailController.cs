@@ -57,12 +57,11 @@ namespace PQDashboard.Controllers
 
         public class UpdateSettingModel
         {
-            public string email { get; set; }
             public string phone { get; set; }
             public string carrier { get; set; }
-            public int region { get; set; }
-            public int job { get; set; }
-            public int sms { get; set; }
+            public IEnumerable<int> region { get; set; }
+            public IEnumerable<int> job { get; set; }
+            public IEnumerable<int> sms { get; set; }
             public string submit { get; set; }
             public string sid { get; set; }
             public string username { get; set; }
@@ -126,6 +125,11 @@ namespace PQDashboard.Controllers
 
             try
             {
+                UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
+                userInfo.Initialize();
+                ViewBag.email = userInfo.Email;
+                ViewBag.firstName = userInfo.FirstName;
+                ViewBag.lastName = userInfo.LastName;
                 ViewBag.username = HttpContext.User.Identity.Name;
                 ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
                 ViewBag.account = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", ViewBag.usersid);
@@ -180,6 +184,8 @@ namespace PQDashboard.Controllers
                 HandleSignUp(formData);
             else if (formData.submit == "Update")
                 HandleUpdate(formData);
+            else if (formData.submit == "Unsubscribe")
+                HandleUnsubscribe(formData);
 
             return RedirectToAction("UpdateSettings");
         }
@@ -248,34 +254,30 @@ namespace PQDashboard.Controllers
 
         private void HandleSignUp(UpdateSettingModel formData)
         {
-            //UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
-            //userInfo.Initialize();
+            UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
+            userInfo.Initialize();
             //// Create new user
-            //m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, Phone, FirstName, LastName) VALUES ({0}, {1}, {2}, {3}, {4})", formData.sid, formData.email, formData.phone + "@" + formData.carrier, userInfo.FirstName, userInfo.LastName);
-
-            m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name) VALUES ({0})", formData.sid);
+            m_dataContext.Connection.ExecuteNonQuery("INSERT INTO UserAccount (Name, Email, EmailConfirmed, FirstName, LastName) VALUES ({0}, {1}, {2}, {3}, {4})", formData.sid, userInfo.Email, true, userInfo.FirstName, userInfo.LastName);
 
             HandleUpdate(formData);
 
             // email system admin for approval
             ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", formData.sid);
-            AssetGroup assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordWhere("ID = {0}", formData.region);
-            EmailType emailType = m_dataContext.Table<EmailType>().QueryRecordWhere("ID = {0}", formData.job);
-            XSLTemplate xslTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordWhere("ID = {0}", emailType?.XSLTemplateID ?? 0);
+            IEnumerable<AssetGroup> assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordsWhere($"ID IN ({string.Join(",", formData.region)})", formData.region);
+            IEnumerable<EmailType> emailType = m_dataContext.Table<EmailType>().QueryRecordsWhere($"ID IN ({string.Join(",", formData.job)})");
+            IEnumerable<XSLTemplate> xslTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN ({string.Join(",", emailType.Select(x => x.XSLTemplateID))})");
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
             string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.ApprovalAddress'");
-            string templateName = xslTemplate?.Name ?? "None";
-
-            if (formData.job == -1)
-                templateName = "All emails";
-
+            string templateName = (xslTemplate.Any() ? string.Join(", ", xslTemplate.Select(x => x.Name) ) : "None");
+            string regionName = (assetGroup.Any() ? string.Join(", ", assetGroup.Select(x => x.Name)) : "None");
             string body = @"
                 <html>
                     <p>" + formData.username + @" requests access to the openXDA Event Email Service.</p>
                     <table>
-                        <tr><td>Email:</td><td>" + formData.email + @"</td></tr>
+                        <tr><td>Email:</td><td>" + userInfo.Email + @"</td></tr>
+                        <tr><td>Name:</td><td>" + userInfo.FirstName + " " + userInfo.LastName + @"</td></tr>
                         <tr><td>Phone:</td><td>" + formData.phone + @"</td></tr>
-                        <tr><td>Region:</td><td>" + assetGroup.Name + @"</td></tr>
+                        <tr><td>Region:</td><td>" + regionName + @"</td></tr>
                         <tr><td>Job:</td><td>" + templateName + @"</td></tr>
                     </table>
                     <a href='" + url + @"/email/approveuser/" + user.ID + @"'>Approve</a>
@@ -292,21 +294,6 @@ namespace PQDashboard.Controllers
             TableOperations<ConfirmableUserAccount> userAccountTable = m_dataContext.Table<ConfirmableUserAccount>();
             ConfirmableUserAccount userAccount = userAccountTable.QueryRecordWhere("Name = {0}", formData.sid);
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
-
-            // if email changed force reconfirmation
-            if (userAccount.Email != formData.email)
-            {
-                userAccount.Email = formData.email;
-                userAccount.EmailConfirmed = false;
-
-                if (!string.IsNullOrEmpty(formData.email))
-                {
-                    // generate code for email confirmation
-                    string code = Random.Int32Between(0, 999999).ToString("D6");
-                    s_memoryCache.Set("email" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                    SendEmail(userAccount.Email, "openXDA Event Email Service requries you to confirm your email.", $"From your workstation, input {code} at {url}/email/verify/email");
-                }
-            }
 
             // if phone changed force reconfirmation
             if (userAccount.Phone != formData.phone + "@" + formData.carrier)
@@ -327,107 +314,176 @@ namespace PQDashboard.Controllers
 
             userAccountTable.UpdateRecord(userAccount);
 
-            if (formData.region != -1)
-            {
-                // update link to asset group
-                TableOperations<UserAccountAssetGroup> userAccountAssetGroupTable = m_dataContext.Table<UserAccountAssetGroup>();
-                UserAccountAssetGroup userAccountAssetGroup = userAccountAssetGroupTable.QueryRecordWhere("UserAccountID = {0} AND AssetGroupID = {1}", userAccount.ID, formData.region);
+            UpdateUserAccountAssetGroup(userAccount, formData);
+            UpdateUserAccountEmailTypeForEmails(userAccount, formData);
+            UpdateUserAccountEmailTypeForSms(userAccount, formData);
+        }
 
-                if (userAccountAssetGroup == null)
-                    userAccountAssetGroup = userAccountAssetGroupTable.QueryRecordWhere("UserAccountID = {0} AND Email <> 0", userAccount.ID);
+        private void UpdateUserAccountAssetGroup(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
+            // update link to asset group
+            TableOperations<UserAccountAssetGroup> userAccountAssetGroupTable = m_dataContext.Table<UserAccountAssetGroup>();
+            IEnumerable<UserAccountAssetGroup> userAccountAssetGroups = userAccountAssetGroupTable.QueryRecordsWhere("UserAccountID = {0}", userAccount.ID);
+            IEnumerable<int> assetGroups = userAccountAssetGroups.Select(x => x.AssetGroupID);
 
-                if (userAccountAssetGroup == null)
-                    userAccountAssetGroup = new UserAccountAssetGroup();
+            // formData will come back as null instead of empty array ....
+            if (formData.region == null)
+                formData.region = new List<int>();
 
-                if (userAccountAssetGroup.ID == 0)
+            // First pass. Add Link in database if the link does not exist.
+            foreach (int id in formData.region) {
+                if (!assetGroups.Contains(id))
                 {
+                    UserAccountAssetGroup userAccountAssetGroup = new UserAccountAssetGroup();
+
                     userAccountAssetGroup.UserAccountID = userAccount.ID;
-                    userAccountAssetGroup.AssetGroupID = formData.region;
-                    userAccountAssetGroup.Dashboard = false;
+                    userAccountAssetGroup.AssetGroupID = id;
+                    userAccountAssetGroup.Dashboard = true;
                     userAccountAssetGroup.Email = true;
                     userAccountAssetGroupTable.AddNewRecord(userAccountAssetGroup);
                 }
-                else if (userAccountAssetGroup.AssetGroupID != formData.region || !userAccountAssetGroup.Email)
-                {
-                    userAccountAssetGroup.AssetGroupID = formData.region;
-                    userAccountAssetGroup.Email = true;
-                    userAccountAssetGroupTable.UpdateRecord(userAccountAssetGroup);
+                else {
+                    UserAccountAssetGroup userAccountAssetGroup = userAccountAssetGroups.Where(x => x.AssetGroupID == id).First();
+                    if (!userAccountAssetGroup.Dashboard || !userAccountAssetGroup.Email) {
+                        userAccountAssetGroup.Dashboard = true;
+                        userAccountAssetGroup.Email = true;
+                        userAccountAssetGroupTable.UpdateRecord(userAccountAssetGroup);
+                    }
                 }
             }
 
+            userAccountAssetGroups = userAccountAssetGroupTable.QueryRecordsWhere("UserAccountID = {0}", userAccount.ID);
+
+            // Second pass. Remove Link if the link does not exist in data from form.
+            foreach (UserAccountAssetGroup link in userAccountAssetGroups)
+            {
+                if (!formData.region.Contains(link.AssetGroupID))
+                    userAccountAssetGroupTable.DeleteRecord(link);
+            }
+
+
+        }
+
+        private void UpdateUserAccountEmailTypeForEmails(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
             // update links between user account and email type
-            TableOperations<EmailType> emailTypeTable = m_dataContext.Table<EmailType>();
-            TableOperations<UserAccountEmailType> userAccountEmailTypeTable = m_dataContext.Table<UserAccountEmailType>();
-            List<UserAccountEmailType> existingUserAccountEmailTypes = userAccountEmailTypeTable.QueryRecordsWhere("UserAccountID = {0}", userAccount.ID).ToList();
-            List<UserAccountEmailType> newUserAccountEmailTypes = new List<UserAccountEmailType>();
             EmailCategory eventEmailCategory = m_dataContext.Table<EmailCategory>().QueryRecordWhere("Name = 'Event'");
 
-            if (formData.job != 0)
+            DataTable userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
+                SELECT 
+	                UserAccountEmailType.ID as UserAccountEmailTypeID,
+	                UserAccountEmailType.UserAccountID as UserAccountID,
+	                EmailType.ID as EmailTypeID,
+	                EmailType.EmailCategoryID as EmailCategoryID,
+	                EmailType.XSLTemplateID as XSLTemplateID
+                FROM
+	                UserAccountEmailType JOIN
+	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
+                WHERE
+                    SMS = 0 AND EmailCategoryID = {0}
+            ", eventEmailCategory.ID);
+
+            IEnumerable<int> templates = userAccountEmailTypeDataTable.Select().Select(x => (int)x["XSLTemplateID"]);
+
+            // formData will come back as null instead of empty array ....
+            if (formData.job == null)
+                formData.job = new List<int>();
+
+            // First pass. Add Link in database if the link does not exist.
+            foreach (int id in formData.job)
             {
-                RecordRestriction emailTypeRestriction = new RecordRestriction("SMS = 0 AND EmailCategoryID = {0}", eventEmailCategory.ID);
-
-                if (formData.job > 0)
-                    emailTypeRestriction &= new RecordRestriction("ID = {0}", formData.job);
-
-                IEnumerable<EmailType> emailTypes = emailTypeTable.QueryRecords(emailTypeRestriction);
-
-                if (formData.job == -2)
-                {
-                    // No change to existing email subscriptions
-                    List<int> existingEmailTypes = existingUserAccountEmailTypes
-                        .Select(userAccountEmailType => userAccountEmailType.EmailTypeID)
-                        .ToList();
-
-                    emailTypes = emailTypes.Where(emailType => existingEmailTypes.Contains(emailType.ID));
+                if (!templates.Contains(id)) {
+                    UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
+                    userAccountEmailType.UserAccountID = userAccount.ID;
+                    userAccountEmailType.EmailTypeID = m_dataContext.Connection.ExecuteScalar<int>("SELECT ID FROM EmailType WHERE XSLTemplateID = {0} AND EmailCategoryID = {1} AND SMS = 0", id, eventEmailCategory.ID);
+                    m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
                 }
+            }
 
-                foreach (EmailType emailType in emailTypes)
+            userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
+                SELECT 
+	                UserAccountEmailType.ID as UserAccountEmailTypeID,
+	                UserAccountEmailType.UserAccountID as UserAccountID,
+	                EmailType.ID as EmailTypeID,
+	                EmailType.EmailCategoryID as EmailCategoryID,
+	                EmailType.XSLTemplateID as XSLTemplateID
+                FROM
+	                UserAccountEmailType JOIN
+	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
+                WHERE
+                    SMS = 0 AND EmailCategoryID = {0}
+            ", eventEmailCategory.ID);
+
+            // Second pass. Remove Link if the link does not exist in data from form.
+            foreach (DataRow link in userAccountEmailTypeDataTable.Rows)
+            {
+                if (!formData.job.Contains((int)link["XSLTemplateID"]))
+                    m_dataContext.Table<UserAccountEmailType>().DeleteRecordWhere("ID = {0}", (int)link["UserAccountEmailTypeID"]);
+            }
+        }
+
+        private void UpdateUserAccountEmailTypeForSms(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
+            // update links between user account and email type
+            EmailCategory eventEmailCategory = m_dataContext.Table<EmailCategory>().QueryRecordWhere("Name = 'Event'");
+
+            DataTable userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
+                SELECT 
+	                UserAccountEmailType.ID as UserAccountEmailTypeID,
+	                UserAccountEmailType.UserAccountID as UserAccountID,
+	                EmailType.ID as EmailTypeID,
+	                EmailType.EmailCategoryID as EmailCategoryID,
+	                EmailType.XSLTemplateID as XSLTemplateID
+                FROM
+	                UserAccountEmailType JOIN
+	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
+                WHERE
+                    SMS = 1 AND EmailCategoryID = {0}
+            ", eventEmailCategory.ID);
+
+            IEnumerable<int> templates = userAccountEmailTypeDataTable.Select().Select(x => (int)x["XSLTemplateID"]);
+
+            // formData will come back as null instead of empty array ....
+            if (formData.sms == null)
+                formData.sms = new List<int>();
+
+            // First pass. Add Link in database if the link does not exist.
+            foreach (int id in formData.sms)
+            {
+                if (!templates.Contains(id))
                 {
                     UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
                     userAccountEmailType.UserAccountID = userAccount.ID;
-                    userAccountEmailType.EmailTypeID = emailType.ID;
-                    newUserAccountEmailTypes.Add(userAccountEmailType);
+                    userAccountEmailType.EmailTypeID = m_dataContext.Connection.ExecuteScalar<int>("SELECT ID FROM EmailType WHERE XSLTemplateID = {0} AND EmailCategoryID = {1} AND SMS = 1", id, eventEmailCategory.ID); ;
+                    m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
                 }
             }
 
-            if (formData.sms != 0)
+            userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
+                SELECT 
+	                UserAccountEmailType.ID as UserAccountEmailTypeID,
+	                UserAccountEmailType.UserAccountID as UserAccountID,
+	                EmailType.ID as EmailTypeID,
+	                EmailType.EmailCategoryID as EmailCategoryID,
+	                EmailType.XSLTemplateID as XSLTemplateID
+                FROM
+	                UserAccountEmailType JOIN
+	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
+                WHERE
+                    SMS = 1 AND EmailCategoryID = {0}
+            ", eventEmailCategory.ID);
+
+            // Second pass. Remove Link if the link does not exist in data from form.
+            foreach (DataRow link in userAccountEmailTypeDataTable.Rows)
             {
-                RecordRestriction smsTypeRestriction = new RecordRestriction("SMS <> 0 AND EmailCategoryID = {0}", eventEmailCategory.ID);
-
-                if (formData.sms != -1)
-                    smsTypeRestriction &= new RecordRestriction("ID = {0}", formData.sms);
-
-                IEnumerable<EmailType> smsTypes = emailTypeTable.QueryRecords(smsTypeRestriction);
-
-                if (formData.sms == -2)
-                {
-                    // No change to existing SMS subscriptions
-                    List<int> existingEmailTypes = existingUserAccountEmailTypes
-                        .Select(userAccountEmailType => userAccountEmailType.EmailTypeID)
-                        .ToList();
-
-                    smsTypes = smsTypes.Where(smsType => existingEmailTypes.Contains(smsType.ID));
-                }
-
-                foreach (EmailType smsType in smsTypes)
-                {
-                    UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
-                    userAccountEmailType.UserAccountID = userAccount.ID;
-                    userAccountEmailType.EmailTypeID = smsType.ID;
-                    newUserAccountEmailTypes.Add(userAccountEmailType);
-                }
+                if (!formData.sms.Contains((int)link["XSLTemplateID"]))
+                    m_dataContext.Table<UserAccountEmailType>().DeleteRecordWhere("ID = {0}", (int)link["UserAccountEmailTypeID"]);
             }
+        }
 
-            for (int i = 0; i < existingUserAccountEmailTypes.Count; i++)
-            {
-                if (i < newUserAccountEmailTypes.Count)
-                    newUserAccountEmailTypes[i].ID = existingUserAccountEmailTypes[i].ID;
-                else
-                    userAccountEmailTypeTable.DeleteRecord(existingUserAccountEmailTypes[i]);
-            }
 
-            foreach (UserAccountEmailType userAccountEmailType in newUserAccountEmailTypes)
-                userAccountEmailTypeTable.AddNewOrUpdateRecord(userAccountEmailType);
+        private void HandleUnsubscribe(UpdateSettingModel formData)
+        {
+            formData.job = new List<int>();
+            formData.sms = new List<int>();
+            HandleUpdate(formData);
         }
 
         private ActionResult HandleVerifySubmit(VerifyCodeModel formData, ConfirmableUserAccount user)

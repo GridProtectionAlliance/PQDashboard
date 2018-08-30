@@ -94,47 +94,8 @@
 
     Guid userAccountID = ViewBag.account.ID;
     List<UserAccountAssetGroup> userRegions = dataContext.Table<UserAccountAssetGroup>().QueryRecordsWhere("UserAccountID = {0} AND Email <> 0", userAccountID).ToList();
-    List<UserAccountEmailType> userEmails = dataContext.Table<UserAccountEmailType>().QueryRecordsWhere("UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0)", userAccountID).ToList();
-    List<UserAccountEmailType> userSMS = dataContext.Table<UserAccountEmailType>().QueryRecordsWhere("UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0)", userAccountID).ToList();
-
-    string currentRegion = "Some";
-    string currentJob = "Some";
-    string currentSMS = "Some";
-
-    if (userRegions.Count == 0)
-    {
-        currentRegion = "None";
-    }
-    else if (userRegions.Count == 1)
-    {
-        currentRegion = userRegions[0].AssetGroupID.ToString();
-    }
-
-    if (userEmails.Count == 0)
-    {
-        currentJob = "None";
-    }
-    else if (userEmails.Count == 1)
-    {
-        currentJob = userEmails[0].EmailTypeID.ToString();
-    }
-    else if (userEmails.Count == jobTemplates.Count)
-    {
-        currentJob = "All";
-    }
-
-    if (userSMS.Count == 0)
-    {
-        currentSMS = "None";
-    }
-    else if (userSMS.Count == 1)
-    {
-        currentSMS = userSMS[0].EmailTypeID.ToString();
-    }
-    else if (userSMS.Count == smsTemplates.Count)
-    {
-        currentSMS = "All";
-    }
+    List<XSLTemplate> userEmails = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0)))", userAccountID).ToList();
+    List<XSLTemplate> userSMS = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0)))", userAccountID).ToList();
 
     string[] phoneParts = ViewBag.account.Phone?.Split('@');
     string phone = phoneParts?[0];
@@ -168,6 +129,13 @@
     @Styles.Render("~/Content/bootstrap/bootstrap")
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")
+    @Scripts.Render("~/Scripts/bootstrap-fullscreen-select")
+
+    <style>
+        .invalid {
+            border: 5px solid #ffdddd;
+        }
+    </style>
 </head>
 
 <body>
@@ -187,8 +155,10 @@
                 <p>
                     This page is used to sign up for and manage the self subscription email service. Once you submit your request
                     you will need to verify your email address and, if applicable, your phone number. You will begin recieving emails and
-                    messages from openXDA once you have been approved by the system administrator. The information you recieve should not
-                    be shared or forwarded to anyone without permission to prevent TVA rules and guidelines from being broken.
+                    messages from openXDA once you have been approved by the system administrator. </p>
+
+                <p><b> *** The notifications you recieve contain TVA Operation Sensitive Data and should not
+                    be shared or forwarded to ANYONE without expressed permission. ***</b>
                 </p>
 
                 <p>
@@ -228,7 +198,7 @@
                 <input name="sid" value="@ViewBag.usersid" hidden />
                 <div class="form-group">
                     <label for="email">Email address:</label>
-                    <input type="email" class="form-control" name="email" value="@ViewBag.account.Email">
+                    <input type="email" class="form-control" name="email" value="@ViewBag.email" disabled>
                 </div>
                 <div class="form-group">
                     <label for="phone">Cell Number: </label>
@@ -237,6 +207,8 @@
                 <div class="form-group">
                     <label for="carrier">Cell Carrier:</label>
                     <select class="form-control" name="carrier">
+                        <option value="0">--Please Select--</option>
+
                         @foreach (KeyValuePair<string, string> kvp in carrierList)
                         {
                             <option value="@kvp.Value" @(kvp.Value == carrier ? "selected" : null)>@kvp.Key</option>
@@ -245,44 +217,28 @@
                 </div>
                 <div class="form-group">
                     <label for="region">Region:</label>
-                    <select class="form-control" name="region">
-                        @if (userRegions.Count > 1)
-                        {
-                            <option value="-1" selected>No change</option>
-                        }
+                    <select class="form-control mobileSelect" name="region" multiple>
                         @foreach (AssetGroup region in regions)
                         {
-                            <option value="@region.ID" @(region.ID.ToString() == currentRegion ? "selected" : null)>@region.Name</option>
+                            <option value="@region.ID" @(userRegions.Select(x => x.AssetGroupID).Contains( region.ID) ? "selected" : null)>@region.Name</option>
                         }
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="job">Email Template:</label>
-                    <select class="form-control" name="job">
-                        @if (userEmails.Count != jobTemplates.Count && userEmails.Count > 1)
-                        {
-                            <option value="-2" selected>No change</option>
-                        }
-                        <option value="0">None</option>
-                        <option value="-1" @(currentJob == "All" ? "selected" : null)>All emails</option>
+                    <label for="job">Email Template (Select by Job Title):</label>
+                    <select class="form-control mobileSelect" name="job" multiple>
                         @foreach (XSLTemplate jobTemplate in jobTemplates)
                         {
-                            <option value="@jobTemplate.ID" @(jobTemplate.ID.ToString() == currentJob ? "selected" : null)>@jobTemplate.Name</option>
+                            <option value="@jobTemplate.ID" @(userEmails.Select(x => x.ID).Contains( jobTemplate.ID) ? "selected" : null)>@jobTemplate.Name</option>
                         }
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="sms">SMS Template:</label>
-                    <select class="form-control" name="sms">
-                        @if (userSMS.Count != smsTemplates.Count && userSMS.Count > 1)
-                        {
-                            <option value="-2" selected>No change</option>
-                        }
-                        <option value="0">None</option>
-                        <option value="-1" @(currentSMS == "All" ? "selected" : null)>All SMS messages</option>
+                    <label for="sms">SMS Template (Select by Job Title):</label>
+                    <select class="form-control mobileSelect" name="sms" multiple>
                         @foreach (XSLTemplate smsTemplate in smsTemplates)
                         {
-                            <option value="@smsTemplate.ID" @(smsTemplate.ID.ToString() == currentSMS ? "selected" : null)>@smsTemplate.Name</option>
+                            <option value="@smsTemplate.ID" @(userSMS.Select(x => x.ID).Contains( smsTemplate.ID) ? "selected" : null)>@smsTemplate.Name</option>
                         }
                     </select>
                 </div>
@@ -293,6 +249,7 @@
                 @if (ViewBag.isRegistered)
                 {
                     <input type="submit" name="submit" value="Update" class="btn btn-default" />
+                    <input type="submit" name="submit" value="Unsubscribe" class="btn btn-default" />
                 }
 
             </form>
@@ -300,6 +257,17 @@
     </div>
 
     <script>
+        var phoneRegex = /(^(\+0?1\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)|(^\d{10}$)/gm;
+        var mobileSelectOptions = {
+            filterable: true,
+            padding: {
+                top: '5%',
+                left: '15%',
+                right: '15%',
+                bottom: '5%'
+            }
+        };
+
         $(function () {
             $("form").on("submit", function () {
                 var phoneInput = $("input[name='phone']");
@@ -311,6 +279,26 @@
 
                 phoneInput.val(phone);
             });
+
+            $('input[name="phone"]').keyup(function () {
+                if ($(this).val() == "") {
+                    $(this).removeClass('invalid');
+                    $('input[name="submit"]').prop('disabled', false);
+                }
+                else if ($(this).val().match(phoneRegex)) {
+                    $(this).removeClass('invalid');
+                    $('input[name="submit"]').prop('disabled', false);
+
+                }
+                else {
+                    $(this).addClass('invalid');
+                    $('input[name="submit"]').prop('disabled', true);
+                }
+
+            });
+
+            $('.mobileSelect').mobileSelect(mobileSelectOptions);
+            $('.btn-mobileSelect-gen').addClass('form-control')
         });
     </script>
 </body>
