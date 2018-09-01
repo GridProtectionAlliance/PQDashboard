@@ -132,10 +132,52 @@ export default class PolarChart extends React.Component<any, any>{
 
     render() {
         return (
-            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: '300px', height: '320px', display: 'none' }}>
+            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: '500px', height: '320px', display: 'none' }}>
                 <div id="phasorhandle"></div>
-                <div id="phasorchart" style={{ width: '300px', height: '300px', zIndex: 1001 }}>
-                    <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' }}></canvas>
+                <div id="phasorchart" style={{ width: '500px', height: '300px', zIndex: 1001 }}>
+                    <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' , float: 'left'}}></canvas>
+                    <table className="table" style={{ width: 200, height: 300, float: 'right' }}>
+                        <thead>
+                            <tr>
+                                <td>Phase</td>
+                                <td>Mag</td>
+                                <td>Angle</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>VAN</td>
+                                <td>{(this.props.data['VAN RMS'] != null ? this.props.data['VAN RMS'].data.toFixed(2) : null)}</td>
+                                <td>{(this.props.data['VAN Phase'] != null ? this.props.data['VAN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+                            <tr>
+                                <td>VBN</td>
+                                <td>{(this.props.data['VBN RMS'] != null ? this.props.data['VBN RMS'].data.toFixed(2)  : null)}</td>
+                                <td>{(this.props.data['VBN Phase'] != null ? this.props.data['VBN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+                            <tr>
+                                <td>VCN</td>
+                                <td>{(this.props.data['VCN RMS'] != null ? this.props.data['VCN RMS'].data.toFixed(2)  : null)}</td>
+                                <td>{(this.props.data['VCN Phase'] != null ? this.props.data['VCN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+                            <tr>
+                                <td>IAN</td>
+                                <td>{(this.props.data['IAN RMS'] != null ? this.props.data['IAN RMS'].data.toFixed(2)  : null)}</td>
+                                <td>{(this.props.data['IAN Phase'] != null ? this.props.data['IAN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+                            <tr>
+                                <td>IBN</td>
+                                <td>{(this.props.data['IBN RMS'] != null ? this.props.data['IBN RMS'].data.toFixed(2)  : null)}</td>
+                                <td>{(this.props.data['IBN Phase'] != null ? this.props.data['IBN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+                            <tr>
+                                <td>ICN</td>
+                                <td>{(this.props.data['ICN RMS'] != null ? this.props.data['ICN RMS'].data.toFixed(2)  : null)}</td>
+                                <td>{(this.props.data['ICN Phase'] != null ? this.props.data['ICN Phase'].data.toFixed(2)  : null)}</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
                 </div>
                 <button className="CloseButton" onClick={() => {
                     this.props.callback({ phasorButtonText: "Show Phasor" });
