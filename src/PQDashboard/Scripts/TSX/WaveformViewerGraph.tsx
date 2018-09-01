@@ -257,7 +257,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         delete nextPropsClone.tableData;
 
         if (nextProps.startDate && nextProps.endDate) {
-            if (this.props.startDate != nextProps.startDate || this.props.endDate != nextProps.endDate) {
+            if (this.plot != null && (this.props.startDate != nextProps.startDate || this.props.endDate != nextProps.endDate)) {
                 var xaxis = this.plot.getAxes().xaxis;
                 var xmin = this.getMillisecondTime(nextProps.startDate);
                 var xmax = this.getMillisecondTime(nextProps.endDate);
