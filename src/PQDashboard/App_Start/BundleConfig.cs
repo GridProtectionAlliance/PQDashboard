@@ -9,8 +9,6 @@ namespace PQDashboard
         public static void RegisterBundles(BundleCollection bundles)
         {
 
-
-
             bundles.Add(new ScriptBundle("~/Scripts/default").Include(
                 "~/Scripts/default.js"
             ));

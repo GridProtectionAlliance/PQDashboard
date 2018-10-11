@@ -36,6 +36,8 @@ module.exports = {
         new webpack.ProvidePlugin({
           $: 'jquery',
           jQuery: 'jquery',
+          Map: 'core-js/es6/map',
+          Set: 'core-js/es6/set'
         })
     ]
 };
