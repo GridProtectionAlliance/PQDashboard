@@ -64961,8 +64961,8 @@ var OpenSEE = (function (_super) {
                                 React.createElement("input", { className: "smallbutton", type: "button", value: this.state.tooltipButtonText, onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 React.createElement("input", { className: "smallbutton", type: "button", value: this.state.phasorButtonText, onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
-                            React.createElement("td", { style: { textAlign: 'center', display: 'none' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: function () { }, id: "exportdata" })))))),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: this.exportData.bind(this), id: "exportdata" })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
                 React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
@@ -65121,6 +65121,13 @@ var OpenSEE = (function (_super) {
         }
         else
             return React.createElement("a", { href: '#', id: id, key: id, className: 'nextbackbutton smallbutton-disabled', title: 'No event', style: { padding: '4px 20px' } }, text);
+    };
+    OpenSEE.prototype.exportData = function () {
+        window.open("/OpenSEECSVDownload.ashx?eventID=" + this.state.eventid +
+            ("" + (this.state.startDate != undefined ? "&startDate=" + this.state.startDate : "")) +
+            ("" + (this.state.endDate != undefined ? "&endDate=" + this.state.endDate : "")) +
+            ("&Meter=" + this.state.PostedData.postedMeterName) +
+            ("&EventType=" + this.state.PostedData.postedEventName));
     };
     return OpenSEE;
 }(React.Component));

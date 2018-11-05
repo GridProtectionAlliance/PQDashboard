@@ -375,6 +375,9 @@
       <DependentUpon>PQI.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="OpenSEECSVDownload.ashx.cs">
+      <DependentUpon>OpenSEECSVDownload.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
@@ -388,6 +391,7 @@
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
+    <Content Include="OpenSEECSVDownload.ashx" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap.js" />

@@ -167,7 +167,7 @@ export class OpenSEE extends React.Component<any, any>{
 
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} id="showtooltip" /></td>
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} id="showphasor" /></td>
-                                    <td style={{ textAlign: 'center', display: 'none' }}><input className="smallbutton" type="button" value="Export Data" onClick={() => { }} id="exportdata" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Data" onClick={this.exportData.bind(this)} id="exportdata" /></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -372,6 +372,14 @@ export class OpenSEE extends React.Component<any, any>{
         else
             return <a href='#' id={id} key={id} className='nextbackbutton smallbutton-disabled' title='No event' style={{padding: '4px 20px'}}>{text}</a>;
 
+    }
+
+    exportData() {
+        window.open(`/OpenSEECSVDownload.ashx?eventID=${this.state.eventid}` +
+            `${this.state.startDate != undefined ? `&startDate=${this.state.startDate}` : ``}` +
+            `${this.state.endDate != undefined ? `&endDate=${this.state.endDate}` : ``}` +
+            `&Meter=${this.state.PostedData.postedMeterName}` +
+            `&EventType=${this.state.PostedData.postedEventName}` );
     }
 }
 
