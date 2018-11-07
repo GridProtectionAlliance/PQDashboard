@@ -30,6 +30,7 @@ export default class OpenSEEService{
     faultDistanceDataHandle: any;
     breakerDigitalsDataHandle: any;
     headerDataHandle: any;
+    scalarStatHandle: any;
 
     getWaveformData(filters) {
         if (this.waveformDataHandle !== undefined)
@@ -127,6 +128,22 @@ export default class OpenSEEService{
         });
 
         return this.headerDataHandle;
+    }
+
+    getScalarStats(eventid) {
+        if (this.scalarStatHandle !== undefined)
+            this.scalarStatHandle.abort();
+
+        this.scalarStatHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetScalarStats?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.scalarStatHandle;
     }
 
 }

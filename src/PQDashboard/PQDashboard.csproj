@@ -375,6 +375,9 @@
       <DependentUpon>PQI.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="OpenSEEComtradeDownload.ashx.cs">
+      <DependentUpon>OpenSEEComtradeDownload.ashx</DependentUpon>
+    </Compile>
     <Compile Include="OpenSEECSVDownload.ashx.cs">
       <DependentUpon>OpenSEECSVDownload.ashx</DependentUpon>
     </Compile>
@@ -392,6 +395,7 @@
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
     <Content Include="OpenSEECSVDownload.ashx" />
+    <Content Include="OpenSEEComtradeDownload.ashx" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap.js" />
@@ -1268,6 +1272,7 @@
     <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PolarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\ScalarStats.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Tooltip.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\WaveformViewerGraph.tsx" />
     <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />

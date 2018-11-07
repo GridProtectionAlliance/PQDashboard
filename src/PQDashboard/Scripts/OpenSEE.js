@@ -50073,6 +50073,19 @@ var OpenSEEService = (function () {
         });
         return this.headerDataHandle;
     };
+    OpenSEEService.prototype.getScalarStats = function (eventid) {
+        if (this.scalarStatHandle !== undefined)
+            this.scalarStatHandle.abort();
+        this.scalarStatHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetScalarStats?eventId=" + eventid,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.scalarStatHandle;
+    };
     return OpenSEEService;
 }());
 exports.default = OpenSEEService;
@@ -64840,6 +64853,7 @@ var WaveformViewerGraph_1 = __webpack_require__(222);
 var PolarChart_1 = __webpack_require__(228);
 var AccumulatedPoints_1 = __webpack_require__(229);
 var Tooltip_1 = __webpack_require__(231);
+var ScalarStats_1 = __webpack_require__(232);
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
     function OpenSEE(props) {
@@ -64862,6 +64876,7 @@ var OpenSEE = (function (_super) {
             pointsButtonText: "Show Points",
             tooltipButtonText: "Show Tooltip",
             phasorButtonText: "Show Phasor",
+            statButtonText: "Show Stats",
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -64948,7 +64963,7 @@ var OpenSEE = (function (_super) {
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 React.createElement("button", { className: "smallbutton", onClick: function () { return _this.resetZoom(); } }, "Reset Zoom")),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.pointsButtonText, onClick: function () { return _this.showhidePoints(); }, id: "showpoints" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.pointsButtonText, onClick: function () { return _this.showhidePoints(); } })),
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 this.state.backButtons,
                                 React.createElement("select", { id: "next-back-selection", defaultValue: "system" },
@@ -64958,15 +64973,18 @@ var OpenSEE = (function (_super) {
                                     React.createElement("option", { value: "line" }, "Line")),
                                 this.state.forwardButtons),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.tooltipButtonText, onClick: function () { return _this.showhideTooltip(); }, id: "showtooltip" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.tooltipButtonText, onClick: function () { return _this.showhideTooltip(); } })),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.phasorButtonText, onClick: function () { return _this.showhidePhasor(); }, id: "showphasor" })),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.phasorButtonText, onClick: function () { return _this.showhidePhasor(); } })),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: this.exportData.bind(this), id: "exportdata" })))))),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: this.state.statButtonText, onClick: this.showStats.bind(this) })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: this.exportData.bind(this, "csv") })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
                 React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
                 React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover, callback: this.stateSetter.bind(this) }),
+                React.createElement(ScalarStats_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves, postedData: this.state.PostedData }),
@@ -65049,6 +65067,16 @@ var OpenSEE = (function (_super) {
             $('#phasor').hide();
         }
     };
+    OpenSEE.prototype.showStats = function () {
+        if (this.state.statButtonText == "Show Stats") {
+            this.setState({ statButtonText: "Hide Stats" });
+            $('#scalarstats').show();
+        }
+        else {
+            this.setState({ statButtonText: "Show Stats" });
+            $('#scalarstats').hide();
+        }
+    };
     OpenSEE.prototype.showData = function (data) {
         if (data.postedEventName != undefined) {
             var label = "";
@@ -65122,8 +65150,8 @@ var OpenSEE = (function (_super) {
         else
             return React.createElement("a", { href: '#', id: id, key: id, className: 'nextbackbutton smallbutton-disabled', title: 'No event', style: { padding: '4px 20px' } }, text);
     };
-    OpenSEE.prototype.exportData = function () {
-        window.open("/OpenSEECSVDownload.ashx?eventID=" + this.state.eventid +
+    OpenSEE.prototype.exportData = function (type) {
+        window.open("/OpenSEECSVDownload.ashx?type=" + type + "&eventID=" + this.state.eventid +
             ("" + (this.state.startDate != undefined ? "&startDate=" + this.state.startDate : "")) +
             ("" + (this.state.endDate != undefined ? "&endDate=" + this.state.endDate : "")) +
             ("&Meter=" + this.state.PostedData.postedMeterName) +
@@ -86261,16 +86289,16 @@ var PolarChart = (function (_super) {
     };
     PolarChart.prototype.render = function () {
         var _this = this;
-        return (React.createElement("div", { id: "phasor", className: "ui-widget-content", style: { position: 'absolute', top: '0', width: '500px', height: '320px', display: 'none' } },
+        return (React.createElement("div", { id: "phasor", className: "ui-widget-content", style: { position: 'absolute', top: '0', width: 530, height: 340, display: 'none' } },
             React.createElement("div", { id: "phasorhandle" }),
             React.createElement("div", { id: "phasorchart", style: { width: '500px', height: '300px', zIndex: 1001 } },
                 React.createElement("canvas", { id: "phasorCanvas", width: "300", height: "300", style: { display: 'block', float: 'left' } }),
                 React.createElement("table", { className: "table", style: { width: 200, height: 300, float: 'right' } },
                     React.createElement("thead", null,
                         React.createElement("tr", null,
-                            React.createElement("td", null, "Phase"),
-                            React.createElement("td", null, "Mag"),
-                            React.createElement("td", null, "Angle"))),
+                            React.createElement("th", null, "Phase"),
+                            React.createElement("th", null, "Mag"),
+                            React.createElement("th", null, "Angle"))),
                     React.createElement("tbody", null,
                         React.createElement("tr", null,
                             React.createElement("td", null, "VAN"),
@@ -100485,6 +100513,73 @@ var Row = function (row) {
             React.createElement("b", null, row.label)),
         React.createElement("td", { style: { textAlign: "right" } },
             React.createElement("b", null, row.data.toFixed(2)))));
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+/* 232 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(4);
+__webpack_require__(25);
+var OpenSEE_1 = __webpack_require__(51);
+var ScalarStats = (function (_super) {
+    __extends(ScalarStats, _super);
+    function ScalarStats(props) {
+        var _this = _super.call(this, props) || this;
+        _this.openSEEService = new OpenSEE_1.default();
+        _this.state = {
+            rows: []
+        };
+        return _this;
+    }
+    ScalarStats.prototype.componentDidMount = function () {
+        var _this = this;
+        $("#scalarstats").draggable({ scroll: false, handle: '#statshandle' });
+        this.openSEEService.getScalarStats(this.props.eventId).done(function (data) {
+            var rows = Object.keys(data).map(function (key) { return Row({ label: key, data: data[key] }); });
+            _this.setState({ rows: rows });
+        });
+    };
+    ScalarStats.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", { id: "scalarstats", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
+            React.createElement("div", { id: "statshandle" }),
+            React.createElement("div", { id: "statscontent" },
+                React.createElement("table", { className: "table", style: { fontSize: 'large' } },
+                    React.createElement("thead", null,
+                        React.createElement("tr", null,
+                            React.createElement("th", null, "Stat"),
+                            React.createElement("th", null,
+                                "Value\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0",
+                                React.createElement("button", { className: 'btn btn-primary', onClick: function () { return _this.props.exportCallback("stats"); } }, "Export(csv)")))),
+                    React.createElement("tbody", null, this.state.rows))),
+            React.createElement("button", { className: "CloseButton", onClick: function () {
+                    _this.props.callback({ statButtonText: "Show Stats" });
+                    $('#scalarstats').hide();
+                } }, "X")));
+    };
+    return ScalarStats;
+}(React.Component));
+exports.default = ScalarStats;
+var Row = function (row) {
+    return (React.createElement("tr", { key: row.label },
+        React.createElement("td", null, row.label),
+        React.createElement("td", null, row.data)));
 };
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))

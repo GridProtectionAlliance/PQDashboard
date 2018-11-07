@@ -132,16 +132,16 @@ export default class PolarChart extends React.Component<any, any>{
 
     render() {
         return (
-            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: '500px', height: '320px', display: 'none' }}>
+            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: 530, height: 340, display: 'none' }}>
                 <div id="phasorhandle"></div>
                 <div id="phasorchart" style={{ width: '500px', height: '300px', zIndex: 1001 }}>
                     <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' , float: 'left'}}></canvas>
                     <table className="table" style={{ width: 200, height: 300, float: 'right' }}>
                         <thead>
                             <tr>
-                                <td>Phase</td>
-                                <td>Mag</td>
-                                <td>Angle</td>
+                                <th>Phase</th>
+                                <th>Mag</th>
+                                <th>Angle</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -1,4 +1,27 @@
-﻿using FaultData.DataAnalysis;
+﻿//******************************************************************************************************
+//  OpenSEECSVDownload.ashx.cs - Gbtc
+//
+//  Copyright © 2018, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  11/06/2018 - Billy Ernest
+//       Generated original version of source code.
+//
+//******************************************************************************************************
+
+using FaultData.DataAnalysis;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Threading;
@@ -129,8 +152,10 @@ namespace PQDashboard
 
         private void WriteTableToStream(NameValueCollection requestParameters, Stream responseStream, Action flushResponse, CompatibleCancellationToken cancellationToken)
         {
-
-            ExportToCSV(responseStream, requestParameters);
+            if (requestParameters["type"] == "csv")
+                ExportToCSV(responseStream, requestParameters);
+            else if (requestParameters["type"] == "stats")
+                ExportStatsToCSV(responseStream, requestParameters);
         }
 
         // Converts the data group row of CSV data.
@@ -169,6 +194,24 @@ namespace PQDashboard
                 // Write data to the file
                 for (int i = 0; i < dict[dict.Keys.First()].DataPoints.Count; ++i)
                     writer.WriteLine(ToCSV(dict, i));
+            }
+        }
+
+        public void ExportStatsToCSV(Stream returnStream, NameValueCollection requestParameters)
+        {
+            int eventId = int.Parse(requestParameters["eventId"]);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (StreamWriter writer = new StreamWriter(returnStream))
+            {
+                DataTable dataTable = connection.RetrieveData("SELECT * FROM OpenSEEScalarStatView WHERE EventID = {0}", eventId);
+                DataRow row = dataTable.AsEnumerable().First();
+                Dictionary<string, string>  dict = row.Table.Columns.Cast<DataColumn>().ToDictionary(c => c.ColumnName, c => row[c].ToString());
+
+                if (dict.Keys.Count() == 0) return;
+
+                // Write the CSV header to the file
+                writer.WriteLine(string.Join(",", dict.Keys));
+                writer.WriteLine(string.Join(",", dict.Values));
             }
         }
 

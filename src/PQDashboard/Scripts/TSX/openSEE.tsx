@@ -32,6 +32,7 @@ import WaveformViewerGraph from './WaveformViewerGraph';
 import PolarChart from './PolarChart';
 import Points from './AccumulatedPoints';
 import Tooltip from './Tooltip';
+import ScalarStats from './ScalarStats';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -60,6 +61,7 @@ export class OpenSEE extends React.Component<any, any>{
             pointsButtonText: "Show Points",
             tooltipButtonText: "Show Tooltip",
             phasorButtonText: "Show Phasor",
+            statButtonText: "Show Stats",
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -152,7 +154,7 @@ export class OpenSEE extends React.Component<any, any>{
                             <tbody>
                                 <tr>
                                     <td style={{ textAlign: 'center' }}><button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.pointsButtonText} onClick={() => this.showhidePoints()} id="showpoints" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.pointsButtonText} onClick={() => this.showhidePoints()} /></td>
 
                                     <td style={{ textAlign: 'center' }}>
                                         {this.state.backButtons}
@@ -165,9 +167,10 @@ export class OpenSEE extends React.Component<any, any>{
                                         {this.state.forwardButtons}
                                     </td>
 
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} id="showtooltip" /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} id="showphasor" /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Data" onClick={this.exportData.bind(this)} id="exportdata" /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.statButtonText} onClick={this.showStats.bind(this)} /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Data" onClick={this.exportData.bind(this, "csv")} /></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -176,6 +179,7 @@ export class OpenSEE extends React.Component<any, any>{
                         <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)} />
                         <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
                         <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
+                        <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
 
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
@@ -270,6 +274,17 @@ export class OpenSEE extends React.Component<any, any>{
             $('#phasor').hide();
         }
     }
+
+    showStats() {
+        if (this.state.statButtonText == "Show Stats") {
+            this.setState({ statButtonText: "Hide Stats" });
+            $('#scalarstats').show();
+        } else {
+            this.setState({ statButtonText: "Show Stats" });
+            $('#scalarstats').hide();
+        }
+    }
+
 
     showData(data) {
         // If all exist, then let's act
@@ -374,8 +389,8 @@ export class OpenSEE extends React.Component<any, any>{
 
     }
 
-    exportData() {
-        window.open(`/OpenSEECSVDownload.ashx?eventID=${this.state.eventid}` +
+    exportData(type) {
+        window.open(`/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
             `${this.state.startDate != undefined ? `&startDate=${this.state.startDate}` : ``}` +
             `${this.state.endDate != undefined ? `&endDate=${this.state.endDate}` : ``}` +
             `&Meter=${this.state.PostedData.postedMeterName}` +
