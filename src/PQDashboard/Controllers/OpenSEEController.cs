@@ -396,6 +396,8 @@ namespace OpenSEE.Controller
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 DataTable dataTable = connection.RetrieveData("SELECT * FROM OpenSEEScalarStatView WHERE EventID = {0}", eventId);
+                if (dataTable.Rows.Count == 0) return new Dictionary<string, string>();
+
                 DataRow row = dataTable.AsEnumerable().First();
                 return row.Table.Columns.Cast<DataColumn>().ToDictionary(c => c.ColumnName, c=> row[c].ToString());
 
