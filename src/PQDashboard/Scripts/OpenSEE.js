@@ -64979,7 +64979,9 @@ var OpenSEE = (function (_super) {
                             React.createElement("td", { style: { textAlign: 'center' } },
                                 React.createElement("input", { className: "smallbutton", type: "button", value: this.state.statButtonText, onClick: this.showStats.bind(this) })),
                             React.createElement("td", { style: { textAlign: 'center' } },
-                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Data", onClick: this.exportData.bind(this, "csv") })))))),
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export CSV", onClick: this.exportData.bind(this, "csv") })),
+                            React.createElement("td", { style: { textAlign: 'center' } },
+                                React.createElement("input", { className: "smallbutton", type: "button", value: "Export Comtrade", onClick: this.exportComtrade.bind(this) })))))),
             React.createElement("div", { className: "panel-body collapse in", style: { padding: '0' } },
                 React.createElement(PolarChart_1.default, { data: this.state.TableData, callback: this.stateSetter.bind(this) }),
                 React.createElement(AccumulatedPoints_1.default, { pointsTable: this.state.PointsTable, callback: this.stateSetter.bind(this), postedData: this.state.PostedData }),
@@ -65152,6 +65154,13 @@ var OpenSEE = (function (_super) {
     };
     OpenSEE.prototype.exportData = function (type) {
         window.open("/OpenSEECSVDownload.ashx?type=" + type + "&eventID=" + this.state.eventid +
+            ("" + (this.state.startDate != undefined ? "&startDate=" + this.state.startDate : "")) +
+            ("" + (this.state.endDate != undefined ? "&endDate=" + this.state.endDate : "")) +
+            ("&Meter=" + this.state.PostedData.postedMeterName) +
+            ("&EventType=" + this.state.PostedData.postedEventName));
+    };
+    OpenSEE.prototype.exportComtrade = function () {
+        window.open("/OpenSEEComtradeDownload.ashx?eventID=" + this.state.eventid +
             ("" + (this.state.startDate != undefined ? "&startDate=" + this.state.startDate : "")) +
             ("" + (this.state.endDate != undefined ? "&endDate=" + this.state.endDate : "")) +
             ("&Meter=" + this.state.PostedData.postedMeterName) +

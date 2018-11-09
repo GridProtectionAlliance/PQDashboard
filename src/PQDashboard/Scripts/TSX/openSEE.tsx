@@ -170,7 +170,9 @@ export class OpenSEE extends React.Component<any, any>{
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} /></td>
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} /></td>
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.statButtonText} onClick={this.showStats.bind(this)} /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Data" onClick={this.exportData.bind(this, "csv")} /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export CSV" onClick={this.exportData.bind(this, "csv")} /></td>
+                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Comtrade" onClick={this.exportComtrade.bind(this)} /></td>
+
                                 </tr>
                             </tbody>
                         </table>
@@ -396,6 +398,14 @@ export class OpenSEE extends React.Component<any, any>{
             `&Meter=${this.state.PostedData.postedMeterName}` +
             `&EventType=${this.state.PostedData.postedEventName}` );
     }
+    exportComtrade() {
+        window.open(`/OpenSEEComtradeDownload.ashx?eventID=${this.state.eventid}` +
+            `${this.state.startDate != undefined ? `&startDate=${this.state.startDate}` : ``}` +
+            `${this.state.endDate != undefined ? `&endDate=${this.state.endDate}` : ``}` +
+            `&Meter=${this.state.PostedData.postedMeterName}` +
+            `&EventType=${this.state.PostedData.postedEventName}`);
+    }
+
 }
 
 ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));

@@ -1458,6 +1458,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         bar.on('mouseout', function () {
             tooltip.classed('hidden', true);
+            //$(tooltip).addClass('hidden')
+
         });
 
         bar.on('click', function (d) {
