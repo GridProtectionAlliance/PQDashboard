@@ -193,7 +193,14 @@ namespace PQDashboard
                     table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {df.AssetGroupID})");
 
                 if (df.FilterExpression != "")
-                    return table;
+                {
+                    DataRow[] rows = table.Select(df.FilterExpression);
+
+                    if (rows.Length == 0)
+                        return new DataTable();
+
+                    return rows.CopyToDataTable();
+                }
             }
             catch (Exception)
             {
@@ -1464,7 +1471,14 @@ namespace PQDashboard
                     table = DataContext.Connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {assetGroupId})");
 
                 if (filterExpression != "")
-                    return table;
+                {
+                    DataRow[] rows = table.Select(filterExpression);
+
+                    if (rows.Length == 0)
+                        return new DataTable();
+
+                    return rows.CopyToDataTable();
+                }
             }
             catch (Exception)
             {
