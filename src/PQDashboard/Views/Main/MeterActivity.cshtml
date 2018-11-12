@@ -199,7 +199,7 @@
                 },
                 columns: [
                     { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
-                    { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment.utc(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px', sortable: true },
+                    { field: 'ProcessingStartTime', headerText: 'Time Processed', content: function (row) { return moment.utc(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 150px', sortable: true },
                     { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } }
                 ],
                 datasource: data,
