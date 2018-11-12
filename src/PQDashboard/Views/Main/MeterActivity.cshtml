@@ -199,7 +199,7 @@
                 },
                 columns: [
                     { rowToggler: true, bodyStyle: 'width:36px', headerStyle: 'width:36px' },
-                    { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px', sortable: true },
+                    { field: 'ProcessingStartTime', headerText: 'Start Time', content: function (row) { return moment.utc(row.ProcessingStartTime).format("YYYY/MM/DD HH:mm") }, headerStyle: 'width: 140px', sortable: true },
                     { field: 'FilePath', headerText: 'Short FileGroup Name (Hover to See Full Name)', content: function (row) { return buildFileGroupContent(row) } }
                 ],
                 datasource: data,
@@ -226,7 +226,8 @@
     function buildFileGroupContent(row) {
         var filepathParts = row.FilePath.split('\\');
         var fullFilename = filepathParts[filepathParts.length - 1];
-        var filenameWithoutExtension = fullFilename.split('.')[0];
+        var filenameParts = fullFilename.split('.');
+        var filenameWithoutExtension = filenameParts.splice(0, filenameParts.length - 1).join('.');
         var filenameParts = filenameWithoutExtension.split(',');
         var shortFilename = "";
 
@@ -257,8 +258,8 @@
         var html = '<div><table id="' + row.ID + '-expandableContent"><tr><th>Line</th><th>Start Time</th><th>Type</th></tr>';
         dataHub.queryFileGroupEvents(row.ID).done(function (data) {
             $.each(data, function (index, value) {
-                var xdaLink = xdaInstance + '/OpenSEE.cshtml?ID=' + value.ID;
-                $('#' + row.ID + '-expandableContent').append('<tr><td><a style="color: Blue" href="' + xdaLink + '" target="_blank">' + value.LineName + '</a></td><td>' + moment(value.StartTime).format('MM/DD/YY HH:MM:SS') + '</td><td>' + value.EventTypeName + '</td></tr>');
+                var xdaLink = xdaInstance + '/OpenSEE.cshtml?eventid=' + value.ID;
+                $('#' + row.ID + '-expandableContent').append('<tr><td><a style="color: Blue" href="' + xdaLink + '" target="_blank">' + value.LineName + '</a></td><td>' + moment.utc(value.StartTime).format('MM/DD/YY HH:mm:ss') + '</td><td>' + value.EventTypeName + '</td></tr>');
             });
             html += '</table></div>';
         });
