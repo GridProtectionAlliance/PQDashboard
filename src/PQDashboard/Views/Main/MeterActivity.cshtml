@@ -258,7 +258,7 @@
         var html = '<div><table id="' + row.ID + '-expandableContent"><tr><th>Line</th><th>Start Time</th><th>Type</th></tr>';
         dataHub.queryFileGroupEvents(row.ID).done(function (data) {
             $.each(data, function (index, value) {
-                var xdaLink = xdaInstance + '/OpenSEE.cshtml?eventid=' + value.ID;
+                var xdaLink = xdaInstance + "@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + value.ID;
                 $('#' + row.ID + '-expandableContent').append('<tr><td><a style="color: Blue" href="' + xdaLink + '" target="_blank">' + value.LineName + '</a></td><td>' + moment.utc(value.StartTime).format('MM/DD/YY HH:mm:ss') + '</td><td>' + value.EventTypeName + '</td></tr>');
             });
             html += '</table></div>';
