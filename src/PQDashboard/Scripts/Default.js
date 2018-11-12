@@ -3371,6 +3371,9 @@ function selectMeterGroup(thecontrol) {
 
     getMeters(mg);
 
+    if (mg !== 'ClickEvent')
+        $('#deviceFilterList option[value=ClickEvent]').remove();
+
     $.each(Object.keys(leafletMap), function (i, key) {
         if (leafletMap[key]) {
             mapMarkers[key].forEach(function (d) { leafletMap[key].removeLayer(d.marker) });
