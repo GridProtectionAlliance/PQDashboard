@@ -3972,8 +3972,8 @@ function initiateTimeRangeSlider() {
 }
 
 function loadContourAnimationData() {
-    var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
-    var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
+    var dateFrom = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
+    var dateTo = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
     var meters = "";
     $.each(meterList.selectedIds(), function (index, data) {
         if (index === 0)
