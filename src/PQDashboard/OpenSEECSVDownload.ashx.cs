@@ -272,7 +272,7 @@ namespace PQDashboard
                         }
 
                     }
-                    writer.WriteLine($"H{i}" + string.Join(",", line));
+                    writer.WriteLine(string.Join(",", line));
                 }
             }
         }
