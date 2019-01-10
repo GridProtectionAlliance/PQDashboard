@@ -31,7 +31,7 @@ export default class OpenSEEService{
     breakerDigitalsDataHandle: any;
     headerDataHandle: any;
     scalarStatHandle: any;
-
+    harmonicStatHandle: any;
     getWaveformData(filters) {
         if (this.waveformDataHandle !== undefined)
             this.waveformDataHandle.abort();
@@ -145,5 +145,22 @@ export default class OpenSEEService{
 
         return this.scalarStatHandle;
     }
+
+    getHarmonicStats(eventid) {
+        if (this.harmonicStatHandle !== undefined)
+            this.harmonicStatHandle.abort();
+
+        this.harmonicStatHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetHarmonics?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.harmonicStatHandle;
+    }
+
 
 }

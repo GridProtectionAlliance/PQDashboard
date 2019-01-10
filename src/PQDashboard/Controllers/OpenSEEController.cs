@@ -117,7 +117,7 @@ namespace OpenSEE.Controller
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
+            table = m_dataContext.Connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 int eventID = row.ConvertField<int>("ID");
@@ -406,6 +406,31 @@ namespace OpenSEE.Controller
 
             }
         }
+
+        [HttpGet]
+        public DataTable GetHarmonics()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventId = int.Parse(query["eventId"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                DataTable dataTable = connection.RetrieveData(@"
+                    SELECT 
+                        MeasurementType.Name + ' ' + Phase.Name as Channel, 
+                        SpectralData 
+                    FROM 
+                        SnapshotHarmonics JOIN 
+                        Channel ON Channel.ID = SnapshotHarmonics.ChannelID JOIN
+                        MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN
+                        Phase ON Channel.PhaseID = Phase.ID
+                        WHERE EventID = {0}", eventId);
+
+                return dataTable;
+
+            }
+        }
+
         #endregion
 
         #region [ OpenSEE Table Operations ]

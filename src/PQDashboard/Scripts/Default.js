@@ -2781,6 +2781,8 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["Sag"];
         else if (dataPoint.Swell > 0)
             color = colors["Swell"];
+        else if (dataPoint.Transient > 0)
+            color = colors["Transient"];
         else if (dataPoint.Other > 0)
             color = colors["Other"];
         else 

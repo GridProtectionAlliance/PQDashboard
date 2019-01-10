@@ -33,6 +33,7 @@ import PolarChart from './PolarChart';
 import Points from './AccumulatedPoints';
 import Tooltip from './Tooltip';
 import ScalarStats from './ScalarStats';
+import HarmonicStats from './HarmonicStats';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -40,7 +41,11 @@ export class OpenSEE extends React.Component<any, any>{
     openSEEService: OpenSEEService;
     resizeId: any;
     TableData: object;
-
+    state: {
+        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: any, breakerdigitals: any, breakeroperation: any, Width: number,
+        Hover: number, pointsButtonText: string, tooltipButtonText: string, phasorButtonText: string, statButtonText: string, harmonicButtonText: string,PointsTable: Array<any>, TableData: Object, backButtons: Array<any>,
+        forwardButtons: Array<any>, PostedData: any
+    }
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -61,6 +66,7 @@ export class OpenSEE extends React.Component<any, any>{
             pointsButtonText: "Show Points",
             tooltipButtonText: "Show Tooltip",
             phasorButtonText: "Show Phasor",
+            harmonicButtonText: "Show Harmonics",
             statButtonText: "Show Stats",
             PointsTable: [],
             TableData: {},
@@ -172,7 +178,7 @@ export class OpenSEE extends React.Component<any, any>{
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.statButtonText} onClick={this.showStats.bind(this)} /></td>
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export CSV" onClick={this.exportData.bind(this, "csv")} /></td>
                                     <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Comtrade" onClick={this.exportComtrade.bind(this)} /></td>
-
+                                    <td style={{ textAlign: 'center', display: (this.state.PostedData.postedEventName == "Snapshot" ? null : 'none') }}><input className="smallbutton" type="button" value={this.state.harmonicButtonText} onClick={this.showHarmonics.bind(this)} /></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -182,6 +188,7 @@ export class OpenSEE extends React.Component<any, any>{
                         <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
                         <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
                         <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
+                        <HarmonicStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
 
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
                         <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
@@ -284,6 +291,16 @@ export class OpenSEE extends React.Component<any, any>{
         } else {
             this.setState({ statButtonText: "Show Stats" });
             $('#scalarstats').hide();
+        }
+    }
+
+    showHarmonics() {
+        if (this.state.harmonicButtonText == "Show Harmonics") {
+            this.setState({ harmonicButtonText: "Hide Harmonics" });
+            $('#harmonicstats').show();
+        } else {
+            this.setState({ harmonicButtonText: "Show Harmonics" });
+            $('#harmonicstats').hide();
         }
     }
 
@@ -393,15 +410,15 @@ export class OpenSEE extends React.Component<any, any>{
 
     exportData(type) {
         window.open(`/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
-            `${this.state.startDate != undefined ? `&startDate=${this.state.startDate}` : ``}` +
-            `${this.state.endDate != undefined ? `&endDate=${this.state.endDate}` : ``}` +
+            `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
+            `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
             `&Meter=${this.state.PostedData.postedMeterName}` +
             `&EventType=${this.state.PostedData.postedEventName}` );
     }
     exportComtrade() {
         window.open(`/OpenSEEComtradeDownload.ashx?eventID=${this.state.eventid}` +
-            `${this.state.startDate != undefined ? `&startDate=${this.state.startDate}` : ``}` +
-            `${this.state.endDate != undefined ? `&endDate=${this.state.endDate}` : ``}` +
+            `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
+            `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
             `&Meter=${this.state.PostedData.postedMeterName}` +
             `&EventType=${this.state.PostedData.postedEventName}`);
     }
