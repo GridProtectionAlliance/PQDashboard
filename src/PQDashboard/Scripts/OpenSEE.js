@@ -100649,7 +100649,8 @@ var HarmonicStats = (function (_super) {
         _this.state = {
             rows: [],
             header: [],
-            secondaryHeader: []
+            secondaryHeader: [],
+            exportData: null
         };
         return _this;
     }
@@ -100657,7 +100658,7 @@ var HarmonicStats = (function (_super) {
         var _this = this;
         $("#harmonicstats").draggable({ scroll: false, handle: '#harmonichandle' });
         this.openSEEService.getHarmonicStats(this.props.eventId).done(function (data) {
-            var headers = HeaderRow(data.map(function (x) { return x.Channel; }));
+            var headers = HeaderRow(data.map(function (x) { return x.Channel; }), _this.props.exportCallback);
             var secondaryHeader = SecondaryHeaderRow(data.map(function (x) { return x.Channel; }));
             var jsons = data.map(function (x) { return JSON.parse(x.SpectralData); });
             var numHarmonics = Math.max.apply(Math, jsons.map(function (x) { return Object.keys(x).length; }));
@@ -100705,9 +100706,10 @@ var Row = function (row) {
         React.createElement("td", null, row.label),
         row.tds));
 };
-var HeaderRow = function (row) {
+var HeaderRow = function (row, callback) {
     return (React.createElement("tr", { key: 'Header' },
-        React.createElement("th", { colSpan: 1 }),
+        React.createElement("th", { colSpan: 1 },
+            React.createElement("button", { className: 'btn btn-primary', onClick: function () { return callback('harmonics'); } }, "Export(csv)")),
         row.map(function (key) { return React.createElement("th", { colSpan: 2, scope: 'colgroup', key: key }, key); })));
 };
 var SecondaryHeaderRow = function (row) {

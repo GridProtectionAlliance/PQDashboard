@@ -25,6 +25,7 @@ using FaultData.DataAnalysis;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Threading;
+using Newtonsoft.Json;
 using openXDA.Model;
 using System;
 using System.Collections.Generic;
@@ -156,6 +157,9 @@ namespace PQDashboard
                 ExportToCSV(responseStream, requestParameters);
             else if (requestParameters["type"] == "stats")
                 ExportStatsToCSV(responseStream, requestParameters);
+            else if (requestParameters["type"] == "harmonics")
+                ExportHarmonicsToCSV(responseStream, requestParameters);
+
         }
 
         // Converts the data group row of CSV data.
@@ -214,6 +218,65 @@ namespace PQDashboard
                 writer.WriteLine(string.Join(",", dict.Values));
             }
         }
+
+
+        private class PhasorResult {
+            public double Magnitude;
+            public double Angle;
+        }
+        public void ExportHarmonicsToCSV(Stream returnStream, NameValueCollection requestParameters)
+        {
+            int eventId = int.Parse(requestParameters["eventId"]);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (StreamWriter writer = new StreamWriter(returnStream))
+            {
+                DataTable dataTable = connection.RetrieveData(@"
+                    SELECT 
+                        MeasurementType.Name + ' ' + Phase.Name as Channel, 
+                        SpectralData 
+                    FROM 
+                        SnapshotHarmonics JOIN 
+                        Channel ON Channel.ID = SnapshotHarmonics.ChannelID JOIN
+                        MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN
+                        Phase ON Channel.PhaseID = Phase.ID
+                        WHERE EventID = {0}", eventId);
+
+                Dictionary<string, Dictionary<string, PhasorResult>> dict = dataTable.Select().ToDictionary(x => x["Channel"].ToString(), x => JsonConvert.DeserializeObject<Dictionary<string, PhasorResult>>(x["SpectralData"].ToString()));
+                int numHarmonics = dict.Select(x => x.Value.Count).Max();
+
+                List<string> headers = new List<string>() { "Harmonic" };
+                foreach(var kvp in dict)
+                {
+                    headers.Add(kvp.Key + " Mag");
+                    headers.Add(kvp.Key + " Ang");
+                }
+
+                if (dict.Keys.Count() == 0) return;
+
+                // Write the CSV header to the file
+                writer.WriteLine(string.Join(",", headers));
+
+                for (int i = 1; i <= numHarmonics; ++i) {
+                    string label = $"H{i}";
+                    List<string> line = new List<string>() { label };
+                    foreach(var kvp in dict)
+                    {
+                        if (kvp.Value.ContainsKey(label))
+                        {
+                            line.Add(kvp.Value[label].Magnitude.ToString());
+                            line.Add(kvp.Value[label].Angle.ToString());
+                        }
+                        else {
+                            line.Add("0");
+                            line.Add("0");
+                        }
+
+                    }
+                    writer.WriteLine($"H{i}" + string.Join(",", line));
+                }
+            }
+        }
+
 
         public Dictionary<string, DataSeries> BuildDataSeries(NameValueCollection requestParameters) {
             using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))

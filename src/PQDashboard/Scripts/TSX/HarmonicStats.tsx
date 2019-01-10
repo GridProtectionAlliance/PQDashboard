@@ -28,7 +28,7 @@ import OpenSEEService from './../TS/Services/OpenSEE';
 
 export default class HarmonicStats extends React.Component<any, any>{
     props: { eventId: number, callback: Function, exportCallback: Function }
-    state: { rows: Array<Object>, header: Array<Object>, secondaryHeader: Array<Object>}
+    state: { rows: Array<Object>, header: Array<Object>, secondaryHeader: Array<Object>, exportData: any}
     openSEEService: OpenSEEService;
     constructor(props) {
         super(props);
@@ -36,13 +36,14 @@ export default class HarmonicStats extends React.Component<any, any>{
         this.state = {
             rows: [],
             header: [],
-            secondaryHeader:[]
+            secondaryHeader: [],
+            exportData: null
         };
     }
     componentDidMount() {
         ($("#harmonicstats") as any).draggable({ scroll: false, handle: '#harmonichandle' });
         this.openSEEService.getHarmonicStats(this.props.eventId).done(data => {
-            var headers = HeaderRow(data.map(x => x.Channel));
+            var headers = HeaderRow(data.map(x => x.Channel), this.props.exportCallback);
             var secondaryHeader = SecondaryHeaderRow(data.map(x => x.Channel));
             var jsons = data.map(x => JSON.parse(x.SpectralData));
             var numHarmonics = Math.max(...jsons.map(x => Object.keys(x).length));
@@ -104,9 +105,9 @@ const Row = (row) => {
     );
 }
 
-const HeaderRow = (row) => {
+const HeaderRow = (row, callback) => {
     return (
-        <tr key='Header'><th colSpan={1}></th>
+        <tr key='Header'><th colSpan={1}><button className='btn btn-primary' onClick={() => callback('harmonics')}>Export(csv)</button></th>
             {row.map(key => <th colSpan={2} scope='colgroup' key={key}>{key}</th>)}
         </tr>
     );
