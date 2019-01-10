@@ -2783,6 +2783,8 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["Swell"];
         else if (dataPoint.Transient > 0)
             color = colors["Transient"];
+        else if (dataPoint.Snapshot > 0)
+            color = colors["Snapshot"];
         else if (dataPoint.Other > 0)
             color = colors["Other"];
         else 
