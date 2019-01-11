@@ -270,6 +270,8 @@
         };
 
         $(function () {
+            var submitter = null;
+
             $("form").on("submit", function () {
                 var phoneInput = $("input[name='phone']");
                 var phone = phoneInput.val();
@@ -278,7 +280,16 @@
                 if (phone.length !== 10 && phone.length !== 0)
                     return false;
 
+                if (submitter.val() === "Unsubscribe") {
+                    if (!confirm("You are about to unsubscribe from all email and SMS notifications. Are you sure you would like to continue?"))
+                        return false;
+                }
+
                 phoneInput.val(phone);
+            });
+
+            $('input[type="submit"]').click(function () {
+                submitter = $(this);
             });
 
             $('input[name="phone"]').keyup(function () {
@@ -295,7 +306,6 @@
                     $(this).addClass('invalid');
                     $('input[name="submit"]').prop('disabled', true);
                 }
-
             });
 
             $('.mobileSelect').mobileSelect(mobileSelectOptions);
