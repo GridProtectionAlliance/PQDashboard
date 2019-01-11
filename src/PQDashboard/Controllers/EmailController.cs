@@ -50,6 +50,22 @@ namespace PQDashboard.Controllers
     {
         #region [ Members ]
 
+        // Constants
+        private const string UserAccountEmailTypeQuery = @"
+            SELECT 
+	            UserAccountEmailType.ID as UserAccountEmailTypeID,
+	            UserAccountEmailType.UserAccountID as UserAccountID,
+	            EmailType.ID as EmailTypeID,
+	            EmailType.EmailCategoryID as EmailCategoryID
+            FROM
+	            UserAccountEmailType JOIN
+	            EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
+            WHERE
+                UserAccountID = {0} AND
+                EmailCategoryID = {1} AND
+                SMS = {2}
+        ";
+
         // Fields
         private readonly DataContext m_dataContext;
         private readonly AppModel m_appModel;
@@ -324,11 +340,12 @@ namespace PQDashboard.Controllers
             userAccountTable.UpdateRecord(userAccount);
 
             UpdateUserAccountAssetGroup(userAccount, formData);
-            UpdateUserAccountEmailTypeForEmails(userAccount, formData);
-            UpdateUserAccountEmailTypeForSms(userAccount, formData);
+            UpdateUserAccountEmailType(userAccount, formData.job, false);
+            UpdateUserAccountEmailType(userAccount, formData.sms, true);
         }
 
-        private void UpdateUserAccountAssetGroup(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
+        private void UpdateUserAccountAssetGroup(ConfirmableUserAccount userAccount, UpdateSettingModel formData)
+        {
             // update link to asset group
             TableOperations<UserAccountAssetGroup> userAccountAssetGroupTable = m_dataContext.Table<UserAccountAssetGroup>();
             IEnumerable<UserAccountAssetGroup> userAccountAssetGroups = userAccountAssetGroupTable.QueryRecordsWhere("UserAccountID = {0}", userAccount.ID);
@@ -368,125 +385,39 @@ namespace PQDashboard.Controllers
                 if (!formData.region.Contains(link.AssetGroupID))
                     userAccountAssetGroupTable.DeleteRecord(link);
             }
-
-
         }
 
-        private void UpdateUserAccountEmailTypeForEmails(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
+        private void UpdateUserAccountEmailType(ConfirmableUserAccount userAccount, IEnumerable<int> emailTypeIDs, bool sms)
+        {
             // update links between user account and email type
             EmailCategory eventEmailCategory = m_dataContext.Table<EmailCategory>().QueryRecordWhere("Name = 'Event'");
-
-            DataTable userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
-                SELECT 
-	                UserAccountEmailType.ID as UserAccountEmailTypeID,
-	                UserAccountEmailType.UserAccountID as UserAccountID,
-	                EmailType.ID as EmailTypeID,
-	                EmailType.EmailCategoryID as EmailCategoryID,
-	                EmailType.XSLTemplateID as XSLTemplateID
-                FROM
-	                UserAccountEmailType JOIN
-	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
-                WHERE
-                    SMS = 0 AND EmailCategoryID = {0}
-            ", eventEmailCategory.ID);
-
-            IEnumerable<int> templates = userAccountEmailTypeDataTable.Select().Select(x => (int)x["XSLTemplateID"]);
+            DataTable userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(UserAccountEmailTypeQuery, userAccount.ID, eventEmailCategory.ID, sms);
+            IEnumerable<int> userAccountEmailTypeIDs = userAccountEmailTypeDataTable.Select().Select(x => (int)x["EmailTypeID"]);
 
             // formData will come back as null instead of empty array ....
-            if (formData.job == null)
-                formData.job = new List<int>();
+            if (emailTypeIDs == null)
+                emailTypeIDs = new List<int>();
 
             // First pass. Add Link in database if the link does not exist.
-            foreach (int id in formData.job)
+            foreach (int id in emailTypeIDs)
             {
-                if (!templates.Contains(id)) {
+                if (!userAccountEmailTypeIDs.Contains(id)) {
                     UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
                     userAccountEmailType.UserAccountID = userAccount.ID;
-                    userAccountEmailType.EmailTypeID = m_dataContext.Connection.ExecuteScalar<int>("SELECT ID FROM EmailType WHERE XSLTemplateID = {0} AND EmailCategoryID = {1} AND SMS = 0", id, eventEmailCategory.ID);
+                    userAccountEmailType.EmailTypeID = id;
                     m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
                 }
             }
 
-            userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
-                SELECT 
-	                UserAccountEmailType.ID as UserAccountEmailTypeID,
-	                UserAccountEmailType.UserAccountID as UserAccountID,
-	                EmailType.ID as EmailTypeID,
-	                EmailType.EmailCategoryID as EmailCategoryID,
-	                EmailType.XSLTemplateID as XSLTemplateID
-                FROM
-	                UserAccountEmailType JOIN
-	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
-                WHERE
-                    SMS = 0 AND EmailCategoryID = {0}
-            ", eventEmailCategory.ID);
+            userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(UserAccountEmailTypeQuery, userAccount.ID, eventEmailCategory.ID, sms);
 
             // Second pass. Remove Link if the link does not exist in data from form.
             foreach (DataRow link in userAccountEmailTypeDataTable.Rows)
             {
-                if (!formData.job.Contains((int)link["XSLTemplateID"]))
+                if (!emailTypeIDs.Contains((int)link["EmailTypeID"]))
                     m_dataContext.Table<UserAccountEmailType>().DeleteRecordWhere("ID = {0}", (int)link["UserAccountEmailTypeID"]);
             }
         }
-
-        private void UpdateUserAccountEmailTypeForSms(ConfirmableUserAccount userAccount, UpdateSettingModel formData) {
-            // update links between user account and email type
-            EmailCategory eventEmailCategory = m_dataContext.Table<EmailCategory>().QueryRecordWhere("Name = 'Event'");
-
-            DataTable userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
-                SELECT 
-	                UserAccountEmailType.ID as UserAccountEmailTypeID,
-	                UserAccountEmailType.UserAccountID as UserAccountID,
-	                EmailType.ID as EmailTypeID,
-	                EmailType.EmailCategoryID as EmailCategoryID,
-	                EmailType.XSLTemplateID as XSLTemplateID
-                FROM
-	                UserAccountEmailType JOIN
-	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
-                WHERE
-                    SMS = 1 AND EmailCategoryID = {0}
-            ", eventEmailCategory.ID);
-
-            IEnumerable<int> templates = userAccountEmailTypeDataTable.Select().Select(x => (int)x["XSLTemplateID"]);
-
-            // formData will come back as null instead of empty array ....
-            if (formData.sms == null)
-                formData.sms = new List<int>();
-
-            // First pass. Add Link in database if the link does not exist.
-            foreach (int id in formData.sms)
-            {
-                if (!templates.Contains(id))
-                {
-                    UserAccountEmailType userAccountEmailType = new UserAccountEmailType();
-                    userAccountEmailType.UserAccountID = userAccount.ID;
-                    userAccountEmailType.EmailTypeID = m_dataContext.Connection.ExecuteScalar<int>("SELECT ID FROM EmailType WHERE XSLTemplateID = {0} AND EmailCategoryID = {1} AND SMS = 1", id, eventEmailCategory.ID); ;
-                    m_dataContext.Table<UserAccountEmailType>().AddNewRecord(userAccountEmailType);
-                }
-            }
-
-            userAccountEmailTypeDataTable = m_dataContext.Connection.RetrieveData(@"
-                SELECT 
-	                UserAccountEmailType.ID as UserAccountEmailTypeID,
-	                UserAccountEmailType.UserAccountID as UserAccountID,
-	                EmailType.ID as EmailTypeID,
-	                EmailType.EmailCategoryID as EmailCategoryID,
-	                EmailType.XSLTemplateID as XSLTemplateID
-                FROM
-	                UserAccountEmailType JOIN
-	                EmailType ON UserAccountEmailType.EmailTypeID = EmailType.ID
-                WHERE
-                    SMS = 1 AND EmailCategoryID = {0}
-            ", eventEmailCategory.ID);
-
-            // Second pass. Remove Link if the link does not exist in data from form.
-            foreach (DataRow link in userAccountEmailTypeDataTable.Rows)
-            {
-                if (!formData.sms.Contains((int)link["XSLTemplateID"]))
-                    m_dataContext.Table<UserAccountEmailType>().DeleteRecordWhere("ID = {0}", (int)link["UserAccountEmailTypeID"]);
-            }
-        }
-
 
         private void HandleUnsubscribe(UpdateSettingModel formData)
         {
