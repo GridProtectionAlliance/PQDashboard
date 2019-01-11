@@ -204,7 +204,7 @@ if (typeof jQuery === 'undefined') {
 
             if (this.isMultiple) {
                 if (c.length === 1) {
-                    d.html(c)
+                    d.html(this.$e.text())
                 } else {
                     d.html(c.length + " items selected")
                 }
