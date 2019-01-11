@@ -78,6 +78,7 @@
         "ORDER BY XSLTemplate.Name";
 
     TableOperations<XSLTemplate> xslTemplateTable = dataContext.Table<XSLTemplate>();
+    TableOperations<EmailType> emailTypeTable = dataContext.Table<EmailType>();
     DataRow[] xslTemplates = dataContext.Connection.RetrieveData(xslTemplateQuery).Select();
 
     List<XSLTemplate> jobTemplates = xslTemplates
@@ -94,8 +95,8 @@
 
     Guid userAccountID = ViewBag.account.ID;
     List<UserAccountAssetGroup> userRegions = dataContext.Table<UserAccountAssetGroup>().QueryRecordsWhere("UserAccountID = {0} AND Email <> 0", userAccountID).ToList();
-    List<XSLTemplate> userEmails = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0)))", userAccountID).ToList();
-    List<XSLTemplate> userSMS = dataContext.Table<XSLTemplate>().QueryRecordsWhere("ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0)))", userAccountID).ToList();
+    List<EmailType> userEmails = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0))", userAccountID).ToList();
+    List<EmailType> userSMS = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0))", userAccountID).ToList();
 
     string[] phoneParts = ViewBag.account.Phone?.Split('@');
     string phone = phoneParts?[0];
