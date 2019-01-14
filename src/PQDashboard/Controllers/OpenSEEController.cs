@@ -117,7 +117,7 @@ namespace OpenSEE.Controller
             DataTable table;
 
             Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-            table = m_dataContext.Connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
+            table = m_dataContext.Connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(m_dataContext.Connection, endTime), ToDateTime2(m_dataContext.Connection, startTime), evt.MeterID, evt.LineID);
             foreach (DataRow row in table.Rows)
             {
                 int eventID = row.ConvertField<int>("ID");
