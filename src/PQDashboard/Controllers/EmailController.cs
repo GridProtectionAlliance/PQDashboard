@@ -292,7 +292,7 @@ namespace PQDashboard.Controllers
             IEnumerable<EmailType> emailType = m_dataContext.Table<EmailType>().QueryRecordsWhere($"ID IN ({string.Join(",", formData.job)})");
             IEnumerable<XSLTemplate> xslTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN ({string.Join(",", emailType.Select(x => x.XSLTemplateID))})");
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
-            string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.ApprovalAddress'");
+            string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.AdminAddress'");
             string templateName = (xslTemplate.Any() ? string.Join(", ", xslTemplate.Select(x => x.Name) ) : "None");
             string regionName = (assetGroup.Any() ? string.Join(", ", assetGroup.Select(x => x.Name)) : "None");
             string body = @"
