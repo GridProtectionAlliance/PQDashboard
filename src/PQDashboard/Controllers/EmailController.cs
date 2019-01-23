@@ -31,6 +31,7 @@ using System.Runtime.Caching;
 using System.Security;
 using System.Threading;
 using System.Web.Mvc;
+using GSF;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Identity;
@@ -541,7 +542,7 @@ namespace PQDashboard.Controllers
             string smtpServer = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.SMTPServer'");
             string fromAddress = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.FromAddress'");
             string username = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.Username'");
-            SecureString password = m_dataContext.Connection.ExecuteScalar<SecureString>("SELECT Value FROM Setting WHERE Name = 'Email.Password'");
+            SecureString password = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.Password'").ToSecureString();
             bool enableSSL = m_dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'Email.EnableSSL'");
 
             if (string.IsNullOrEmpty(smtpServer))
