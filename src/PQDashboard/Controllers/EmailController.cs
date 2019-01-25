@@ -327,6 +327,8 @@ namespace PQDashboard.Controllers
             TableOperations<ConfirmableUserAccount> userAccountTable = m_dataContext.Table<ConfirmableUserAccount>();
             ConfirmableUserAccount userAccount = userAccountTable.QueryRecordWhere("Name = {0}", formData.sid);
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
+            string emailServiceName = GetEmailServiceName();
+            string recipient, subject, body;
 
             // if phone changed force reconfirmation
             if (userAccount.Phone != formData.phone + "@" + formData.carrier)
@@ -342,10 +344,10 @@ namespace PQDashboard.Controllers
                     string code = Random.Int32Between(0, 999999).ToString("D6");
                     s_memoryCache.Set("sms" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
 
-                    string emailServiceName = GetEmailServiceName();
-                    string subject = $"{emailServiceName} requires you to confirm your SMS number.";
-                    string body = $"From your workstation, input {code} at {url}/email/verify/sms";
-                    SendEmail(userAccount.Phone, subject, body);
+                    recipient = userAccount.Phone;
+                    subject = $"{emailServiceName} requires you to confirm your SMS number.";
+                    body = $"From your workstation, input {code} at {url}/email/verify/sms";
+                    SendEmail(recipient, subject, body);
                 }
             }
 
@@ -354,6 +356,11 @@ namespace PQDashboard.Controllers
             UpdateUserAccountAssetGroup(userAccount, formData);
             UpdateUserAccountEmailType(userAccount, formData.job, false);
             UpdateUserAccountEmailType(userAccount, formData.sms, true);
+
+            recipient = userAccount.Email;
+            subject = $"{emailServiceName} subscriptions updated";
+            body = $"Your {emailServiceName} subscriptions have been updated. Visit {url}/email/UpdateSettings to review your subscriptions.";
+            SendEmail(recipient, subject, body);
         }
 
         private void UpdateUserAccountAssetGroup(ConfirmableUserAccount userAccount, UpdateSettingModel formData)
