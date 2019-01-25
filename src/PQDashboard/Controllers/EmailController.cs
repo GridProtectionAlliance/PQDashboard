@@ -452,6 +452,12 @@ namespace PQDashboard.Controllers
 
                 m_dataContext.Connection.ExecuteNonQuery($"UPDATE UserAccount Set {(formData.type == "email" ? "EmailConfirmed" : "PhoneConfirmed")} = 1 WHERE ID = '{user.ID}'");
                 s_memoryCache.Remove(formData.type + user.ID.ToString());
+
+                string emailServiceName = GetEmailServiceName();
+                string recipient = formData.type == "email" ? user.Email : user.Phone;
+                string subject = $"{emailServiceName} has confirmed your {(formData.type == "email" ? "email address" : "SMS number")}.";
+                string body = $"Once you are approved by an administrator, you will begin receiving notifications.";
+                SendEmail(recipient, subject, body);
             }
             else
             {
