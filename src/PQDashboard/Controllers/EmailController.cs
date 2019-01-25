@@ -247,9 +247,11 @@ namespace PQDashboard.Controllers
             m_dataContext.Connection.ExecuteNonQuery("UPDATE UserAccount SET Approved = 1 WHERE ID = {0}", confirmableUserAccount.ID);
 
             string accountName = UserInfo.SIDToAccountName(confirmableUserAccount.Name);
-            ViewBag.Message = accountName + " has been approved.";
+            ViewBag.Message = accountName + " has been approved to receive notifications.";
 
-            SendEmail(confirmableUserAccount.Email, "openXDA Email Service has been approved.", "openXDA Email Service has been approved.");
+            string emailServiceName = GetEmailServiceName();
+            string message = $"{emailServiceName} subscriptions have been approved.";
+            SendEmail(confirmableUserAccount.Email, message, message);
             return View("Message");
         }
 
@@ -269,8 +271,11 @@ namespace PQDashboard.Controllers
 
             string accountName = UserInfo.SIDToAccountName(confirmableUserAccount.Name);
             CascadeDelete("UserAccount", $"ID='{userID}'");
-            ViewBag.Message = accountName + " has been denied.";
-            SendEmail(confirmableUserAccount.Email, "openXDA Email Service has been denied.", "openXDA Email Service has been denied.");
+            ViewBag.Message = accountName + " has been denied access to email notifications.";
+
+            string emailServiceName = GetEmailServiceName();
+            string message = $"{emailServiceName} subscriptions have been denied by the administrator.";
+            SendEmail(confirmableUserAccount.Email, message, message);
             return View("Message");
         }
 
@@ -296,9 +301,11 @@ namespace PQDashboard.Controllers
             string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.AdminAddress'");
             string templateName = (xslTemplate.Any() ? string.Join(", ", xslTemplate.Select(x => x.Name) ) : "None");
             string regionName = (assetGroup.Any() ? string.Join(", ", assetGroup.Select(x => x.Name)) : "None");
+            string emailServiceName = GetEmailServiceName();
+            string subject = $"{formData.username} requests access to the {emailServiceName}.";
             string body = @"
                 <html>
-                    <p>" + formData.username + @" requests access to the openXDA Event Email Service.</p>
+                    <p>" + formData.username + @" requests access to the " + emailServiceName + @".</p>
                     <table>
                         <tr><td>Email:</td><td>" + userInfo.Email + @"</td></tr>
                         <tr><td>Name:</td><td>" + userInfo.FirstName + " " + userInfo.LastName + @"</td></tr>
@@ -312,7 +319,7 @@ namespace PQDashboard.Controllers
             ";
 
             if (!string.IsNullOrEmpty(admin))
-                SendEmail(admin, formData.username + " requests access to the openXDA Event Email Service.", body);
+                SendEmail(admin, subject, body);
         }
 
         private void HandleUpdate(UpdateSettingModel formData)
@@ -334,7 +341,11 @@ namespace PQDashboard.Controllers
                     // generate code for sms confirmation
                     string code = Random.Int32Between(0, 999999).ToString("D6");
                     s_memoryCache.Set("sms" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                    SendEmail(userAccount.Phone, "openXDA Event Email Service requries you to confirm your sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
+
+                    string emailServiceName = GetEmailServiceName();
+                    string subject = $"{emailServiceName} requires you to confirm your SMS number.";
+                    string body = $"From your workstation, input {code} at {url}/email/verify/sms";
+                    SendEmail(userAccount.Phone, subject, body);
                 }
             }
 
@@ -461,7 +472,11 @@ namespace PQDashboard.Controllers
                 // generate code for email confirmation
                 string code = Random.Int32Between(0, 999999).ToString("D6");
                 s_memoryCache.Set("email" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Email, "openXDA Event Email Service requries you to confirm your email.", $"From your workstation, input {code} at {url}/email/verify/email");
+
+                string emailServiceName = GetEmailServiceName();
+                string subject = $"{emailServiceName} requires you to confirm your email.";
+                string body = $"From your workstation, input {code} at {url}/email/verify/email";
+                SendEmail(user.Email, subject, body);
             }
 
             // if phone changed force reconfirmation
@@ -469,7 +484,11 @@ namespace PQDashboard.Controllers
             {
                 string code = Random.Int32Between(0, 999999).ToString("D6");
                 s_memoryCache.Set("sms" + user.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-                SendEmail(user.Phone, "openXDA Event Email Service requries you to confirm your sms number.", $"From your workstation, input {code} at {url}/email/verify/sms");
+
+                string emailServiceName = GetEmailServiceName();
+                string subject = $"{emailServiceName} requires you to confirm your SMS number.";
+                string body = $"From your workstation, input {code} at {url}/email/verify/sms";
+                SendEmail(user.Phone, subject, body);
             }
 
             return RedirectToAction("Verify", new { id = formData.type });
@@ -491,6 +510,18 @@ namespace PQDashboard.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
 
             return null;
+        }
+
+        private string GetEmailServiceName()
+        {
+            const string DefaultEmailServiceName = "openXDA Event Email Service";
+            const string EmailServiceNameSQL = "SELECT Value FROM Setting WHERE Name = 'EventEmail.ServiceName'";
+            string emailServiceName = m_dataContext.Connection.ExecuteScalar<string>(EmailServiceNameSQL);
+
+            if (string.IsNullOrWhiteSpace(emailServiceName))
+                emailServiceName = DefaultEmailServiceName;
+
+            return emailServiceName;
         }
 
         #endregion
