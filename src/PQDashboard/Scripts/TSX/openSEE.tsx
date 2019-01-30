@@ -350,6 +350,13 @@ export class OpenSEE extends React.Component<any, any>{
                 details += "Magnitude: " + data.postedMagnitude;
             }
 
+            if (data.postedSagDepth != undefined) {
+                if (details != "")
+                    details += separator;
+
+                details += "Sag Depth: " + data.postedSagDepth;
+            }
+
             if (details != "")
                 label += "<br />" + details;
 

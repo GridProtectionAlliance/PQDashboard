@@ -276,10 +276,10 @@ namespace OpenSEE.Controller
 
             Dictionary<string, Tuple<EventView, EventView>> nextBackLookup = new Dictionary<string, Tuple<EventView, EventView>>()
             {
-            { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
-            { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
-            { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
-            { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
+                { NextBackForSystem, Tuple.Create((EventView)null, (EventView)null) },
+                { NextBackForStation, Tuple.Create((EventView)null, (EventView)null) },
+                { NextBackForMeter, Tuple.Create((EventView)null, (EventView)null) },
+                { NextBackForLine, Tuple.Create((EventView)null, (EventView)null) }
             };
 
             Dictionary<string, dynamic> returnDict = new Dictionary<string, dynamic>();
@@ -340,7 +340,26 @@ namespace OpenSEE.Controller
 
             if (new List<string>() { "Fault", "RecloseIntoFault" }.Contains(returnDict["postedEventName"]))
             {
+                const string SagDepthQuery =
+                    "SELECT TOP 1 " +
+                    "    (1 - PerUnitMagnitude) * 100 " +
+                    "FROM " +
+                    "    FaultSummary JOIN " +
+                    "    Disturbance ON " +
+                    "         Disturbance.EventID = FaultSummary.EventID AND " +
+                    "         Disturbance.StartTime <= dbo.AdjustDateTime2(FaultSummary.Inception, FaultSummary.DurationSeconds) AND " +
+                    "         Disturbance.EndTime >= FaultSummary.Inception JOIN " +
+                    "    EventType ON " +
+                    "        Disturbance.EventTypeID = EventType.ID AND " +
+                    "        EventType.Name = 'Sag' JOIN " +
+                    "    Phase ON " +
+                    "        Disturbance.PhaseID = Phase.ID AND " +
+                    "        Phase.Name = 'Worst' " +
+                    "WHERE FaultSummary.ID = {0} " +
+                    "ORDER BY PerUnitMagnitude";
+
                 FaultSummary thesummary = m_dataContext.Table<FaultSummary>().QueryRecordsWhere("EventID = {0} AND IsSelectedAlgorithm = 1", theEvent.ID).OrderBy(row => row.IsSuppressed).ThenBy(row => row.Inception).FirstOrDefault();
+                double sagDepth = m_dataContext.Connection.ExecuteScalar<double>(SagDepthQuery, thesummary.ID);
 
                 if ((object)thesummary != null)
                 {
@@ -348,6 +367,7 @@ namespace OpenSEE.Controller
                     returnDict.Add("postedPhase", thesummary.FaultType);
                     returnDict.Add("postedDurationPeriod", thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles");
                     returnDict.Add("postedMagnitude", thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)");
+                    returnDict.Add("postedSagDepth", sagDepth.ToString("####.#", CultureInfo.InvariantCulture) + "%");
                     returnDict.Add("postedCalculationCycle", thesummary.CalculationCycle.ToString());
                 }
             }
