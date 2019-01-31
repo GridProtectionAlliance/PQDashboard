@@ -65139,6 +65139,11 @@ var OpenSEE = (function (_super) {
                     details += separator;
                 details += "Magnitude: " + data.postedMagnitude;
             }
+            if (data.postedSagDepth != undefined) {
+                if (details != "")
+                    details += separator;
+                details += "Sag Depth: " + data.postedSagDepth;
+            }
             if (details != "")
                 label += "<br />" + details;
             details = "";
