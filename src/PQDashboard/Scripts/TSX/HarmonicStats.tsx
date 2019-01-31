@@ -74,15 +74,15 @@ export default class HarmonicStats extends React.Component<any, any>{
     render() {
 
         return (
-            <div id="harmonicstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none', height: 600 }}>
+            <div id="harmonicstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none'}}>
                 <div id="harmonichandle"></div>
                 <div id="harmoniccontent">
-                    <table className="table" style={{fontSize: 'large'}}>
-                        <thead>
+                    <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
+                        <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             {this.state.header}
                             {this.state.secondaryHeader}
                         </thead>
-                        <tbody style={{ fontSize: 'medium', height: 500, maxHeight: 500, overflowY: 'auto' }}>
+                        <tbody style={{ fontSize: 'medium', height: 500, maxHeight: 500, overflowY: 'auto', display: 'block'}}>
                             {this.state.rows}
                         </tbody>
                     </table>
@@ -98,7 +98,7 @@ export default class HarmonicStats extends React.Component<any, any>{
 
 const Row = (row) => {
     return (
-        <tr key={row.label}>
+        <tr style={{ display: 'table', tableLayout: 'fixed', width: '100%' }} key={row.label}>
             <td>{row.label}</td>
             {row.tds}
         </tr>
