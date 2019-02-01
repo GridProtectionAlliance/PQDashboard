@@ -100601,15 +100601,15 @@ var ScalarStats = (function (_super) {
         var _this = this;
         return (React.createElement("div", { id: "scalarstats", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
             React.createElement("div", { id: "statshandle" }),
-            React.createElement("div", { id: "statscontent" },
-                React.createElement("table", { className: "table", style: { fontSize: 'large' } },
-                    React.createElement("thead", null,
+            React.createElement("div", { id: "statscontent", style: { maxWidth: 500, overflowX: 'auto' } },
+                React.createElement("table", { className: "table", style: { fontSize: 'large', marginBottom: 0 } },
+                    React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)' } },
                         React.createElement("tr", null,
                             React.createElement("th", null, "Stat"),
                             React.createElement("th", null,
                                 "Value\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0",
                                 React.createElement("button", { className: 'btn btn-primary', onClick: function () { return _this.props.exportCallback("stats"); } }, "Export(csv)")))),
-                    React.createElement("tbody", null, this.state.rows))),
+                    React.createElement("tbody", { style: { maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
             React.createElement("button", { className: "CloseButton", onClick: function () {
                     _this.props.callback({ statButtonText: "Show Stats" });
                     $('#scalarstats').hide();
@@ -100619,7 +100619,7 @@ var ScalarStats = (function (_super) {
 }(React.Component));
 exports.default = ScalarStats;
 var Row = function (row) {
-    return (React.createElement("tr", { key: row.label },
+    return (React.createElement("tr", { style: { display: 'table', tableLayout: 'fixed', width: '100%' }, key: row.label },
         React.createElement("td", null, row.label),
         React.createElement("td", null, row.data)));
 };
