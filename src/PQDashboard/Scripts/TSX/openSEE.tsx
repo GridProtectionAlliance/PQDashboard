@@ -29,6 +29,7 @@ import * as queryString from "query-string";
 import * as moment from 'moment';
 import * as _ from "lodash";
 import WaveformViewerGraph from './WaveformViewerGraph';
+import Menu from './Menu';
 import PolarChart from './PolarChart';
 import Points from './AccumulatedPoints';
 import Tooltip from './Tooltip';
@@ -137,64 +138,78 @@ export class OpenSEE extends React.Component<any, any>{
     render() {
         var height = this.calculateHeights(this.state);
 
-        return ( 
+        return (
             <div>
-                    <div id="pageHeader" style={{ width: '100%' }}>
-                        <table style={{ width: '100%' }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ textAlign: 'left', width: '10%' }}><img src={'../Images/GPA-Logo---30-pix(on-white).png'} /></td>
-                                    <td style={{ textAlign: 'center', width: '80%' }}><img src={'../Images/openSEET.png'} /></td>
-                                    <td style={{ textAlign: 'right', verticalAlign: 'top', whiteSpace: 'nowrap', width: '10%' }}><img alt="" src="../Images/GPA-Logo.png" style={{ display: 'none' }} /></td>
-                                </tr>
-                                <tr>
-                                    <td colSpan={3} style={{ textAlign: 'center' }}>
-                                        <div><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" id="editButton" >edit</a></div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="DockWaveformHeader">
-                        <table style={{ width: '75%', margin: '0 auto' }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ textAlign: 'center' }}><button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.pointsButtonText} onClick={() => this.showhidePoints()} /></td>
+                <div id="pageHeader" style={{ width: '100%' }}>
+                    <table style={{ width: '100%' }}>
+                        <tbody>
+                            <tr>
+                                <td style={{ textAlign: 'left', width: '10%' }}>
+                                    <img src={'../Images/GPA-Logo---30-pix(on-white).png'} />
+                                    <div style={{ position: "relative" }}>
+                                        <div style={{ position: "absolute" }}>
+                                            <Menu
+                                                eventID={this.state.eventid}
+                                                startDate={this.state.StartDate}
+                                                endDate={this.state.EndDate}
+                                                pointsButtonText={this.state.pointsButtonText}
+                                                phasorButtonText={this.state.phasorButtonText}
+                                                tooltipButtonText={this.state.tooltipButtonText}
+                                                harmonicButtonText={this.state.harmonicButtonText}
+                                                statButtonText={this.state.statButtonText}
+                                                postedEventName={this.state.PostedData.postedEventName}
+                                                postedMeterName={this.state.PostedData.postedMeterName}
+                                                callback={this.stateSetter.bind(this)}
+                                                exportCallback={(type) => this.exportData(type)}
+                                            />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style={{ textAlign: 'center', width: '80%' }}><img src={'../Images/openSEET.png'} /></td>
+                                <td style={{ textAlign: 'right', verticalAlign: 'top', whiteSpace: 'nowrap', width: '10%' }}><img alt="" src="../Images/GPA-Logo.png" style={{ display: 'none' }} /></td>
+                            </tr>
+                            <tr>
+                                <td colSpan={3} style={{ textAlign: 'center' }}>
+                                    <div><span id="TitleData"></span>&nbsp;&nbsp;&nbsp;<a type="button" target="_blank" id="editButton" >edit</a></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div className="DockWaveformHeader">
+                    <table style={{ width: 500, margin: '0 auto', tableLayout: "fixed" }}>
+                        <tbody>
+                            <tr>
+                                <td style={{ textAlign: 'center' }}><button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button></td>
 
-                                    <td style={{ textAlign: 'center' }}>
-                                        {this.state.backButtons}
-                                        <select id="next-back-selection" defaultValue="system">
-                                            <option value="system">System</option>
-                                            <option value="station">Station</option>
-                                            <option value="meter">Meter</option>
-                                            <option value="line">Line</option>
-                                        </select>
-                                        {this.state.forwardButtons}
-                                    </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    {this.state.backButtons}
+                                    <select id="next-back-selection" defaultValue="system">
+                                        <option value="system">System</option>
+                                        <option value="station">Station</option>
+                                        <option value="meter">Meter</option>
+                                        <option value="line">Line</option>
+                                    </select>
+                                    {this.state.forwardButtons}
+                                </td>
 
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.tooltipButtonText} onClick={() => this.showhideTooltip()} /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.phasorButtonText} onClick={() => this.showhidePhasor()} /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value={this.state.statButtonText} onClick={this.showStats.bind(this)} /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export CSV" onClick={this.exportData.bind(this, "csv")} /></td>
-                                    <td style={{ textAlign: 'center' }}><input className="smallbutton" type="button" value="Export Comtrade" onClick={this.exportComtrade.bind(this)} /></td>
-                                    <td style={{ textAlign: 'center', display: (this.state.PostedData.postedEventName == "Snapshot" ? null : 'none') }}><input className="smallbutton" type="button" value={this.state.harmonicButtonText} onClick={this.showHarmonics.bind(this)} /></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="panel-body collapse in" style={{ padding: '0' }}>
-                        <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)} />
-                        <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
-                        <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
-                        <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
-                        <HarmonicStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style={{ padding: '0' }}>
+                    <PolarChart data={this.state.TableData} callback={this.stateSetter.bind(this)} />
+                    <Points pointsTable={this.state.PointsTable} callback={this.stateSetter.bind(this)} postedData={this.state.PostedData} />
+                    <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
+                    <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
+                    <HarmonicStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
 
-                        <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
-                        <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
-                        <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.faultcurves} postedData={this.state.PostedData}></WaveformViewerGraph>
-                        <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.breakerdigitals} postedData={this.state.PostedData}></WaveformViewerGraph>
-                    </div>
+                    <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
+                    <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
+                    <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="F" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.faultcurves} postedData={this.state.PostedData}></WaveformViewerGraph>
+                    <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="B" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.breakerdigitals} postedData={this.state.PostedData}></WaveformViewerGraph>
+                </div>
             </div>
         );
     }
@@ -250,60 +265,6 @@ export class OpenSEE extends React.Component<any, any>{
         $('#' + nextBackType + '-back').show();
         $('#' + nextBackType + '-next').show();
     }
-
-    showhidePoints() {
-        if (this.state.pointsButtonText == "Show Points") {
-            this.setState({ pointsButtonText: "Hide Points" });
-            $('#accumulatedpoints').show();
-        } else {
-            this.setState({ pointsButtonText: "Show Points" });
-            $('#accumulatedpoints').hide();
-        }
-    }
-
-    showhideTooltip() {
-        if (this.state.tooltipButtonText == "Show Tooltip") {
-            this.setState({ tooltipButtonText: "Hide Tooltip" });
-            $('#unifiedtooltip').show();
-            $('.legendCheckbox').show();
-
-        } else {
-            this.setState({ tooltipButtonText: "Show Tooltip" });
-            $('#unifiedtooltip').hide();
-            $('.legendCheckbox').hide();
-        }
-    }
-
-    showhidePhasor() {
-        if (this.state.phasorButtonText == "Show Phasor") {
-            this.setState({ phasorButtonText: "Hide Phasor" });
-            $('#phasor').show();
-        } else {
-            this.setState({ phasorButtonText: "Show Phasor" });
-            $('#phasor').hide();
-        }
-    }
-
-    showStats() {
-        if (this.state.statButtonText == "Show Stats") {
-            this.setState({ statButtonText: "Hide Stats" });
-            $('#scalarstats').show();
-        } else {
-            this.setState({ statButtonText: "Show Stats" });
-            $('#scalarstats').hide();
-        }
-    }
-
-    showHarmonics() {
-        if (this.state.harmonicButtonText == "Show Harmonics") {
-            this.setState({ harmonicButtonText: "Hide Harmonics" });
-            $('#harmonicstats').show();
-        } else {
-            this.setState({ harmonicButtonText: "Show Harmonics" });
-            $('#harmonicstats').hide();
-        }
-    }
-
 
     showData(data) {
         // If all exist, then let's act
@@ -403,6 +364,14 @@ export class OpenSEE extends React.Component<any, any>{
         }
     }
 
+    exportData(type) {
+        window.open(`/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
+            `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
+            `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
+            `&Meter=${this.state.PostedData.postedMeterName}` +
+            `&EventType=${this.state.PostedData.postedEventName}`);
+    }
+
     nextBackButton(evt, id, postedURLQueryString, text) {
         if (evt != null)
         {
@@ -414,22 +383,6 @@ export class OpenSEE extends React.Component<any, any>{
             return <a href='#' id={id} key={id} className='nextbackbutton smallbutton-disabled' title='No event' style={{padding: '4px 20px'}}>{text}</a>;
 
     }
-
-    exportData(type) {
-        window.open(`/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
-            `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
-            `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
-            `&Meter=${this.state.PostedData.postedMeterName}` +
-            `&EventType=${this.state.PostedData.postedEventName}` );
-    }
-    exportComtrade() {
-        window.open(`/OpenSEEComtradeDownload.ashx?eventID=${this.state.eventid}` +
-            `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
-            `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
-            `&Meter=${this.state.PostedData.postedMeterName}` +
-            `&EventType=${this.state.PostedData.postedEventName}`);
-    }
-
 }
 
 ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));
