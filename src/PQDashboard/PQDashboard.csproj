@@ -414,13 +414,6 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\OpenSEE.js" />
-    <Content Include="Scripts\TSX\AccumulatedPoints.js" />
-    <Content Include="Scripts\TSX\Legend.js" />
-    <Content Include="Scripts\TSX\openSEE.js" />
-    <Content Include="Scripts\TSX\PolarChart.js" />
-    <Content Include="Scripts\TSX\Tooltip.js" />
-    <Content Include="Scripts\TSX\WaveformViewerGraph.js" />
-    <Content Include="Scripts\TS\Services\OpenSEE.js" />
     <Content Include="Shared\Content\Images\ui-icons_444444_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_555555_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
@@ -1227,13 +1220,6 @@
     <Content Include="Scripts\PrimeUI\Font-Awesome\scss\_stacked.scss" />
     <Content Include="Scripts\PrimeUI\Font-Awesome\scss\_variables.scss" />
     <Content Include="Scripts\OpenSEE.js.map" />
-    <Content Include="Scripts\TSX\AccumulatedPoints.js.map" />
-    <Content Include="Scripts\TSX\Legend.js.map" />
-    <Content Include="Scripts\TSX\openSEE.js.map" />
-    <Content Include="Scripts\TSX\PolarChart.js.map" />
-    <Content Include="Scripts\TSX\Tooltip.js.map" />
-    <Content Include="Scripts\TSX\WaveformViewerGraph.js.map" />
-    <Content Include="Scripts\TS\Services\OpenSEE.js.map" />
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\Site.js" />
     <Content Include="signalService.asmx" />
@@ -1281,6 +1267,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PolarChart.tsx" />

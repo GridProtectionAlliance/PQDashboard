@@ -52,12 +52,12 @@ export default class ScalarStats extends React.Component<any, any>{
         return (
             <div id="scalarstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none' }}>
                 <div id="statshandle"></div>
-                <div id="statscontent">
-                    <table className="table" style={{fontSize: 'large'}}>
-                        <thead>
+                <div id="statscontent" style={{maxWidth: 500, overflowX: 'auto'}}>
+                    <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
+                        <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             <tr><th>Stat</th><th>Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button className='btn btn-primary' onClick={() => this.props.exportCallback("stats")}>Export(csv)</button></th></tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{ maxHeight: 500, overflowY: 'auto', display: 'block' }}>
                             {this.state.rows}
                         </tbody>
                     </table>
@@ -73,7 +73,7 @@ export default class ScalarStats extends React.Component<any, any>{
 
 const Row = (row) => {
     return (
-        <tr key={row.label}>
+        <tr style={{ display: 'table', tableLayout: 'fixed', width: '100%' }} key={row.label}>
             <td>{row.label}</td>
             <td>{row.data}</td>
         </tr>

@@ -57,6 +57,28 @@ td {
     padding: 0px;
 }
 
+.ui-draggable {
+    left: 200px;
+}
+
+#menu {
+    width: 160px;
+}
+
+#menu .ui-accordion-header {
+    font-size: 10px;
+}
+
+#menu .ui-accordion-content {
+    font-size: 10px;
+    z-index: 1;
+}
+
+#menu .ui-accordion-content input {
+    margin: 2px;
+    width: 110px;
+}
+
 .DockWaveformHeader {
     width: 100%;
     font-size: 14px;
