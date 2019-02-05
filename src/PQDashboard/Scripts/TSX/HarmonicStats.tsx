@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  ScalarStats.tsx - Gbtc
+//  HarmonicStats.tsx - Gbtc
 //
 //  Copyright © 2018, Grid Protection Alliance.  All Rights Reserved.
 //
