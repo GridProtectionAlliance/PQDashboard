@@ -180,7 +180,7 @@ export class OpenSEE extends React.Component<any, any>{
                     </table>
                 </div>
                 <div className="DockWaveformHeader">
-                    <table style={{ width: 500, margin: '0 auto', tableLayout: "fixed" }}>
+                    <table style={{ width: 510, margin: '0 auto', tableLayout: "fixed" }}>
                         <tbody>
                             <tr>
                                 <td style={{ textAlign: 'center' }}><button className="smallbutton" onClick={() => this.resetZoom()}>Reset Zoom</button></td>

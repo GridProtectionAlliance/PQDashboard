@@ -64957,7 +64957,7 @@ var OpenSEE = (function (_super) {
                                     "\u00A0\u00A0\u00A0",
                                     React.createElement("a", { type: "button", target: "_blank", id: "editButton" }, "edit"))))))),
             React.createElement("div", { className: "DockWaveformHeader" },
-                React.createElement("table", { style: { width: 500, margin: '0 auto', tableLayout: "fixed" } },
+                React.createElement("table", { style: { width: 510, margin: '0 auto', tableLayout: "fixed" } },
                     React.createElement("tbody", null,
                         React.createElement("tr", null,
                             React.createElement("td", { style: { textAlign: 'center' } },
