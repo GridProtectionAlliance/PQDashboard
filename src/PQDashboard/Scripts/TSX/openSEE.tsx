@@ -35,6 +35,7 @@ import Points from './AccumulatedPoints';
 import Tooltip from './Tooltip';
 import ScalarStats from './ScalarStats';
 import HarmonicStats from './HarmonicStats';
+import TimeCorrelatedSags from './TimeCorrelatedSags';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -44,7 +45,7 @@ export class OpenSEE extends React.Component<any, any>{
     TableData: object;
     state: {
         eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: any, breakerdigitals: any, breakeroperation: any, Width: number,
-        Hover: number, pointsButtonText: string, tooltipButtonText: string, phasorButtonText: string, statButtonText: string, harmonicButtonText: string,PointsTable: Array<any>, TableData: Object, backButtons: Array<any>,
+        Hover: number, pointsButtonText: string, tooltipButtonText: string, phasorButtonText: string, statButtonText: string, correlatedSagsButtonText, harmonicButtonText: string,PointsTable: Array<any>, TableData: Object, backButtons: Array<any>,
         forwardButtons: Array<any>, PostedData: any
     }
     constructor(props) {
@@ -69,6 +70,7 @@ export class OpenSEE extends React.Component<any, any>{
             phasorButtonText: "Show Phasor",
             harmonicButtonText: "Show Harmonics",
             statButtonText: "Show Stats",
+            correlatedSagsButtonText: "Show Correlated Sags",
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -157,6 +159,7 @@ export class OpenSEE extends React.Component<any, any>{
                                                 tooltipButtonText={this.state.tooltipButtonText}
                                                 harmonicButtonText={this.state.harmonicButtonText}
                                                 statButtonText={this.state.statButtonText}
+                                                correlatedSagsButtonText={this.state.correlatedSagsButtonText}
                                                 postedEventName={this.state.PostedData.postedEventName}
                                                 postedMeterName={this.state.PostedData.postedMeterName}
                                                 callback={this.stateSetter.bind(this)}
@@ -204,6 +207,7 @@ export class OpenSEE extends React.Component<any, any>{
                     <Tooltip data={this.state.TableData} hover={this.state.Hover} callback={this.stateSetter.bind(this)} />
                     <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
                     <HarmonicStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
+                    <TimeCorrelatedSags eventId={this.state.eventid} callback={this.stateSetter.bind(this)} />
 
                     <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
                     <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>

@@ -32,6 +32,7 @@ export default class OpenSEEService{
     headerDataHandle: any;
     scalarStatHandle: any;
     harmonicStatHandle: any;
+    correlatedSagsHandle: any;
     getWaveformData(filters) {
         if (this.waveformDataHandle !== undefined)
             this.waveformDataHandle.abort();
@@ -162,5 +163,19 @@ export default class OpenSEEService{
         return this.harmonicStatHandle;
     }
 
+    getTimeCorrelatedSags(eventid) {
+        if (this.correlatedSagsHandle !== undefined)
+            this.correlatedSagsHandle.abort();
 
+        this.correlatedSagsHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetTimeCorrelatedSags?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.correlatedSagsHandle;
+    }
 }

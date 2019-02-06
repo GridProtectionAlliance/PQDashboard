@@ -25,7 +25,6 @@ using GSF;
 using GSF.Data;
 using GSF.Web;
 using GSF.Web.Model;
-using Microsoft.AspNet.SignalR;
 using openXDA.Model;
 using System;
 using System.Collections.Generic;
@@ -34,9 +33,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Caching;
-using System.Web;
 using System.Web.Http;
-using System.Web.Script.Serialization;
 
 namespace OpenSEE.Controller
 {
@@ -448,6 +445,48 @@ namespace OpenSEE.Controller
 
                 return dataTable;
 
+            }
+        }
+
+        public DataTable GetTimeCorrelatedSags()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventID = int.Parse(query["eventId"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                const string SQL =
+                    "SELECT DISTINCT " +
+                    "    Event.ID AS EventID, " +
+                    "    EventType.Name AS EventType, " +
+                    "    Event.StartTime, " +
+                    "    Meter.Name AS MeterName, " +
+                    "    MeterLine.LineName " +
+                    "FROM " +
+                    "    Disturbance JOIN " +
+                    "    EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
+                    "    Event ON Disturbance.EventID = Event.ID JOIN " +
+                    "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
+                    "    Meter ON Event.MeterID = Meter.ID JOIN " +
+                    "    MeterLine ON " +
+                    "        Event.MeterID = MeterLine.MeterID AND " +
+                    "        Event.LineID = MeterLine.LineID " +
+                    "WHERE " +
+                    "    DisturbanceType.Name = 'Sag' AND " +
+                    "    Disturbance.StartTime <= {1} AND " +
+                    "    Disturbance.EndTime >= {0} " +
+                    "ORDER BY " +
+                    "    Event.StartTime, " +
+                    "    Meter.Name, " +
+                    "    MeterLine.LineName";
+
+                double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");
+                DateTime startTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", eventID);
+                DateTime endTime = connection.ExecuteScalar<DateTime>("SELECT EndTime FROM Event WHERE ID = {0}", eventID);
+                DateTime adjustedStartTime = startTime.AddSeconds(-timeTolerance);
+                DateTime adjustedEndTime = endTime.AddSeconds(timeTolerance);
+                DataTable dataTable = connection.RetrieveData(SQL, adjustedStartTime, adjustedEndTime);
+                return dataTable;
             }
         }
 

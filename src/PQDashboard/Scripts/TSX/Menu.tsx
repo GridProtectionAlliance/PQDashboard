@@ -33,6 +33,7 @@ export default class HarmonicStats extends React.Component<any, any>{
         phasorButtonText: string,
         statButtonText: string,
         harmonicButtonText: string,
+        correlatedSagsButtonText: string,
         postedMeterName: string,
         postedEventName: string,
         startDate: string,
@@ -62,6 +63,7 @@ export default class HarmonicStats extends React.Component<any, any>{
                     <input className="smallbutton" type="button" value={this.props.tooltipButtonText} onClick={() => this.showhideTooltip()} />
                     <input className="smallbutton" type="button" value={this.props.phasorButtonText} onClick={() => this.showhidePhasor()} />
                     <input className="smallbutton" type="button" value={this.props.statButtonText} onClick={this.showhideStats.bind(this)} />
+                    <input className="smallbutton" type="button" value={this.props.correlatedSagsButtonText} onClick={this.showhideCorrelatedSags.bind(this)} />
                     <input className="smallbutton" type="button" value="Export CSV" onClick={this.props.exportCallback.bind(this, "csv")} />
                     <input className="smallbutton" type="button" value="Export Comtrade" onClick={this.exportComtrade.bind(this)} />
                     <input style={{ display: (this.props.postedEventName == "Snapshot" ? null : 'none') }} className="smallbutton" type="button" value={this.props.harmonicButtonText} onClick={this.showhideHarmonics.bind(this)} />
@@ -110,6 +112,16 @@ export default class HarmonicStats extends React.Component<any, any>{
         } else {
             this.props.callback({ statButtonText: "Show Stats" });
             $('#scalarstats').hide();
+        }
+    }
+
+    showhideCorrelatedSags() {
+        if (this.props.correlatedSagsButtonText == "Show Correlated Sags") {
+            this.props.callback({ correlatedSagsButtonText: "Hide Correlated Sags" });
+            $('#correlatedsags').show();
+        } else {
+            this.props.callback({ correlatedSagsButtonText: "Show Correlated Sags" });
+            $('#correlatedsags').hide();
         }
     }
 

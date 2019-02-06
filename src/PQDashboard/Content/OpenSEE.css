@@ -62,7 +62,7 @@ td {
 }
 
 #menu {
-    width: 160px;
+    width: 180px;
 }
 
 #menu .ui-accordion-header {
@@ -76,7 +76,7 @@ td {
 
 #menu .ui-accordion-content input {
     margin: 2px;
-    width: 110px;
+    width: 130px;
 }
 
 .DockWaveformHeader {
@@ -176,6 +176,27 @@ td {
 }
 
 #statshandle {
+    width: 100%;
+    height: 20px;
+    background-color: #808080;
+    cursor: move;
+    padding: 0em;
+}
+
+#correlatedsags {
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: auto;
+    position: absolute;
+    padding: 0em;
+    z-index: 1000;
+    border: black;
+    box-shadow: 4px 4px 2px #888888;
+    border: 2px solid;
+}
+
+#correlatedsagshandle {
     width: 100%;
     height: 20px;
     background-color: #808080;

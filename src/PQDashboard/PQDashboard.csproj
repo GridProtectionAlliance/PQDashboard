@@ -1267,6 +1267,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\TimeCorrelatedSags.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
