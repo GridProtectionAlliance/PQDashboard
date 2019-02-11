@@ -38,7 +38,8 @@ module.exports = {
           jQuery: 'jquery',
           Map: 'core-js/es6/map',
           Set: 'core-js/es6/set',
-          //requestAnimationFrame: 'raf/polyfill'
+          requestAnimationFrame: 'raf',
+          cancelAnimationFrame: ['raf', 'cancel']
         }),
         //new webpack.DefinePlugin({
         //    'process.env.NODE_ENV': JSON.stringify('production')
