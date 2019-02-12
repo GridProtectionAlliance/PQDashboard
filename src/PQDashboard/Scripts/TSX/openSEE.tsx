@@ -227,6 +227,9 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.phasorButtonText;
             delete prop.pointsButtonText;
             delete prop.tooltipButtonText;
+            delete prop.harmonicButtonText;
+            delete prop.statButtonText;
+            delete prop.correlatedSagsButtonText;
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
