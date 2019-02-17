@@ -343,32 +343,42 @@ namespace PQDashboard.Controllers
             using (DataContext dataContext = new DataContext("dbOpenXDA"))
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-
                 TableOperations<ConfirmableUserAccount> userAccountTable = dataContext.Table<ConfirmableUserAccount>();
                 ConfirmableUserAccount userAccount = userAccountTable.QueryRecordWhere("Name = {0}", formData.sid);
                 string url = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'URL' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
                 string emailServiceName = GetEmailServiceName();
                 string recipient, subject, body;
 
-                // if phone changed force reconfirmation
-                if (userAccount.Phone != formData.phone + "@" + formData.carrier)
+                string phone = formData.phone;
+                string carrier = formData.carrier;
+                string phoneAddress = null;
+
+                if (!string.IsNullOrEmpty(phone) && !string.IsNullOrEmpty(carrier) && carrier != "0")
                 {
-                    userAccount.Phone = formData.phone;
+                    char[] phoneDigits = phone.Where(char.IsDigit).ToArray();
+                    string sanitizedPhone = new string(phoneDigits);
+                    phoneAddress = $"{sanitizedPhone}@{carrier}";
+                }
+
+                if (phoneAddress is null)
+                {
+                    userAccount.Phone = null;
+                    userAccount.PhoneConfirmed = false;
+                }
+                else if (phoneAddress != userAccount.Phone)
+                {
+                    // if phone changed force reconfirmation
+                    userAccount.Phone = phoneAddress;
                     userAccount.PhoneConfirmed = false;
 
-                    if (!string.IsNullOrEmpty(formData.phone))
-                    {
-                        userAccount.Phone += $"@{formData.carrier}";
+                    // generate code for sms confirmation
+                    string code = Random.Int32Between(0, 999999).ToString("D6");
+                    s_memoryCache.Set("sms" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
 
-                        // generate code for sms confirmation
-                        string code = Random.Int32Between(0, 999999).ToString("D6");
-                        s_memoryCache.Set("sms" + userAccount.ID.ToString(), code, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromDays(1) });
-
-                        recipient = userAccount.Phone;
-                        subject = $"{emailServiceName} requires you to confirm your SMS number.";
-                        body = $"From your workstation, input {code} at {url}/email/verify/sms";
-                        SendEmail(recipient, subject, body);
-                    }
+                    recipient = userAccount.Phone;
+                    subject = $"{emailServiceName} requires you to confirm your SMS number.";
+                    body = $"From your workstation, input {code} at {url}/email/verify/sms";
+                    SendEmail(recipient, subject, body);
                 }
 
                 userAccountTable.UpdateRecord(userAccount);
