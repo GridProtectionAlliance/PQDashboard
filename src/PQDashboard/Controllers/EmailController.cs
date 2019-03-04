@@ -294,12 +294,32 @@ namespace PQDashboard.Controllers
 
             // email system admin for approval
             ConfirmableUserAccount user = m_dataContext.Table<ConfirmableUserAccount>().QueryRecordWhere("Name = {0}", formData.sid);
-            IEnumerable<AssetGroup> assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordsWhere($"ID IN ({string.Join(",", formData.region)})", formData.region);
-            IEnumerable<EmailType> emailType = m_dataContext.Table<EmailType>().QueryRecordsWhere($"ID IN ({string.Join(",", formData.job)})");
-            IEnumerable<XSLTemplate> xslTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN ({string.Join(",", emailType.Select(x => x.XSLTemplateID))})");
+
+            IEnumerable<int> regionData = formData.region ?? Enumerable.Empty<int>();
+            IEnumerable<int> jobData = formData.job ?? Enumerable.Empty<int>();
+            IEnumerable<int> smsData = formData.sms ?? Enumerable.Empty<int>();
+
+            string assetGroupIDList = string.Join(",", regionData);
+            string emailTypeIDList = string.Join(",", jobData);
+            string smsEmailTypeIDList = string.Join(",", smsData);
+
+            IEnumerable<AssetGroup> assetGroup = Enumerable.Empty<AssetGroup>();
+            IEnumerable<XSLTemplate> emailTemplate = Enumerable.Empty<XSLTemplate>();
+            IEnumerable<XSLTemplate> smsTemplate = Enumerable.Empty<XSLTemplate>();
+
+            if (assetGroupIDList.Length > 0)
+                assetGroup = m_dataContext.Table<AssetGroup>().QueryRecordsWhere($"ID IN ({assetGroupIDList})");
+
+            if (emailTypeIDList.Length > 0)
+                emailTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN ({emailTypeIDList}))");
+
+            if (smsEmailTypeIDList.Length > 0)
+                smsTemplate = m_dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN ({smsEmailTypeIDList}))");
+
             string url = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
             string admin = m_dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.AdminAddress'");
-            string templateName = (xslTemplate.Any() ? string.Join(", ", xslTemplate.Select(x => x.Name) ) : "None");
+            string emailTemplateName = (emailTemplate.Any() ? string.Join(", ", emailTemplate.Select(x => x.Name) ) : "None");
+            string smsTemplateName = (smsTemplate.Any() ? string.Join(", ", smsTemplate.Select(x => x.Name)) : "None");
             string regionName = (assetGroup.Any() ? string.Join(", ", assetGroup.Select(x => x.Name)) : "None");
             string emailServiceName = GetEmailServiceName();
             string subject = $"{formData.username} requests access to the {emailServiceName}.";
@@ -311,7 +331,8 @@ namespace PQDashboard.Controllers
                         <tr><td>Name:</td><td>" + userInfo.FirstName + " " + userInfo.LastName + @"</td></tr>
                         <tr><td>Phone:</td><td>" + formData.phone + @"</td></tr>
                         <tr><td>Region:</td><td>" + regionName + @"</td></tr>
-                        <tr><td>Job:</td><td>" + templateName + @"</td></tr>
+                        <tr><td>Email Template:</td><td>" + emailTemplateName + @"</td></tr>
+                        <tr><td>SMS Template:</td><td>" + smsTemplateName + @"</td></tr>
                     </table>
                     <a href='" + url + @"/email/approveuser/" + user.ID + @"'>Approve</a>
                     <a href='" + url + @"/email/denyuser/" + user.ID + @"'>Deny</a>
