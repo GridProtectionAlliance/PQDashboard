@@ -1,0 +1,171 @@
+﻿@*******************************************************************************************************
+    //  OpenSEE2.cshtml - Gbtc
+    //
+    //  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+    //
+    //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+    //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+    //  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+    //  not use this file except in compliance with the License. You may obtain a copy of the License at:
+    //
+    //      http://opensource.org/licenses/MIT
+    //
+    //  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+    //  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+    //  License for the specific language governing permissions and limitations.
+    //
+    //  Code Modification History:
+    //  ----------------------------------------------------------------------------------------------------
+    //  04/21/2016 - Stephen Wills
+    //       Generated original version of source code.
+    //
+    //*****************************************************************************************************@
+@{
+    Layout = "";
+}
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head id="Head1" runat="server">
+    <title>OpenSEE2</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+
+    <link rel="shortcut icon" type="image/ico" href="~/Images/openSEELogo.png" />
+    <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
+    @*<link rel="stylesheet" href="~/Content/OpenSEE.css" type="text/css" />*@
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/Font-Awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
+    <style>
+        .btn-group button {
+            background-color: #3498db; /* Green background */
+            border: 1px solid #2980b9; /* Green border */
+            color: white; /* White text */
+            cursor: pointer; /* Pointer/hand icon */
+            float: left; /* Float the buttons side by side */
+        }
+
+            .btn-group button:not(:last-child) {
+                border-right: none; /* Prevent double borders */
+            }
+
+        /* Clear floats (clearfix hack) */
+        .btn-group:after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Add a background color on hover */
+        .btn-group button:hover {
+            background-color: #3cb0fd;
+        }
+        .btn-group button.active {
+            background-color: #3cb0fd;
+        }
+
+        .vertical-menu {
+            width: 300px; /* Set a width if you like */
+            height: inherit;
+            background-color: #eee; /* Grey background color */
+            position:relative;
+            float:left;
+        }
+
+        .vertical-menu a {
+            background-color: #eee; /* Grey background color */
+            color: black; /* Black text color */
+            display: block; /* Make the links appear below each other */
+            padding: 12px; /* Add some padding */
+            text-decoration: none; /* Remove underline from links */
+        }
+
+        .vertical-menu a:hover {
+            background-color: #ccc; /* Dark grey background on mouse-over */
+        }
+
+        .vertical-menu a.active {
+            background-color: #4CAF50; /* Add a green color to the "active/current" link */
+            color: white;
+        }
+
+        .horizontal-row {
+            position: relative;
+            width: auto;
+            height: 40px;
+            background-color: #eee; /* Grey background color */
+            color: black; /* Black text color */
+            display: block; /* Make the links appear below each other */
+        }
+
+        .waveform-viewer {
+            position: relative;
+            float: right;
+            height: inherit;
+        }
+        body{
+            overflow-y: hidden;
+        }
+        .screen {
+            position: absolute;
+            top:60px;
+        }
+
+        :focus {
+            outline: none;
+        }
+
+        .showWindow {
+            font-size: 11px;
+            margin-left: auto;
+            margin-right: auto;
+            position: absolute;
+            padding: 0em;
+            z-index: 1000;
+            border: black;
+            box-shadow: 4px 4px 2px #888888;
+            border: 2px solid;
+        }
+
+        .showWindowHandle {
+            width: 100%; 
+            height:20px; 
+            background-color: #808080;
+            cursor: move;
+            padding: 0em;
+        }
+        .CloseButton {
+            background: firebrick;
+            color: white;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 0;
+            border: 0;
+        }
+
+        .CloseButton:hover {
+            background: orangered;
+        }
+    </style>
+</head>
+<body>
+    <div id="DockCharts"></div>
+    <script>
+        var homePath = '@Html.Raw(Url.Content("~/"))';
+        var userIsAdmin = @Html.Raw((ViewBag.IsAdmin? "true": "false"))
+    </script>
+    <script type="text/javascript" src="~/Scripts/OpenSEE2.js"></script>
+</body>
+</html>
