@@ -88,7 +88,7 @@ export default class HarmonicStats extends React.Component<any, any>{
                     </table>
                 </div>
                 <button className="CloseButton" onClick={() => {
-                    this.props.callback({ statButtonText: "Show Stats" });
+                    this.props.callback({ harmonicButtonText: "Show Harmonics" });
                     $('#harmonicstats').hide();
                 }}>X</button>
             </div>
