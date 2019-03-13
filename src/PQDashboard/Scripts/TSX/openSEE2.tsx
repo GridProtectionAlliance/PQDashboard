@@ -25,7 +25,7 @@ import 'react-app-polyfill/ie11';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.css'
-import { Table, Navbar, NavDropdown, Nav, Button, Form, FormControl,Row, Modal } from 'react-bootstrap';
+import { Table, Navbar, NavDropdown, Nav, Button, Form, FormControl,Row, Modal,Tab, Tabs } from 'react-bootstrap';
 
 import OpenSEE2Service from './../TS/Services/OpenSEE2';
 import createHistory from "history/createBrowserHistory"
@@ -162,29 +162,35 @@ export class OpenSEE extends React.Component<any, any>{
                         </Form>
                     </fieldset>
 
-                    <fieldset className="border" style={{ padding: '10px' }}>
-                        <legend className="w-auto">Info:</legend>
+                    <br />
 
-                        <Table responsive style={{ width: '95%' }}>
-                            <tbody>
-                                <tr><td>Meter:</td><td>{this.state.PostedData.postedMeterName}</td></tr>
-                                <tr><td>Station:</td><td>{this.state.PostedData.postedStationName}</td></tr>
-                                <tr><td>Line:</td><td>{this.state.PostedData.postedLineName}</td></tr>
-                                <tr><td>Event Type:</td><td>{(this.state.PostedData.postedEventName != 'Fault' ? this.state.PostedData.postedEventName : <a href="#" title="Click for fault details" onClick={() => window.open(homePath + "FaultSpecifics.aspx?eventid=" + this.state.PostedData.postedEventId, this.state.PostedData.postedEventId + "FaultLocation", "left=0,top=0,width=350,height=300,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no")}>Fault</a>)}</td></tr>
-                                <tr><td>Event Date:</td><td>{this.state.PostedData.postedEventDate}</td></tr>
-                                {(this.state.PostedData.postedStartTime != undefined ? <tr><td>Start Time:</td><td>{this.state.PostedData.postedStartTime}</td></tr> : null)}
-                                {(this.state.PostedData.postedPhase != undefined ? <tr><td>Phase:</td><td>{this.state.PostedData.postedPhase}</td></tr> : null)}
-                                {(this.state.PostedData.postedDurationPeriod != undefined ? <tr><td>Duration:</td><td>{this.state.PostedData.postedDurationPeriod}</td></tr> : null)}
-                                {(this.state.PostedData.postedMagnitude != undefined ? <tr><td>Magnitude:</td><td>{this.state.PostedData.postedMagnitude}</td></tr> : null)}
-                                {(this.state.PostedData.postedSagDepth != undefined ? <tr><td>Sag Depth:</td><td>{this.state.PostedData.postedSagDepth}</td></tr> : null)}
-                                {(this.state.PostedData.postedBreakerNumber != undefined ? <tr><td>Breaker:</td><td>{this.state.PostedData.postedBreakerNumber}</td></tr> : null)}
-                                {(this.state.PostedData.postedBreakerTiming != undefined ? <tr><td>Timing:</td><td>{this.state.PostedData.postedBreakerTiming}</td></tr> : null)}
-                                {(this.state.PostedData.postedBreakerSpeed != undefined ? <tr><td>Speed:</td><td>{this.state.PostedData.postedBreakerSpeed}</td></tr> : null)}
-                                {(this.state.PostedData.postedBreakerOperation != undefined ? <tr><td>Operation:</td><td>{this.state.PostedData.postedBreakerOperation}</td></tr> : null)}
-                                <tr><td><Button variant="link" onClick={(e) => { window.open(this.state.PostedData.xdaInstance + '/Workbench/Event.cshtml?EventID=' + this.state.eventid) }}>Edit</Button></td><td><OpenSEENoteModal eventId={this.state.eventid}/></td></tr>
-                            </tbody>
-                        </Table>
-                    </fieldset>
+                    <Tabs defaultActiveKey="info" id="uncontrolled-tab-example">
+                        <Tab eventKey="info" title="Info">
+                            <Table>
+                                <tbody>
+                                    <tr><td>Meter:</td><td>{this.state.PostedData.postedMeterName}</td></tr>
+                                    <tr><td>Station:</td><td>{this.state.PostedData.postedStationName}</td></tr>
+                                    <tr><td>Line:</td><td>{this.state.PostedData.postedLineName}</td></tr>
+                                    <tr><td>Event Type:</td><td>{(this.state.PostedData.postedEventName != 'Fault' ? this.state.PostedData.postedEventName : <a href="#" title="Click for fault details" onClick={() => window.open(homePath + "FaultSpecifics.aspx?eventid=" + this.state.PostedData.postedEventId, this.state.PostedData.postedEventId + "FaultLocation", "left=0,top=0,width=350,height=300,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no")}>Fault</a>)}</td></tr>
+                                    <tr><td>Event Date:</td><td>{this.state.PostedData.postedEventDate}</td></tr>
+                                    {(this.state.PostedData.postedStartTime != undefined ? <tr><td>Start Time:</td><td>{this.state.PostedData.postedStartTime}</td></tr> : null)}
+                                    {(this.state.PostedData.postedPhase != undefined ? <tr><td>Phase:</td><td>{this.state.PostedData.postedPhase}</td></tr> : null)}
+                                    {(this.state.PostedData.postedDurationPeriod != undefined ? <tr><td>Duration:</td><td>{this.state.PostedData.postedDurationPeriod}</td></tr> : null)}
+                                    {(this.state.PostedData.postedMagnitude != undefined ? <tr><td>Magnitude:</td><td>{this.state.PostedData.postedMagnitude}</td></tr> : null)}
+                                    {(this.state.PostedData.postedSagDepth != undefined ? <tr><td>Sag Depth:</td><td>{this.state.PostedData.postedSagDepth}</td></tr> : null)}
+                                    {(this.state.PostedData.postedBreakerNumber != undefined ? <tr><td>Breaker:</td><td>{this.state.PostedData.postedBreakerNumber}</td></tr> : null)}
+                                    {(this.state.PostedData.postedBreakerTiming != undefined ? <tr><td>Timing:</td><td>{this.state.PostedData.postedBreakerTiming}</td></tr> : null)}
+                                    {(this.state.PostedData.postedBreakerSpeed != undefined ? <tr><td>Speed:</td><td>{this.state.PostedData.postedBreakerSpeed}</td></tr> : null)}
+                                    {(this.state.PostedData.postedBreakerOperation != undefined ? <tr><td>Operation:</td><td>{this.state.PostedData.postedBreakerOperation}</td></tr> : null)}
+                                    <tr><td><Button variant="link" onClick={(e) => { window.open(this.state.PostedData.xdaInstance + '/Workbench/Event.cshtml?EventID=' + this.state.eventid) }}>Edit</Button></td><td><OpenSEENoteModal eventId={this.state.eventid} /></td></tr>
+                                </tbody>
+                            </Table>
+                        </Tab>
+                        <Tab eventKey="compare" title="Compare">
+                        </Tab>
+                        <Tab eventKey="analysis" title="Analysis" >
+                        </Tab>
+                    </Tabs>
                 </div> 
                 <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' }}>
                     <Navbar expand="lg" className="bg-light justify-content-between">

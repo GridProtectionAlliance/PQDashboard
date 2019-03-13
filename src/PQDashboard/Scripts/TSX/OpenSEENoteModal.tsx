@@ -26,7 +26,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Navbar, NavDropdown, Nav, Button, Form, FormControl, Row, Modal } from 'react-bootstrap';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
 
 import OpenSEE2Service from './../TS/Services/OpenSEE2';
@@ -70,6 +70,10 @@ export default class OpenSEENoteModal extends React.Component {
     componentDidMount() {
         this.openSEE2Service.getNotes(this.props.eventId).done(data => {
             var rows = data.map(d => <tr key={d.ID}><td>{d.Note}</td><td>{moment(d.Timestamp).format("MM/DD/YYYY HH:mm")}</td><td>{d.UserAccount}</td><td>
+                <Button variant="light" size="sm" onClick={(e) => {
+                    this.setState({ note: d.Note });
+                    this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
+                }}><FaPencilAlt /></Button>
                 <Button variant="light" size="sm" onClick={(e) => {
                     this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
                 }}><FaTimes /></Button>
