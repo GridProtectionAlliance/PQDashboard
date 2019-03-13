@@ -35,6 +35,7 @@ using FaultData.DataAnalysis;
 using GSF;
 using GSF.Data;
 using GSF.Identity;
+using GSF.Security;
 using GSF.Web.Model;
 using GSF.Web.Security;
 using Newtonsoft.Json.Linq;
@@ -158,7 +159,7 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE2()
         {
-            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
+            ViewBag.IsAdmin = ValidateAdminRequest();
             return View();
         }
 
@@ -259,5 +260,24 @@ namespace PQDashboard.Controllers
             return View();
         }
         #endregion
+
+        private bool ValidateAdminRequest()
+        {
+            string username = User.Identity.Name;
+            ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
+            securityProvider.PassthroughPrincipal = User;
+
+            if (!securityProvider.Authenticate())
+                return false;
+
+            SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
+            SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+
+            if (!approverPrincipal.IsInRole("Administrator"))
+                return false;
+
+            return true;
+        }
+
     }
 }

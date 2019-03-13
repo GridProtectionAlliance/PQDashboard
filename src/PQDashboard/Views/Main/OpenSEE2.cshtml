@@ -158,13 +158,20 @@
         .CloseButton:hover {
             background: orangered;
         }
+
+        .btn-group>.btn.btn-primary {
+            background-color: #3498db;
+            border: 1px solid #2980b9;
+            font-size: x-small;
+        }
+
     </style>
 </head>
 <body>
     <div id="DockCharts"></div>
     <script>
         var homePath = '@Html.Raw(Url.Content("~/"))';
-        var userIsAdmin = @Html.Raw((ViewBag.IsAdmin? "true": "false"))
+        var userIsAdmin = @Html.Raw((ViewBag.IsAdmin ? "true": "false"))
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE2.js"></script>
 </body>

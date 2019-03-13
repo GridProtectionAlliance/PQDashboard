@@ -20,12 +20,14 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-
+import 'bootstrap/dist/css/bootstrap.css'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
+import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 
 export default class Legend extends React.Component<any, any>{
+    props: {type: string, data: Array<any>, callback: Function, height: number}
     constructor(props) {
         super(props);
     }
@@ -33,7 +35,7 @@ export default class Legend extends React.Component<any, any>{
     render() {
         if (this.props.data == null || Object.keys(this.props.data).length == 0) return null;
 
-        let rows = Object.keys(this.props.data).sort().map(row => {
+        let rows = Object.keys(this.props.data).sort().filter(key => this.props.data[key].display).map(row => {
             return <Row key={row} label={row} color={this.props.data[row].color} enabled={this.props.data[row].enabled} callback={() => {
                 this.props.data[row].enabled = !this.props.data[row].enabled;
                 this.props.callback();
@@ -41,16 +43,26 @@ export default class Legend extends React.Component<any, any>{
         });
 
         return (
-            <div>
-                {(Object.keys(this.props.data)[0].indexOf('V') == 0 || Object.keys(this.props.data)[0].indexOf('I') == 0 ?
-                    <div className="btn-group" style={{ width: '100%' }}>
-                        <button className='active' style={{ width: '25%' }} onClick={this.toggleWave.bind(this)}>Wave</button>
-                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'Amplitude')}>Amp</button>
-                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'Phase')}>Phase</button>
-                        <button style={{ width: '25%' }} onClick={this.toggleAll.bind(this, 'RMS')}>RMS</button>
+            <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
+                {(this.props.type == "Voltage" || this.props.type == "Current"?
+                    <div className="d-flex flex-column btn-group">
+                        <ToggleButtonGroup type="checkbox" name="options" defaultValue="Wave" onChange={this.toggleAll.bind(this)}>
+                            <ToggleButton type="checkbox" name="checkbox" value="Wave" style={{ width: '25%', height: 28 }}>Wave</ToggleButton>
+                            <ToggleButton type="checkbox" name="checkbox" value="RMS" style={{ width: '25%', height: 28 }}>RMS</ToggleButton>
+                            <ToggleButton type="checkbox" name="checkbox" value="Amp" style={{ width: '25%', height: 28 }}>Amp</ToggleButton>
+                            <ToggleButton type="checkbox" name="checkbox" value="Phase" style={{ width: '25%', height: 28 }}>Ph</ToggleButton>
+                        </ToggleButtonGroup>
+
                     </div> : null)}
-            <table>
-                <tbody>
+                {(this.props.type == "B"?
+                    <div className="d-flex flex-column btn-group">
+                        <ToggleButtonGroup type="radio" name="options" defaultValue="All" onChange={this.toggleDigitals.bind(this)}>
+                            <ToggleButton type="radio" name="radio" value="All" style={{ width: '50%', height: 28}}>All</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Breakers" style={{ width: '50%', height: 28}}>Breakers</ToggleButton>
+                        </ToggleButtonGroup>
+                    </div> : null)}
+                <table ref="table" style={{ maxHeight: this.props.height - 70, overflowY: 'auto', display: 'block' }}>
+                <tbody >
                     {rows}
                 </tbody>
                 </table>
@@ -58,37 +70,59 @@ export default class Legend extends React.Component<any, any>{
         );
     }
 
-    toggleWave(event) {
-        var data = this.props.data;
-        var flag = false;
-        _.each(Object.keys(data).filter(d => { return d.indexOf('RMS') < 0 && d.indexOf('Amplitude') < 0 && d.indexOf('Phase') < 0}), (key, i:any) => {
-            if (i == 0) flag = !data[key].enabled;
-            data[key].enabled = flag;
-            $('[name="' + key + '"]').prop('checked', flag)
-        });
-
-        if (flag)
-            event.target.className = "active";
-        else
-            event.target.className = "";
-
-        this.props.callback();
-    }
-
     toggleAll(type, event) {
         var data = this.props.data;
-        var flag = false;
 
-        _.each(Object.keys(data).filter(d => { return d.indexOf(type) >= 0 }), (key, i: any) => {
-            if (i == 0) flag = !data[key].enabled;
-            data[key].enabled = flag;
-            $('[name="' + key + '"]').prop('checked', flag)
+        _.each(Object.keys(data), (key: string, i: number) => {
+            data[key].enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if (type.indexOf("Wave") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
+                data[key].enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type.indexOf("RMS") >= 0 && key.indexOf('RMS') >= 0) {
+                data[key].enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type.indexOf("Amp") >= 0 && key.indexOf('Amplitude') >= 0) {
+                data[key].enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type.indexOf("Phase") >= 0 && key.indexOf('Phase') >= 0) {
+                data[key].enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
         });
 
-        if (flag)
-            event.target.className = "active";
-        else
-            event.target.className = "";
+        this.props.callback();
+
+    }
+
+    toggleDigitals( type, event) {
+        var data = this.props.data;
+
+        _.each(Object.keys(data), (key: string, i: number) => {
+            data[key].enabled = false;
+            data[key].display = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if (type == "Breakers" && key.toLowerCase().indexOf("status") >= 0 || key.toLowerCase().indexOf("trip coil energized") >= 0) {
+                data[key].enabled = true;
+                data[key].display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            else if(type == 'All' ){
+                data[key].enabled = true;
+                data[key].display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+        });
 
         this.props.callback();
 

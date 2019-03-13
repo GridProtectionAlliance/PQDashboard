@@ -273,6 +273,7 @@
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OpenSEE2Controller.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
@@ -414,6 +415,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\OpenSEE.js" />
+    <Content Include="Scripts\OpenSEE2.js" />
     <Content Include="Shared\Content\Images\ui-icons_444444_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_555555_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
@@ -1267,6 +1269,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\openSEE2.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEENoteModal.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\TimeCorrelatedSags.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />

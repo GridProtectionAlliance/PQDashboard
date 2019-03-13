@@ -309,7 +309,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
 
         $.each(data, function (i, key) {
             if(legend[key.ChartLabel]  == undefined)
-                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), enabled: (ctrl.props.type == "F" || ctrl.props.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
+                legend[key.ChartLabel] = { color: ctrl.getColor(key, i), display: true,enabled: (ctrl.props.type == "F" || ctrl.props.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints };
             else
                 legend[key.ChartLabel].data = key.DataPoints
         });
@@ -580,9 +580,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         return (
             <div style={{display: (this.props.display ? 'block' : 'none')}}>
                 <div id={this.props.type} style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
-                <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'auto'}}>
-                    <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} />
-                </div>
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.type} height={this.props.height}/>
             </div>
         );
     }
