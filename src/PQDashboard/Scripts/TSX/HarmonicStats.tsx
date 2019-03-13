@@ -76,13 +76,13 @@ export default class HarmonicStats extends React.Component<any, any>{
         return (
             <div id="harmonicstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none'}}>
                 <div id="harmonichandle"></div>
-                <div id="harmoniccontent">
+                <div id="harmoniccontent" style={{ maxWidth: 1700 }}>
                     <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
                         <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             {this.state.header}
                             {this.state.secondaryHeader}
                         </thead>
-                        <tbody style={{ fontSize: 'medium', height: 500, maxHeight: 500, overflowY: 'auto', display: 'block'}}>
+                        <tbody style={{ fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block'}}>
                             {this.state.rows}
                         </tbody>
                     </table>
@@ -107,7 +107,8 @@ const Row = (row) => {
 
 const HeaderRow = (row, callback) => {
     return (
-        <tr key='Header'><th colSpan={1}><button className='btn btn-primary' onClick={() => callback('harmonics')}>Export(csv)</button></th>
+        <tr key='Header'>
+            <th colSpan={1}><button className='btn btn-primary' onClick={() => callback('harmonics')}>Export(csv)</button></th>
             {row.map(key => <th colSpan={2} scope='colgroup' key={key}>{key}</th>)}
         </tr>
     );
