@@ -100798,14 +100798,14 @@ var HarmonicStats = (function (_super) {
         var _this = this;
         return (React.createElement("div", { id: "harmonicstats", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
             React.createElement("div", { id: "harmonichandle" }),
-            React.createElement("div", { id: "harmoniccontent" },
+            React.createElement("div", { id: "harmoniccontent", style: { maxWidth: 1700 } },
                 React.createElement("table", { className: "table", style: { fontSize: 'large', marginBottom: 0 } },
                     React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)' } },
                         this.state.header,
                         this.state.secondaryHeader),
-                    React.createElement("tbody", { style: { fontSize: 'medium', height: 500, maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
+                    React.createElement("tbody", { style: { fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
             React.createElement("button", { className: "CloseButton", onClick: function () {
-                    _this.props.callback({ statButtonText: "Show Stats" });
+                    _this.props.callback({ harmonicButtonText: "Show Harmonics" });
                     $('#harmonicstats').hide();
                 } }, "X")));
     };
@@ -100872,8 +100872,6 @@ var HarmonicStats = (function (_super) {
         var _this = this;
         $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle' });
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(function (data) {
-            if (data.length === 0)
-                return;
             var header = HeaderRow();
             var rows = [];
             for (var index = 0; index < data.length; ++index) {
