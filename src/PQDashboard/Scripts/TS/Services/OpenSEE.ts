@@ -31,6 +31,9 @@ export default class OpenSEEService{
     scalarStatHandle: any;
     harmonicStatHandle: any;
     correlatedSagsHandle: any;
+    noteHandle: any;
+    overlappingEventsHandle: any;
+
     getWaveformData(filters) {
         if (this.waveformDataHandle !== undefined)
             this.waveformDataHandle.abort();
@@ -176,4 +179,86 @@ export default class OpenSEEService{
 
         return this.correlatedSagsHandle;
     }
+
+    getNotes(eventid) {
+        if (this.noteHandle !== undefined)
+            this.noteHandle.abort();
+
+        this.noteHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetNotes?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.noteHandle;
+
+    }
+
+    addNote(note) {
+        return $.ajax({
+            type: "POST",
+            url: `${homePath}api/OpenSEE/AddNote`,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(note),
+            cache: true,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    }
+
+    deleteNote(note) {
+        return $.ajax({
+            type: "DELETE",
+            url: `${homePath}api/OpenSEE/DeleteNote`,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(note),
+            cache: true,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    }
+
+    updateNote(note) {
+        return $.ajax({
+            type: "PATCH",
+            url: `${homePath}api/OpenSEE/UpdateNote`,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(note),
+            cache: true,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    }
+
+    getOverlappingEvents(eventid: number, startDate?: string, endDate?: string) {
+        if (this.overlappingEventsHandle !== undefined)
+            this.overlappingEventsHandle.abort();
+
+        this.overlappingEventsHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetOverlappingEvents?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.overlappingEventsHandle;
+
+    }
+
 }

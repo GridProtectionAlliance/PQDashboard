@@ -153,16 +153,9 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE()
         {
-            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
-            return View();
-        }
-
-        public ActionResult OpenSEE2()
-        {
             ViewBag.IsAdmin = ValidateAdminRequest();
             return View();
         }
-
 
         public ActionResult OpenSTE()
         {

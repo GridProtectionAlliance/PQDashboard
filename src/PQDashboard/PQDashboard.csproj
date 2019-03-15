@@ -273,7 +273,6 @@
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\MainController.cs" />
-    <Compile Include="Controllers\OpenSEE2Controller.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
@@ -1268,18 +1267,20 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\openSEE2.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\OpenSEENoteModal.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\TimeCorrelatedSags.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Menu.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PolarChart.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\HarmonicStats.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\ScalarStats.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Tooltip.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\WaveformViewerGraph.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\MultiselectWindow.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENavbar.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENoteModal.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\AccumulatedPoints.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\HarmonicStats.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\ScalarStats.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TimeCorrelatedSags.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\WaveformViewerGraph.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />
   </ItemGroup>
   <ItemGroup>
