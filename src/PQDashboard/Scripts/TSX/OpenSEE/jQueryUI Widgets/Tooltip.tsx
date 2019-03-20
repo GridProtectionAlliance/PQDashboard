@@ -26,6 +26,54 @@ import * as _ from "lodash";
 import './../../../jquery-ui.js';
 import 'flot';
 import './../../../flot/jquery.flot.time.min.js';
+import { style } from "typestyle"
+
+// styles
+const unifiedtooltip: React.CSSProperties = {
+    minWidth : '200px',
+    maxWidth: '400px',
+    fontSize: '12px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    overflowY: 'auto',
+    padding: '0em',
+    zIndex: 1000,
+    boxShadow: '4px 4px 2px #888888',
+    border: '2px solid black',
+    position: 'absolute',
+    top: '0',
+    display: 'none',
+    backgroundColor: 'white'
+};
+
+const unifiedtooltiphandle = style({
+    width: '100 %',
+    height: '20px',
+    backgroundColor: '#808080',
+    cursor: 'move',
+    padding: '0em'
+});
+
+const closeButton = style({
+    background: 'firebrick',
+    color: 'white',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '20px',
+    height: '20px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    padding: 0,
+    border: 0,
+    $nest: {
+        "&:hover": {
+            background: 'orangered'
+        }
+    }
+});
+
+
 
 export default class Tooltip extends React.Component<any, any>{
     constructor(props) {
@@ -33,7 +81,7 @@ export default class Tooltip extends React.Component<any, any>{
     }
     componentDidMount() {
         var ctrl = this;
-        ($("#unifiedtooltip") as any).draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
+        ($('#unifiedtooltip') as any).draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
     }
 
     render() {
@@ -58,8 +106,8 @@ export default class Tooltip extends React.Component<any, any>{
 
 
         return (
-            <div id="unifiedtooltip" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none' }}>
-                <div id="unifiedtooltiphandle"></div>
+            <div id="unifiedtooltip" className="ui-widget-content" style={unifiedtooltip}>
+                <div id="unifiedtooltiphandle" className={unifiedtooltiphandle}></div>
                 <div id="unifiedtooltipcontent">
                     <div style={{textAlign: 'center'}}>
                         <b>{format}</b>
@@ -71,7 +119,7 @@ export default class Tooltip extends React.Component<any, any>{
                         </table>
                     </div>
                 </div>
-                <button className="CloseButton" onClick={() => {
+                <button className={closeButton} onClick={() => {
                     this.props.callback({ tooltipButtonText: "Show Tooltip" });
                     $('#unifiedtooltip').hide();
                     $('.legendCheckbox').hide();

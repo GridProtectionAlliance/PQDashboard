@@ -38,6 +38,18 @@ import * as _ from "lodash";
 import WaveformViewerGraph from './Graphs/WaveformViewerGraph';
 import OpenSEENoteModal from './Components/OpenSEENoteModal';
 import MultiselectWindow, { iListObject } from './Components/MultiselectWindow';
+import RadioselectWindow from './Components/RadioselectWindow';
+import Impedance from './Analytics/Impedance';
+import Power from './Analytics/Power';
+import FirstDerivative from './Analytics/FirstDerivative';
+import RemoveCurrent from './Analytics/RemoveCurrent';
+import MissingVoltage from './Analytics/MissingVoltage';
+import LowPassFilter from './Analytics/LowPassFilter';
+import HighPassFilter from './Analytics/HighPassFilter';
+import SymmetricalComponents from './Analytics/SymmetricalComponents';
+import Unbalance from './Analytics/Unbalance';
+import Rectifier from './Analytics/Rectifier';
+
 import OpenSEENavbar from './Components/OpenSEENavbar';
 import { TabContent, Card } from 'react-bootstrap';
 
@@ -50,7 +62,7 @@ export class OpenSEE extends React.Component<any, any>{
     state: {
         eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: boolean, breakerdigitals: boolean, Width: number,
         Hover: number, PointsTable: Array<any>, TableData: Object, PostedData: iPostedData, nextBackLookup: iNextBackLookup, navigation: string, tab: string
-        comparedEvents: Array<number>, overlappingEvents: Array<iListObject>
+        comparedEvents: Array<number>, overlappingEvents: Array<iListObject>, analytic: string
     }
     constructor(props) {
         super(props);
@@ -80,8 +92,8 @@ export class OpenSEE extends React.Component<any, any>{
             navigation: query["navigation"] != undefined ? query["navigation"] : "system",
             tab: query["tab"] != undefined ? query["tab"] : "info",
             comparedEvents: (query["comparedEvents"] != undefined ? (Array.isArray(query["comparedEvents"]) ? query["comparedEvents"].map(a => parseInt(a)) : [parseInt(query["comparedEvents"])]) : []),
-            overlappingEvents: []
-
+            overlappingEvents: [],
+            analytic: query["analytic"] != undefined ? query["analytic"] : null,
         }
         this.TableData = {};
         this.history['listen']((location, action) => {
@@ -176,10 +188,11 @@ export class OpenSEE extends React.Component<any, any>{
                             </table>
                         </Tab.Pane>
                         <Tab.Pane eventKey="compare" title="Compare" style={{height: '100%'}}>
-                                <MultiselectWindow comparedEvents={this.state.comparedEvents} stateSetter={this.stateSetter.bind(this)} data={this.state.overlappingEvents}/>
+                            <MultiselectWindow comparedEvents={this.state.comparedEvents} stateSetter={this.stateSetter.bind(this)} data={this.state.overlappingEvents}/>
                         </Tab.Pane>
                         <Tab.Pane eventKey="analysis" title="Analysis" >
-                            </Tab.Pane>
+                                <RadioselectWindow stateSetter={this.stateSetter.bind(this)} analytic={this.state.analytic}/>
+                        </Tab.Pane>
                         </Tab.Content>
                     </Tab.Container>
                 </div> 
@@ -200,10 +213,19 @@ export class OpenSEE extends React.Component<any, any>{
                         TableData={this.state.TableData}
                     />
                     <div style={{ padding: '0', height: "calc(100% - 62px)", overflowY: 'auto' }}>
-                        <ViewerWindow key={this.state.eventid} eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCures={this.state.faultcurves} postedData={this.state.PostedData} notInfo={(this.state.tab != "info")} label={this.state.PostedData.postedLineName}/>
-                        {
-                            (this.state.tab == "compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(a => <ViewerWindow key={a} eventId={a} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCures={this.state.faultcurves} postedData={this.state.PostedData} notInfo={(this.state.tab != "info")} label={this.state.overlappingEvents.find(x => x.value == a).label} />): null)
-                        }
+                        <ViewerWindow key={this.state.eventid} eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCurves={this.state.faultcurves} postedData={this.state.PostedData} isCompare={(this.state.tab == "compare")} label={this.state.PostedData.postedLineName}/>
+                        {(this.state.tab == "compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(a => <ViewerWindow key={a} eventId={a} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCurves={this.state.faultcurves} postedData={this.state.PostedData} isCompare={(this.state.tab == "compare")} label={this.state.overlappingEvents.find(x => x.value == a).label} />) : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "Impedance" ? <Impedance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "Power" ? <Power eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "FirstDerivative" ? <FirstDerivative eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "RemoveCurrent" ? <RemoveCurrent eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "MissingVoltage" ? <MissingVoltage eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "LowPassFilter" ? <LowPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "HighPassFilter" ? <HighPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "SymmetricalComponents" ? <SymmetricalComponents eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "Unbalance" ? <Unbalance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "Rectifier" ? <Rectifier eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableUpdater={this.tableUpdater.bind(this)} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+
                     </div>
                 </div>
             </div>
@@ -257,8 +279,8 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     calculateHeights(obj: any) {
-        if (obj.tab != "info") return 300;
-        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals))
+        if (obj.tab == "compare") return 300;
+        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals) + Number(obj.tab == "analysis"))
     }
 
 
@@ -267,18 +289,25 @@ export class OpenSEE extends React.Component<any, any>{
 
 }
 
-const ViewerWindow = (props: {eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Object, pointsTable: Array<any>, tableUpdater: Function, displayVolt: boolean, displayCur: boolean, displayDigitals: boolean, displayFaultCures: boolean, postedData: iPostedData, notInfo: boolean, label: string}, context) => {
-    return (
-         <Card style={{ height: (props.notInfo ? null : '100%') }}>
-
-            {(props.notInfo ? <Card.Header>{props.label}</Card.Header> : null)}
+const ViewerWindow = (props: {eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Object, pointsTable: Array<any>, tableUpdater: Function, displayVolt: boolean, displayCur: boolean, displayDigitals: boolean, displayFaultCurves: boolean, postedData: iPostedData, isCompare: boolean, label: string}, context) => {
+    return ( props.isCompare ? 
+        <Card style={{ height: (props.isCompare ? null : '100%') }}>
+            <Card.Header>{props.label}</Card.Header>
                 <Card.Body style={{padding: 0}}>
-                    <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Voltage" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} display={props.displayVolt}       postedData={props.postedData}></WaveformViewerGraph>
-                    <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Current" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} display={props.displayCur}        postedData={props.postedData}></WaveformViewerGraph>
-                    <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="B"       pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} display={props.displayDigitals}   postedData={props.postedData}></WaveformViewerGraph>
-                    <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="F" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} display={props.displayFaultCures} postedData={props.postedData}></WaveformViewerGraph>
+                {(props.displayVolt ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Voltage" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+                {(props.displayCur ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Current" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+                {(props.displayDigitals ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="B" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+                {(props.displayFaultCurves ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="F" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
                 </Card.Body>
-            </Card>
+        </Card>
+        :
+        <>
+            {(props.displayVolt ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Voltage" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+            {(props.displayCur ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="Current" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+            {(props.displayDigitals ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="B" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+            {(props.displayFaultCurves ? <WaveformViewerGraph eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} type="F" pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableUpdater} postedData={props.postedData}></WaveformViewerGraph> : null)}
+        </>
+            
         );
 }
 
