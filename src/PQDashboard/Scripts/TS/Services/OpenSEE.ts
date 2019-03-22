@@ -31,6 +31,8 @@ export default class OpenSEEService{
     scalarStatHandle: any;
     harmonicStatHandle: any;
     correlatedSagsHandle: any;
+    lightningParametersHandle: any;
+
     getWaveformData(filters) {
         if (this.waveformDataHandle !== undefined)
             this.waveformDataHandle.abort();
@@ -175,5 +177,21 @@ export default class OpenSEEService{
         });
 
         return this.correlatedSagsHandle;
+    }
+
+    getLightningParameters(eventid) {
+        if (this.lightningParametersHandle !== undefined)
+            this.lightningParametersHandle.abort();
+
+        this.lightningParametersHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetLightningParameters?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            cache: true,
+            async: true
+        });
+
+        return this.lightningParametersHandle;
     }
 }

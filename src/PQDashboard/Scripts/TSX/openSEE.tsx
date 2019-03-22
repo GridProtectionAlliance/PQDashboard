@@ -36,6 +36,7 @@ import Tooltip from './Tooltip';
 import ScalarStats from './ScalarStats';
 import HarmonicStats from './HarmonicStats';
 import TimeCorrelatedSags from './TimeCorrelatedSags';
+import LightningData from './LightningData';
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -44,9 +45,9 @@ export class OpenSEE extends React.Component<any, any>{
     resizeId: any;
     TableData: object;
     state: {
-        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: any, breakerdigitals: any, breakeroperation: any, Width: number,
-        Hover: number, pointsButtonText: string, tooltipButtonText: string, phasorButtonText: string, statButtonText: string, correlatedSagsButtonText, harmonicButtonText: string,PointsTable: Array<any>, TableData: Object, backButtons: Array<any>,
-        forwardButtons: Array<any>, PostedData: any
+        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: any, breakerdigitals: any, breakeroperation: any, Width: number, Hover: number,
+        pointsButtonText: string, tooltipButtonText: string, phasorButtonText: string, statButtonText: string, correlatedSagsButtonText, harmonicButtonText: string, lightningDataButtonText: string,
+        enableLightningData: boolean, PointsTable: Array<any>, TableData: Object, backButtons: Array<any>, forwardButtons: Array<any>, PostedData: any
     }
     constructor(props) {
         super(props);
@@ -69,8 +70,10 @@ export class OpenSEE extends React.Component<any, any>{
             tooltipButtonText: "Show Tooltip",
             phasorButtonText: "Show Phasor",
             harmonicButtonText: "Show Harmonics",
+            lightningDataButtonText: "Show Lightning Data",
             statButtonText: "Show Stats",
             correlatedSagsButtonText: "Show Correlated Sags",
+            enableLightningData: false,
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -158,8 +161,10 @@ export class OpenSEE extends React.Component<any, any>{
                                                 phasorButtonText={this.state.phasorButtonText}
                                                 tooltipButtonText={this.state.tooltipButtonText}
                                                 harmonicButtonText={this.state.harmonicButtonText}
+                                                lightningDataButtonText={this.state.lightningDataButtonText}
                                                 statButtonText={this.state.statButtonText}
                                                 correlatedSagsButtonText={this.state.correlatedSagsButtonText}
+                                                enableLightningData={this.state.enableLightningData}
                                                 postedEventName={this.state.PostedData.postedEventName}
                                                 postedMeterName={this.state.PostedData.postedMeterName}
                                                 callback={this.stateSetter.bind(this)}
@@ -208,6 +213,7 @@ export class OpenSEE extends React.Component<any, any>{
                     <ScalarStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
                     <HarmonicStats eventId={this.state.eventid} callback={this.stateSetter.bind(this)} exportCallback={(type) => this.exportData(type)} />
                     <TimeCorrelatedSags eventId={this.state.eventid} callback={this.stateSetter.bind(this)} />
+                    <LightningData eventId={this.state.eventid} callback={this.stateSetter.bind(this)} />
 
                     <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Voltage" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayVolt} postedData={this.state.PostedData}></WaveformViewerGraph>
                     <WaveformViewerGraph eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} type="Current" pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} tableSetter={this.tableUpdater.bind(this)} display={this.state.displayCur} postedData={this.state.PostedData}></WaveformViewerGraph>
@@ -230,6 +236,8 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.harmonicButtonText;
             delete prop.statButtonText;
             delete prop.correlatedSagsButtonText;
+            delete prop.lightningDataButtonText;
+            delete prop.enableLightningData;
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
