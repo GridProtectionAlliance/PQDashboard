@@ -91,6 +91,8 @@ const Row = (row, background) => {
         <tr style={{ display: 'table', tableLayout: 'fixed', background: background }} key={row.EventID}>
             <td style={{ width: 80 }} key={'EventID' + row.EventID}><a href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
             <td style={{ width: 110 }} key={'EventType' + row.EventID}>{row.EventType}</td>
+            <td style={{ width: 110 }} key={'SagMagnitude' + row.EventID}>{row.SagMagnitudePercent}%</td>
+            <td style={{ width: 150 }} key={'SagDuration' + row.EventID}>{row.SagDurationMilliseconds} ms ({row.SagDurationCycles} cycles)</td>
             <td style={{ width: 220 }} key={'StartTime' + row.EventID}>{row.StartTime}</td>
             <td style={{ width: 150 }} key={'MeterName' + row.EventID}>{row.MeterName}</td>
             <td style={{ width: 400 }} key={'LineName' + row.EventID}>{row.LineName}</td>
@@ -103,6 +105,8 @@ const HeaderRow = () => {
         <tr key='Header'>
             <th style={{ width: 80 }} key='EventID'>Event ID</th>
             <th style={{ width: 110 }} key='EventType'>Event Type</th>
+            <th style={{ width: 110 }} key='SagMagnitude'>Magnitude</th>
+            <th style={{ width: 150 }} key='SagDuration'>Duration</th>
             <th style={{ width: 220 }} key='StartTime'>Start Time</th>
             <th style={{ width: 150 }} key='MeterName'>Meter Name</th>
             <th style={{ width: 'calc(400px - 1em)' }} key='LineName'>Line Name</th>
