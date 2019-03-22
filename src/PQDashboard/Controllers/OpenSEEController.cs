@@ -456,29 +456,43 @@ namespace OpenSEE.Controller
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 const string SQL =
-                    "SELECT DISTINCT " +
+                    "SELECT " +
                     "    Event.ID AS EventID, " +
                     "    EventType.Name AS EventType, " +
+                    "    FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') AS SagMagnitudePercent, " +
+                    "    FORMAT(Sag.DurationSeconds * 1000.0, '0') AS SagDurationMilliseconds, " +
+                    "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
                     "    Event.StartTime, " +
                     "    Meter.Name AS MeterName, " +
                     "    MeterLine.LineName " +
                     "FROM " +
-                    "    Disturbance JOIN " +
-                    "    EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
-                    "    Event ON Disturbance.EventID = Event.ID JOIN " +
+                    "    Event JOIN " +
                     "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
                     "    Meter ON Event.MeterID = Meter.ID JOIN " +
                     "    MeterLine ON " +
                     "        Event.MeterID = MeterLine.MeterID AND " +
-                    "        Event.LineID = MeterLine.LineID " +
-                    "WHERE " +
-                    "    DisturbanceType.Name = 'Sag' AND " +
-                    "    Disturbance.StartTime <= {1} AND " +
-                    "    Disturbance.EndTime >= {0} " +
+                    "        Event.LineID = MeterLine.LineID CROSS APPLY " +
+                    "    ( " +
+                    "        SELECT TOP 1 " +
+                    "            Disturbance.PerUnitMagnitude, " +
+                    "            Disturbance.DurationSeconds, " +
+                    "            Disturbance.DurationCycles " +
+                    "        FROM " +
+                    "            Disturbance JOIN " +
+                    "            EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
+                    "            Phase ON " +
+                    "                Disturbance.PhaseID = Phase.ID AND " +
+                    "                Phase.Name = 'Worst' " +
+                    "        WHERE " +
+                    "            Disturbance.EventID = Event.ID AND " +
+                    "            DisturbanceType.Name = 'Sag' AND " +
+                    "            Disturbance.StartTime <= {1} AND " +
+                    "            Disturbance.EndTime >= {0} " +
+                    "        ORDER BY PerUnitMagnitude DESC " +
+                    "    ) Sag " +
                     "ORDER BY " +
-                    "    Event.StartTime, " +
-                    "    Meter.Name, " +
-                    "    MeterLine.LineName";
+                    "    Sag.PerUnitMagnitude, " +
+                    "    Event.StartTime";
 
                 double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");
                 DateTime startTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", eventID);
