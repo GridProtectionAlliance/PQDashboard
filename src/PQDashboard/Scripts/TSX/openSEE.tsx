@@ -38,6 +38,8 @@ import HarmonicStats from './HarmonicStats';
 import TimeCorrelatedSags from './TimeCorrelatedSags';
 import LightningData from './LightningData';
 
+declare var homePath: string;
+
 export class OpenSEE extends React.Component<any, any>{
     history: object;
     historyHandle: any;
@@ -380,7 +382,7 @@ export class OpenSEE extends React.Component<any, any>{
     }
 
     exportData(type) {
-        window.open(`/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
+        window.open(homePath + `OpenSEECSVDownload.ashx?type=${type}&eventID=${this.state.eventid}` +
             `${this.state.StartDate != undefined ? `&startDate=${this.state.StartDate}` : ``}` +
             `${this.state.EndDate != undefined ? `&endDate=${this.state.EndDate}` : ``}` +
             `&Meter=${this.state.PostedData.postedMeterName}` +
