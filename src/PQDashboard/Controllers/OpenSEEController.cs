@@ -337,9 +337,9 @@ namespace OpenSEE.Controller
 
             if (new List<string>() { "Fault", "RecloseIntoFault" }.Contains(returnDict["postedEventName"]))
             {
-                const string SagDepthQuery =
+                const string SagVoltageMagnitudeQuery =
                     "SELECT TOP 1 " +
-                    "    (1 - PerUnitMagnitude) * 100 " +
+                    "    PerUnitMagnitude * 100 " +
                     "FROM " +
                     "    FaultSummary JOIN " +
                     "    Disturbance ON " +
@@ -356,7 +356,7 @@ namespace OpenSEE.Controller
                     "ORDER BY PerUnitMagnitude";
 
                 FaultSummary thesummary = m_dataContext.Table<FaultSummary>().QueryRecordsWhere("EventID = {0} AND IsSelectedAlgorithm = 1", theEvent.ID).OrderBy(row => row.IsSuppressed).ThenBy(row => row.Inception).FirstOrDefault();
-                double sagDepth = m_dataContext.Connection.ExecuteScalar<double>(SagDepthQuery, thesummary.ID);
+                double sagVoltageMagnitude = m_dataContext.Connection.ExecuteScalar<double>(SagVoltageMagnitudeQuery, thesummary.ID);
 
                 if ((object)thesummary != null)
                 {
@@ -364,7 +364,7 @@ namespace OpenSEE.Controller
                     returnDict.Add("postedPhase", thesummary.FaultType);
                     returnDict.Add("postedDurationPeriod", thesummary.DurationCycles.ToString("##.##", CultureInfo.InvariantCulture) + " cycles");
                     returnDict.Add("postedMagnitude", thesummary.CurrentMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + " Amps (RMS)");
-                    returnDict.Add("postedSagDepth", sagDepth.ToString("####.#", CultureInfo.InvariantCulture) + "%");
+                    returnDict.Add("postedSagVoltageMagnitude", sagVoltageMagnitude.ToString("####.#", CultureInfo.InvariantCulture) + "%");
                     returnDict.Add("postedCalculationCycle", thesummary.CalculationCycle.ToString());
                 }
             }
