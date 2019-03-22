@@ -15158,7 +15158,7 @@ process.umask = function() { return 0; };
 
 var store  = __webpack_require__(186)('wks')
   , uid    = __webpack_require__(18)
-  , Symbol = __webpack_require__(5).Symbol;
+  , Symbol = __webpack_require__(6).Symbol;
 module.exports = function(name){
   return store[name] || (store[name] =
     Symbol && Symbol[name] || (Symbol || uid)('Symbol.' + name));
@@ -15166,28 +15166,6 @@ module.exports = function(name){
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports) {
-
-// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
-var global = module.exports = typeof window != 'undefined' && window.Math == Math
-  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
-if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var $          = __webpack_require__(8)
-  , createDesc = __webpack_require__(32);
-module.exports = __webpack_require__(19) ? function(object, key, value){
-  return $.setDesc(object, key, createDesc(1, value));
-} : function(object, key, value){
-  object[key] = value;
-  return object;
-};
-
-/***/ }),
-/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! jQuery UI - v1.11.1 - 2014-08-13
@@ -31570,6 +31548,28 @@ var tooltip = $.widget( "ui.tooltip", {
 }));
 
 /***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
+var global = module.exports = typeof window != 'undefined' && window.Math == Math
+  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
+if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var $          = __webpack_require__(8)
+  , createDesc = __webpack_require__(32);
+module.exports = __webpack_require__(19) ? function(object, key, value){
+  return $.setDesc(object, key, createDesc(1, value));
+} : function(object, key, value){
+  object[key] = value;
+  return object;
+};
+
+/***/ }),
 /* 8 */
 /***/ (function(module, exports) {
 
@@ -31589,190 +31589,6 @@ module.exports = {
 
 /***/ }),
 /* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
-object-assign
-(c) Sindre Sorhus
-@license MIT
-*/
-
-
-/* eslint-disable no-unused-vars */
-var getOwnPropertySymbols = Object.getOwnPropertySymbols;
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-
-function toObject(val) {
-	if (val === null || val === undefined) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-function shouldUseNative() {
-	try {
-		if (!Object.assign) {
-			return false;
-		}
-
-		// Detect buggy property enumeration order in older V8 versions.
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
-		test1[5] = 'de';
-		if (Object.getOwnPropertyNames(test1)[0] === '5') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test2 = {};
-		for (var i = 0; i < 10; i++) {
-			test2['_' + String.fromCharCode(i)] = i;
-		}
-		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
-			return test2[n];
-		});
-		if (order2.join('') !== '0123456789') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test3 = {};
-		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
-			test3[letter] = letter;
-		});
-		if (Object.keys(Object.assign({}, test3)).join('') !==
-				'abcdefghijklmnopqrst') {
-			return false;
-		}
-
-		return true;
-	} catch (err) {
-		// We don't expect any of the above to throw, but better to be safe.
-		return false;
-	}
-}
-
-module.exports = shouldUseNative() ? Object.assign : function (target, source) {
-	var from;
-	var to = toObject(target);
-	var symbols;
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = Object(arguments[s]);
-
-		for (var key in from) {
-			if (hasOwnProperty.call(from, key)) {
-				to[key] = from[key];
-			}
-		}
-
-		if (getOwnPropertySymbols) {
-			symbols = getOwnPropertySymbols(from);
-			for (var i = 0; i < symbols.length; i++) {
-				if (propIsEnumerable.call(from, symbols[i])) {
-					to[symbols[i]] = from[symbols[i]];
-				}
-			}
-		}
-	}
-
-	return to;
-};
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
-function makeEmptyFunction(arg) {
-  return function () {
-    return arg;
-  };
-}
-
-/**
- * This function accepts and discards inputs; it has no side effects. This is
- * primarily useful idiomatically for overridable function endpoints which
- * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
- */
-var emptyFunction = function emptyFunction() {};
-
-emptyFunction.thatReturns = makeEmptyFunction;
-emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
-emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
-emptyFunction.thatReturnsNull = makeEmptyFunction(null);
-emptyFunction.thatReturnsThis = function () {
-  return this;
-};
-emptyFunction.thatReturnsArgument = function (arg) {
-  return arg;
-};
-
-module.exports = emptyFunction;
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// add fake Function#toString
-// for correct work wrapped methods / constructors with methods like LoDash isNative
-var global    = __webpack_require__(5)
-  , hide      = __webpack_require__(6)
-  , SRC       = __webpack_require__(18)('src')
-  , TO_STRING = 'toString'
-  , $toString = Function[TO_STRING]
-  , TPL       = ('' + $toString).split(TO_STRING);
-
-__webpack_require__(12).inspectSource = function(it){
-  return $toString.call(it);
-};
-
-(module.exports = function(O, key, val, safe){
-  if(typeof val == 'function'){
-    val.hasOwnProperty(SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
-    val.hasOwnProperty('name') || hide(val, 'name', key);
-  }
-  if(O === global){
-    O[key] = val;
-  } else {
-    if(!safe)delete O[key];
-    hide(O, key, val);
-  }
-})(Function.prototype, TO_STRING, function toString(){
-  return typeof this == 'function' && this[SRC] || $toString.call(this);
-});
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports) {
-
-var core = module.exports = {version: '1.2.6'};
-if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports) {
-
-module.exports = {};
-
-/***/ }),
-/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31903,11 +31719,208 @@ var OpenSEEService = (function () {
         });
         return this.correlatedSagsHandle;
     };
+    OpenSEEService.prototype.getLightningParameters = function (eventid) {
+        if (this.lightningParametersHandle !== undefined)
+            this.lightningParametersHandle.abort();
+        this.lightningParametersHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetLightningParameters?eventId=" + eventid,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            cache: true,
+            async: true
+        });
+        return this.lightningParametersHandle;
+    };
     return OpenSEEService;
 }());
 exports.default = OpenSEEService;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+
+/* eslint-disable no-unused-vars */
+var getOwnPropertySymbols = Object.getOwnPropertySymbols;
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function toObject(val) {
+	if (val === null || val === undefined) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+function shouldUseNative() {
+	try {
+		if (!Object.assign) {
+			return false;
+		}
+
+		// Detect buggy property enumeration order in older V8 versions.
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
+		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
+		test1[5] = 'de';
+		if (Object.getOwnPropertyNames(test1)[0] === '5') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test2 = {};
+		for (var i = 0; i < 10; i++) {
+			test2['_' + String.fromCharCode(i)] = i;
+		}
+		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+			return test2[n];
+		});
+		if (order2.join('') !== '0123456789') {
+			return false;
+		}
+
+		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+		var test3 = {};
+		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+			test3[letter] = letter;
+		});
+		if (Object.keys(Object.assign({}, test3)).join('') !==
+				'abcdefghijklmnopqrst') {
+			return false;
+		}
+
+		return true;
+	} catch (err) {
+		// We don't expect any of the above to throw, but better to be safe.
+		return false;
+	}
+}
+
+module.exports = shouldUseNative() ? Object.assign : function (target, source) {
+	var from;
+	var to = toObject(target);
+	var symbols;
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = Object(arguments[s]);
+
+		for (var key in from) {
+			if (hasOwnProperty.call(from, key)) {
+				to[key] = from[key];
+			}
+		}
+
+		if (getOwnPropertySymbols) {
+			symbols = getOwnPropertySymbols(from);
+			for (var i = 0; i < symbols.length; i++) {
+				if (propIsEnumerable.call(from, symbols[i])) {
+					to[symbols[i]] = from[symbols[i]];
+				}
+			}
+		}
+	}
+
+	return to;
+};
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
+
+function makeEmptyFunction(arg) {
+  return function () {
+    return arg;
+  };
+}
+
+/**
+ * This function accepts and discards inputs; it has no side effects. This is
+ * primarily useful idiomatically for overridable function endpoints which
+ * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+ */
+var emptyFunction = function emptyFunction() {};
+
+emptyFunction.thatReturns = makeEmptyFunction;
+emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+emptyFunction.thatReturnsThis = function () {
+  return this;
+};
+emptyFunction.thatReturnsArgument = function (arg) {
+  return arg;
+};
+
+module.exports = emptyFunction;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// add fake Function#toString
+// for correct work wrapped methods / constructors with methods like LoDash isNative
+var global    = __webpack_require__(6)
+  , hide      = __webpack_require__(7)
+  , SRC       = __webpack_require__(18)('src')
+  , TO_STRING = 'toString'
+  , $toString = Function[TO_STRING]
+  , TPL       = ('' + $toString).split(TO_STRING);
+
+__webpack_require__(13).inspectSource = function(it){
+  return $toString.call(it);
+};
+
+(module.exports = function(O, key, val, safe){
+  if(typeof val == 'function'){
+    val.hasOwnProperty(SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+    val.hasOwnProperty('name') || hide(val, 'name', key);
+  }
+  if(O === global){
+    O[key] = val;
+  } else {
+    if(!safe)delete O[key];
+    hide(O, key, val);
+  }
+})(Function.prototype, TO_STRING, function toString(){
+  return typeof this == 'function' && this[SRC] || $toString.call(this);
+});
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports) {
+
+var core = module.exports = {version: '1.2.6'};
+if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports) {
+
+module.exports = {};
 
 /***/ }),
 /* 15 */
@@ -49135,10 +49148,10 @@ module.exports = function(it){
 
 var LIBRARY        = __webpack_require__(188)
   , $export        = __webpack_require__(36)
-  , redefine       = __webpack_require__(11)
-  , hide           = __webpack_require__(6)
+  , redefine       = __webpack_require__(12)
+  , hide           = __webpack_require__(7)
   , has            = __webpack_require__(23)
-  , Iterators      = __webpack_require__(13)
+  , Iterators      = __webpack_require__(14)
   , $iterCreate    = __webpack_require__(190)
   , setToStringTag = __webpack_require__(24)
   , getProto       = __webpack_require__(8).getProto
@@ -49268,7 +49281,7 @@ module.exports = function(it){
 
 
 
-var emptyFunction = __webpack_require__(10);
+var emptyFunction = __webpack_require__(11);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -49440,7 +49453,7 @@ __webpack_require__(29);
 __webpack_require__(34);
 __webpack_require__(37);
 __webpack_require__(195);
-module.exports = __webpack_require__(12).Set;
+module.exports = __webpack_require__(13).Set;
 
 /***/ }),
 /* 29 */
@@ -49453,7 +49466,7 @@ var classof = __webpack_require__(30)
   , test    = {};
 test[__webpack_require__(4)('toStringTag')] = 'z';
 if(test + '' != '[object z]'){
-  __webpack_require__(11)(Object.prototype, 'toString', function toString(){
+  __webpack_require__(12)(Object.prototype, 'toString', function toString(){
     return '[object ' + classof(this) + ']';
   }, true);
 }
@@ -49552,10 +49565,10 @@ module.exports = function(it){
 /* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var global    = __webpack_require__(5)
-  , core      = __webpack_require__(12)
-  , hide      = __webpack_require__(6)
-  , redefine  = __webpack_require__(11)
+var global    = __webpack_require__(6)
+  , core      = __webpack_require__(13)
+  , hide      = __webpack_require__(7)
+  , redefine  = __webpack_require__(12)
   , ctx       = __webpack_require__(22)
   , PROTOTYPE = 'prototype';
 
@@ -49599,9 +49612,9 @@ module.exports = $export;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(191);
-var global      = __webpack_require__(5)
-  , hide        = __webpack_require__(6)
-  , Iterators   = __webpack_require__(13)
+var global      = __webpack_require__(6)
+  , hide        = __webpack_require__(7)
+  , Iterators   = __webpack_require__(14)
   , ITERATOR    = __webpack_require__(4)('iterator')
   , NL          = global.NodeList
   , HTC         = global.HTMLCollection
@@ -49626,7 +49639,7 @@ module.exports = function(done, value){
 "use strict";
 
 var $            = __webpack_require__(8)
-  , hide         = __webpack_require__(6)
+  , hide         = __webpack_require__(7)
   , redefineAll  = __webpack_require__(40)
   , ctx          = __webpack_require__(22)
   , strictNew    = __webpack_require__(41)
@@ -49788,7 +49801,7 @@ module.exports = {
 /* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var redefine = __webpack_require__(11);
+var redefine = __webpack_require__(12);
 module.exports = function(target, src){
   for(var key in src)redefine(target, key, src[key]);
   return target;
@@ -49843,9 +49856,9 @@ module.exports = function(it){
 
 "use strict";
 
-var global         = __webpack_require__(5)
+var global         = __webpack_require__(6)
   , $export        = __webpack_require__(36)
-  , redefine       = __webpack_require__(11)
+  , redefine       = __webpack_require__(12)
   , redefineAll    = __webpack_require__(40)
   , forOf          = __webpack_require__(42)
   , strictNew      = __webpack_require__(41)
@@ -49930,7 +49943,7 @@ __webpack_require__(29);
 __webpack_require__(34);
 __webpack_require__(37);
 __webpack_require__(202);
-module.exports = __webpack_require__(12).Map;
+module.exports = __webpack_require__(13).Map;
 
 /***/ }),
 /* 46 */
@@ -64989,7 +65002,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
 var ReactDOM = __webpack_require__(184);
-var OpenSEE_1 = __webpack_require__(14);
+var OpenSEE_1 = __webpack_require__(9);
 var createBrowserHistory_1 = __webpack_require__(211);
 var queryString = __webpack_require__(218);
 var _ = __webpack_require__(15);
@@ -65001,6 +65014,7 @@ var Tooltip_1 = __webpack_require__(231);
 var ScalarStats_1 = __webpack_require__(232);
 var HarmonicStats_1 = __webpack_require__(233);
 var TimeCorrelatedSags_1 = __webpack_require__(234);
+var LightningData_1 = __webpack_require__(235);
 var OpenSEE = (function (_super) {
     __extends(OpenSEE, _super);
     function OpenSEE(props) {
@@ -65024,8 +65038,10 @@ var OpenSEE = (function (_super) {
             tooltipButtonText: "Show Tooltip",
             phasorButtonText: "Show Phasor",
             harmonicButtonText: "Show Harmonics",
+            lightningDataButtonText: "Show Lightning Data",
             statButtonText: "Show Stats",
             correlatedSagsButtonText: "Show Correlated Sags",
+            enableLightningData: false,
             PointsTable: [],
             TableData: {},
             backButtons: [],
@@ -65097,7 +65113,7 @@ var OpenSEE = (function (_super) {
                                 React.createElement("img", { src: '../Images/GPA-Logo---30-pix(on-white).png' }),
                                 React.createElement("div", { style: { position: "relative" } },
                                     React.createElement("div", { style: { position: "absolute" } },
-                                        React.createElement(Menu_1.default, { eventID: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pointsButtonText: this.state.pointsButtonText, phasorButtonText: this.state.phasorButtonText, tooltipButtonText: this.state.tooltipButtonText, harmonicButtonText: this.state.harmonicButtonText, statButtonText: this.state.statButtonText, correlatedSagsButtonText: this.state.correlatedSagsButtonText, postedEventName: this.state.PostedData.postedEventName, postedMeterName: this.state.PostedData.postedMeterName, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } })))),
+                                        React.createElement(Menu_1.default, { eventID: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pointsButtonText: this.state.pointsButtonText, phasorButtonText: this.state.phasorButtonText, tooltipButtonText: this.state.tooltipButtonText, harmonicButtonText: this.state.harmonicButtonText, lightningDataButtonText: this.state.lightningDataButtonText, statButtonText: this.state.statButtonText, correlatedSagsButtonText: this.state.correlatedSagsButtonText, enableLightningData: this.state.enableLightningData, postedEventName: this.state.PostedData.postedEventName, postedMeterName: this.state.PostedData.postedMeterName, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } })))),
                             React.createElement("td", { style: { textAlign: 'center', width: '80%' } },
                                 React.createElement("img", { src: '../Images/openSEET.png' })),
                             React.createElement("td", { style: { textAlign: 'right', verticalAlign: 'top', whiteSpace: 'nowrap', width: '10%' } },
@@ -65130,6 +65146,7 @@ var OpenSEE = (function (_super) {
                 React.createElement(ScalarStats_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
                 React.createElement(HarmonicStats_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
                 React.createElement(TimeCorrelatedSags_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this) }),
+                React.createElement(LightningData_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this) }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "F", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.faultcurves, postedData: this.state.PostedData }),
@@ -65148,6 +65165,8 @@ var OpenSEE = (function (_super) {
             delete prop.harmonicButtonText;
             delete prop.statButtonText;
             delete prop.correlatedSagsButtonText;
+            delete prop.lightningDataButtonText;
+            delete prop.enableLightningData;
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
@@ -65215,10 +65234,10 @@ var OpenSEE = (function (_super) {
                     details += separator;
                 details += "Magnitude: " + data.postedMagnitude;
             }
-            if (data.postedSagDepth != undefined) {
+            if (data.postedSagVoltageMagnitude != undefined) {
                 if (details != "")
                     details += separator;
-                details += "Sag Depth: " + data.postedSagDepth;
+                details += "Sag VMag: " + data.postedSagVoltageMagnitude;
             }
             if (details != "")
                 label += "<br />" + details;
@@ -65253,7 +65272,7 @@ var OpenSEE = (function (_super) {
         }
     };
     OpenSEE.prototype.exportData = function (type) {
-        window.open("/OpenSEECSVDownload.ashx?type=" + type + "&eventID=" + this.state.eventid +
+        window.open(homePath + ("OpenSEECSVDownload.ashx?type=" + type + "&eventID=" + this.state.eventid) +
             ("" + (this.state.StartDate != undefined ? "&startDate=" + this.state.StartDate : "")) +
             ("" + (this.state.EndDate != undefined ? "&endDate=" + this.state.EndDate : "")) +
             ("&Meter=" + this.state.PostedData.postedMeterName) +
@@ -65289,7 +65308,7 @@ ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('Doc
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(9),n=__webpack_require__(16),p=__webpack_require__(17),q=__webpack_require__(10),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
+var m=__webpack_require__(10),n=__webpack_require__(16),p=__webpack_require__(17),q=__webpack_require__(11),r="function"===typeof Symbol&&Symbol["for"],t=r?Symbol["for"]("react.element"):60103,u=r?Symbol["for"]("react.portal"):60106,v=r?Symbol["for"]("react.fragment"):60107,w=r?Symbol["for"]("react.strict_mode"):60108,x=r?Symbol["for"]("react.provider"):60109,y=r?Symbol["for"]("react.context"):60110,z=r?Symbol["for"]("react.async_mode"):60111,A=r?Symbol["for"]("react.forward_ref"):
 60112,B="function"===typeof Symbol&&Symbol.iterator;function C(a){for(var b=arguments.length-1,e="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);n(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",e)}var D={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};
 function E(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}E.prototype.isReactComponent={};E.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?C("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};E.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};function F(){}F.prototype=E.prototype;function G(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||D}var H=G.prototype=new F;
 H.constructor=G;m(H,E.prototype);H.isPureReactComponent=!0;var I={current:null},J=Object.prototype.hasOwnProperty,K={key:!0,ref:!0,__self:!0,__source:!0};
@@ -65326,11 +65345,11 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(9);
+var _assign = __webpack_require__(10);
 var invariant = __webpack_require__(16);
 var emptyObject = __webpack_require__(17);
 var warning = __webpack_require__(26);
-var emptyFunction = __webpack_require__(10);
+var emptyFunction = __webpack_require__(11);
 var checkPropTypes = __webpack_require__(27);
 
 // TODO: this is special because it gets imported during build.
@@ -66808,7 +66827,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var ba=__webpack_require__(16),ea=__webpack_require__(2),m=__webpack_require__(48),A=__webpack_require__(9),C=__webpack_require__(10),fa=__webpack_require__(49),ha=__webpack_require__(50),ja=__webpack_require__(51),ka=__webpack_require__(17);
+var ba=__webpack_require__(16),ea=__webpack_require__(2),m=__webpack_require__(48),A=__webpack_require__(10),C=__webpack_require__(11),fa=__webpack_require__(49),ha=__webpack_require__(50),ja=__webpack_require__(51),ka=__webpack_require__(17);
 function D(a){for(var b=arguments.length-1,c="http://reactjs.org/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);ba(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",c)}ea?void 0:D("227");
 function ma(a,b,c,d,e,f,h,g,k){this._hasCaughtError=!1;this._caughtError=null;var v=Array.prototype.slice.call(arguments,3);try{b.apply(c,v)}catch(l){this._caughtError=l,this._hasCaughtError=!0}}
 var E={_caughtError:null,_hasCaughtError:!1,_rethrowError:null,_hasRethrowError:!1,invokeGuardedCallback:function(a,b,c,d,e,f,h,g,k){ma.apply(E,arguments)},invokeGuardedCallbackAndCatchFirstError:function(a,b,c,d,e,f,h,g,k){E.invokeGuardedCallback.apply(this,arguments);if(E.hasCaughtError()){var v=E.clearCaughtError();E._hasRethrowError||(E._hasRethrowError=!0,E._rethrowError=v)}},rethrowCaughtError:function(){return na.apply(E,arguments)},hasCaughtError:function(){return E._hasCaughtError},clearCaughtError:function(){if(E._hasCaughtError){var a=
@@ -67049,7 +67068,7 @@ X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.3",r
 /* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var global = __webpack_require__(5)
+var global = __webpack_require__(6)
   , SHARED = '__core-js_shared__'
   , store  = global[SHARED] || (global[SHARED] = {});
 module.exports = function(key){
@@ -67105,7 +67124,7 @@ var $              = __webpack_require__(8)
   , IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-__webpack_require__(6)(IteratorPrototype, __webpack_require__(4)('iterator'), function(){ return this; });
+__webpack_require__(7)(IteratorPrototype, __webpack_require__(4)('iterator'), function(){ return this; });
 
 module.exports = function(Constructor, NAME, next){
   Constructor.prototype = $.create(IteratorPrototype, {next: descriptor(1, next)});
@@ -67120,7 +67139,7 @@ module.exports = function(Constructor, NAME, next){
 
 var addToUnscopables = __webpack_require__(192)
   , step             = __webpack_require__(38)
-  , Iterators        = __webpack_require__(13)
+  , Iterators        = __webpack_require__(14)
   , toIObject        = __webpack_require__(193);
 
 // 22.1.3.4 Array.prototype.entries()
@@ -67159,7 +67178,7 @@ addToUnscopables('entries');
 // 22.1.3.31 Array.prototype[@@unscopables]
 var UNSCOPABLES = __webpack_require__(4)('unscopables')
   , ArrayProto  = Array.prototype;
-if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(6)(ArrayProto, UNSCOPABLES, {});
+if(ArrayProto[UNSCOPABLES] == undefined)__webpack_require__(7)(ArrayProto, UNSCOPABLES, {});
 module.exports = function(key){
   ArrayProto[UNSCOPABLES][key] = true;
 };
@@ -67225,7 +67244,7 @@ module.exports = function(iterator, fn, value, entries){
 /***/ (function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
-var Iterators  = __webpack_require__(13)
+var Iterators  = __webpack_require__(14)
   , ITERATOR   = __webpack_require__(4)('iterator')
   , ArrayProto = Array.prototype;
 
@@ -67250,8 +67269,8 @@ module.exports = function(it){
 
 var classof   = __webpack_require__(30)
   , ITERATOR  = __webpack_require__(4)('iterator')
-  , Iterators = __webpack_require__(13);
-module.exports = __webpack_require__(12).getIteratorMethod = function(it){
+  , Iterators = __webpack_require__(14);
+module.exports = __webpack_require__(13).getIteratorMethod = function(it){
   if(it != undefined)return it[ITERATOR]
     || it['@@iterator']
     || Iterators[classof(it)];
@@ -67263,7 +67282,7 @@ module.exports = __webpack_require__(12).getIteratorMethod = function(it){
 
 "use strict";
 
-var global      = __webpack_require__(5)
+var global      = __webpack_require__(6)
   , $           = __webpack_require__(8)
   , DESCRIPTORS = __webpack_require__(19)
   , SPECIES     = __webpack_require__(4)('species');
@@ -67449,8 +67468,8 @@ var invariant = __webpack_require__(16);
 var React = __webpack_require__(2);
 var warning = __webpack_require__(26);
 var ExecutionEnvironment = __webpack_require__(48);
-var _assign = __webpack_require__(9);
-var emptyFunction = __webpack_require__(10);
+var _assign = __webpack_require__(10);
+var emptyFunction = __webpack_require__(11);
 var checkPropTypes = __webpack_require__(27);
 var getActiveElement = __webpack_require__(49);
 var shallowEqual = __webpack_require__(50);
@@ -84976,7 +84995,7 @@ var isExtraneousPopstateEvent = exports.isExtraneousPopstateEvent = function isE
 "use strict";
 
 var strictUriEncode = __webpack_require__(219);
-var objectAssign = __webpack_require__(9);
+var objectAssign = __webpack_require__(10);
 var decodeComponent = __webpack_require__(220);
 
 function encoderForArrayFormat(opts) {
@@ -85332,7 +85351,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-var OpenSEE_1 = __webpack_require__(14);
+var OpenSEE_1 = __webpack_require__(9);
 var _ = __webpack_require__(15);
 var moment = __webpack_require__(0);
 var Legend_1 = __webpack_require__(223);
@@ -86230,19 +86249,19 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-__webpack_require__(7);
-var HarmonicStats = (function (_super) {
-    __extends(HarmonicStats, _super);
-    function HarmonicStats(props) {
+__webpack_require__(5);
+var Menu = (function (_super) {
+    __extends(Menu, _super);
+    function Menu(props) {
         return _super.call(this, props) || this;
     }
-    HarmonicStats.prototype.componentDidMount = function () {
+    Menu.prototype.componentDidMount = function () {
         $("#menu").accordion({
             active: false,
             collapsible: true
         });
     };
-    HarmonicStats.prototype.render = function () {
+    Menu.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", { id: "menu" },
             React.createElement("h5", null, "Menu"),
@@ -86254,9 +86273,10 @@ var HarmonicStats = (function (_super) {
                 React.createElement("input", { className: "smallbutton", type: "button", value: this.props.correlatedSagsButtonText, onClick: this.showhideCorrelatedSags.bind(this) }),
                 React.createElement("input", { className: "smallbutton", type: "button", value: "Export CSV", onClick: this.props.exportCallback.bind(this, "csv") }),
                 React.createElement("input", { className: "smallbutton", type: "button", value: "Export Comtrade", onClick: this.exportComtrade.bind(this) }),
-                React.createElement("input", { style: { display: (this.props.postedEventName == "Snapshot" ? null : 'none') }, className: "smallbutton", type: "button", value: this.props.harmonicButtonText, onClick: this.showhideHarmonics.bind(this) }))));
+                React.createElement("input", { style: { display: (this.props.postedEventName == "Snapshot" ? null : 'none') }, className: "smallbutton", type: "button", value: this.props.harmonicButtonText, onClick: this.showhideHarmonics.bind(this) }),
+                React.createElement("input", { style: { display: (this.props.enableLightningData ? null : 'none') }, className: "smallbutton", type: "button", value: this.props.lightningDataButtonText, onClick: this.showhideLightningData.bind(this) }))));
     };
-    HarmonicStats.prototype.showhidePoints = function () {
+    Menu.prototype.showhidePoints = function () {
         if (this.props.pointsButtonText == "Show Points") {
             this.props.callback({ pointsButtonText: "Hide Points" });
             $('#accumulatedpoints').show();
@@ -86266,7 +86286,7 @@ var HarmonicStats = (function (_super) {
             $('#accumulatedpoints').hide();
         }
     };
-    HarmonicStats.prototype.showhideTooltip = function () {
+    Menu.prototype.showhideTooltip = function () {
         if (this.props.tooltipButtonText == "Show Tooltip") {
             this.props.callback({ tooltipButtonText: "Hide Tooltip" });
             $('#unifiedtooltip').show();
@@ -86278,7 +86298,7 @@ var HarmonicStats = (function (_super) {
             $('.legendCheckbox').hide();
         }
     };
-    HarmonicStats.prototype.showhidePhasor = function () {
+    Menu.prototype.showhidePhasor = function () {
         if (this.props.phasorButtonText == "Show Phasor") {
             this.props.callback({ phasorButtonText: "Hide Phasor" });
             $('#phasor').show();
@@ -86288,7 +86308,7 @@ var HarmonicStats = (function (_super) {
             $('#phasor').hide();
         }
     };
-    HarmonicStats.prototype.showhideStats = function () {
+    Menu.prototype.showhideStats = function () {
         if (this.props.statButtonText == "Show Stats") {
             this.props.callback({ statButtonText: "Hide Stats" });
             $('#scalarstats').show();
@@ -86298,7 +86318,7 @@ var HarmonicStats = (function (_super) {
             $('#scalarstats').hide();
         }
     };
-    HarmonicStats.prototype.showhideCorrelatedSags = function () {
+    Menu.prototype.showhideCorrelatedSags = function () {
         if (this.props.correlatedSagsButtonText == "Show Correlated Sags") {
             this.props.callback({ correlatedSagsButtonText: "Hide Correlated Sags" });
             $('#correlatedsags').show();
@@ -86308,7 +86328,7 @@ var HarmonicStats = (function (_super) {
             $('#correlatedsags').hide();
         }
     };
-    HarmonicStats.prototype.showhideHarmonics = function () {
+    Menu.prototype.showhideHarmonics = function () {
         if (this.props.harmonicButtonText == "Show Harmonics") {
             this.props.callback({ harmonicButtonText: "Hide Harmonics" });
             $('#harmonicstats').show();
@@ -86318,16 +86338,26 @@ var HarmonicStats = (function (_super) {
             $('#harmonicstats').hide();
         }
     };
-    HarmonicStats.prototype.exportComtrade = function () {
+    Menu.prototype.showhideLightningData = function () {
+        if (this.props.harmonicButtonText == "Show Lightning Data") {
+            this.props.callback({ lightningQueryButtonText: "Hide Lightning Data" });
+            $('#lightningquery').show();
+        }
+        else {
+            this.props.callback({ lightningQueryButtonText: "Show Lightning Data" });
+            $('#lightningquery').hide();
+        }
+    };
+    Menu.prototype.exportComtrade = function () {
         window.open("/OpenSEEComtradeDownload.ashx?eventID=" + this.props.eventID +
             ("" + (this.props.startDate != undefined ? "&startDate=" + this.props.startDate : "")) +
             ("" + (this.props.endDate != undefined ? "&endDate=" + this.props.endDate : "")) +
             ("&Meter=" + this.props.postedMeterName) +
             ("&EventType=" + this.props.postedEventName));
     };
-    return HarmonicStats;
+    return Menu;
 }(React.Component));
-exports.default = HarmonicStats;
+exports.default = Menu;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
@@ -86349,7 +86379,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-__webpack_require__(7);
+__webpack_require__(5);
 var PolarChart = (function (_super) {
     __extends(PolarChart, _super);
     function PolarChart(props) {
@@ -86502,7 +86532,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
 var _ = __webpack_require__(15);
-__webpack_require__(7);
+__webpack_require__(5);
 __webpack_require__(230);
 var Points = (function (_super) {
     __extends(Points, _super);
@@ -100608,7 +100638,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
 var _ = __webpack_require__(15);
-__webpack_require__(7);
+__webpack_require__(5);
 __webpack_require__(178);
 __webpack_require__(179);
 var Tooltip = (function (_super) {
@@ -100683,8 +100713,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-__webpack_require__(7);
-var OpenSEE_1 = __webpack_require__(14);
+__webpack_require__(5);
+var OpenSEE_1 = __webpack_require__(9);
 var ScalarStats = (function (_super) {
     __extends(ScalarStats, _super);
     function ScalarStats(props) {
@@ -100708,7 +100738,7 @@ var ScalarStats = (function (_super) {
         return (React.createElement("div", { id: "scalarstats", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
             React.createElement("div", { id: "statshandle" }),
             React.createElement("div", { id: "statscontent", style: { maxWidth: 500, overflowX: 'auto' } },
-                React.createElement("table", { className: "table", style: { fontSize: 'large', marginBottom: 0 } },
+                React.createElement("table", { className: "table", style: { fontSize: 'small', marginBottom: 0 } },
                     React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)' } },
                         React.createElement("tr", null,
                             React.createElement("th", null, "Stat"),
@@ -100750,8 +100780,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-__webpack_require__(7);
-var OpenSEE_1 = __webpack_require__(14);
+__webpack_require__(5);
+var OpenSEE_1 = __webpack_require__(9);
 var HarmonicStats = (function (_super) {
     __extends(HarmonicStats, _super);
     function HarmonicStats(props) {
@@ -100798,12 +100828,12 @@ var HarmonicStats = (function (_super) {
         var _this = this;
         return (React.createElement("div", { id: "harmonicstats", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
             React.createElement("div", { id: "harmonichandle" }),
-            React.createElement("div", { id: "harmoniccontent", style: { maxWidth: 1700 } },
-                React.createElement("table", { className: "table", style: { fontSize: 'large', marginBottom: 0 } },
+            React.createElement("div", { id: "harmoniccontent", style: { maxWidth: 1600 } },
+                React.createElement("table", { className: "table", style: { fontSize: 'small', marginBottom: 0 } },
                     React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)' } },
                         this.state.header,
                         this.state.secondaryHeader),
-                    React.createElement("tbody", { style: { fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
+                    React.createElement("tbody", { style: { maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
             React.createElement("button", { className: "CloseButton", onClick: function () {
                     _this.props.callback({ harmonicButtonText: "Show Harmonics" });
                     $('#harmonicstats').hide();
@@ -100854,8 +100884,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
-__webpack_require__(7);
-var OpenSEE_1 = __webpack_require__(14);
+__webpack_require__(5);
+var OpenSEE_1 = __webpack_require__(9);
 var HarmonicStats = (function (_super) {
     __extends(HarmonicStats, _super);
     function HarmonicStats(props) {
@@ -100889,9 +100919,9 @@ var HarmonicStats = (function (_super) {
         return (React.createElement("div", { id: "correlatedsags", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
             React.createElement("div", { id: "correlatedsagshandle" }),
             React.createElement("div", { id: "correlatedsagscontent" },
-                React.createElement("table", { className: "table", style: { fontSize: 'large', marginBottom: 0 } },
+                React.createElement("table", { className: "table", style: { fontSize: 'small', marginBottom: 0 } },
                     React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed' } }, this.state.header),
-                    React.createElement("tbody", { style: { fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
+                    React.createElement("tbody", { style: { maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
             React.createElement("button", { className: "CloseButton", onClick: function () {
                     _this.props.callback({ correlatedSagsButtonText: "Show Correlated Sags" });
                     $('#correlatedsags').hide();
@@ -100902,21 +100932,355 @@ var HarmonicStats = (function (_super) {
 exports.default = HarmonicStats;
 var Row = function (row, background) {
     return (React.createElement("tr", { style: { display: 'table', tableLayout: 'fixed', background: background }, key: row.EventID },
-        React.createElement("td", { style: { width: 80 }, key: 'EventID' + row.EventID },
+        React.createElement("td", { style: { width: 60 }, key: 'EventID' + row.EventID },
             React.createElement("a", { href: './OpenSEE?eventid=' + row.EventID },
                 React.createElement("div", { style: { width: '100%', height: '100%' } }, row.EventID))),
-        React.createElement("td", { style: { width: 110 }, key: 'EventType' + row.EventID }, row.EventType),
+        React.createElement("td", { style: { width: 80 }, key: 'EventType' + row.EventID }, row.EventType),
+        React.createElement("td", { style: { width: 80 }, key: 'SagMagnitude' + row.EventID },
+            row.SagMagnitudePercent,
+            "%"),
+        React.createElement("td", { style: { width: 150 }, key: 'SagDuration' + row.EventID },
+            row.SagDurationMilliseconds,
+            " ms (",
+            row.SagDurationCycles,
+            " cycles)"),
         React.createElement("td", { style: { width: 220 }, key: 'StartTime' + row.EventID }, row.StartTime),
         React.createElement("td", { style: { width: 150 }, key: 'MeterName' + row.EventID }, row.MeterName),
         React.createElement("td", { style: { width: 400 }, key: 'LineName' + row.EventID }, row.LineName)));
 };
 var HeaderRow = function () {
     return (React.createElement("tr", { key: 'Header' },
-        React.createElement("th", { style: { width: 80 }, key: 'EventID' }, "Event ID"),
-        React.createElement("th", { style: { width: 110 }, key: 'EventType' }, "Event Type"),
+        React.createElement("th", { style: { width: 60 }, key: 'EventID' }, "Event ID"),
+        React.createElement("th", { style: { width: 80 }, key: 'EventType' }, "Event Type"),
+        React.createElement("th", { style: { width: 80 }, key: 'SagMagnitude' }, "Magnitude"),
+        React.createElement("th", { style: { width: 150 }, key: 'SagDuration' }, "Duration"),
         React.createElement("th", { style: { width: 220 }, key: 'StartTime' }, "Start Time"),
         React.createElement("th", { style: { width: 150 }, key: 'MeterName' }, "Meter Name"),
         React.createElement("th", { style: { width: 'calc(400px - 1em)' }, key: 'LineName' }, "Line Name")));
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+/* 235 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(2);
+__webpack_require__(5);
+var OpenSEE_1 = __webpack_require__(9);
+var LightningData = (function (_super) {
+    __extends(LightningData, _super);
+    function LightningData(props) {
+        var _this = _super.call(this, props) || this;
+        _this.openSEEService = new OpenSEE_1.default();
+        _this.state = {
+            rows: [],
+            header: []
+        };
+        return _this;
+    }
+    LightningData.prototype.componentDidMount = function () {
+        var _this = this;
+        $("#lightningquery").draggable({ scroll: false, handle: '#lightninghandle' });
+        var lightningQuery = window.LightningQuery;
+        if (lightningQuery === undefined)
+            return;
+        this.openSEEService.getLightningParameters(this.props.eventId).done(function (lightningParameters) {
+            var lineKey = lightningParameters.LineKey;
+            var startTime = lightningParameters.StartTime;
+            var endTime = lightningParameters.EndTime;
+            var debugGeometry = {
+                "rings": [
+                    [
+                        [-9581997.68, 4209754.1657000035],
+                        [-9582362.4501, 4209431.2773],
+                        [-9582365.2396, 4209428.819600001],
+                        [-9582365.8657, 4209428.270999998],
+                        [-9582695.7795, 4209139.547600001],
+                        [-9582949.4728, 4208917.1511999965],
+                        [-9582950.4982, 4208916.253700003],
+                        [-9583310.1471, 4208602.048500001],
+                        [-9583312.0016, 4208600.433399998],
+                        [-9583639.9527, 4208315.683300003],
+                        [-9583705.9026, 4208248.435199998],
+                        [-9583711.4211, 4208242.8627],
+                        [-9583749.853, 4208206.867299996],
+                        [-9583790.5568, 4208173.4624999985],
+                        [-9583833.3583, 4208142.7914],
+                        [-9583878.0741, 4208114.985299997],
+                        [-9583924.5128, 4208090.1633],
+                        [-9583972.4755, 4208068.431699999],
+                        [-9584021.7568, 4208049.883500002],
+                        [-9584072.1457, 4208034.598200001],
+                        [-9584123.4264, 4208022.6413],
+                        [-9584175.3793, 4208014.0638],
+                        [-9584227.782, 4208008.902599998],
+                        [-9584280.4101, 4208007.179700002],
+                        [-9584333.0382, 4208008.902599998],
+                        [-9584377.8588, 4208013.1022000015],
+                        [-9584657.1522, 4208047.176399998],
+                        [-9584990.2481, 4208079.906300001],
+                        [-9584990.5365, 4208079.934699997],
+                        [-9585298.4283, 4208110.299999997],
+                        [-9585298.6874, 4208110.325599998],
+                        [-9585584.4722, 4208138.604000002],
+                        [-9585610.2677, 4208141.577500001],
+                        [-9585625.8659, 4208143.786600001],
+                        [-9585817.1355, 4208172.787699997],
+                        [-9585853.4902, 4208179.156000003],
+                        [-9585904.7709, 4208191.112999998],
+                        [-9585955.1598, 4208206.3983],
+                        [-9586004.4412, 4208224.946500003],
+                        [-9586052.4038, 4208246.678099997],
+                        [-9586098.8425, 4208271.500100002],
+                        [-9586143.5583, 4208299.306199998],
+                        [-9586186.3598, 4208329.977300003],
+                        [-9586227.0636, 4208363.381999999],
+                        [-9586265.4955, 4208399.377499998],
+                        [-9586301.491, 4208437.8094],
+                        [-9586334.8957, 4208478.5132],
+                        [-9586365.5668, 4208521.3147],
+                        [-9586367.0035, 4208523.4723000005],
+                        [-9586560.5807, 4208815.211199999],
+                        [-9586569.9556, 4208829.673900001],
+                        [-9586659.3448, 4208970.865199998],
+                        [-9586672.3053, 4208976.1022000015],
+                        [-9586720.268, 4208997.833800003],
+                        [-9586766.7067, 4209022.6558],
+                        [-9586811.4225, 4209050.461900003],
+                        [-9586854.224, 4209081.133000001],
+                        [-9586894.9278, 4209114.537799999],
+                        [-9586933.3597, 4209150.533200003],
+                        [-9586969.3551, 4209188.965099998],
+                        [-9587002.7599, 4209229.668899998],
+                        [-9587033.431, 4209272.470399998],
+                        [-9587061.2371, 4209317.1862],
+                        [-9587086.0591, 4209363.624899998],
+                        [-9587107.7907, 4209411.5876],
+                        [-9587126.3389, 4209460.868900001],
+                        [-9587141.6242, 4209511.257799998],
+                        [-9587153.5811, 4209562.5385000035],
+                        [-9587162.1586, 4209614.491400003],
+                        [-9587167.3198, 4209666.894100003],
+                        [-9587169.0427, 4209719.522200003],
+                        [-9587167.3198, 4209772.150300004],
+                        [-9587162.1586, 4209824.553000003],
+                        [-9587153.5811, 4209876.505900003],
+                        [-9587141.6242, 4209927.786600001],
+                        [-9587126.3389, 4209978.175499998],
+                        [-9587107.7907, 4210027.456799999],
+                        [-9587086.0591, 4210075.419500001],
+                        [-9587061.2371, 4210121.858199999],
+                        [-9587033.431, 4210166.574000001],
+                        [-9587002.7599, 4210209.375500001],
+                        [-9586969.3551, 4210250.079300001],
+                        [-9586933.3597, 4210288.511200003],
+                        [-9586894.9278, 4210324.5066],
+                        [-9586854.224, 4210357.911399998],
+                        [-9586811.4225, 4210388.582500003],
+                        [-9586766.7067, 4210416.388599999],
+                        [-9586740.672, 4210430.784699999],
+                        [-9586621.7776, 4210493.687100001],
+                        [-9586601.3736, 4210504.112899996],
+                        [-9586553.4109, 4210525.8445999995],
+                        [-9586504.1296, 4210544.392700002],
+                        [-9586453.7407, 4210559.678000003],
+                        [-9586402.46, 4210571.634999998],
+                        [-9586350.5071, 4210580.2124999985],
+                        [-9586298.1044, 4210585.3737],
+                        [-9586245.4763, 4210587.096600004],
+                        [-9586192.8482, 4210585.3737],
+                        [-9586140.4455, 4210580.2124999985],
+                        [-9586088.4926, 4210571.634999998],
+                        [-9586037.2119, 4210559.678000003],
+                        [-9585986.823, 4210544.392700002],
+                        [-9585937.5417, 4210525.8445999995],
+                        [-9585889.579, 4210504.112899996],
+                        [-9585843.1403, 4210479.291000001],
+                        [-9585798.4245, 4210451.484899998],
+                        [-9585755.623, 4210420.8138],
+                        [-9585714.9192, 4210387.409000002],
+                        [-9585676.4873, 4210351.413599998],
+                        [-9585640.4919, 4210312.981700003],
+                        [-9585610.7637, 4210277.032399997],
+                        [-9585479.0232, 4210107.9745000005],
+                        [-9585475.3466, 4210103.219999999],
+                        [-9585444.6755, 4210060.418499999],
+                        [-9585433.8639, 4210043.798199996],
+                        [-9585229.2839, 4209720.661600001],
+                        [-9585140.3598, 4209711.862499997],
+                        [-9584832.7544, 4209681.5254999995],
+                        [-9584553.2104, 4209654.057599999],
+                        [-9584368.0662, 4209814.812799998],
+                        [-9584009.7964, 4210127.813100003],
+                        [-9583756.3407, 4210350.001199998],
+                        [-9583755.8315, 4210350.447300002],
+                        [-9583427.4349, 4210637.8429000005],
+                        [-9583116.663, 4210912.9331],
+                        [-9582877.253, 4211213.2080999985],
+                        [-9582571.0116, 4211601.681500003],
+                        [-9582292.428, 4211958.107500002],
+                        [-9582290.7463, 4211960.251599997],
+                        [-9582005.155, 4212323.104199998],
+                        [-9581764.5066, 4212634.4309],
+                        [-9581559.5801, 4212987.993199997],
+                        [-9581313.7473, 4213419.0405],
+                        [-9581311.9702, 4213422.140600003],
+                        [-9581101.2641, 4213787.813100003],
+                        [-9580915.5284, 4214114.170599997],
+                        [-9580913.5324, 4214117.657399997],
+                        [-9580694.9489, 4214497.309900001],
+                        [-9580484.421, 4214865.0891999975],
+                        [-9580483.3584, 4214866.939800002],
+                        [-9580263.02, 4215249.500699997],
+                        [-9580036.8413, 4215650.8891],
+                        [-9580032.6723, 4215658.197999999],
+                        [-9580004.8662, 4215702.913800001],
+                        [-9579974.1951, 4215745.715300001],
+                        [-9579940.7903, 4215786.419100001],
+                        [-9579904.7949, 4215824.8510000035],
+                        [-9579866.363, 4215860.8464],
+                        [-9579825.6592, 4215894.251199998],
+                        [-9579782.8577, 4215924.9223000035],
+                        [-9579738.1419, 4215952.728399999],
+                        [-9579691.7032, 4215977.550399996],
+                        [-9579643.7405, 4215999.281999998],
+                        [-9579594.4592, 4216017.830200002],
+                        [-9579544.0703, 4216033.115500003],
+                        [-9579492.7896, 4216045.072499998],
+                        [-9579440.8367, 4216053.649899997],
+                        [-9579388.434, 4216058.811099999],
+                        [-9579335.8059, 4216060.534000002],
+                        [-9579283.1778, 4216058.811099999],
+                        [-9579230.7751, 4216053.649899997],
+                        [-9579178.8222, 4216045.072499998],
+                        [-9579127.5415, 4216033.115500003],
+                        [-9579077.1526, 4216017.830200002],
+                        [-9579027.8713, 4215999.281999998],
+                        [-9578979.9086, 4215977.550399996],
+                        [-9578933.4699, 4215952.728399999],
+                        [-9578888.7541, 4215924.9223000035],
+                        [-9578845.9526, 4215894.251199998],
+                        [-9578805.2488, 4215860.8464],
+                        [-9578766.8169, 4215824.8510000035],
+                        [-9578730.8215, 4215786.419100001],
+                        [-9578697.4167, 4215745.715300001],
+                        [-9578666.7456, 4215702.913800001],
+                        [-9578638.9395, 4215658.197999999],
+                        [-9578614.1175, 4215611.759300001],
+                        [-9578592.3859, 4215563.796599999],
+                        [-9578573.8377, 4215514.515299998],
+                        [-9578558.5524, 4215464.126400001],
+                        [-9578546.5954, 4215412.845700003],
+                        [-9578538.018, 4215360.892800003],
+                        [-9578532.8568, 4215308.490099996],
+                        [-9578531.1339, 4215255.862000003],
+                        [-9578532.8568, 4215203.233900003],
+                        [-9578538.018, 4215150.831200004],
+                        [-9578546.5954, 4215098.878300004],
+                        [-9578558.5524, 4215047.597599998],
+                        [-9578573.8377, 4214997.208700001],
+                        [-9578592.3859, 4214947.9274],
+                        [-9578614.1175, 4214899.9646999985],
+                        [-9578634.7705, 4214860.834899999],
+                        [-9578862.808, 4214456.1477999985],
+                        [-9578866.5565, 4214449.568099998],
+                        [-9579088.252, 4214064.651000001],
+                        [-9579298.7408, 4213696.939900003],
+                        [-9579299.7401, 4213695.199299999],
+                        [-9579517.8244, 4213316.413900003],
+                        [-9579703.6354, 4212989.924099997],
+                        [-9579705.7728, 4212986.191699997],
+                        [-9579916.6672, 4212620.192400001],
+                        [-9580163.0024, 4212188.264200002],
+                        [-9580165.1219, 4212184.570500001],
+                        [-9580165.8026, 4212183.393799998],
+                        [-9580398.9592, 4211781.125699997],
+                        [-9580426.0846, 4211737.586599998],
+                        [-9580456.7557, 4211694.785099998],
+                        [-9580458.4969, 4211692.5242],
+                        [-9580734.0162, 4211336.085000001],
+                        [-9580738.3533, 4211330.524599999],
+                        [-9581025.2805, 4210965.974699996],
+                        [-9581304.0543, 4210609.305399999],
+                        [-9581306.1193, 4210606.674699999],
+                        [-9581614.772, 4210215.142499998],
+                        [-9581617.5292, 4210211.6647000015],
+                        [-9581901.8562, 4209855.053400002],
+                        [-9581926.0422, 4209826.135300003],
+                        [-9581962.0376, 4209787.703400001],
+                        [-9581997.68, 4209754.1657000035]
+                    ]
+                ],
+                "spatialReference": {
+                    "wkid": 102100,
+                    "latestWkid": 3857
+                }
+            };
+            lightningQuery.queryLightningData(debugGeometry, startTime, endTime, function (lightningData) {
+                var header = null;
+                if (lightningData.length === 0)
+                    header = HeaderRow({ "No Data": "" });
+                else
+                    header = HeaderRow(lightningData[0]);
+                var rows = lightningData.map(function (row) { return Row(row); });
+                _this.setState({ header: header, rows: rows });
+                _this.props.callback({ enableLightningData: true });
+            });
+            if (debugGeometry)
+                return;
+            lightningQuery.queryLineGeometry(lineKey, function (lineGeometry) {
+                lightningQuery.queryLineBufferGeometry(lineGeometry, function (lineBufferGeometry) {
+                    lightningQuery.queryLightningData(lineBufferGeometry, startTime, endTime, function (lightningData) {
+                        var header = null;
+                        if (lightningData.length === 0)
+                            header = HeaderRow({ "No Data": "" });
+                        else
+                            header = HeaderRow(lightningData[0]);
+                        var rows = lightningData.map(function (row) { return Row(row); });
+                        _this.setState({ header: header, rows: rows });
+                        _this.props.callback({ enableLightningData: true });
+                    });
+                });
+            });
+        });
+    };
+    LightningData.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", { id: "lightningquery", className: "ui-widget-content", style: { position: 'absolute', top: '0', display: 'none' } },
+            React.createElement("div", { id: "lightninghandle" }),
+            React.createElement("div", { id: "lightningcontent", style: { maxWidth: 500 } },
+                React.createElement("table", { className: "table", style: { fontSize: 'small', marginBottom: 0 } },
+                    React.createElement("thead", { style: { display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)' } }, this.state.header),
+                    React.createElement("tbody", { style: { maxHeight: 500, overflowY: 'auto', display: 'block' } }, this.state.rows))),
+            React.createElement("button", { className: "CloseButton", onClick: function () {
+                    _this.props.callback({ lightningDataButtonText: "Show Lightning Data" });
+                    $('#lightningquery').hide();
+                } }, "X")));
+    };
+    return LightningData;
+}(React.Component));
+exports.default = LightningData;
+var Row = function (row) {
+    return (React.createElement("tr", { style: { display: 'table', tableLayout: 'fixed', width: '100%' }, key: row.label },
+        React.createElement("td", null, row.label),
+        row.tds));
+};
+var HeaderRow = function (row) {
+    return (React.createElement("tr", { key: 'Header' }, row.map(function (key) { return React.createElement("th", { colSpan: 2, scope: 'colgroup', key: key }, key); })));
 };
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
