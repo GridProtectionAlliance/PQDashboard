@@ -53,7 +53,7 @@ export default class ScalarStats extends React.Component<any, any>{
             <div id="scalarstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none' }}>
                 <div id="statshandle"></div>
                 <div id="statscontent" style={{maxWidth: 500, overflowX: 'auto'}}>
-                    <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
+                    <table className="table" style={{fontSize: 'small', marginBottom: 0}}>
                         <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             <tr><th>Stat</th><th>Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button className='btn btn-primary' onClick={() => this.props.exportCallback("stats")}>Export(csv)</button></th></tr>
                         </thead>
