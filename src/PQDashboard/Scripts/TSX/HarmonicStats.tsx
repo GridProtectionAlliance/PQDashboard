@@ -76,13 +76,13 @@ export default class HarmonicStats extends React.Component<any, any>{
         return (
             <div id="harmonicstats" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none'}}>
                 <div id="harmonichandle"></div>
-                <div id="harmoniccontent" style={{ maxWidth: 1700 }}>
-                    <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
+                <div id="harmoniccontent" style={{ maxWidth: 1600 }}>
+                    <table className="table" style={{fontSize: 'small', marginBottom: 0}}>
                         <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             {this.state.header}
                             {this.state.secondaryHeader}
                         </thead>
-                        <tbody style={{ fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block'}}>
+                        <tbody style={{ maxHeight: 500, overflowY: 'auto', display: 'block'}}>
                             {this.state.rows}
                         </tbody>
                     </table>

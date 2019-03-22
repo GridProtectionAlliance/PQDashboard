@@ -22,8 +22,8 @@
 //******************************************************************************************************/
 
 body {
-    margin:0;
-    padding:0;
+    margin: 0;
+    padding: 0;
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -31,6 +31,7 @@ body {
     -moz-user-select: -moz-none;
     -ms-user-select: none;
     user-select: none;
+    font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
 }
 
 .selectable {
@@ -62,7 +63,7 @@ td {
 }
 
 #menu {
-    width: 180px;
+    width: 200px;
 }
 
 #menu .ui-accordion-header {

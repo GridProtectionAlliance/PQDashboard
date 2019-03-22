@@ -67,11 +67,11 @@ export default class HarmonicStats extends React.Component<any, any>{
             <div id="correlatedsags" className="ui-widget-content" style={{ position: 'absolute', top: '0', display: 'none'}}>
                 <div id="correlatedsagshandle"></div>
                 <div id="correlatedsagscontent">
-                    <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
+                    <table className="table" style={{fontSize: 'small', marginBottom: 0}}>
                         <thead style={{ display: 'table', tableLayout: 'fixed'}}>
                             {this.state.header}
                         </thead>
-                        <tbody style={{ fontSize: 'medium', maxHeight: 500, overflowY: 'auto', display: 'block'}}>
+                        <tbody style={{ maxHeight: 500, overflowY: 'auto', display: 'block'}}>
                             {this.state.rows}
                         </tbody>
                     </table>
@@ -89,9 +89,9 @@ const Row = (row, background) => {
 
     return (
         <tr style={{ display: 'table', tableLayout: 'fixed', background: background }} key={row.EventID}>
-            <td style={{ width: 80 }} key={'EventID' + row.EventID}><a href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
-            <td style={{ width: 110 }} key={'EventType' + row.EventID}>{row.EventType}</td>
-            <td style={{ width: 110 }} key={'SagMagnitude' + row.EventID}>{row.SagMagnitudePercent}%</td>
+            <td style={{ width: 60 }} key={'EventID' + row.EventID}><a href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
+            <td style={{ width: 80 }} key={'EventType' + row.EventID}>{row.EventType}</td>
+            <td style={{ width: 80 }} key={'SagMagnitude' + row.EventID}>{row.SagMagnitudePercent}%</td>
             <td style={{ width: 150 }} key={'SagDuration' + row.EventID}>{row.SagDurationMilliseconds} ms ({row.SagDurationCycles} cycles)</td>
             <td style={{ width: 220 }} key={'StartTime' + row.EventID}>{row.StartTime}</td>
             <td style={{ width: 150 }} key={'MeterName' + row.EventID}>{row.MeterName}</td>
@@ -103,9 +103,9 @@ const Row = (row, background) => {
 const HeaderRow = () => {
     return (
         <tr key='Header'>
-            <th style={{ width: 80 }} key='EventID'>Event ID</th>
-            <th style={{ width: 110 }} key='EventType'>Event Type</th>
-            <th style={{ width: 110 }} key='SagMagnitude'>Magnitude</th>
+            <th style={{ width: 60 }} key='EventID'>Event ID</th>
+            <th style={{ width: 80 }} key='EventType'>Event Type</th>
+            <th style={{ width: 80 }} key='SagMagnitude'>Magnitude</th>
             <th style={{ width: 150 }} key='SagDuration'>Duration</th>
             <th style={{ width: 220 }} key='StartTime'>Start Time</th>
             <th style={{ width: 150 }} key='MeterName'>Meter Name</th>
