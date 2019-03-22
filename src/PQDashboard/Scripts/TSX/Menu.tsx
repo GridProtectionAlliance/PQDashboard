@@ -25,7 +25,7 @@ import * as React from 'react';
 import * as _ from "lodash";
 import './../jquery-ui.js';
 
-export default class HarmonicStats extends React.Component<any, any>{
+export default class Menu extends React.Component<any, any>{
     props: {
         eventID: number,
         pointsButtonText: string,
@@ -33,7 +33,9 @@ export default class HarmonicStats extends React.Component<any, any>{
         phasorButtonText: string,
         statButtonText: string,
         harmonicButtonText: string,
+        lightningDataButtonText: string,
         correlatedSagsButtonText: string,
+        enableLightningData: boolean,
         postedMeterName: string,
         postedEventName: string,
         startDate: string,
@@ -67,6 +69,7 @@ export default class HarmonicStats extends React.Component<any, any>{
                     <input className="smallbutton" type="button" value="Export CSV" onClick={this.props.exportCallback.bind(this, "csv")} />
                     <input className="smallbutton" type="button" value="Export Comtrade" onClick={this.exportComtrade.bind(this)} />
                     <input style={{ display: (this.props.postedEventName == "Snapshot" ? null : 'none') }} className="smallbutton" type="button" value={this.props.harmonicButtonText} onClick={this.showhideHarmonics.bind(this)} />
+                    <input style={{ display: (this.props.enableLightningData ? null : 'none') }} className="smallbutton" type="button" value={this.props.lightningDataButtonText} onClick={this.showhideLightningData.bind(this)} />
                 </div>
             </div>
         );
@@ -132,6 +135,16 @@ export default class HarmonicStats extends React.Component<any, any>{
         } else {
             this.props.callback({ harmonicButtonText: "Show Harmonics" });
             $('#harmonicstats').hide();
+        }
+    }
+
+    showhideLightningData() {
+        if (this.props.harmonicButtonText == "Show Lightning Data") {
+            this.props.callback({ lightningQueryButtonText: "Hide Lightning Data" });
+            $('#lightningquery').show();
+        } else {
+            this.props.callback({ lightningQueryButtonText: "Show Lightning Data" });
+            $('#lightningquery').hide();
         }
     }
 

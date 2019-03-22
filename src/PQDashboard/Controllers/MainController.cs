@@ -153,6 +153,7 @@ namespace PQDashboard.Controllers
         public ActionResult OpenSEE()
         {
             //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
+            ViewBag.EnableLightningQuery = m_dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
             return View();
         }
 

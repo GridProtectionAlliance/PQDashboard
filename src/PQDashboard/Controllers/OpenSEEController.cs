@@ -490,6 +490,23 @@ namespace OpenSEE.Controller
             }
         }
 
+        public object GetLightningParameters()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventID = int.Parse(query["eventId"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                DataRow row = connection.RetrieveRow("SELECT LineID, StartTime, EndTime FROM Event WHERE ID = {0}", eventID);
+                int lineID = row.ConvertField<int>("LineID");
+
+                string LineKey = connection.ExecuteScalar<string>("SELECT AssetKey FROM Line WHERE ID = {0}", lineID);
+                DateTime StartTime = row.ConvertField<DateTime>("StartTime");
+                DateTime EndTime = row.ConvertField<DateTime>("EndTime");
+                return new { LineKey, StartTime, EndTime };
+            }
+        }
+
         #endregion
 
         #region [ OpenSEE Table Operations ]
