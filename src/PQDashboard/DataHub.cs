@@ -1404,22 +1404,34 @@ namespace PQDashboard
 
         public void UpdateDashSettings(int id, string name, string value, bool enabled, string userId)
         {
-            Guid userAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
-            DashSettings ds = DataContext.Table<DashSettings>().QueryRecordWhere("ID = {0}", id);
-            UserDashSettings uds = DataContext.Table<UserDashSettings>().QueryRecordWhere("Name = {0} AND UserAccountID = {1}", name, userAccountID);
-            if(uds == null)
-            {
-                uds = new UserDashSettings();
-                uds.Name = name;
-                uds.UserAccountID = userAccountID;
-            }
-            uds.Value = value;
-            uds.Enabled = enabled;
+            TableOperations<DashSettings> dashSettingsTable = DataContext.Table<DashSettings>();
+            TableOperations<UserDashSettings> userDashSettingsTable = DataContext.Table<UserDashSettings>();
 
-            if((uds.Enabled != ds.Enabled) || (uds.Value != ds.Value))
-                DataContext.Table<UserDashSettings>().AddNewOrUpdateRecord(uds);
+            Guid userAccountID = DataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", userId);
+            DashSettings globalSetting = dashSettingsTable.QueryRecordWhere("ID = {0}", id);
+            UserDashSettings userSetting;
+
+            if (name.StartsWith("System."))
+                userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1}", userAccountID, name);
+            else if (name.EndsWith("Colors"))
+                userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value LIKE {2}", userAccountID, name, value.Split(',')[0] + "%");
             else
-                DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", uds.ID));
+                userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value = {2}", userAccountID, name, value);
+
+            if (userSetting == null)
+            {
+                userSetting = new UserDashSettings();
+                userSetting.UserAccountID = userAccountID;
+                userSetting.Name = name;
+            }
+
+            userSetting.Value = value;
+            userSetting.Enabled = enabled;
+
+            if((userSetting.Enabled != globalSetting.Enabled) || (userSetting.Value != globalSetting.Value))
+                DataContext.Table<UserDashSettings>().AddNewOrUpdateRecord(userSetting);
+            else
+                DataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", userSetting.ID));
         }
 
         public void ResetDefaultSettings()

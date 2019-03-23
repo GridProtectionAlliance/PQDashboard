@@ -140,7 +140,7 @@
                                                         @setting.Value
                                                     </td>
                                                     <td>
-                                                        <input id="tab@(setting.ID)" type="checkbox" onchange="updateTabSetting(@JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                        <input id="tab@(setting.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
                                                     </td>
                                                 </tr>
                                         }
@@ -174,10 +174,10 @@
                                                                 @{
                                                                     DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
                                                                 }
-                                                                <input id="color@(color.ID)" style="background-color: @(color?.Value.Split(',')?[1])" onchange="updateColorSetting(@JsonConvert.SerializeObject(color), this)" value="@(color?.Value.Split(',')?[1] ?? "")" />
+                                                                <input id="color@(color.ID)" style="background-color: @(color?.Value.Split(',')?[1])" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(color))" value="@(color?.Value.Split(',')?[1] ?? "")" />
                                                             </td>
                                                             <td>
-                                                                <input id="enable@(innerSetting.ID)" onchange="updateEnableSetting(@JsonConvert.SerializeObject(innerSetting))" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
+                                                                <input id="enable@(innerSetting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(innerSetting))" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
                                                             </td>
                                                         </tr>
                                                                         }
@@ -204,7 +204,7 @@
                                                     @setting.Value
                                                 </td>
                                                 <td>
-                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(@JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
                                                 </td>
                                             </tr>
                                         }
@@ -340,6 +340,7 @@
 <script>
     var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
     var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
+    var pendingUpdates = {};
 
     function refresh() {
         location.reload();
@@ -349,26 +350,50 @@
         dataHub.resetDefaultSettings().done(function () { refresh(); });
     }
 
-    function updateTabSetting(setting) {
-        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    function updateDashSettings(key, setting) {
+        var pendingUpdate = pendingUpdates[key];
+        var deferred = $.Deferred();
+        pendingUpdates[key] = deferred;
+
+        function callUpdateDashSettings() {
+            dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, setting.Enabled, userId).always(deferred.resolve);
+        }
+
+        if (pendingUpdate)
+            pendingUpdate.done(callUpdateDashSettings);
+        else
+            callUpdateDashSettings();
+    }
+
+    function updateTabSetting(input, setting) {
+        var key = setting.Name + setting.Value;
+        setting.Enabled = input.checked;
+        updateDashSettings(key, setting);
     }
   
     function updateSystemSetting(input, setting) {
+        var key = setting.Name;
         setting.Value = input.value;
-        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, setting.Enabled, userId)
+        updateDashSettings(key, setting);
     }
 
-    function updateColorSetting(setting, element) {
-        $(element).css('background-color', element.value);
-        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value.split('#')[0] + element.value, !setting.Enabled, userId)
+    function updateColorSetting(input, setting) {
+        var key = setting.Name + setting.Value.split(',')[0];
+        $(input).css('background-color', input.value);
+        setting.Value = setting.Value.split('#')[0] + input.value;
+        updateDashSettings(key, setting);
     }
 
-    function updateEnableSetting(setting) {
-        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    function updateEnableSetting(input, setting) {
+        var key = setting.Name + setting.Value;
+        setting.Enabled = input.checked;
+        updateDashSettings(key, setting);
     }
 
-    function updateKMLSetting(setting) {
-        dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, !setting.Enabled, userId)
+    function updateKMLSetting(input, setting) {
+        var key = setting.Name + setting.Value;
+        setting.Enabled = input.checked;
+        updateDashSettings(key, setting);
     }
 
 </script>
