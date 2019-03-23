@@ -645,7 +645,6 @@
     <Content Include="Scripts\PrimeUI\primeui.css" />
     <Content Include="Scripts\PrimeUI\primeui.js" />
     <Content Include="Scripts\PrimeUI\primeui.min.css" />
-    <Content Include="Scripts\PrimeUI\primeui.min.js" />
     <Content Include="Scripts\PrimeUI\themes\afterdark\images\ui-icons-dark.png" />
     <Content Include="Scripts\PrimeUI\themes\afterdark\images\ui-icons-light.png" />
     <Content Include="Scripts\PrimeUI\themes\afterdark\theme.css" />
