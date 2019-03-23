@@ -72,7 +72,7 @@ td {
 
 #menu .ui-accordion-content {
     font-size: 10px;
-    z-index: 1;
+    z-index: 999;
 }
 
 #menu .ui-accordion-content input {
