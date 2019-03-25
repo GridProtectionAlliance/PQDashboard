@@ -26,6 +26,7 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Threading;
 using Newtonsoft.Json;
+using OpenSEE.Controller;
 using openXDA.Model;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace PQDashboard
     /// </summary>
     public class OpenSEECSVDownload : IHttpHandler
     {
-        #region [Members]
+        #region [ Members ]
 
         // Nested Types
         private class HttpResponseCancellationToken : CompatibleCancellationToken
@@ -66,7 +67,7 @@ namespace PQDashboard
 
         #endregion
 
-        #region [Properties]
+        #region [ Properties ]
 
         /// <summary>
         /// Gets a value indicating whether another request can use the <see cref="IHttpHandler"/> instance.
@@ -88,14 +89,13 @@ namespace PQDashboard
         public string Filename { get; private set; }
         #endregion
 
-        #region [Methods]
+        #region [ Methods ]
 
         public void ProcessRequest(HttpContext context)
         {
             HttpResponse response = HttpContext.Current.Response;
             HttpResponseCancellationToken cancellationToken = new HttpResponseCancellationToken(response);
             NameValueCollection requestParameters = context.Request.QueryString;
-
 
             try
             {
@@ -108,7 +108,6 @@ namespace PQDashboard
 
                 WriteTableToStream(requestParameters, response.OutputStream, response.Flush, cancellationToken);
             }
-
             catch (Exception e)
             {
                 LogExceptionHandler?.Invoke(e);
@@ -159,7 +158,8 @@ namespace PQDashboard
                 ExportStatsToCSV(responseStream, requestParameters);
             else if (requestParameters["type"] == "harmonics")
                 ExportHarmonicsToCSV(responseStream, requestParameters);
-
+            else if (requestParameters["type"] == "correlatedsags")
+                ExportCorrelatedSagsToCSV(responseStream, requestParameters);
         }
 
         // Converts the data group row of CSV data.
@@ -183,7 +183,6 @@ namespace PQDashboard
             headers = headers.Concat(dict.Keys);
             return string.Join(",", headers);
         }
-
 
         public void ExportToCSV(Stream returnStream, NameValueCollection requestParameters)
         {
@@ -219,11 +218,44 @@ namespace PQDashboard
             }
         }
 
+        public void ExportCorrelatedSagsToCSV(Stream returnStream, NameValueCollection requestParameters)
+        {
+            int eventID = int.Parse(requestParameters["eventId"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (StreamWriter writer = new StreamWriter(returnStream))
+            {
+                double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");
+                DateTime startTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", eventID);
+                DateTime endTime = connection.ExecuteScalar<DateTime>("SELECT EndTime FROM Event WHERE ID = {0}", eventID);
+                DateTime adjustedStartTime = startTime.AddSeconds(-timeTolerance);
+                DateTime adjustedEndTime = endTime.AddSeconds(timeTolerance);
+                DataTable dataTable = connection.RetrieveData(OpenSEEController.TimeCorrelatedSagsSQL, adjustedStartTime, adjustedEndTime);
+
+                if (dataTable.Columns.Count == 0)
+                    return;
+
+                string[] header = dataTable.Columns
+                    .Cast<DataColumn>()
+                    .Select(column => column.ColumnName)
+                    .ToArray();
+
+                IEnumerable<string[]> rows = dataTable
+                    .Select()
+                    .Select(row => header.Select(column => row[column].ToString()).ToArray());
+
+                writer.WriteLine(string.Join(",", header));
+
+                foreach (string[] row in rows)
+                    writer.WriteLine(string.Join(",", row));
+            }
+        }
 
         private class PhasorResult {
             public double Magnitude;
             public double Angle;
         }
+
         public void ExportHarmonicsToCSV(Stream returnStream, NameValueCollection requestParameters)
         {
             int eventId = int.Parse(requestParameters["eventId"]);
@@ -277,7 +309,6 @@ namespace PQDashboard
             }
         }
 
-
         public Dictionary<string, DataSeries> BuildDataSeries(NameValueCollection requestParameters) {
             using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
@@ -290,7 +321,6 @@ namespace PQDashboard
                 meter.ConnectionFactory = () => new AdoDataConnection(connection.Connection, typeof(SqlDataAdapter), false);
 
                 return QueryEventData(connection, meter, startDate, endDate);
-
             }
         }
 
@@ -330,15 +360,13 @@ namespace PQDashboard
                 return parameter;
             }
         }
+
         #endregion
 
-        #region [Static]
+        #region [ Static ]
+
         public static Action<Exception> LogExceptionHandler;
 
         #endregion
-
     }
-
-
-
 }

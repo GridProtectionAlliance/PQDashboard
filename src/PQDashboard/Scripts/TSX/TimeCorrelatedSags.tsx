@@ -27,7 +27,7 @@ import './../jquery-ui.js';
 import OpenSEEService from './../TS/Services/OpenSEE';
 
 export default class HarmonicStats extends React.Component<any, any>{
-    props: { eventId: number, callback: Function }
+    props: { eventId: number, callback: Function, exportCallback: Function }
     state: { rows: Array<Object>, header: Array<Object>, exportData: any}
     openSEEService: OpenSEEService;
 
@@ -45,7 +45,7 @@ export default class HarmonicStats extends React.Component<any, any>{
         ($("#correlatedsags") as any).draggable({ scroll: false, handle: '#correlatedsagshandle' });
 
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(data => {
-            var header = HeaderRow();
+            var header = HeaderRow(this.props.exportCallback);
             var rows = [];
 
             for (var index = 0; index < data.length; ++index) {
@@ -100,7 +100,7 @@ const Row = (row, background) => {
     );
 }
 
-const HeaderRow = () => {
+const HeaderRow = (exportCallback) => {
     return (
         <tr key='Header'>
             <th style={{ width: 60 }} key='EventID'>Event ID</th>
@@ -109,7 +109,7 @@ const HeaderRow = () => {
             <th style={{ width: 150 }} key='SagDuration'>Duration</th>
             <th style={{ width: 220 }} key='StartTime'>Start Time</th>
             <th style={{ width: 150 }} key='MeterName'>Meter Name</th>
-            <th style={{ width: 'calc(400px - 1em)' }} key='LineName'>Line Name</th>
+            <th style={{ width: 'calc(400px - 1em)' }} key='LineName'>Line Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button className='btn btn-primary' onClick={() => exportCallback("correlatedsags")}>Export(csv)</button></th>
         </tr>
     );
 }
