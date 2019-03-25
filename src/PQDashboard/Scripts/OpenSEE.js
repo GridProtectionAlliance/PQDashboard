@@ -65145,7 +65145,7 @@ var OpenSEE = (function (_super) {
                 React.createElement(Tooltip_1.default, { data: this.state.TableData, hover: this.state.Hover, callback: this.stateSetter.bind(this) }),
                 React.createElement(ScalarStats_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
                 React.createElement(HarmonicStats_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
-                React.createElement(TimeCorrelatedSags_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this) }),
+                React.createElement(TimeCorrelatedSags_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this), exportCallback: function (type) { return _this.exportData(type); } }),
                 React.createElement(LightningData_1.default, { eventId: this.state.eventid, callback: this.stateSetter.bind(this) }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Voltage", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayVolt, postedData: this.state.PostedData }),
                 React.createElement(WaveformViewerGraph_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, type: "Current", pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, tableSetter: this.tableUpdater.bind(this), display: this.state.displayCur, postedData: this.state.PostedData }),
@@ -100902,7 +100902,7 @@ var HarmonicStats = (function (_super) {
         var _this = this;
         $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle' });
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(function (data) {
-            var header = HeaderRow();
+            var header = HeaderRow(_this.props.exportCallback);
             var rows = [];
             for (var index = 0; index < data.length; ++index) {
                 var row = data[index];
@@ -100948,7 +100948,7 @@ var Row = function (row, background) {
         React.createElement("td", { style: { width: 150 }, key: 'MeterName' + row.EventID }, row.MeterName),
         React.createElement("td", { style: { width: 400 }, key: 'LineName' + row.EventID }, row.LineName)));
 };
-var HeaderRow = function () {
+var HeaderRow = function (exportCallback) {
     return (React.createElement("tr", { key: 'Header' },
         React.createElement("th", { style: { width: 60 }, key: 'EventID' }, "Event ID"),
         React.createElement("th", { style: { width: 80 }, key: 'EventType' }, "Event Type"),
@@ -100956,7 +100956,9 @@ var HeaderRow = function () {
         React.createElement("th", { style: { width: 150 }, key: 'SagDuration' }, "Duration"),
         React.createElement("th", { style: { width: 220 }, key: 'StartTime' }, "Start Time"),
         React.createElement("th", { style: { width: 150 }, key: 'MeterName' }, "Meter Name"),
-        React.createElement("th", { style: { width: 'calc(400px - 1em)' }, key: 'LineName' }, "Line Name")));
+        React.createElement("th", { style: { width: 'calc(400px - 1em)' }, key: 'LineName' },
+            "Line Name\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0",
+            React.createElement("button", { className: 'btn btn-primary', onClick: function () { return exportCallback("correlatedsags"); } }, "Export(csv)"))));
 };
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
