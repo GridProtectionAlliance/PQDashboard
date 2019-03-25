@@ -11,9 +11,11 @@
     var _bufferParameters = null;
     var _unwrapFunctions = [];
 
-    function init(esriConfig, query, queryTask, timeExtent, geometryService, bufferParameters) {
-        esriConfig.defaults.io.proxyUrl = "http://pq/arcgisproxynew/proxy.ashx";
-        esriConfig.defaults.io.alwaysUseProxy = false;
+    function init(urlUtils, query, queryTask, timeExtent, geometryService, bufferParameters) {
+        urlUtils.addProxyRule({
+            proxyUrl: "http://pq/arcgisproxynew/proxy.ashx",
+            urlPrefix: "https://gis.tva.gov/arcgis/rest/services/"
+        });
 
         _query = query;
         _queryTask = queryTask;
@@ -25,7 +27,7 @@
             _unwrapFunctions[i]();
     }
 
-    require(["esri/config", "esri/tasks/query", "esri/tasks/QueryTask", "esri/TimeExtent", "esri/tasks/GeometryService", "esri/tasks/BufferParameters"], init);
+    require(["esri/urlUtils", "esri/tasks/query", "esri/tasks/QueryTask", "esri/TimeExtent", "esri/tasks/GeometryService", "esri/tasks/BufferParameters"], init);
 
     function exportFunction(key, apiFunction) {
         var pendingCalls = [];
