@@ -46,6 +46,46 @@ namespace OpenSEE.Controller
         private readonly DataContext m_dataContext;
         private bool m_disposed;
 
+        // Constants
+        public const string TimeCorrelatedSagsSQL =
+            "SELECT " +
+            "    Event.ID AS EventID, " +
+            "    EventType.Name AS EventType, " +
+            "    FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') AS SagMagnitudePercent, " +
+            "    FORMAT(Sag.DurationSeconds * 1000.0, '0') AS SagDurationMilliseconds, " +
+            "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
+            "    Event.StartTime, " +
+            "    Meter.Name AS MeterName, " +
+            "    MeterLine.LineName " +
+            "FROM " +
+            "    Event JOIN " +
+            "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
+            "    Meter ON Event.MeterID = Meter.ID JOIN " +
+            "    MeterLine ON " +
+            "        Event.MeterID = MeterLine.MeterID AND " +
+            "        Event.LineID = MeterLine.LineID CROSS APPLY " +
+            "    ( " +
+            "        SELECT TOP 1 " +
+            "            Disturbance.PerUnitMagnitude, " +
+            "            Disturbance.DurationSeconds, " +
+            "            Disturbance.DurationCycles " +
+            "        FROM " +
+            "            Disturbance JOIN " +
+            "            EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
+            "            Phase ON " +
+            "                Disturbance.PhaseID = Phase.ID AND " +
+            "                Phase.Name = 'Worst' " +
+            "        WHERE " +
+            "            Disturbance.EventID = Event.ID AND " +
+            "            DisturbanceType.Name = 'Sag' AND " +
+            "            Disturbance.StartTime <= {1} AND " +
+            "            Disturbance.EndTime >= {0} " +
+            "        ORDER BY PerUnitMagnitude DESC " +
+            "    ) Sag " +
+            "ORDER BY " +
+            "    Sag.PerUnitMagnitude, " +
+            "    Event.StartTime";
+
         #endregion
 
         #region [ Constructors ]
@@ -60,16 +100,6 @@ namespace OpenSEE.Controller
         }
 
         #endregion
-
-        #region [ Static ]
-        private static MemoryCache s_memoryCache;
-
-        static OpenSEEController()
-        {
-            s_memoryCache = new MemoryCache("openSEE");
-        }
-        #endregion
-
 
         #region [ Methods ]
 
@@ -444,7 +474,6 @@ namespace OpenSEE.Controller
                         WHERE EventID = {0}", eventId);
 
                 return dataTable;
-
             }
         }
 
@@ -455,51 +484,12 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                const string SQL =
-                    "SELECT " +
-                    "    Event.ID AS EventID, " +
-                    "    EventType.Name AS EventType, " +
-                    "    FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') AS SagMagnitudePercent, " +
-                    "    FORMAT(Sag.DurationSeconds * 1000.0, '0') AS SagDurationMilliseconds, " +
-                    "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
-                    "    Event.StartTime, " +
-                    "    Meter.Name AS MeterName, " +
-                    "    MeterLine.LineName " +
-                    "FROM " +
-                    "    Event JOIN " +
-                    "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
-                    "    Meter ON Event.MeterID = Meter.ID JOIN " +
-                    "    MeterLine ON " +
-                    "        Event.MeterID = MeterLine.MeterID AND " +
-                    "        Event.LineID = MeterLine.LineID CROSS APPLY " +
-                    "    ( " +
-                    "        SELECT TOP 1 " +
-                    "            Disturbance.PerUnitMagnitude, " +
-                    "            Disturbance.DurationSeconds, " +
-                    "            Disturbance.DurationCycles " +
-                    "        FROM " +
-                    "            Disturbance JOIN " +
-                    "            EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
-                    "            Phase ON " +
-                    "                Disturbance.PhaseID = Phase.ID AND " +
-                    "                Phase.Name = 'Worst' " +
-                    "        WHERE " +
-                    "            Disturbance.EventID = Event.ID AND " +
-                    "            DisturbanceType.Name = 'Sag' AND " +
-                    "            Disturbance.StartTime <= {1} AND " +
-                    "            Disturbance.EndTime >= {0} " +
-                    "        ORDER BY PerUnitMagnitude DESC " +
-                    "    ) Sag " +
-                    "ORDER BY " +
-                    "    Sag.PerUnitMagnitude, " +
-                    "    Event.StartTime";
-
                 double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");
                 DateTime startTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", eventID);
                 DateTime endTime = connection.ExecuteScalar<DateTime>("SELECT EndTime FROM Event WHERE ID = {0}", eventID);
                 DateTime adjustedStartTime = startTime.AddSeconds(-timeTolerance);
                 DateTime adjustedEndTime = endTime.AddSeconds(timeTolerance);
-                DataTable dataTable = connection.RetrieveData(SQL, adjustedStartTime, adjustedEndTime);
+                DataTable dataTable = connection.RetrieveData(TimeCorrelatedSagsSQL, adjustedStartTime, adjustedEndTime);
                 return dataTable;
             }
         }
@@ -519,6 +509,17 @@ namespace OpenSEE.Controller
                 DateTime EndTime = row.ConvertField<DateTime>("EndTime");
                 return new { LineKey, StartTime, EndTime };
             }
+        }
+
+        #endregion
+
+        #region [ Static ]
+
+        private static MemoryCache s_memoryCache;
+
+        static OpenSEEController()
+        {
+            s_memoryCache = new MemoryCache("openSEE");
         }
 
         #endregion
