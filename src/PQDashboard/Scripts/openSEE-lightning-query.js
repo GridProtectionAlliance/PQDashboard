@@ -52,7 +52,7 @@
         lineQuery.outFields = ["LINENAME"];
         lineQuery.where = "UPPER(LINENAME) like '%" + lineKey.toUpperCase() + "%'";
 
-        lineQueryTask.execute(query, function (results) {
+        lineQueryTask.execute(lineQuery, function (results) {
             var totalLine = results.features.map(function (feature) { return feature.geometry; });
             callback(totalLine);
         });
