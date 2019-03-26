@@ -102,8 +102,7 @@ export default class LightningData extends React.Component<any, any>{
 const Row = (row) => {
     return (
         <tr style={{ display: 'table', tableLayout: 'fixed', width: '100%' }} key={row.label}>
-            <td>{row.label}</td>
-            {row.tds}
+            {Object.keys(row).map(key => <td>{row[key]}</td>)}
         </tr>
     );
 }
@@ -111,7 +110,7 @@ const Row = (row) => {
 const HeaderRow = (row) => {
     return (
         <tr key='Header'>
-            {row.map(key => <th colSpan={2} scope='colgroup' key={key}>{key}</th>)}
+            {Object.keys(row).map(key => <th key={key}>{key}</th>)}
         </tr>
     );
 }
