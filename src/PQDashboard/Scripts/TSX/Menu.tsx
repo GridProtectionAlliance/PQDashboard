@@ -141,11 +141,11 @@ export default class Menu extends React.Component<any, any>{
     }
 
     showhideLightningData() {
-        if (this.props.harmonicButtonText == "Show Lightning Data") {
-            this.props.callback({ lightningQueryButtonText: "Hide Lightning Data" });
+        if (this.props.lightningDataButtonText == "Show Lightning Data") {
+            this.props.callback({ lightningDataButtonText: "Hide Lightning Data" });
             $('#lightningquery').show();
         } else {
-            this.props.callback({ lightningQueryButtonText: "Show Lightning Data" });
+            this.props.callback({ lightningDataButtonText: "Show Lightning Data" });
             $('#lightningquery').hide();
         }
     }
