@@ -29,7 +29,7 @@ import './../../../flot/jquery.flot.time.min.js';
 import { style } from "typestyle"
 
 // styles
-const unifiedtooltip: React.CSSProperties = {
+const outerDiv: React.CSSProperties = {
     minWidth : '200px',
     maxWidth: '400px',
     fontSize: '12px',
@@ -46,7 +46,7 @@ const unifiedtooltip: React.CSSProperties = {
     backgroundColor: 'white'
 };
 
-const unifiedtooltiphandle = style({
+const handle = style({
     width: '100 %',
     height: '20px',
     backgroundColor: '#808080',
@@ -73,9 +73,14 @@ const closeButton = style({
     }
 });
 
-
+export interface TooltipProps {
+    data: Map<string, { data: number, color: string}>,
+    hover: number,
+    callback: Function
+}
 
 export default class Tooltip extends React.Component<any, any>{
+    props: TooltipProps;
     constructor(props) {
         super(props);
     }
@@ -89,25 +94,25 @@ export default class Tooltip extends React.Component<any, any>{
         var format = ($.plot as any).formatDate(($.plot as any).dateGenerator(this.props.hover, { timezone: "utc" }), "%Y-%m-%d %H:%M:%S") + "." + subsecond;
         var rows = [];
 
-        _.each(this.props.data, (data, index) => {
-            if (index.indexOf('V') == 0 &&$('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(index) >= 0 )
-                rows.push(Row({label: index, data: data.data, color: data.color}));
+        this.props.data.forEach((data, key, map) => {
+            if (key.indexOf('V') == 0 && $('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(key) >= 0 )
+                rows.push(Row({ label: key, data: data.data, color: data.color}));
         });
 
-        _.each(this.props.data, (data, index) => {
-            if (index.indexOf('I') == 0 && $('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(index) >= 0)
-                rows.push(Row({ label: index, data: data.data, color: data.color }));
+        this.props.data.forEach((data, key, map) => {
+            if (key.indexOf('I') == 0 && $('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(key) >= 0)
+                rows.push(Row({ label: key, data: data.data, color: data.color }));
         });
 
-        _.each(this.props.data, (data, index) => {
-            if (index.indexOf('V') != 0 && index.indexOf('I') != 0 && $('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(index) >= 0)
-                rows.push(Row({ label: index, data: data.data, color: data.color }));
+        this.props.data.forEach((data, key, map) => {
+            if (key.indexOf('V') != 0 && key.indexOf('I') != 0 && $('.legendCheckbox:checked').toArray().map(x => (x as any).name).indexOf(key) >= 0)
+                rows.push(Row({ label: key, data: data.data, color: data.color }));
         });
 
 
         return (
-            <div id="unifiedtooltip" className="ui-widget-content" style={unifiedtooltip}>
-                <div id="unifiedtooltiphandle" className={unifiedtooltiphandle}></div>
+            <div id="unifiedtooltip" className="ui-widget-content" style={outerDiv}>
+                <div id="unifiedtooltiphandle" className={handle}></div>
                 <div id="unifiedtooltipcontent">
                     <div style={{textAlign: 'center'}}>
                         <b>{format}</b>

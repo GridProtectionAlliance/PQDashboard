@@ -154,6 +154,10 @@ namespace PQDashboard.Controllers
         public ActionResult OpenSEE()
         {
             ViewBag.IsAdmin = ValidateAdminRequest();
+
+            int eventID = int.Parse(Request.QueryString["eventid"]);
+
+            ViewBag.SamplesPerCycle = m_dataContext.Connection.ExecuteScalar<double>("select SamplesPerCycle from event join meter on event.meterid = meter.id where event.id = {0}", eventID);
             return View();
         }
 

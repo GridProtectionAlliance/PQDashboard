@@ -33,24 +33,26 @@ import './../../../flot/jquery.flot.selection.min.js';
 import './../../../flot/jquery.flot.time.min.js';
 import './../../../flot/jquery.flot.rangeSelection.js';
 
-export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iLegendData, key?: string) => void;
+export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iLegendData, key?: string, getData?: boolean) => void;
 export type GetDataFunction = (props: LineChartAnaltyicalBaseProps, ctrl: LineChartAnalyticBase) => void;
 export type GetColorFunction = (key: {ChartLabel: string}, index: number) => string;
 
 export interface LineChartAnaltyicalBaseProps {
-    eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Object, pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime?: string,
-    fftEndTime?: string, analytic?: string
- };
+    eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Map<string, { data: number, color: string }>,
+    pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime?: string, fftEndTime?: string, analytic?: string
+};
+
+interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
+    legendKey: string, openSEEServiceFunction: Function, legendEnable: Function, legendDisplay: Function,
+    getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction
+
+}
 export default class LineChartAnalyticBase extends React.Component<any, any>{
     plot: any;
     options: object;
     clickHandled: boolean;
     panCenter: number;
-    props: {
-        eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Object, pointsTable: any[],
-        postedData: iPostedData, tableSetter: Function, legendKey: string, openSEEServiceFunction: Function, legendEnable: Function, legendDisplay: Function,
-        getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction, fftStartTime?: string, fftEndTime?: string, analytic?: string
-    }
+    props: LineChartAnalyticBassClassProps
     state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR }
     constructor(props, context) {
         super(props, context);
@@ -70,7 +72,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                 autoHighlight: false,
                 clickable: true,
                 hoverable: true,
-                markings: []
+                markings: [],
             },
             xaxis: {
                 mode: "time",
@@ -190,7 +192,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
 
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: LineChartAnaltyicalBaseProps) {
         var props = _.clone(this.props) as any;
         var nextPropsClone = _.clone(nextProps);
 
@@ -236,12 +238,12 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
             if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
 
-            var table = _.clone(this.props.tableData);
+            var table = new Map([...Array.from(this.props.tableData)]);
 
             _.each(this.state.dataSet.Data, (data, i) => {
                 var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
-                    table[data.ChartLabel] = { data: vector[1], color: this.state.legendRows.get(data.ChartLabel).color };
+                    table.set(data.ChartLabel, { data: vector[1], color: this.state.legendRows.get(data.ChartLabel).color });
             });
 
             this.props.tableSetter(table);
@@ -256,7 +258,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         $.each(data, function (i, key) {
             var record = legend.get(key.ChartLabel);
             if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints });
+                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints});
             else
                 legend.get(key.ChartLabel).data = key.DataPoints
         });
@@ -492,12 +494,15 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         return base * Math.floor(n / base);
     }
 
-    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iLegendData, key: string): void {
+    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iLegendData, key: string, getData?: boolean): void {
         if(row != undefined)
             row.enabled = !row.enabled;
 
         this.setState({ legendRows: this.state.legendRows });
         this.createDataRows(this.state.dataSet, this.state.legendRows);
+
+        if (getData == true)
+            this.getData(this.props);
     }
 
 
@@ -505,7 +510,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         return (
             <>
                 <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
-            <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} />
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} />
             </>
         );
     }

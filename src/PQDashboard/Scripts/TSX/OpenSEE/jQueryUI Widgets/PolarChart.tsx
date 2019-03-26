@@ -24,6 +24,54 @@
 import * as React from 'react';
 import * as _ from "lodash";
 import './../../../jquery-ui.js';
+import { style } from "typestyle"
+
+// styles
+const outerDiv: React.CSSProperties = {
+    minWidth: '200px',
+    maxWidth: '400px',
+    fontSize: '12px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    overflowY: 'auto',
+    padding: '0em',
+    zIndex: 1000,
+    boxShadow: '4px 4px 2px #888888',
+    border: '2px solid black',
+    position: 'absolute',
+    top: '0',
+    display: 'none',
+    backgroundColor: 'white',
+    width: 530,
+    height: 340
+};
+
+const handle = style({
+    width: '100 %',
+    height: '20px',
+    backgroundColor: '#808080',
+    cursor: 'move',
+    padding: '0em'
+});
+
+const closeButton = style({
+    background: 'firebrick',
+    color: 'white',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '20px',
+    height: '20px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    padding: 0,
+    border: 0,
+    $nest: {
+        "&:hover": {
+            background: 'orangered'
+        }
+    }
+});
 
 export default class PolarChart extends React.Component<any, any>{
     constructor(props) {
@@ -132,8 +180,8 @@ export default class PolarChart extends React.Component<any, any>{
 
     render() {
         return (
-            <div id="phasor" className="ui-widget-content" style={{ position: 'absolute', top: '0', width: 530, height: 340, display: 'none' }}>
-                <div id="phasorhandle"></div>
+            <div id="phasor" className="ui-widget-content" style={outerDiv}>
+                <div id="phasorhandle" className={handle}></div>
                 <div id="phasorchart" style={{ width: '500px', height: '300px', zIndex: 1001 }}>
                     <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' , float: 'left'}}></canvas>
                     <table className="table" style={{ width: 200, height: 300, float: 'right' }}>
@@ -179,7 +227,7 @@ export default class PolarChart extends React.Component<any, any>{
                         </tbody>
                     </table>
                 </div>
-                <button className="CloseButton" onClick={() => {
+                <button className={closeButton} onClick={() => {
                     this.props.callback({ phasorButtonText: "Show Phasor" });
                     $('#phasor').hide();
                 }}>X</button>

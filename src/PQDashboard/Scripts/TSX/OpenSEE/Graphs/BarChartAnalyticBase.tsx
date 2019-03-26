@@ -27,12 +27,12 @@ import * as _ from "lodash";
 import * as moment from "moment";
 import Legend, { iLegendData } from './../Graphs/Legend';
 import 'flot';
-import './../../../flot/jquery.flot.crosshair.min.js';
+//import './../../../flot/jquery.flot.crosshair.min.js';
 import './../../../flot/jquery.flot.navigate.min.js';
 
 export type GetDataFunction = (props: BarChartAnaltyicalBaseProps, ctrl: BarChartAnalyticBase) => void;
 
-export interface BarChartAnaltyicalBaseProps { eventId: number, pixels: number, stateSetter: Function, height: number, tableData: Object, pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime: string, fftEndTime: string };
+export interface BarChartAnaltyicalBaseProps { eventId: number, pixels: number, stateSetter: Function, height: number, tableData: Map<string, { data: number, color: string }>, pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime: string, fftEndTime: string };
 interface BarChartAnalyticBasePropsExtended extends BarChartAnaltyicalBaseProps{
     openSEEServiceFunction: Function, legendEnable: Function, legendDisplay: Function,
     legendKey: string
@@ -56,13 +56,12 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         ctrl.options = {
             canvas: true,
             legend: { show: false },
-            crosshair: { mode: "x" },
-            selection: { mode: "x" },
+            crosshair: { mode: "x"},
             grid: {
-                autoHighlight: false,
-                clickable: true,
+                autoHighlight: true,
                 hoverable: true,
                 markings: []
+                
             },
             xaxis: {
                 tickLength: 10,
@@ -169,7 +168,7 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
 
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: BarChartAnalyticBasePropsExtended) {
         var props = _.clone(this.props) as any;
         var nextPropsClone = _.clone(nextProps);
 
@@ -197,6 +196,7 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         if (!(_.isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
         }
+
     }
 
     createDataRows(data, legend: Map<string, iLegendData>) {
@@ -214,8 +214,16 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
     plotHover() {
         var ctrl = this;
         $(ctrl.refs.graphWindow).off("plothover");
-        $(ctrl.refs.graphWindow).bind("plothover", function (event, pos, item) {
-            ctrl.props.stateSetter({ Hover: pos.x });
+        $(ctrl.refs.graphWindow).bind("plothover", (event, pos, item) => {
+            var selectedChannel = Array.from(this.state.legendRows).find(x => x[1].enabled);
+            var table = new Map([...Array.from(this.props.tableData)]);
+            var index = Math.floor(pos.x);
+
+            if (selectedChannel[1].data[index] != undefined) {
+                table.set(selectedChannel[0], { data: selectedChannel[1].data[index] as any, color: selectedChannel[1].color });
+            }
+
+            this.props.tableSetter(table);
         });
     }
 

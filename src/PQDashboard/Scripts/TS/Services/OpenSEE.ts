@@ -48,6 +48,7 @@ export default class OpenSEEService{
     thdDataHandle: JQuery.jqXHR;
     freqencyAnalyticDataHandle: JQuery.jqXHR;
     fftDataHandle: JQuery.jqXHR;
+    specifiedHarmonicDataHandle: JQuery.jqXHR;
 
 
     constructor() {
@@ -69,6 +70,7 @@ export default class OpenSEEService{
         this.getTHDData = this.getTHDData.bind(this);
         this.getFrequencyAnalyticData = this.getFrequencyAnalyticData.bind(this);
         this.getFFTData = this.getFFTData.bind(this);
+        this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
 
     }
 
@@ -581,6 +583,26 @@ export default class OpenSEEService{
         });
 
         return this.fftDataHandle;
+    }
+
+    getSpecifiedHarmonicData(eventid: number, pixels: number, harmonic: number,startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.specifiedHarmonicDataHandle !== undefined)
+            this.specifiedHarmonicDataHandle.abort();
+
+        this.specifiedHarmonicDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetSpecifiedHarmonicData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&specifiedHarmonic=${harmonic}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.specifiedHarmonicDataHandle;
     }
 
 }

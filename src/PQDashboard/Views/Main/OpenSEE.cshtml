@@ -130,6 +130,7 @@
     <script>
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var userIsAdmin = @Html.Raw((ViewBag.IsAdmin ? "true": "false"))
+        var samplesPerCycle = @Html.Raw(ViewBag.SamplesPerCycle);
     </script>
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
 </body>

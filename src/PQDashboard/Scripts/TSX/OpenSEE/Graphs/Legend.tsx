@@ -31,13 +31,21 @@ export interface iLegendData {
     color: string,
     display: boolean,
     enabled: boolean,
-    data: Array<Array<number>>
+    data: Array<Array<number>>,
+    harmonic?: number,
 }
 
+declare var samplesPerCycle: number;
+
 export default class Legend extends React.Component<any, any>{
-    props: { type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number}
+    props: { type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number };
+    samplesPerCycleOptions: any[];
     constructor(props) {
         super(props);
+        this.samplesPerCycleOptions = [];
+
+        for (var i = 0; i <= samplesPerCycle / 2; ++i)
+            this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>)
     }
 
     render() {
@@ -117,6 +125,20 @@ export default class Legend extends React.Component<any, any>{
                         </ToggleButtonGroup>
 
                     </div> : null)}
+
+                {(this.props.type.toLowerCase() == "specifiedharmonic" ?
+                    <div className="d-flex flex-column btn-group">
+                        <select defaultValue={'1'} onChange={this.handleSelected.bind(this)}>{this.samplesPerCycleOptions}</select>
+
+                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Vmag" onChange={this.toggleSpecifiedHarmonic.bind(this)}>
+                            <ToggleButton type="radio" name="radio" value="Vmag" style={{ width: '25%', height: 28 }}>Vm</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Vang" style={{ width: '25%', height: 28 }}>Vph</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Imag" style={{ width: '25%', height: 28 }}>Im</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Iang" style={{ width: '25%', height: 28 }}>Iph</ToggleButton>
+                        </ToggleButtonGroup>
+
+                    </div> : null)}
+
 
                 <table ref="table" style={{ maxHeight: this.props.height - 70, overflowY: 'auto', display: 'block' }}>
                 <tbody >
@@ -351,6 +373,55 @@ export default class Legend extends React.Component<any, any>{
         this.props.callback();
 
     }
+
+    toggleSpecifiedHarmonic(type, event) {
+        this.props.data.forEach((row, key, map) => {
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+        });
+
+        this.props.callback();
+
+    }
+
+    handleSelected(event) {
+        this.props.data.forEach((row, key, map) => {
+            row.harmonic = event.target.value;
+        });
+
+        this.props.callback(_,_,_, true);
+    }
+
 }
 
 const Row = (props: {label: string, enabled: boolean, color: string, callback: LegendClickCallback}) => {

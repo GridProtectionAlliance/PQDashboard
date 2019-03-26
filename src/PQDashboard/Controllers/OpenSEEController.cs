@@ -887,7 +887,6 @@ namespace OpenSEE.Controller
         }
         #endregion
 
-
         #region [ First Derivative ]
         [HttpGet]
         public Task<JsonReturn> GetFirstDerivativeData(CancellationToken cancellationToken)
@@ -3001,7 +3000,7 @@ namespace OpenSEE.Controller
 
                 Complex[] result = FFT(points);
 
-                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, i) => Math.Pow(result[i].Magnitude / Math.Sqrt(2), 2)).Sum();
+                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, i) => Math.Pow(result[i].Magnitude * 2 / Math.Sqrt(2), 2)).Sum();
                 int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == 60.0D);
                 double rmsHarm = result[index].Magnitude / Math.Sqrt(2);
                 double thdValue = 100 * Math.Sqrt(rmsHarmSum) / rmsHarm - 100;
@@ -3023,6 +3022,156 @@ namespace OpenSEE.Controller
             return complexSamples;
         }
 
+        #endregion
+
+        #region [ Specified Harmonic ]
+        [HttpGet]
+        public Task<JsonReturn> GetSpecifiedHarmonicData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    int specifiedHarmonic = int.Parse(query["specifiedHarmonic"]);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = int.Parse(query["pixels"]);
+                    DataTable table;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
+                        Dictionary<string, FlotSeries> temp = QuerySpecifiedHarmonicData(eventID, eventStartTime, meter, specifiedHarmonic);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                    List<FlotSeries> returnList = new List<FlotSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        returnList.Add(series);
+                    }
+                    JsonReturn returnDict = new JsonReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = calcTime;
+                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FlotSeries> QuerySpecifiedHarmonicData(int eventID, DateTime startTime, Meter meter, int specifiedHarmonic)
+        {
+            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetSpecifiedHarmonicLookup(dataGroup, specifiedHarmonic);
+        }
+
+        private Dictionary<string, FlotSeries> GetSpecifiedHarmonicLookup(DataGroup dataGroup, int specifiedHarmonic)
+        {
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, vAN, "VAN", specifiedHarmonic);
+            if (vBN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, vBN, "VBN", specifiedHarmonic);
+            if (vCN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, vCN, "VCN", specifiedHarmonic);
+            if (iAN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, iAN, "IAN", specifiedHarmonic);
+            if (iBN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, iBN, "IBN", specifiedHarmonic);
+            if (iCN != null) GenerateSpecifiedHarmonic(dataLookup, systemFrequency, iCN, "ICN", specifiedHarmonic);
+
+            return dataLookup;
+        }
+
+        private void GenerateSpecifiedHarmonic(Dictionary<string, FlotSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, int specifiedHarmonic)
+        {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+
+            FlotSeries SpecifiedHarmonicMag = new FlotSeries()
+            {
+                ChartLabel = label + $"Harmonic [{specifiedHarmonic}] Mag",
+                DataPoints = new List<double[]>()
+            };
+
+            FlotSeries SpecifiedHarmonicAng = new FlotSeries()
+            {
+                ChartLabel = label + $"Harmonic [{specifiedHarmonic}] Ang",
+                DataPoints = new List<double[]>()
+            };
+
+
+            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            {
+                if (cycle.Count() != samplesPerCycle) continue;
+                double[] points = cycle.Select(point => point.Value / samplesPerCycle).ToArray();
+                double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
+                double specifiedFrequency = systemFrequency * specifiedHarmonic;
+                int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == specifiedFrequency);
+
+                Complex[] result = FFT(points);
+
+                Complex specifiedHarmonicCycleResult = result[index];
+
+                SpecifiedHarmonicMag.DataPoints = SpecifiedHarmonicMag.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Magnitude * 2 / Math.Sqrt(2) })).ToList();
+                SpecifiedHarmonicAng.DataPoints = SpecifiedHarmonicAng.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Phase * 180 / Math.PI })).ToList();
+
+            }
+
+            dataLookup.Add(SpecifiedHarmonicMag.ChartLabel, SpecifiedHarmonicMag);
+            dataLookup.Add(SpecifiedHarmonicAng.ChartLabel, SpecifiedHarmonicAng);
+        }
+        
         #endregion
 
         #endregion

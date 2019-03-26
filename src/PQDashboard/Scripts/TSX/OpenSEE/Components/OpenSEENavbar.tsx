@@ -34,7 +34,7 @@ import { Navbar, NavDropdown, Nav, Button, Form, Row} from 'react-bootstrap';
 declare var homePath;
 
 export default class OpenSEENavbar extends React.Component {
-    props: {TableData: Object, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string }
+    props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string }
     state: {}
     constructor(props, context) {
         super(props, context);

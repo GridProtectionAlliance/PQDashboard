@@ -1279,6 +1279,7 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\SpecifiedHarmonic.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\RapidVoltageChange.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Rectifier.tsx" />

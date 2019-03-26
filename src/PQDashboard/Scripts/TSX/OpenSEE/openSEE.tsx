@@ -59,6 +59,7 @@ import RapidVoltageChange from './Analytics/RapidVoltageChange';
 import THD from './Analytics/THD';
 import Frequency from './Analytics/Frequency';
 import FFT from './Analytics/FFT';
+import SpecifiedHarmonic from './Analytics/SpecifiedHarmonic';
 
 import OpenSEENavbar from './Components/OpenSEENavbar';
 import { TabContent, Card } from 'react-bootstrap';
@@ -69,10 +70,10 @@ export class OpenSEE extends React.Component<any, any>{
     historyHandle: any;
     openSEEService: OpenSEEService;
     resizeId: any;
-    TableData: object;
+    TableData: Map<string, { data: number, color: string }>;
     state: {
         eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: boolean, breakerdigitals: boolean, Width: number,
-        Hover: number, PointsTable: Array<any>, TableData: Object, PostedData: iPostedData, nextBackLookup: iNextBackLookup, navigation: string, tab: string
+        Hover: number, PointsTable: Array<any>, TableData: Map<string, { data: number, color: string }>, PostedData: iPostedData, nextBackLookup: iNextBackLookup, navigation: string, tab: string
         comparedEvents: Array<number>, overlappingEvents: Array<iListObject>, analytic: string, fftStartTime?: string, fftEndTime?: string
     }
     constructor(props) {
@@ -92,7 +93,7 @@ export class OpenSEE extends React.Component<any, any>{
             Width: window.innerWidth - 300,
             Hover: 0,
             PointsTable: [],
-            TableData: {},
+            TableData: new Map < string, { data: number, color: string }>(),
             PostedData: {},
             nextBackLookup:{
                 System: {},
@@ -106,7 +107,7 @@ export class OpenSEE extends React.Component<any, any>{
             overlappingEvents: [],
             analytic: query["analytic"] != undefined ? query["analytic"] : null,
         }
-        this.TableData = {};
+        this.TableData = new Map<string, { data: number, color: string }>();
         this.history['listen']((location, action) => {
             var query = queryString.parse(this.history['location'].search);
             this.setState({
@@ -241,6 +242,7 @@ export class OpenSEE extends React.Component<any, any>{
                         {(this.state.tab == "analysis" && this.state.analytic == "THD" ? <THD eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
                         {(this.state.tab == "analysis" && this.state.analytic == "Frequency" ? <Frequency eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
                         {(this.state.tab == "analysis" && this.state.analytic == "FFT" ? <FFT eventId={this.state.eventid}  pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime}/> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "SpecifiedHarmonic" ? <SpecifiedHarmonic eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
 
                     </div>
                 </div>
@@ -284,8 +286,8 @@ export class OpenSEE extends React.Component<any, any>{
         });
     }
 
-    tableUpdater(obj) {
-        this.TableData = _.merge(this.TableData, obj);
+    tableUpdater(obj: Map<string, { data: number, color: string }>) {
+        this.TableData = new Map([...Array.from(this.TableData), ...Array.from(obj)]);
         this.setState({ TableData: this.TableData });
     }
 
