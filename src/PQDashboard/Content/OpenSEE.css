@@ -226,6 +226,27 @@ td {
     padding: 0em;
 }
 
+#lightningquery {
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: auto;
+    position: absolute;
+    padding: 0em;
+    z-index: 1000;
+    border: black;
+    box-shadow: 4px 4px 2px #888888;
+    border: 2px solid;
+}
+
+#lightninghandle {
+    width: 100%;
+    height: 20px;
+    background-color: #808080;
+    cursor: move;
+    padding: 0em;
+}
+
 
 input[type="button"].link, input[type="button"].link:focus, input[type="button"].link:active {
     /* Remove all decorations to look like normal text */
