@@ -25,7 +25,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
-import { LegendClickCallback } from './WaveformViewerGraph';
+import { LegendClickCallback } from './LineChartAnalyticBase';
 
 export interface iLegendData {
     color: string,
@@ -46,10 +46,7 @@ export default class Legend extends React.Component<any, any>{
         let rows: Array<JSX.Element> = [];
         this.props.data.forEach((row, key, map) => {
             if (row.display)
-                rows.push( <Row key={key} label={key} color={row.color} enabled={row.enabled} callback={() => {
-                    row.enabled = !row.enabled;
-                    this.props.callback();
-                }} />)
+                rows.push( <Row key={key} label={key} color={row.color} enabled={row.enabled} callback={(e) => this.props.callback(e, row, key)} />)
         });
 
         return (
@@ -64,7 +61,7 @@ export default class Legend extends React.Component<any, any>{
                         </ToggleButtonGroup>
 
                     </div> : null)}
-                {(this.props.type == "B"?
+                {(this.props.type.toLowerCase() == "digital"?
                     <div className="d-flex flex-column btn-group">
                         <ToggleButtonGroup type="radio" name="options" defaultValue="All" onChange={this.toggleDigitals.bind(this)}>
                             <ToggleButton type="radio" name="radio" value="All" style={{ width: '33%', height: 28 }}>All</ToggleButton>
@@ -94,7 +91,8 @@ export default class Legend extends React.Component<any, any>{
 
                 {(this.props.type.toLowerCase() == "firstderivative" || this.props.type.toLowerCase() == "lowpassfilter" ||
                     this.props.type.toLowerCase() == "highpassfilter" || this.props.type.toLowerCase() == "symmetricalcomponents" ||
-                    this.props.type.toLowerCase() == "unbalance" || this.props.type.toLowerCase() == "rectifier"?
+                    this.props.type.toLowerCase() == "unbalance" || this.props.type.toLowerCase() == "rectifier" ||
+                    this.props.type.toLowerCase() == "clippedwaveforms" || this.props.type.toLowerCase() == "thd" ?
                     <div className="d-flex flex-column btn-group">
                         <ToggleButtonGroup type="radio" name="radio" defaultValue="Volt" onChange={this.toggleFirstDerivative.bind(this)}>
                             <ToggleButton type="radio" name="radio" value="Volt" style={{ width: '50%', height: 28 }}>Volt</ToggleButton>
@@ -107,6 +105,15 @@ export default class Legend extends React.Component<any, any>{
                         <ToggleButtonGroup type="radio" name="radio" defaultValue="Pre" onChange={this.toggleRemoveCurrent.bind(this)}>
                             <ToggleButton type="radio" name="radio" value="Pre" style={{ width: '50%', height: 28 }}>Pre</ToggleButton>
                             <ToggleButton type="radio" name="radio" value="Post" style={{ width: '50%', height: 28 }}>Post</ToggleButton>
+                        </ToggleButtonGroup>
+
+                    </div> : null)}
+
+                {(this.props.type.toLowerCase() == "fft" ?
+                    <div className="d-flex flex-column btn-group">
+                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Mag" onChange={this.toggleFFT.bind(this)}>
+                            <ToggleButton type="radio" name="radio" value="Mag" style={{ width: '50%', height: 28 }}>Mag</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Ang" style={{ width: '50%', height: 28 }}>Ang</ToggleButton>
                         </ToggleButtonGroup>
 
                     </div> : null)}
@@ -277,6 +284,38 @@ export default class Legend extends React.Component<any, any>{
         this.props.callback();
 
     }
+
+    toggleFFT(type, event) {
+        var setKey = Array.from(this.props.data).find(x => x[1].enabled)[0].split(' ')[0];
+        var newKey;
+        this.props.data.forEach((row, key, map) => {
+
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if (type == "Mag" && key.indexOf('Mag') >= 0) {
+                row.enabled = key.indexOf(setKey) >= 0;
+                row.display = true;
+
+                if (row.enabled) newKey = key;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Ang" && key.indexOf('Ang') >= 0) {
+                row.enabled = key.indexOf(setKey) >= 0;
+                row.display = true;
+
+                if (row.enabled) newKey = key;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+        });
+
+        this.props.callback(_,_, newKey);
+
+    }
+
 
     toggleDigitals( type, event) {
         this.props.data.forEach((row, key, map) => {

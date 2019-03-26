@@ -36,7 +36,7 @@ import { WheelEvent, MouseEvent } from 'react';
 
 export type LegendClickCallback = (event?: MouseEvent<HTMLDivElement>) => void;
 interface State {
-    legendRows: Map<string, iLegendData>, dataSet: any, eventDataHandle: JQuery.jqXHR, frequencyDataHandle: JQuery.jqXHR, digitalDataHandle: JQuery.jqXHR, faultLocationDataHandle: JQuery.jqXHR
+    legendRows: Map<string, iLegendData>, dataSet: any, eventDataHandle: JQuery.jqXHR, frequencyDataHandle: JQuery.jqXHR
 }
 interface Props {
     eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number,
@@ -60,8 +60,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             dataSet: {},
             eventDataHandle: undefined,
             frequencyDataHandle: undefined,
-            digitalDataHandle: undefined,
-            faultLocationDataHandle: undefined
         };
         ctrl.options = {
             canvas: true,
@@ -131,25 +129,13 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         if( label.ChartLabel.indexOf('IRES') >= 0) return '#999999';
         if( label.ChartLabel.indexOf('VAN') >= 0) return '#A30000';
         if( label.ChartLabel.indexOf('VBN') >= 0) return '#0029A3';
-        if( label.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
-        if( label.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
-        if( label.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
-        if( label.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
-        if( label.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
-        if (label.ChartLabel.indexOf('Simp') >= 0) return '#edc240';
-        if (label.ChartLabel.indexOf('Reac') >= 0) return '#afd8f8';
-        if (label.ChartLabel.indexOf('Modi') >= 0) return '#4da74d';
-        if (label.ChartLabel.indexOf('Taka') >= 0) return '#cb4b4b';
-        if (label.ChartLabel.indexOf('Novo') >= 0) return '#9440ed';
-        if (label.ChartLabel.indexOf('Doub') >= 0) return '#BD9B33';
-        else if (index == 0) return '#edc240';
-        else if (index == 1) return '#afd8f8';
-        else if (index == 2) return '#cb4b4b';
-        else if (index == 3) return '#4da74d';
-        else if (index == 4) return '#9440ed';
-        else if (index == 5) return '#bd9b33';
-        else if (index == 6) return '#3498db';
-        else if (index == 7) return '#1d5987';
+        if (label.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
+        if (label.ChartLabel.indexOf('VAN') >= 0) return '#A30000';
+        if (label.ChartLabel.indexOf('VBN') >= 0) return '#0029A3';
+        if (label.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
+        if (label.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
+        if (label.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
+        if (label.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
@@ -159,31 +145,8 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         }
      }
 
-    getData(props: Props): void {
-        switch (this.props.type) {
-            case 'F':
-                this.getFaultDistanceData(props);
-                break;
-            case 'B':
-                this.getBreakerDigitalsData(props);
-                break;
-            default:
-                this.getEventData(props);
-                break;
-        }
-    }
-
-    getEventData(props: Props): void {
+    getData(props: Props, ): void {
         var eventDataHandle = this.openSEEService.getWaveformData(props).then(data => {
-            //if (data == null) {
-            //    if (props.display) {
-            //        var obj = {};
-            //        obj[(props.type == "Voltage" ? 'displayVolt' : 'displayCur')] = false;
-            //        this.props.stateSetter(obj);
-            //    }
-            //    return;
-
-            //}
 
             this.options['grid'].markings.push(this.highlightCycle(data));
             var legend = this.createLegendRows(data.Data);
@@ -215,52 +178,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         })
 
         this.setState({ frequencyDataHandle: frequencyDataHandle });
-
-    }
-
-    getFaultDistanceData(props: Props): void {
-        var faultLocationDataHandle = this.openSEEService.getFaultDistanceData(props).then(data => {
-            //if (data == null) {
-            //    if (props.display) {
-            //        var obj = {};
-            //        obj['faultcurves'] = false;
-            //        this.props.stateSetter(obj);
-            //    }
-            //    return;
-
-            //}
-
-            this.options['grid'].markings.push(this.highlightSample(data));
-
-            var legend = this.createLegendRows(data.Data);
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
-        });
-
-        this.setState({ faultLocationDataHandle: faultLocationDataHandle });
-
-    }
-
-    getBreakerDigitalsData(props: Props) {
-        var digitalDataHandle = this.openSEEService.getBreakerDigitalsData(props).then(data => {
-            //if (data == null) {
-            //    if (props.display) {
-            //        var obj = {};
-            //        obj['breakerdigitals'] = false;
-            //        this.props.stateSetter(obj);
-            //    }
-            //    return;
-
-            //}
-
-            this.options['grid'].markings.push(this.highlightSample(data));
-
-            var legend = this.createLegendRows(data.Data);
-            this.createDataRows(data, legend);
-            this.setState({ dataSet: data });
-        });
-
-        this.setState({ digitalDataHandle: digitalDataHandle });
 
     }
 
@@ -334,15 +251,6 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
             this.state.frequencyDataHandle.abort();
             this.setState({ frequencyDataHandle: undefined });
         }
-        if (this.state.faultLocationDataHandle !== undefined && this.state.faultLocationDataHandle.abort !== undefined) {
-            this.state.faultLocationDataHandle.abort();
-            this.setState({ faultLocationDataHandle: undefined });
-        }
-        if (this.state.digitalDataHandle !== undefined && this.state.digitalDataHandle.abort !== undefined) {
-            this.state.digitalDataHandle.abort();
-            this.setState({ digitalDataHandle: undefined });
-        }
-
     }
 
     createLegendRows(data) {
@@ -353,7 +261,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         $.each(data, function (i, key) {
             var record = legend.get(key.ChartLabel);
             if(record  == undefined)
-                legend.set(key.ChartLabel , { color: ctrl.getColor(key, i), display: true,enabled: (ctrl.props.type == "F" || ctrl.props.type == "B" || key.ChartLabel == key.ChartLabel.substring(0, 3)), data: key.DataPoints });
+                legend.set(key.ChartLabel , { color: ctrl.getColor(key, i), display: true,enabled:   key.ChartLabel == key.ChartLabel.substring(0, 3), data: key.DataPoints });
             else
                 legend.get(key.ChartLabel).data = key.DataPoints
         });

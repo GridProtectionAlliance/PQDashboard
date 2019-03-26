@@ -24,13 +24,13 @@
 import * as React  from 'react';
 import * as ReactDOM from 'react-dom';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
-import LineChartAnalyticBase from './LineChartAnalyticBase';
+import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 
 export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>) => void;
 
 export default class RemoveCurrent extends React.Component<any, any>{
     openSEEService: OpenSEEService;
-    props: { eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Object, pointsTable: any[], tableUpdater: Function, postedData: iPostedData, tableSetter: Function   }
+    props: LineChartAnaltyicalBaseProps
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -53,7 +53,6 @@ export default class RemoveCurrent extends React.Component<any, any>{
             stateSetter={this.props.stateSetter}
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
-            tableUpdater={this.props.tableUpdater}
 
         />
     }

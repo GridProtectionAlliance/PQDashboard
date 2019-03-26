@@ -24,9 +24,11 @@ using FaultData.DataAnalysis;
 using GSF;
 using GSF.Data;
 using GSF.Data.Model;
+using GSF.NumericalAnalysis;
 using GSF.Security;
 using GSF.Web;
 using GSF.Web.Model;
+using MathNet.Numerics.IntegralTransforms;
 using openXDA.Model;
 using System;
 using System.Collections.Generic;
@@ -59,6 +61,13 @@ namespace OpenSEE.Controller
             public double CalculationEnd;
             public List<FlotSeries> Data;
         }
+        public class FFTReturn
+        {
+            public List<FFTSeries> Data;
+            public double CalculationTime;
+            public double CalculationEnd;
+
+        }
 
         public class FlotSeries
         {
@@ -72,6 +81,20 @@ namespace OpenSEE.Controller
             public string ChartLabel;
             public List<double[]> DataPoints = new List<double[]>();
         }
+
+        public class FFTSeries
+        {
+            public int ChannelID;
+            public string ChannelName;
+            public string ChannelDescription;
+            public string MeasurementType;
+            public string MeasurementCharacteristic;
+            public string Phase;
+            public string SeriesType;
+            public string ChartLabel;
+            public Dictionary<int, double> DataPoints = new Dictionary<int, double>();
+        }
+
 
         #endregion
 
@@ -743,6 +766,128 @@ namespace OpenSEE.Controller
 
         #region [ Analysis ]
 
+        #region [ FFT ]
+        [HttpGet]
+        public Task<FFTReturn> GetFFTData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
+                    double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667;
+
+                    Dictionary<string, FFTSeries> dict = QueryFFTData(eventId, startTime, endTime, meter);
+                    if (dict.Count == 0) return null;
+
+                    List<FFTSeries> returnList = new List<FFTSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FFTSeries series = new FFTSeries();
+                        series = dict[key];
+                        series.DataPoints = dict[key].DataPoints;
+                        returnList.Add(series);
+                    }
+                    FFTReturn returnDict = new FFTReturn();
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = startTime;
+                    returnDict.CalculationEnd = endTime;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FFTSeries> QueryFFTData(int eventID, double startTime, double endTime, Meter meter)
+        {
+            string target = $"DataGroup-{eventID}-{startTime}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetFFTLookup(dataGroup, startTime, endTime);
+        }
+
+        private Dictionary<string, FFTSeries> GetFFTLookup(DataGroup dataGroup, double startTime, double endTime)
+        {
+            Dictionary<string, FFTSeries> dataLookup = new Dictionary<string, FFTSeries>();
+
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null) GenerateFFT(dataLookup, systemFrequency, vAN, "VAN", startTime, endTime);
+            if (vBN != null) GenerateFFT(dataLookup, systemFrequency, vBN, "VBN", startTime, endTime);
+            if (vCN != null) GenerateFFT(dataLookup, systemFrequency, vCN, "VCN", startTime, endTime);
+            if (iAN != null) GenerateFFT(dataLookup, systemFrequency, iAN, "IAN", startTime, endTime);
+            if (iBN != null) GenerateFFT(dataLookup, systemFrequency, iBN, "IBN", startTime, endTime);
+            if (iCN != null) GenerateFFT(dataLookup, systemFrequency, iCN, "ICN", startTime, endTime);
+
+            return dataLookup;
+        }
+
+        private void GenerateFFT(Dictionary<string, FFTSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, double startTime, double endTime )
+        {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+
+            List<DataPoint> cycleData = dataSeries.DataPoints.SkipWhile(point => point.Time.Subtract(m_epoch).TotalMilliseconds < startTime).Take(samplesPerCycle).ToList();
+            FFTSeries fftMag = new FFTSeries()
+            {
+                ChartLabel = $"{label} FFT Mag",
+                ChannelID = dataSeries.SeriesInfo.ChannelID,
+                DataPoints = new Dictionary<int, double>()
+            };
+
+            FFTSeries fftAng = new FFTSeries()
+            {
+                ChartLabel = $"{label} FFT Ang",
+                ChannelID = dataSeries.SeriesInfo.ChannelID,
+                DataPoints = new Dictionary<int, double>()
+            };
+
+            if (cycleData.Count() != samplesPerCycle) return;
+            double[] points = cycleData.Select(point => point.Value / samplesPerCycle).ToArray();
+            double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
+
+            Complex[] result = FFT(points);
+
+            fftMag.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Magnitude * 2 / Math.Sqrt(2));
+            fftAng.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Phase * 180 / Math.PI);
+
+            dataLookup.Add($"FFT {label} Mag", fftMag);
+            dataLookup.Add($"FFT {label} Ang", fftAng);
+
+        }
+        #endregion
+
+
         #region [ First Derivative ]
         [HttpGet]
         public Task<JsonReturn> GetFirstDerivativeData(CancellationToken cancellationToken)
@@ -834,142 +979,52 @@ namespace OpenSEE.Controller
             DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
             DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
 
-            if (vAN != null) {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative VAN", new FlotSeries() { ChartLabel = "VAN First Derivative", DataPoints = vAN.DataPoints.Select((point, index) => {
-                    double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                    double y = point.Value;
-
-                    if (index == 0) {
-                        lastX = x;
-                        lastY = y;
-                    }
-
-                    return new double[] { x, (y - lastY)/(x - lastX) };
-                }).ToList() });
-            }
-
-            if (iAN != null)
-            {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative IAN", new FlotSeries()
-                {
-                    ChartLabel = "IAN First Derivative",
-                    DataPoints = iAN.DataPoints.Select((point, index) => {
-                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                        double y = point.Value;
-
-                        if (index == 0)
-                        {
-                            lastX = x;
-                            lastY = y;
-                        }
-
-                        return new double[] { x, (y - lastY) / (x - lastX) };
-                    }).ToList()
-                });
-            }
-
-            if (vBN != null)
-            {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative VBN", new FlotSeries()
-                {
-                    ChartLabel = "VBN First Derivative",
-                    DataPoints = vBN.DataPoints.Select((point, index) => {
-                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                        double y = point.Value;
-
-                        if (index == 0)
-                        {
-                            lastX = x;
-                            lastY = y;
-                        }
-
-                        return new double[] { x, (y - lastY) / (x - lastX) };
-                    }).ToList()
-                });
-            }
-
-            if (iBN != null)
-            {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative IBN", new FlotSeries()
-                {
-                    ChartLabel = "IBN First Derivative",
-                    DataPoints = iBN.DataPoints.Select((point, index) => {
-                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                        double y = point.Value;
-
-                        if (index == 0)
-                        {
-                            lastX = x;
-                            lastY = y;
-                        }
-
-                        return new double[] { x, (y - lastY) / (x - lastX) };
-                    }).ToList()
-                });
-            }
-
-            if (vCN != null)
-            {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative VCN", new FlotSeries()
-                {
-                    ChartLabel = "VCN First Derivative",
-                    DataPoints = vCN.DataPoints.Select((point, index) => {
-                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                        double y = point.Value;
-
-                        if (index == 0)
-                        {
-                            lastX = x;
-                            lastY = y;
-                        }
-
-                        return new double[] { x, (y - lastY) / (x - lastX) };
-                    }).ToList()
-                });
-            }
-
-            if (iCN != null)
-            {
-                double lastX = 0;
-                double lastY = 0;
-
-                dataLookup.Add("First Derivative ICN", new FlotSeries()
-                {
-                    ChartLabel = "ICN First Derivative",
-                    DataPoints = iCN.DataPoints.Select((point, index) => {
-                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
-                        double y = point.Value;
-
-                        if (index == 0)
-                        {
-                            lastX = x;
-                            lastY = y;
-                        }
-
-                        return new double[] { x, (y - lastY) / (x - lastX) };
-                    }).ToList()
-                });
-            }
-
-
+            if (vAN != null) dataLookup.Add("First Derivative VAN", GetFirstDerivativeFlotSeries(vAN, "VAN"));
+            if (iAN != null) dataLookup.Add("First Derivative IAN", GetFirstDerivativeFlotSeries(iAN, "IAN"));
+            if (vBN != null) dataLookup.Add("First Derivative VBN", GetFirstDerivativeFlotSeries(vBN, "VBN"));
+            if (iBN != null) dataLookup.Add("First Derivative IBN", GetFirstDerivativeFlotSeries(iBN, "IBN"));
+            if (vCN != null) dataLookup.Add("First Derivative VCN", GetFirstDerivativeFlotSeries(vCN, "VCN"));
+            if (iCN != null) dataLookup.Add("First Derivative ICN", GetFirstDerivativeFlotSeries(iCN, "ICN"));
 
             return dataLookup;
         }
+
+        private FlotSeries GetFirstDerivativeFlotSeries(DataSeries dataSeries, string label)
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.LineID) ?? 1;
+
+                double lastX = 0;
+                double lastY = 0;
+
+                FlotSeries flotSeries = new FlotSeries()
+                {
+                    ChartLabel = label + " First Derivative",
+                    DataPoints = dataSeries.DataPoints.Select((point, index) => {
+                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
+                        double y = point.Value;
+
+                        if (index == 0)
+                        {
+                            lastX = x;
+                            lastY = y;
+                        }
+
+                        double[] arr = new double[] { x, (y - lastY) / (x - lastX) };
+
+                        lastY = y;
+                        lastX = x;
+
+                        return arr;
+                    }).ToList()
+                };
+
+                return flotSeries;
+            }
+
+        }
+
         #endregion
 
         #region [ Impedance ]
@@ -1505,15 +1560,13 @@ namespace OpenSEE.Controller
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
             double systemFrequency;
-            DataSeries vAN;
-            DataSeries vBN;
-            DataSeries vCN;
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-                vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
-                vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
-                vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
             }
 
 
@@ -1564,6 +1617,145 @@ namespace OpenSEE.Controller
 
 
             return dataLookup;
+        }
+        #endregion
+
+        #region [ Clipped Waveforms ]
+        [HttpGet]
+        public Task<JsonReturn> GetClippedWaveformsData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = int.Parse(query["pixels"]);
+                    DataTable table;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
+                        Dictionary<string, FlotSeries> temp = QueryClippedWaveformsData(eventID, eventStartTime, meter);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                    List<FlotSeries> returnList = new List<FlotSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        returnList.Add(series);
+                    }
+                    JsonReturn returnDict = new JsonReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = calcTime;
+                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FlotSeries> QueryClippedWaveformsData(int eventID, DateTime startTime, Meter meter)
+        {
+            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetClippedWaveformsLookup(dataGroup);
+        }
+
+        private Dictionary<string, FlotSeries> GetClippedWaveformsLookup(DataGroup dataGroup)
+        {
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null)
+                dataLookup.Add("Fixed Clipping VAN", GenerateFixedWaveform(systemFrequency, vAN, "VAN"));
+            if (vBN != null)
+                dataLookup.Add("Fixed Clipping VBN", GenerateFixedWaveform(systemFrequency, vBN, "VBN"));
+            if (vCN != null)
+                dataLookup.Add("Fixed Clipping VCN", GenerateFixedWaveform(systemFrequency, vCN, "VCN"));
+            if (iAN != null)
+                dataLookup.Add("Fixed Clipping IAN", GenerateFixedWaveform(systemFrequency, iAN, "IAN"));
+            if (iBN != null)
+                dataLookup.Add("Fixed Clipping IBN", GenerateFixedWaveform(systemFrequency, iBN, "IBN"));
+            if (iCN != null)
+                dataLookup.Add("Fixed Clipping ICN", GenerateFixedWaveform(systemFrequency, iCN, "ICN"));
+
+            return dataLookup;
+        }
+
+        private FlotSeries GenerateFixedWaveform(double systemFrequency, DataSeries dataSeries, string label) {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+
+            FlotSeries fitWave = new FlotSeries()
+            {
+                ChartLabel = label + " Fixed Clipping",
+                DataPoints = new List<double[]>()
+            };
+
+            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            {
+                double max = cycle.Select(point => Math.Abs(point.Value)).Max();
+                double threshold = max / 2;
+                IEnumerable<DataPoint> filteredDataPoints = cycle.Where(point => Math.Abs(point.Value) <= threshold);
+
+                SineWave sineWave = WaveFit.SineFit(filteredDataPoints.Select(point => point.Value).ToArray(), filteredDataPoints.Select(point => point.Time.Subtract(m_epoch).TotalSeconds).ToArray(), systemFrequency);
+
+                fitWave.DataPoints = fitWave.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, sineWave.CalculateY(point.Time.Subtract(m_epoch).TotalSeconds) })).ToList();
+            }
+
+            return fitWave;
         }
         #endregion
 
@@ -1946,6 +2138,273 @@ namespace OpenSEE.Controller
 
 
             return dataLookup;
+        }
+        #endregion
+
+        #region [ Rapid Voltage Change ]
+        [HttpGet]
+        public Task<JsonReturn> GetRapidVoltageChangeData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = int.Parse(query["pixels"]);
+                    DataTable table;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
+                        Dictionary<string, FlotSeries> temp = QueryRapidVoltageChangeData(eventID, eventStartTime, meter);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                    List<FlotSeries> returnList = new List<FlotSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        returnList.Add(series);
+                    }
+                    JsonReturn returnDict = new JsonReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = calcTime;
+                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                    return returnDict;
+
+
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FlotSeries> QueryRapidVoltageChangeData(int eventID, DateTime startTime, Meter meter)
+        {
+            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
+            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
+
+            if (vICycleDataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
+                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetRapidVoltageChangeLookup(vICycleDataGroup);
+        }
+
+        private Dictionary<string, FlotSeries> GetRapidVoltageChangeLookup(VICycleDataGroup vICycleDataGroup)
+        {
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+            if (vICycleDataGroup.VA.RMS != null) dataLookup.Add("Rapid Voltage Change VAN", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VA.RMS, "VAN"));
+            if (vICycleDataGroup.VB.RMS != null) dataLookup.Add("Rapid Voltage Change VBN", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VB.RMS, "VBN"));
+            if (vICycleDataGroup.VC.RMS != null) dataLookup.Add("Rapid Voltage Change VCN", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VC.RMS, "VCN"));
+
+            return dataLookup;
+        }
+
+        private FlotSeries GetRapidVoltageChangeFlotSeries(DataSeries dataSeries, string label) {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.LineID) ?? 1;
+
+                double lastY = 0;
+
+                FlotSeries flotSeries = new FlotSeries()
+                {
+                    ChartLabel = label + " Rapid Voltage Change",
+                    DataPoints = dataSeries.DataPoints.Select((point, index) => {
+                        double x = point.Time.Subtract(m_epoch).TotalMilliseconds;
+                        double y = point.Value;
+
+                        if (index == 0)
+                        {
+                            lastY = y;
+                        }
+
+                        double[] arr =  new double[] { x, (y - lastY) * 100 / nominalVoltage };
+
+                        lastY = y;
+
+                        return arr;
+                    }).ToList()
+                };
+
+                return flotSeries;
+            }
+
+        }
+        #endregion
+
+        #region [ Frequency ]
+        [HttpGet]
+        public Task<JsonReturn> GetFrequencyData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = int.Parse(query["pixels"]);
+                    DataTable table;
+                    double calcTime;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
+                        Dictionary<string, FlotSeries> temp = QueryFrequencyData(eventID, eventStartTime, meter);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+                    //double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                    List<FlotSeries> returnList = new List<FlotSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        returnList.Add(series);
+                    }
+                    JsonReturn returnDict = new JsonReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = 0;
+                    returnDict.CalculationEnd = 0 + 1000 / systemFrequency;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FlotSeries> QueryFrequencyData(int eventID, DateTime startTime, Meter meter)
+        {
+            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetFrequencyLookup(dataGroup);
+        }
+
+        private Dictionary<string, FlotSeries> GetFrequencyLookup(DataGroup dataGroup)
+        {
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null)
+                dataLookup.Add("Frequency", GenerateFrequency(systemFrequency, vAN, ""));
+            //if (vBN != null)
+            //    dataLookup.Add("Frequency VBN", GenerateFrequency(systemFrequency, vBN, "VBN"));
+            //if (vCN != null)
+            //    dataLookup.Add("Frequency VCN", GenerateFrequency(systemFrequency, vCN, "VCN"));
+
+            return dataLookup;
+        }
+
+        private FlotSeries GenerateFrequency(double systemFrequency, DataSeries dataSeries, string label)
+        {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            //var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+
+            FlotSeries fitWave = new FlotSeries()
+            {
+                ChartLabel = label + "Frequency",
+                DataPoints = new List<double[]>()
+            };
+
+            double thresholdValue = 0;
+
+
+            List<DataPoint> crosses = dataSeries.DataPoints.Select((DataPoint, Index) => new { DataPoint, Index }).Where(obj => {
+                if (obj.DataPoint.Value == thresholdValue) return true;
+                else if (obj.Index == 0) return false;
+                else if (dataSeries.DataPoints.ToList()[obj.Index - 1].Value < thresholdValue) return obj.DataPoint.Value >= thresholdValue;
+                else if (dataSeries.DataPoints.ToList()[obj.Index - 1].Value >= thresholdValue) return obj.DataPoint.Value < thresholdValue;
+                else return false;
+            }).Select(obj => obj.DataPoint).ToList();
+
+            fitWave.DataPoints = crosses.Select((dataPoint, index) => {
+                double frequency = (index == 0 ? systemFrequency : 1 / (dataPoint.Time.Subtract(m_epoch).TotalSeconds - crosses[index - 1].Time.Subtract(m_epoch).TotalSeconds)/2);
+                return new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, frequency };
+            }).ToList(); 
+
+            return fitWave;
         }
         #endregion
 
@@ -2413,10 +2872,158 @@ namespace OpenSEE.Controller
 
             return dataLookup;
         }
-
-
         #endregion
 
+        #region [ THD ]
+        [HttpGet]
+        public Task<JsonReturn> GetTHDData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = int.Parse(query["pixels"]);
+                    DataTable table;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
+                        Dictionary<string, FlotSeries> temp = QueryTHDData(eventID, eventStartTime, meter);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                    List<FlotSeries> returnList = new List<FlotSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        returnList.Add(series);
+                    }
+                    JsonReturn returnDict = new JsonReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = calcTime;
+                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FlotSeries> QueryTHDData(int eventID, DateTime startTime, Meter meter)
+        {
+            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return GetTHDLookup(dataGroup);
+        }
+
+        private Dictionary<string, FlotSeries> GetTHDLookup(DataGroup dataGroup)
+        {
+            Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null) dataLookup.Add("THD VAN", GenerateTHD(systemFrequency, vAN, "VAN"));
+            if (vBN != null) dataLookup.Add("THD VBN", GenerateTHD(systemFrequency, vBN, "VBN"));
+            if (vCN != null) dataLookup.Add("THD VCN", GenerateTHD(systemFrequency, vCN, "VCN"));
+            if (iAN != null) dataLookup.Add("THD IAN", GenerateTHD(systemFrequency, iAN, "IAN"));
+            if (iBN != null) dataLookup.Add("THD IBN", GenerateTHD(systemFrequency, iBN, "IBN"));
+            if (iCN != null) dataLookup.Add("THD ICN", GenerateTHD(systemFrequency, iCN, "ICN"));
+
+            return dataLookup;
+        }
+
+        private FlotSeries GenerateTHD(double systemFrequency, DataSeries dataSeries, string label)
+        {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+
+            FlotSeries thd = new FlotSeries()
+            {
+                ChartLabel = label + " THD",
+                DataPoints = new List<double[]>()
+            };
+
+            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            {
+                if (cycle.Count() != samplesPerCycle) continue;
+                double[] points = cycle.Select(point => point.Value / samplesPerCycle).ToArray();
+                double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
+
+                Complex[] result = FFT(points);
+
+                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, i) => Math.Pow(result[i].Magnitude / Math.Sqrt(2), 2)).Sum();
+                int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == 60.0D);
+                double rmsHarm = result[index].Magnitude / Math.Sqrt(2);
+                double thdValue = 100 * Math.Sqrt(rmsHarmSum) / rmsHarm - 100;
+
+                thd.DataPoints = thd.DataPoints.Concat( cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, thdValue})).ToList();
+            }
+
+            return thd;
+        }
+
+        private Complex[] FFT(double[] samples)
+        {
+            Complex[] complexSamples = samples
+                .Select(sample => new Complex(sample, 0))
+                .ToArray();
+
+            Fourier.Forward(complexSamples, FourierOptions.NoScaling);
+
+            return complexSamples;
+        }
+
+        #endregion
 
         #endregion
 
@@ -2640,8 +3247,6 @@ namespace OpenSEE.Controller
         #endregion
 
         #endregion
-
-
 
     }
 }

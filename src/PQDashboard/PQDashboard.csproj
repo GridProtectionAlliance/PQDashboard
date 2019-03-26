@@ -420,6 +420,7 @@
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEE2.js" />
@@ -1275,11 +1276,20 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\RapidVoltageChange.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Rectifier.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Unbalance.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\SymmetricalComponents.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\LineChartAnalyticBase.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\FaultLocation.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
@@ -1290,6 +1300,7 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\MultiselectWindow.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENavbar.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENoteModal.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Digital.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\AccumulatedPoints.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\HarmonicStats.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
