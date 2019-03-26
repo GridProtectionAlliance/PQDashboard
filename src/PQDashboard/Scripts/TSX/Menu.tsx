@@ -25,6 +25,8 @@ import * as React from 'react';
 import * as _ from "lodash";
 import './../jquery-ui.js';
 
+declare var homePath: string
+
 export default class Menu extends React.Component<any, any>{
     props: {
         eventID: number,
@@ -149,7 +151,7 @@ export default class Menu extends React.Component<any, any>{
     }
 
     exportComtrade() {
-        window.open(`/OpenSEEComtradeDownload.ashx?eventID=${this.props.eventID}` +
+        window.open(homePath + `OpenSEEComtradeDownload.ashx?eventID=${this.props.eventID}` +
             `${this.props.startDate != undefined ? `&startDate=${this.props.startDate}` : ``}` +
             `${this.props.endDate != undefined ? `&endDate=${this.props.endDate}` : ``}` +
             `&Meter=${this.props.postedMeterName}` +
