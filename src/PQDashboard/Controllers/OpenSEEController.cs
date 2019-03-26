@@ -501,10 +501,37 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                DataRow row = connection.RetrieveRow("SELECT LineID, StartTime, EndTime FROM Event WHERE ID = {0}", eventID);
-                int lineID = row.ConvertField<int>("LineID");
+                const string Query =
+                    "SELECT " +
+                    "    Line.AssetKey AS LineKey, " +
+                    "    DATEADD(SECOND, -2, Fault.Inception) AS StartTime, " +
+                    "    DATEADD(SECOND, 2, Fault.Inception) AS EndTime " +
+                    "FROM " +
+                    "    Event JOIN " +
+                    "    Line ON Event.LineID = Line.ID CROSS APPLY " +
+                    "    ( " +
+                    "        SELECT " +
+                    "            DATEADD " +
+                    "            ( " +
+                    "                MINUTE, " +
+                    "                -Event.TimeZoneOffset, " +
+                    "                DATEADD " +
+                    "                ( " +
+                    "                    NANOSECOND, " +
+                    "                    -DATEPART(NANOSECOND, FaultSummary.Inception), " +
+                    "                    FaultSummary.Inception " +
+                    "                ) " +
+                    "            ) AS Inception " +
+                    "        FROM FaultSummary " +
+                    "        WHERE " +
+                    "            FaultSummary.EventID = Event.ID AND " +
+                    "            FaultSummary.FaultNumber = 1 AND " +
+                    "            FaultSummary.IsSelectedAlgorithm <> 0 " +
+                    "    ) Fault " +
+                    "WHERE Event.ID = {0}";
 
-                string LineKey = connection.ExecuteScalar<string>("SELECT AssetKey FROM Line WHERE ID = {0}", lineID);
+                DataRow row = connection.RetrieveRow(Query, eventID);
+                string LineKey = row.ConvertField<string>("LineKey");
                 DateTime StartTime = row.ConvertField<DateTime>("StartTime");
                 DateTime EndTime = row.ConvertField<DateTime>("EndTime");
                 return new { LineKey, StartTime, EndTime };
