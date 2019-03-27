@@ -52,27 +52,47 @@ export default class LightningData extends React.Component<any, any>{
         if (lightningQuery === undefined)
             return;
 
+        var updateTable = displayData => {
+            var arr = Array.isArray(displayData) ? displayData : [displayData];
+            var header = HeaderRow(arr[0]);
+            var rows = arr.map(Row);
+            this.setState({ header: header, rows: rows });
+        };
+
+        var errHandler = err => {
+            var message = "Unknown error";
+
+            if (typeof (err) === "string")
+                message = err;
+            else if (err && typeof (err.message) === "string")
+                message = err.message;
+
+            updateTable({ Error: message });
+        };
+
+        updateTable({ State: "Loading..." });
+        this.props.callback({ enableLightningData: true });
+
         this.openSEEService.getLightningParameters(this.props.eventId).done(lightningParameters => {
+            var noData = { State: "No Data" };
+
             var lineKey = lightningParameters.LineKey;
             var startTime = moment.utc(lightningParameters.StartTime).toDate();
             var endTime = moment.utc(lightningParameters.EndTime).toDate();
 
+            if (!lineKey) {
+                updateTable(noData);
+                return;
+            }
+
             lightningQuery.queryLineGeometry(lineKey, lineGeometry => {
                 lightningQuery.queryLineBufferGeometry(lineGeometry, lineBufferGeometry => {
                     lightningQuery.queryLightningData(lineBufferGeometry, startTime, endTime, lightningData => {
-                        var header = null;
-
-                        if (lightningData.length === 0)
-                            header = HeaderRow({ "No Data": "" });
-                        else
-                            header = HeaderRow(lightningData[0]);
-
-                        var rows = lightningData.map(row => Row(row));
-                        this.setState({ header: header, rows: rows });
-                        this.props.callback({ enableLightningData: true });
-                    });
-                });
-            });
+                        var displayData = (lightningData.length !== 0) ? lightningData : noData;
+                        updateTable(displayData);
+                    }, errHandler);
+                }, errHandler);
+            }, errHandler);
         });
     }
 
@@ -99,10 +119,10 @@ export default class LightningData extends React.Component<any, any>{
     }
 }
 
-const Row = (row) => {
+const Row = (row, index) => {
     return (
-        <tr style={{ display: 'table', tableLayout: 'fixed', width: '100%' }} key={row.label}>
-            {Object.keys(row).map(key => <td>{row[key]}</td>)}
+        <tr style={{ display: 'table', tableLayout: 'fixed', width: '100%' }} key={"row" + index.toString()}>
+            {Object.keys(row).map(key => <td key={"row" + index.toString() + key}>{row[key]}</td>)}
         </tr>
     );
 }
