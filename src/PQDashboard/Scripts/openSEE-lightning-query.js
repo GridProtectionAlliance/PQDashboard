@@ -44,7 +44,7 @@
         });
     }
 
-    exportFunction("queryLineGeometry", function (lineKey, callback) {
+    exportFunction("queryLineGeometry", function (lineKey, callback, errCallback) {
         var lineQueryTask = new _queryTask("https://gis.tva.gov/arcgis/rest/services/EGIS_Transmission/Transmission_Grid_Restricted_2/MapServer/6");
 
         var lineQuery = new _query();
@@ -55,10 +55,10 @@
         lineQueryTask.execute(lineQuery, function (results) {
             var totalLine = results.features.map(function (feature) { return feature.geometry; });
             callback(totalLine);
-        });
+        }, errCallback);
     });
 
-    exportFunction("queryLineBufferGeometry", function (lineGeometry, callback) {
+    exportFunction("queryLineBufferGeometry", function (lineGeometry, callback, errCallback) {
         var geometryService = new _geometryService("https://gis.tva.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
 
         var bufferParameters = new _bufferParameters();
@@ -69,11 +69,12 @@
 
         geometryService.buffer(bufferParameters, function (geometries) {
             callback(geometries[0]);
-        });
+        }, errCallback);
     });
 
-    exportFunction("queryLightningData", function (lineBufferGeometry, startTime, endTime, callback) {
-        var lightningQueryTask = new _queryTask("https://gis.tva.gov/arcgis/rest/services/EGIS/LightningQuery/MapServer/0");
+    exportFunction("queryLightningData", function (lineBufferGeometry, startTime, endTime, callback, errCallback) {
+        var vaisalaQueryTask = new _queryTask("https://gis.tva.gov/arcgis/rest/services/EGIS/LightningQuery/MapServer/0");
+        var weatherbugQueryTask = new _queryTask("https://gis.tva.gov/arcgis/rest/services/EGIS/LightningQuery/MapServer/1");
         var timeExtent = new _timeExtent(startTime, endTime);
 
         var lightningQuery = new _query();
@@ -83,10 +84,40 @@
         lightningQuery.geometry = lineBufferGeometry;
         lightningQuery.spatialrelationship = _query.SPATIAL_REL_INTERSECTS;
 
-        lightningQueryTask.execute(lightningQuery, function (results) {
-            var lightningData = results.features.map(function (feature) { return feature.attributes; });
-            callback(lightningData);
-        });
+        var provide = (function () {
+            var vaisalaData;
+            var weatherbugData;
+
+            return function (queryTask, lightningData) {
+                if (queryTask === vaisalaQueryTask)
+                    vaisalaData = lightningData;
+                else if (queryTask === weatherbugQueryTask)
+                    weatherbugData = lightningData;
+
+                if (vaisalaData === undefined || weatherbugData === undefined)
+                    return;
+
+                callback(vaisalaData.concat(weatherbugData));
+            };
+        })();
+
+        vaisalaQueryTask.execute(lightningQuery, function (results) {
+            var vaisalaData = results.features.map(function (feature) {
+                feature.attributes.SERVICE = "Vaisala";
+                return feature.attributes;
+            });
+
+            provide(vaisalaQueryTask, vaisalaData);
+        }, errCallback);
+
+        weatherbugQueryTask.execute(lightningQuery, function (results) {
+            var weatherbugData = results.features.map(function (feature) {
+                feature.attributes.SERVICE = "WeatherBug";
+                return feature.attributes;
+            });
+
+            provide(weatherbugQueryTask, weatherbugData);
+        }, errCallback);
     });
 
     return $this;
