@@ -21,18 +21,13 @@
 //
 //******************************************************************************************************
 
-using FaultData.DataAnalysis;
 using FaultData.DataWriters;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Threading;
 using openXDA.Model;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Data;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -47,7 +42,7 @@ namespace PQDashboard
     /// </summary>
     public class OpenSEEComtradeDownload : IHttpHandler
     {
-        #region [Members]
+        #region [ Members ]
 
         // Nested Types
         private class HttpResponseCancellationToken : CompatibleCancellationToken
@@ -62,10 +57,11 @@ namespace PQDashboard
             public override bool IsCancelled => !m_reponse.IsClientConnected;
         }
 
-        const string ContentType = "application/zip";
+        private const string ContentType = "application/zip";
+
         #endregion
 
-        #region [Properties]
+        #region [ Properties ]
 
         /// <summary>
         /// Gets a value indicating whether another request can use the <see cref="IHttpHandler"/> instance.
@@ -87,22 +83,25 @@ namespace PQDashboard
         public string Filename { get; private set; }
 
         private COMTRADEWriter COMTRADEWriter { get; set; }
+
         #endregion
 
-        #region [Constructor]
-        public OpenSEEComtradeDownload() {
+        #region [ Constructors ]
+
+        public OpenSEEComtradeDownload()
+        {
             COMTRADEWriter = new COMTRADEWriter();
         }
+
         #endregion
 
-        #region [Methods]
+        #region [ Methods ]
 
         public void ProcessRequest(HttpContext context)
         {
             HttpResponse response = HttpContext.Current.Response;
             HttpResponseCancellationToken cancellationToken = new HttpResponseCancellationToken(response);
             NameValueCollection requestParameters = context.Request.QueryString;
-
 
             try
             {
@@ -121,7 +120,6 @@ namespace PQDashboard
                     COMTRADEWriter.WriteResults(evt.MeterID, evt.LineID, startDate, endDate, response.OutputStream);
                 }
             }
-
             catch (Exception e)
             {
                 LogExceptionHandler?.Invoke(e);
@@ -173,13 +171,10 @@ namespace PQDashboard
 
         #endregion
 
-        #region [Static]
+        #region [ Static ]
+
         public static Action<Exception> LogExceptionHandler;
 
         #endregion
-
     }
-
-
-
 }
