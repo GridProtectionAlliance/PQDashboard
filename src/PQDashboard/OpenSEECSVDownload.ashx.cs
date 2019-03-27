@@ -22,6 +22,7 @@
 //******************************************************************************************************
 
 using FaultData.DataAnalysis;
+using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Threading;
@@ -165,21 +166,23 @@ namespace PQDashboard
         // Converts the data group row of CSV data.
         private string ToCSV(Dictionary<string, DataSeries> dict, int index)
         {
-            IEnumerable<string> row = new List<string>() { dict[dict.Keys.First()].DataPoints[index].Time.ToString("MM/dd/yyyy HH:mm:ss.fffffff") };
+            DateTime timestamp = dict.Values.First().DataPoints[index].Time;
+            IEnumerable<string> row = new List<string>() { timestamp.ToString("MM/dd/yyyy HH:mm:ss.fffffff"), timestamp.ToString("fffffff") };
+
             row = row.Concat(dict.Keys.Select(x => {
                 if (dict[x].DataPoints.Count > index)
                     return dict[x].DataPoints[index].Value.ToString();
                 else
                     return string.Empty;
             }));
+
             return string.Join(",", row);
         }
 
         // Converts the data group row of CSV data.
         private string GetCSVHeader(Dictionary<string, DataSeries> dict)
         {
-            IEnumerable<string> headers = new List<string>() { "TimeStamp" };
-//            dataSeries.First().SeriesInfo.SeriesType.
+            IEnumerable<string> headers = new List<string>() { "TimeStamp", "SubSecond" };
             headers = headers.Concat(dict.Keys);
             return string.Join(",", headers);
         }
@@ -309,7 +312,8 @@ namespace PQDashboard
             }
         }
 
-        public Dictionary<string, DataSeries> BuildDataSeries(NameValueCollection requestParameters) {
+        public Dictionary<string, DataSeries> BuildDataSeries(NameValueCollection requestParameters)
+        {
             using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 int eventID = int.Parse(requestParameters["eventID"]);
@@ -326,20 +330,49 @@ namespace PQDashboard
 
         private Dictionary<string, DataSeries> QueryEventData(AdoDataConnection connection, Meter meter, DateTime startTime, DateTime endTime)
         {
-            double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-            byte[] timeDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID IN (SELECT EventDataID FROM Event WHERE MeterID = {0} AND StartTime >= {1} AND EndTime <= {2})", meter.ID, ToDateTime2(connection, startTime), ToDateTime2(connection, endTime));
-            Dictionary<string, DataSeries> dict = new Dictionary<string, DataSeries>();
-            DataGroup dataGroup = ToDataGroup(meter, timeDomainData);
-            foreach (DataSeries dataSeries in dataGroup.DataSeries)
-                dict.Add(dataSeries.SeriesInfo.Channel.Name, dataSeries);
+            Func<IEnumerable<DataSeries>, DataSeries> merge = grouping =>
+            {
+                DataSeries mergedSeries = DataSeries.Merge(grouping);
+                mergedSeries.SeriesInfo = grouping.First().SeriesInfo;
+                return mergedSeries;
+            };
 
-            VICycleDataGroup viCycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-            foreach (CycleDataGroup cycleDataGroup in viCycleDataGroup.CycleDataGroups) {
-                DataGroup dg = cycleDataGroup.ToDataGroup();
-                string channelName = dg.DataSeries.First().SeriesInfo.Channel.Name;
-                dict.Add(channelName + " RMS", cycleDataGroup.RMS);
-                dict.Add(channelName + " Angle", cycleDataGroup.Phase);
+            double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+            DataTable dataTable = connection.RetrieveData("SELECT TimeDomainData FROM EventData WHERE ID IN (SELECT EventDataID FROM Event WHERE MeterID = {0} AND EndTime >= {1} AND StartTime <= {2})", meter.ID, ToDateTime2(connection, startTime), ToDateTime2(connection, endTime));
+            Dictionary<string, DataSeries> dict = new Dictionary<string, DataSeries>();
+
+            IEnumerable<DataGroup> dataGroups = dataTable
+                .Select()
+                .Select(row => row.ConvertField<byte[]>("TimeDomainData"))
+                .Select(timeDomainData => ToDataGroup(meter, timeDomainData))
+                .OrderBy(subGroup => subGroup.StartTime)
+                .ToList();
+
+            List<DataSeries> mergedSeriesList = dataGroups
+                .SelectMany(dataGroup => dataGroup.DataSeries)
+                .GroupBy(dataSeries => dataSeries.SeriesInfo.Channel.Name)
+                .Select(merge)
+                .ToList();
+
+            DataGroup mergedGroup = new DataGroup();
+            mergedSeriesList.ForEach(mergedSeries => mergedGroup.Add(mergedSeries));
+
+            foreach (DataSeries dataSeries in mergedGroup.DataSeries)
+            {
+                string key = dataSeries.SeriesInfo.Channel.Name;
+                dict.GetOrAdd(key, _ => dataSeries.ToSubSeries(startTime, endTime));
             }
+
+            VICycleDataGroup viCycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(mergedGroup), systemFrequency);
+
+            foreach (CycleDataGroup cycleDataGroup in viCycleDataGroup.CycleDataGroups)
+            {
+                DataGroup dg = cycleDataGroup.ToDataGroup();
+                string key = dg.DataSeries.First().SeriesInfo.Channel.Name;
+                dict.GetOrAdd(key + " RMS", _ => cycleDataGroup.RMS.ToSubSeries(startTime, endTime));
+                dict.GetOrAdd(key + " Angle", _ => cycleDataGroup.Phase.ToSubSeries(startTime, endTime));
+            }
+
             return dict;
         }
 
