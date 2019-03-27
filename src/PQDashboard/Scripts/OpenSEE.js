@@ -101001,24 +101001,39 @@ var LightningData = (function (_super) {
         var lightningQuery = window.LightningQuery;
         if (lightningQuery === undefined)
             return;
+        var updateTable = function (displayData) {
+            var arr = Array.isArray(displayData) ? displayData : [displayData];
+            var header = HeaderRow(arr[0]);
+            var rows = arr.map(Row);
+            _this.setState({ header: header, rows: rows });
+        };
+        var errHandler = function (err) {
+            var message = "Unknown error";
+            if (typeof (err) === "string")
+                message = err;
+            else if (err && typeof (err.message) === "string")
+                message = err.message;
+            updateTable({ Error: message });
+        };
+        updateTable({ State: "Loading..." });
+        this.props.callback({ enableLightningData: true });
         this.openSEEService.getLightningParameters(this.props.eventId).done(function (lightningParameters) {
+            var noData = { State: "No Data" };
             var lineKey = lightningParameters.LineKey;
             var startTime = moment.utc(lightningParameters.StartTime).toDate();
             var endTime = moment.utc(lightningParameters.EndTime).toDate();
+            if (!lineKey) {
+                updateTable(noData);
+                return;
+            }
             lightningQuery.queryLineGeometry(lineKey, function (lineGeometry) {
                 lightningQuery.queryLineBufferGeometry(lineGeometry, function (lineBufferGeometry) {
                     lightningQuery.queryLightningData(lineBufferGeometry, startTime, endTime, function (lightningData) {
-                        var header = null;
-                        if (lightningData.length === 0)
-                            header = HeaderRow({ "No Data": "" });
-                        else
-                            header = HeaderRow(lightningData[0]);
-                        var rows = lightningData.map(function (row) { return Row(row); });
-                        _this.setState({ header: header, rows: rows });
-                        _this.props.callback({ enableLightningData: true });
-                    });
-                });
-            });
+                        var displayData = (lightningData.length !== 0) ? lightningData : noData;
+                        updateTable(displayData);
+                    }, errHandler);
+                }, errHandler);
+            }, errHandler);
         });
     };
     LightningData.prototype.render = function () {
@@ -101037,8 +101052,8 @@ var LightningData = (function (_super) {
     return LightningData;
 }(React.Component));
 exports.default = LightningData;
-var Row = function (row) {
-    return (React.createElement("tr", { style: { display: 'table', tableLayout: 'fixed', width: '100%' }, key: row.label }, Object.keys(row).map(function (key) { return React.createElement("td", null, row[key]); })));
+var Row = function (row, index) {
+    return (React.createElement("tr", { style: { display: 'table', tableLayout: 'fixed', width: '100%' }, key: "row" + index.toString() }, Object.keys(row).map(function (key) { return React.createElement("td", { key: "row" + index.toString() + key }, row[key]); })));
 };
 var HeaderRow = function (row) {
     return (React.createElement("tr", { key: 'Header' }, Object.keys(row).map(function (key) { return React.createElement("th", { key: key }, key); })));
