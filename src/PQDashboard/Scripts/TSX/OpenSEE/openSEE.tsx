@@ -60,6 +60,7 @@ import THD from './Analytics/THD';
 import Frequency from './Analytics/Frequency';
 import FFT from './Analytics/FFT';
 import SpecifiedHarmonic from './Analytics/SpecifiedHarmonic';
+import OverlappingWaveform from './Analytics/OverlappingWaveform';
 
 import OpenSEENavbar from './Components/OpenSEENavbar';
 import { TabContent, Card } from 'react-bootstrap';
@@ -243,6 +244,7 @@ export class OpenSEE extends React.Component<any, any>{
                         {(this.state.tab == "analysis" && this.state.analytic == "Frequency" ? <Frequency eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
                         {(this.state.tab == "analysis" && this.state.analytic == "FFT" ? <FFT eventId={this.state.eventid}  pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime}/> : null)}
                         {(this.state.tab == "analysis" && this.state.analytic == "SpecifiedHarmonic" ? <SpecifiedHarmonic eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "analysis" && this.state.analytic == "OverlappingWaveform" ? <OverlappingWaveform eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} height={height}  /> : null)}
 
                     </div>
                 </div>

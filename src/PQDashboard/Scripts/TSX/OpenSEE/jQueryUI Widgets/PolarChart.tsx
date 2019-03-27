@@ -73,7 +73,13 @@ const closeButton = style({
     }
 });
 
+export interface PolarChartProps {
+    data: Map<string, { data: number, color: string }>,
+    callback: Function
+}
+
 export default class PolarChart extends React.Component<any, any>{
+    props: PolarChartProps;
     constructor(props) {
         super(props);
     }
@@ -109,18 +115,19 @@ export default class PolarChart extends React.Component<any, any>{
         var ctrl = this;
 
         context.lineWidth = 3;
-        if (!this.props.data.hasOwnProperty('VAN RMS')) return;
+       
+        if (this.props.data.get('VAN RMS') == undefined || this.props.data.get('IAN RMS') == undefined ) return;
 
         var dataV = [
-            { mag: this.props.data['VAN RMS'].data, ang: this.props.data['VAN Phase'].data, color: this.props.data['VAN RMS'].color },
-            { mag: this.props.data['VBN RMS'].data, ang: this.props.data['VBN Phase'].data, color: this.props.data['VBN RMS'].color },
-            { mag: this.props.data['VCN RMS'].data, ang: this.props.data['VCN Phase'].data, color: this.props.data['VCN RMS'].color }
+            { mag: this.props.data.get('VAN RMS').data, ang: this.props.data.get('VAN Phase').data, color: this.props.data.get('VAN RMS').color },
+            { mag: this.props.data.get('VBN RMS').data, ang: this.props.data.get('VBN Phase').data, color: this.props.data.get('VBN RMS').color },
+            { mag: this.props.data.get('VCN RMS').data, ang: this.props.data.get('VCN Phase').data, color: this.props.data.get('VCN RMS').color }
         ];
 
         var dataI = [
-            { mag: this.props.data['IAN RMS'].data, ang: this.props.data['IAN Phase'].data, color: this.props.data['IAN RMS'].color },
-            { mag: this.props.data['IBN RMS'].data, ang: this.props.data['IBN Phase'].data, color: this.props.data['IBN RMS'].color },
-            { mag: this.props.data['ICN RMS'].data, ang: this.props.data['ICN Phase'].data, color: this.props.data['ICN RMS'].color }
+            { mag: this.props.data.get('IAN RMS').data, ang: this.props.data.get('IAN Phase').data, color: this.props.data.get('IAN RMS').color },
+            { mag: this.props.data.get('IBN RMS').data, ang: this.props.data.get('IBN Phase').data, color: this.props.data.get('IBN RMS').color },
+            { mag: this.props.data.get('ICN RMS').data, ang: this.props.data.get('ICN Phase').data, color: this.props.data.get('ICN RMS').color }
         ];
 
         $.each(dataV, function (key, series) {
@@ -179,6 +186,21 @@ export default class PolarChart extends React.Component<any, any>{
     }
 
     render() {
+        var vanRMS = this.props.data.get('VAN RMS');
+        var vbnRMS = this.props.data.get('VBN RMS');
+        var vcnRMS = this.props.data.get('VCN RMS');
+        var ianRMS = this.props.data.get('IAN RMS');
+        var ibnRMS = this.props.data.get('IBN RMS');
+        var icnRMS = this.props.data.get('ICN RMS');
+
+        var vanPhase = this.props.data.get('VAN Phase');
+        var vbnPhase = this.props.data.get('VBN Phase');
+        var vcnPhase = this.props.data.get('VCN Phase');
+        var ianPhase = this.props.data.get('IAN Phase');
+        var ibnPhase = this.props.data.get('IBN Phase');
+        var icnPhase = this.props.data.get('ICN Phase');
+
+
         return (
             <div id="phasor" className="ui-widget-content" style={outerDiv}>
                 <div id="phasorhandle" className={handle}></div>
@@ -195,33 +217,33 @@ export default class PolarChart extends React.Component<any, any>{
                         <tbody>
                             <tr>
                                 <td>VAN</td>
-                                <td>{(this.props.data['VAN RMS'] != null ? this.props.data['VAN RMS'].data.toFixed(2) : null)}</td>
-                                <td>{(this.props.data['VAN Phase'] != null ? this.props.data['VAN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{( vanRMS != undefined ? vanRMS.data.toFixed(2) : null)}</td>
+                                <td>{(vanPhase != undefined ? vanPhase.data.toFixed(2) : null)}</td>
                             </tr>
                             <tr>
                                 <td>VBN</td>
-                                <td>{(this.props.data['VBN RMS'] != null ? this.props.data['VBN RMS'].data.toFixed(2)  : null)}</td>
-                                <td>{(this.props.data['VBN Phase'] != null ? this.props.data['VBN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{(vbnRMS != undefined ? vbnRMS.data.toFixed(2) : null)}</td>
+                                <td>{(vbnPhase != undefined ? vbnPhase.data.toFixed(2) : null)}</td>
                             </tr>
                             <tr>
                                 <td>VCN</td>
-                                <td>{(this.props.data['VCN RMS'] != null ? this.props.data['VCN RMS'].data.toFixed(2)  : null)}</td>
-                                <td>{(this.props.data['VCN Phase'] != null ? this.props.data['VCN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{(vcnRMS != undefined ? vcnRMS.data.toFixed(2) : null)}</td>
+                                <td>{(vcnPhase != undefined ? vcnPhase.data.toFixed(2) : null)}</td>
                             </tr>
                             <tr>
                                 <td>IAN</td>
-                                <td>{(this.props.data['IAN RMS'] != null ? this.props.data['IAN RMS'].data.toFixed(2)  : null)}</td>
-                                <td>{(this.props.data['IAN Phase'] != null ? this.props.data['IAN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{(ianRMS != undefined ? ianRMS.data.toFixed(2) : null)}</td>
+                                <td>{(ianPhase != undefined ? ianPhase.data.toFixed(2) : null)}</td>
                             </tr>
                             <tr>
                                 <td>IBN</td>
-                                <td>{(this.props.data['IBN RMS'] != null ? this.props.data['IBN RMS'].data.toFixed(2)  : null)}</td>
-                                <td>{(this.props.data['IBN Phase'] != null ? this.props.data['IBN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{(ibnRMS != undefined ? ibnRMS.data.toFixed(2) : null)}</td>
+                                <td>{(ibnPhase != undefined ? ibnPhase.data.toFixed(2) : null)}</td>
                             </tr>
                             <tr>
                                 <td>ICN</td>
-                                <td>{(this.props.data['ICN RMS'] != null ? this.props.data['ICN RMS'].data.toFixed(2)  : null)}</td>
-                                <td>{(this.props.data['ICN Phase'] != null ? this.props.data['ICN Phase'].data.toFixed(2)  : null)}</td>
+                                <td>{(icnRMS != undefined ? icnRMS.data.toFixed(2) : null)}</td>
+                                <td>{(icnPhase != undefined ? icnPhase.data.toFixed(2) : null)}</td>
                             </tr>
 
                         </tbody>

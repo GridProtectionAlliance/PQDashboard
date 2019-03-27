@@ -49,6 +49,7 @@ export default class OpenSEEService{
     freqencyAnalyticDataHandle: JQuery.jqXHR;
     fftDataHandle: JQuery.jqXHR;
     specifiedHarmonicDataHandle: JQuery.jqXHR;
+    overlappingWaveformDataHandle: JQuery.jqXHR;
 
 
     constructor() {
@@ -71,6 +72,7 @@ export default class OpenSEEService{
         this.getFrequencyAnalyticData = this.getFrequencyAnalyticData.bind(this);
         this.getFFTData = this.getFFTData.bind(this);
         this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
+        this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
 
     }
 
@@ -603,6 +605,24 @@ export default class OpenSEEService{
         });
 
         return this.specifiedHarmonicDataHandle;
+    }
+
+    getOverlappingWaveformData(eventid: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.overlappingWaveformDataHandle !== undefined)
+            this.overlappingWaveformDataHandle.abort();
+
+        this.overlappingWaveformDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetOverlappingWaveformData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.overlappingWaveformDataHandle;
     }
 
 }

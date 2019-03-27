@@ -100,7 +100,7 @@ export default class Legend extends React.Component<any, any>{
                 {(this.props.type.toLowerCase() == "firstderivative" || this.props.type.toLowerCase() == "lowpassfilter" ||
                     this.props.type.toLowerCase() == "highpassfilter" || this.props.type.toLowerCase() == "symmetricalcomponents" ||
                     this.props.type.toLowerCase() == "unbalance" || this.props.type.toLowerCase() == "rectifier" ||
-                    this.props.type.toLowerCase() == "clippedwaveforms" || this.props.type.toLowerCase() == "thd" ?
+                    this.props.type.toLowerCase() == "clippedwaveforms" || this.props.type.toLowerCase() == "thd" || this.props.type.toLowerCase() == "overlappingwaveform" ?
                     <div className="d-flex flex-column btn-group">
                         <ToggleButtonGroup type="radio" name="radio" defaultValue="Volt" onChange={this.toggleFirstDerivative.bind(this)}>
                             <ToggleButton type="radio" name="radio" value="Volt" style={{ width: '50%', height: 28 }}>Volt</ToggleButton>

@@ -113,13 +113,13 @@ namespace OpenSEE.Controller
         [HttpGet]
         public JsonReturn GetData()
         {
-            using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 Dictionary<string, string> query = Request.QueryParameters();
                 int eventId = int.Parse(query["eventId"]);
                 Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
                 Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                meter.ConnectionFactory = () => new AdoDataConnection(connection.Connection, typeof(SqlDataAdapter), false);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
                 int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
                 double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
 
@@ -136,13 +136,17 @@ namespace OpenSEE.Controller
                 foreach (DataRow row in table.Rows)
                 {
                     int eventID = row.ConvertField<int>("ID");
-                    DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
                     Dictionary<string, FlotSeries> temp;
 
-                    if (dataType == "Time")
-                        temp = QueryEventData(eventID, eventStartTime, meter, type);
+                    if (dataType == "Time") {
+                        DataGroup dataGroup = QueryDataGroup(eventId, meter);
+                        temp = GetDataLookup(dataGroup, type);
+                    }
                     else
-                        temp = QueryFrequencyData(eventID, eventStartTime, meter, type);
+                    {
+                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
+                        temp = GetFrequencyDataLookup(viCycleDataGroup, type);
+                    }
 
                     foreach (string key in temp.Keys)
                     {
@@ -178,42 +182,6 @@ namespace OpenSEE.Controller
 
 
             }
-        }
-
-        private Dictionary<string, FlotSeries> QueryEventData(int eventID, DateTime startTime, Meter meter, string type)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}-{type}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
-                    byte[] timeDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, timeDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetDataLookup(dataGroup, type);
-        }
-
-        private Dictionary<string, FlotSeries> QueryFrequencyData(int eventID, DateTime startTime, Meter meter, string type)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}-{type}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), 60);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetFrequencyDataLookup(vICycleDataGroup, type);
         }
 
         private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type)
@@ -329,7 +297,10 @@ namespace OpenSEE.Controller
                 table = connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
                 foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, FlotSeries> temp = QueryBreakerData(int.Parse(row["ID"].ToString()), meter, startTime);
+                    int eventID = row.ConvertField<int>("ID");
+
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetBreakerLookup(dataGroup);
                     foreach (string key in temp.Keys)
                     {
                         if (dict.ContainsKey(key))
@@ -362,24 +333,6 @@ namespace OpenSEE.Controller
             }
         }
 
-        private Dictionary<string, FlotSeries> QueryBreakerData(int eventID, Meter meter, DateTime startTime)
-        {
-            string target = $"Digitals-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] timeDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, timeDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-            return GetBreakerLookup(dataGroup);
-
-        }
         private Dictionary<string, FlotSeries> GetBreakerLookup(DataGroup dataGroup)
         {
             //Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == "Digital" && (ds.SeriesInfo.Channel.MeasurementCharacteristic.Name == "BreakerStatus" || ds.SeriesInfo.Channel.MeasurementCharacteristic.Name == "TCE")).ToDictionary(ds => ds.SeriesInfo.Channel.Name, ds => new FlotSeries()
@@ -484,6 +437,44 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Shared Functions ]
+
+        private DataGroup QueryDataGroup(int eventID, Meter meter)
+        {
+            string target = $"DataGroup-{eventID}";
+            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
+
+            if (dataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+                    dataGroup = ToDataGroup(meter, frequencyDomainData);
+                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return dataGroup;
+        }
+
+        private VICycleDataGroup QueryVICycleDataGroup(int eventID, Meter meter)
+        {
+            string target = $"VICycleDataGroup-{eventID}";
+            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
+
+            if (vICycleDataGroup == null)
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
+                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                }
+            }
+
+            return vICycleDataGroup;
+        }
+
         private DataGroup ToDataGroup(Meter meter, byte[] data)
         {
             DataGroup dataGroup = new DataGroup();
@@ -783,8 +774,9 @@ namespace OpenSEE.Controller
 
                     double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
                     double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667;
+                    DataGroup dataGroup = QueryDataGroup(eventId, meter);
 
-                    Dictionary<string, FFTSeries> dict = QueryFFTData(eventId, startTime, endTime, meter);
+                    Dictionary<string, FFTSeries> dict = GetFFTLookup(dataGroup, startTime, endTime);
                     if (dict.Count == 0) return null;
 
                     List<FFTSeries> returnList = new List<FFTSeries>();
@@ -804,24 +796,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FFTSeries> QueryFFTData(int eventID, double startTime, double endTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetFFTLookup(dataGroup, startTime, endTime);
         }
 
         private Dictionary<string, FFTSeries> GetFFTLookup(DataGroup dataGroup, double startTime, double endTime)
@@ -852,7 +826,7 @@ namespace OpenSEE.Controller
             return dataLookup;
         }
 
-        private void GenerateFFT(Dictionary<string, FFTSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, double startTime, double endTime )
+        private void GenerateFFT(Dictionary<string, FFTSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, double startTime, double endTime)
         {
             int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
             var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
@@ -913,8 +887,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryFirstDerivativeData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventId, meter);
+                        Dictionary<string, FlotSeries> temp = GetFirstDerivativeLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -947,24 +921,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryFirstDerivativeData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetFirstDerivativeLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetFirstDerivativeLookup(DataGroup dataGroup)
@@ -1052,8 +1008,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryImpedanceData(eventID, eventStartTime, meter);
+                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetImpedanceLookup(viCycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1090,26 +1046,6 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> QueryImpedanceData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetImpedanceLookup(vICycleDataGroup);
-        }
-
         private Dictionary<string, FlotSeries> GetImpedanceLookup(VICycleDataGroup vICycleDataGroup)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
@@ -1124,7 +1060,7 @@ namespace OpenSEE.Controller
                 List<Complex> currentPoints = currentPointsMag.Select((iMagPoint, index) => Complex.FromPolarCoordinates(iMagPoint.Value, currentPointsAng[index].Value)).ToList();
 
                 IEnumerable<Complex> impedancePoints = voltagePoints.Select((vPoint, index) => currentPoints[index] / vPoint);
-                dataLookup.Add("Reactance AN", new FlotSeries() { ChartLabel = "AN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary}).ToList() });
+                dataLookup.Add("Reactance AN", new FlotSeries() { ChartLabel = "AN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Resistance AN", new FlotSeries() { ChartLabel = "AN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Impedance AN", new FlotSeries() { ChartLabel = "AN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
 
@@ -1193,8 +1129,9 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryRemoveCurrentData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+
+                        Dictionary<string, FlotSeries> temp = GetRemoveCurrentLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1230,24 +1167,6 @@ namespace OpenSEE.Controller
 
             }, cancellationToken);
 
-        }
-
-        private Dictionary<string, FlotSeries> QueryRemoveCurrentData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetRemoveCurrentLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetRemoveCurrentLookup(DataGroup dataGroup)
@@ -1340,8 +1259,9 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryPowerData(eventID, eventStartTime, meter);
+                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+
+                        Dictionary<string, FlotSeries> temp = GetPowerLookup(vICycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1378,26 +1298,6 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> QueryPowerData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetPowerLookup(vICycleDataGroup);
-        }
-
         private Dictionary<string, FlotSeries> GetPowerLookup(VICycleDataGroup vICycleDataGroup)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
@@ -1419,7 +1319,7 @@ namespace OpenSEE.Controller
                 dataLookup.Add("Reactive Power AN", new FlotSeries() { ChartLabel = "AN Reactive Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Active Power AN", new FlotSeries() { ChartLabel = "AN Active Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Apparent Power AN", new FlotSeries() { ChartLabel = "AN Apparent Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
-                dataLookup.Add("Power Factor AN", new FlotSeries() { ChartLabel = "AN Power Factor", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude/iPoint.Real }).ToList() });
+                dataLookup.Add("Power Factor AN", new FlotSeries() { ChartLabel = "AN Power Factor", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude / iPoint.Real }).ToList() });
 
             }
 
@@ -1499,8 +1399,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryMissingVoltageData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetMissingVoltageLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1535,24 +1435,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryMissingVoltageData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetMissingVoltageLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetMissingVoltageLookup(DataGroup dataGroup)
@@ -1645,8 +1527,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryClippedWaveformsData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetClippedWaveformsLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1679,24 +1561,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryClippedWaveformsData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetClippedWaveformsLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetClippedWaveformsLookup(DataGroup dataGroup)
@@ -1784,8 +1648,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryLowPassFilterData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetLowPassFilterLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -1822,24 +1686,6 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> QueryLowPassFilterData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetLowPassFilterLookup(dataGroup);
-        }
-
         private Dictionary<string, FlotSeries> GetLowPassFilterLookup(DataGroup dataGroup)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
@@ -1853,7 +1699,7 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                systemFrequency = 120;
             }
 
 
@@ -1862,7 +1708,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle*systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -1975,8 +1821,9 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryHighPassFilterData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+
+                        Dictionary<string, FlotSeries> temp = GetHighPassFilterLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2013,24 +1860,6 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> QueryHighPassFilterData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetHighPassFilterLookup(dataGroup);
-        }
-
         private Dictionary<string, FlotSeries> GetHighPassFilterLookup(DataGroup dataGroup)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
@@ -2044,7 +1873,7 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                systemFrequency = 120;
             }
 
 
@@ -2140,6 +1969,129 @@ namespace OpenSEE.Controller
         }
         #endregion
 
+        #region [ Overlapping Waveform ]
+        [HttpGet]
+        public Task<OverlapReturn> GetOverlappingWaveformData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+
+                    DataTable table;
+
+                    Dictionary<string, OverlapSeries> dict = new Dictionary<string, OverlapSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int eventID = row.ConvertField<int>("ID");
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, OverlapSeries> temp = GetOverlappingWaveformLookup(dataGroup);
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+                    if (dict.Count == 0) return null;
+
+
+                    List<OverlapSeries> returnList = new List<OverlapSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        OverlapSeries series = new OverlapSeries();
+                        series = dict[key];
+                        series.DataPoints = dict[key].DataPoints;
+                        returnList.Add(series);
+                    }
+                    OverlapReturn returnDict = new OverlapReturn();
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, OverlapSeries> GetOverlappingWaveformLookup(DataGroup dataGroup)
+        {
+            double systemFrequency;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+            }
+
+            Dictionary<string, OverlapSeries> dataLookup = new Dictionary<string, OverlapSeries>();
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null) GenerateOverlappingWaveform(dataLookup, vAN, "VAN", systemFrequency);
+            if (vBN != null) GenerateOverlappingWaveform(dataLookup, vBN, "VBN", systemFrequency);
+            if (vCN != null) GenerateOverlappingWaveform(dataLookup, vCN, "VCN", systemFrequency);
+            if (iAN != null) GenerateOverlappingWaveform(dataLookup, iAN, "IAN", systemFrequency);
+            if (iBN != null) GenerateOverlappingWaveform(dataLookup, iBN, "IBN", systemFrequency);
+            if (iCN != null) GenerateOverlappingWaveform(dataLookup, iCN, "ICN", systemFrequency);
+
+            return dataLookup;
+        }
+
+        private void GenerateOverlappingWaveform(Dictionary<string, OverlapSeries> dataLookup, DataSeries dataSeries, string label, double systemFrequency)
+        {
+
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+            var cycles = dataSeries.DataPoints.Select((Point, Index) => new { Point, SampleIndex = Index % samplesPerCycle, GroupIndex = Index / samplesPerCycle }).GroupBy(point => point.GroupIndex);
+            OverlapSeries series = new OverlapSeries()
+            {
+                ChartLabel = label + " Overlapping",
+                DataPoints = new List<double?[]>()
+            };
+
+            foreach(var cycle in cycles)
+            {
+                series.DataPoints = series.DataPoints.Concat(cycle.Select(dataPoint => new double?[] { dataPoint.SampleIndex, dataPoint.Point.Value }).ToList()).ToList();
+                series.DataPoints = series.DataPoints.Concat(new List<double?[]> { new double?[] { null, null } }).ToList();
+
+            }
+
+            dataLookup.Add(series.ChartLabel, series);
+        }
+
+        public class OverlapSeries{
+            public string ChartLabel;
+            public List<double?[]> DataPoints;
+        }
+
+        public class OverlapReturn
+        {
+            public DateTime StartDate;
+            public DateTime EndDate;
+            public List<OverlapSeries> Data;
+        }
+
+        #endregion
+
+
         #region [ Rapid Voltage Change ]
         [HttpGet]
         public Task<JsonReturn> GetRapidVoltageChangeData(CancellationToken cancellationToken)
@@ -2166,8 +2118,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryRapidVoltageChangeData(eventID, eventStartTime, meter);
+                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetRapidVoltageChangeLookup(vICycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2202,26 +2154,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryRapidVoltageChangeData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetRapidVoltageChangeLookup(vICycleDataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetRapidVoltageChangeLookup(VICycleDataGroup vICycleDataGroup)
@@ -2294,8 +2226,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryFrequencyData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetFrequencyLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2328,24 +2260,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryFrequencyData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetFrequencyLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetFrequencyLookup(DataGroup dataGroup)
@@ -2433,8 +2347,9 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QuerySymmetricalComponentsData(eventID, eventStartTime, meter);
+                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+
+                        Dictionary<string, FlotSeries> temp = GetSymmetricalComponentsLookup(vICycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2469,26 +2384,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QuerySymmetricalComponentsData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetSymmetricalComponentsLookup(vICycleDataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetSymmetricalComponentsLookup(VICycleDataGroup vICycleDataGroup)
@@ -2621,8 +2516,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryUnbalanceData(eventID, eventStartTime, meter);
+                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetUnbalanceLookup(vICycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2657,26 +2552,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryUnbalanceData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"VICycleDataGroup-{eventID}-{startTime.Ticks}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
-
-            if (vICycleDataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    DataGroup dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetUnbalanceLookup(vICycleDataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetUnbalanceLookup(VICycleDataGroup vICycleDataGroup)
@@ -2783,8 +2658,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryRectifierData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2819,24 +2694,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryRectifierData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetRectifierLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup)
@@ -2899,8 +2756,8 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QueryTHDData(eventID, eventStartTime, meter);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetTHDLookup(dataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2933,24 +2790,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QueryTHDData(int eventID, DateTime startTime, Meter meter)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetTHDLookup(dataGroup);
         }
 
         private Dictionary<string, FlotSeries> GetTHDLookup(DataGroup dataGroup)
@@ -3051,8 +2890,9 @@ namespace OpenSEE.Controller
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
-                        DateTime eventStartTime = row.ConvertField<DateTime>("StartTime");
-                        Dictionary<string, FlotSeries> temp = QuerySpecifiedHarmonicData(eventID, eventStartTime, meter, specifiedHarmonic);
+                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
+
+                        Dictionary<string, FlotSeries> temp = GetSpecifiedHarmonicLookup(dataGroup, specifiedHarmonic);
 
                         foreach (string key in temp.Keys)
                         {
@@ -3085,24 +2925,6 @@ namespace OpenSEE.Controller
                 }
 
             }, cancellationToken);
-        }
-
-        private Dictionary<string, FlotSeries> QuerySpecifiedHarmonicData(int eventID, DateTime startTime, Meter meter, int specifiedHarmonic)
-        {
-            string target = $"DataGroup-{eventID}-{startTime.Ticks}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
-
-            if (dataGroup == null)
-            {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-                {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
-                }
-            }
-
-            return GetSpecifiedHarmonicLookup(dataGroup, specifiedHarmonic);
         }
 
         private Dictionary<string, FlotSeries> GetSpecifiedHarmonicLookup(DataGroup dataGroup, int specifiedHarmonic)

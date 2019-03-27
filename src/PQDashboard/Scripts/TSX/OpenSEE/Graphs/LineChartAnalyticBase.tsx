@@ -238,8 +238,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
             if (this.plot)
                 this.plot.setCrosshair({ x: nextProps.hover });
 
-            var table = new Map([...Array.from(this.props.tableData)]);
-
+            //var table = new Map([...Array.from(this.props.tableData)]);
+            var table = this.props.tableData;
             _.each(this.state.dataSet.Data, (data, i) => {
                 var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
