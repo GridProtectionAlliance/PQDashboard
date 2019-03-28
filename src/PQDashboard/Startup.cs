@@ -59,6 +59,15 @@ namespace PQDashboard
                 }
             );
 
+            config.Routes.MapHttpRoute(
+                name: "OpenSEE2",
+                routeTemplate: "api/OpenSEE2/{action}",
+                defaults: new
+                {
+                    controller = "OpenSEE2"
+                }
+            );
+
             app.UseWebApi(config);
         }
     }

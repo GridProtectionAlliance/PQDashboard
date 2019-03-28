@@ -35,6 +35,7 @@ using FaultData.DataAnalysis;
 using GSF;
 using GSF.Data;
 using GSF.Identity;
+using GSF.Security;
 using GSF.Web.Model;
 using GSF.Web.Security;
 using Newtonsoft.Json.Linq;
@@ -152,17 +153,13 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE()
         {
-            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
-            ViewBag.EnableLightningQuery = m_dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
+            ViewBag.IsAdmin = ValidateAdminRequest();
+
+            int eventID = int.Parse(Request.QueryString["eventid"]);
+
+            ViewBag.SamplesPerCycle = m_dataContext.Connection.ExecuteScalar<double>("select SamplesPerCycle from event join meter on event.meterid = meter.id where event.id = {0}", eventID);
             return View();
         }
-
-        public ActionResult OpenSEE2()
-        {
-            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
-            return View();
-        }
-
 
         public ActionResult OpenSTE()
         {
@@ -260,5 +257,24 @@ namespace PQDashboard.Controllers
             return View();
         }
         #endregion
+
+        private bool ValidateAdminRequest()
+        {
+            string username = User.Identity.Name;
+            ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
+            securityProvider.PassthroughPrincipal = User;
+
+            if (!securityProvider.Authenticate())
+                return false;
+
+            SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
+            SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+
+            if (!approverPrincipal.IsInRole("Administrator"))
+                return false;
+
+            return true;
+        }
+
     }
 }

@@ -3,7 +3,8 @@ const webpack = require("webpack");
 
 module.exports = {
     entry: {
-        OpenSEE: "./Scripts/TSX/openSEE.tsx"
+        OpenSEE: "./Scripts/TSX/OpenSEE/openSEE.tsx",
+
     },
     output: {
         filename: "./Scripts/[name].js"
@@ -36,10 +37,12 @@ module.exports = {
         new webpack.ProvidePlugin({
           $: 'jquery',
           jQuery: 'jquery',
+          'window.jQuery':'jquery',
           Map: 'core-js/es6/map',
           Set: 'core-js/es6/set',
           requestAnimationFrame: 'raf',
-          cancelAnimationFrame: ['raf', 'cancel']
+          cancelAnimationFrame: ['raf', 'cancel'],
+
         }),
         //new webpack.DefinePlugin({
         //    'process.env.NODE_ENV': JSON.stringify('production')

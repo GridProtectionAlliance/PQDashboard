@@ -106,6 +106,12 @@
     <Reference Include="log4net">
       <HintPath>..\Dependencies\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="MathNet.Filtering, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Filtering.0.6.0\lib\net40\MathNet.Filtering.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.4.6.0\lib\net40\MathNet.Numerics.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.2\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
@@ -188,9 +194,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Caching">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web.Cors, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.4\lib\net45\System.Web.Cors.dll</HintPath>
@@ -412,9 +420,11 @@
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\openSEE-lightning-query.js" />
     <Content Include="Scripts\OpenSEE.js" />
+    <Content Include="Scripts\OpenSEE2.js" />
     <Content Include="Shared\Content\Images\ui-icons_444444_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_555555_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
@@ -1266,6 +1276,45 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HarmonicSpectrum.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\OverlappingWaveform.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\SpecifiedHarmonic.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\RapidVoltageChange.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Rectifier.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Unbalance.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\SymmetricalComponents.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\FaultLocation.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\FirstDerivative.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Power.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Impedance.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\RadioselectWindow.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\MultiselectWindow.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENavbar.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\OpenSEENoteModal.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Digital.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\AccumulatedPoints.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\HarmonicStats.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\ScalarStats.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TimeCorrelatedSags.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\WaveformViewerGraph.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\LightningData.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\TimeCorrelatedSags.tsx" />
