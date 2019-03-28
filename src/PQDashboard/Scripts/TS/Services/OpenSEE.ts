@@ -54,7 +54,7 @@ export default class OpenSEEService{
     specifiedHarmonicDataHandle: JQuery.jqXHR;
     overlappingWaveformDataHandle: JQuery.jqXHR;
     harmonicSpectrumDataHandle: JQuery.jqXHR;
-
+    lighteningDataHandle: JQuery.jqXHR;
 
     constructor() {
         this.getWaveformData = this.getWaveformData.bind(this);
@@ -648,4 +648,20 @@ export default class OpenSEEService{
         return this.harmonicSpectrumDataHandle;
     }
 
+    getLightningParameters(eventid: number): JQuery.jqXHR {
+        if (this.lighteningDataHandle !== undefined)
+            this.lighteningDataHandle.abort();
+
+        this.lighteningDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetLightningParameters?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.lighteningDataHandle;
+
+    }
 }

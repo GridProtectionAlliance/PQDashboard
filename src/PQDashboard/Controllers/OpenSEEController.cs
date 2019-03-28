@@ -95,6 +95,46 @@ namespace OpenSEE.Controller
             public Dictionary<int, double> DataPoints = new Dictionary<int, double>();
         }
 
+        // Constants
+        public const string TimeCorrelatedSagsSQL =
+            "SELECT " +
+            "    Event.ID AS EventID, " +
+            "    EventType.Name AS EventType, " +
+            "    FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') AS SagMagnitudePercent, " +
+            "    FORMAT(Sag.DurationSeconds * 1000.0, '0') AS SagDurationMilliseconds, " +
+            "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
+            "    Event.StartTime, " +
+            "    Meter.Name AS MeterName, " +
+            "    MeterLine.LineName " +
+            "FROM " +
+            "    Event JOIN " +
+            "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
+            "    Meter ON Event.MeterID = Meter.ID JOIN " +
+            "    MeterLine ON " +
+            "        Event.MeterID = MeterLine.MeterID AND " +
+            "        Event.LineID = MeterLine.LineID CROSS APPLY " +
+            "    ( " +
+            "        SELECT TOP 1 " +
+            "            Disturbance.PerUnitMagnitude, " +
+            "            Disturbance.DurationSeconds, " +
+            "            Disturbance.DurationCycles " +
+            "        FROM " +
+            "            Disturbance JOIN " +
+            "            EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
+            "            Phase ON " +
+            "                Disturbance.PhaseID = Phase.ID AND " +
+            "                Phase.Name = 'Worst' " +
+            "        WHERE " +
+            "            Disturbance.EventID = Event.ID AND " +
+            "            DisturbanceType.Name = 'Sag' AND " +
+            "            Disturbance.StartTime <= {1} AND " +
+            "            Disturbance.EndTime >= {0} " +
+            "        ORDER BY PerUnitMagnitude DESC " +
+            "    ) Sag " +
+            "ORDER BY " +
+            "    Sag.PerUnitMagnitude, " +
+            "    Event.StartTime";
+
 
         #endregion
 
@@ -3138,6 +3178,7 @@ namespace OpenSEE.Controller
 
             }
         }
+
         public DataTable GetTimeCorrelatedSags()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3145,38 +3186,57 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                const string SQL =
-                    "SELECT DISTINCT " +
-                    "    Event.ID AS EventID, " +
-                    "    EventType.Name AS EventType, " +
-                    "    Event.StartTime, " +
-                    "    Meter.Name AS MeterName, " +
-                    "    MeterLine.LineName " +
-                    "FROM " +
-                    "    Disturbance JOIN " +
-                    "    EventType DisturbanceType ON Disturbance.EventTypeID = DisturbanceType.ID JOIN " +
-                    "    Event ON Disturbance.EventID = Event.ID JOIN " +
-                    "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
-                    "    Meter ON Event.MeterID = Meter.ID JOIN " +
-                    "    MeterLine ON " +
-                    "        Event.MeterID = MeterLine.MeterID AND " +
-                    "        Event.LineID = MeterLine.LineID " +
-                    "WHERE " +
-                    "    DisturbanceType.Name = 'Sag' AND " +
-                    "    Disturbance.StartTime <= {1} AND " +
-                    "    Disturbance.EndTime >= {0} " +
-                    "ORDER BY " +
-                    "    Event.StartTime, " +
-                    "    Meter.Name, " +
-                    "    MeterLine.LineName";
-
                 double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");
                 DateTime startTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", eventID);
                 DateTime endTime = connection.ExecuteScalar<DateTime>("SELECT EndTime FROM Event WHERE ID = {0}", eventID);
                 DateTime adjustedStartTime = startTime.AddSeconds(-timeTolerance);
                 DateTime adjustedEndTime = endTime.AddSeconds(timeTolerance);
-                DataTable dataTable = connection.RetrieveData(SQL, adjustedStartTime, adjustedEndTime);
+                DataTable dataTable = connection.RetrieveData(TimeCorrelatedSagsSQL, adjustedStartTime, adjustedEndTime);
                 return dataTable;
+            }
+        }
+
+        public object GetLightningParameters()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventID = int.Parse(query["eventId"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                const string Query =
+                    "SELECT " +
+                    "    Line.AssetKey AS LineKey, " +
+                    "    DATEADD(SECOND, -2, Fault.Inception) AS StartTime, " +
+                    "    DATEADD(SECOND, 2, Fault.Inception) AS EndTime " +
+                    "FROM " +
+                    "    Event JOIN " +
+                    "    Line ON Event.LineID = Line.ID CROSS APPLY " +
+                    "    ( " +
+                    "        SELECT " +
+                    "            DATEADD " +
+                    "            ( " +
+                    "                MINUTE, " +
+                    "                -Event.TimeZoneOffset, " +
+                    "                DATEADD " +
+                    "                ( " +
+                    "                    NANOSECOND, " +
+                    "                    -DATEPART(NANOSECOND, FaultSummary.Inception), " +
+                    "                    FaultSummary.Inception " +
+                    "                ) " +
+                    "            ) AS Inception " +
+                    "        FROM FaultSummary " +
+                    "        WHERE " +
+                    "            FaultSummary.EventID = Event.ID AND " +
+                    "            FaultSummary.FaultNumber = 1 AND " +
+                    "            FaultSummary.IsSelectedAlgorithm <> 0 " +
+                    "    ) Fault " +
+                    "WHERE Event.ID = {0}";
+
+                DataRow row = connection.RetrieveRow(Query, eventID);
+                string LineKey = row.ConvertField<string>("LineKey");
+                DateTime StartTime = row.ConvertField<DateTime>("StartTime");
+                DateTime EndTime = row.ConvertField<DateTime>("EndTime");
+                return new { LineKey, StartTime, EndTime };
             }
         }
 

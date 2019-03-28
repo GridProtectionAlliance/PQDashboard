@@ -109,6 +109,8 @@ export default class Current extends React.Component<any, any>{
         if (key.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
         if (key.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
         if (key.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
+        if (key.ChartLabel.indexOf('IRES') >= 0) return '#D3D3D3';
+
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);

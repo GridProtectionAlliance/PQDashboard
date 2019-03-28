@@ -153,6 +153,8 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE()
         {
+            ViewBag.EnableLightningQuery = m_dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
+
             ViewBag.IsAdmin = ValidateAdminRequest();
 
             int eventID = int.Parse(Request.QueryString["eventid"]);

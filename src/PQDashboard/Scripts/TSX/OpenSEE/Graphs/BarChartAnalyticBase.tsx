@@ -207,7 +207,7 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
 
         var legendRow = this.state.legendRows.entries().next().value;
         var harmonic = 1;
-        if (legendRow != undefined)
+        if (legendRow != undefined && legendRow[1].harmonic != undefined)
             harmonic = 1/legendRow[1].harmonic;
 
 

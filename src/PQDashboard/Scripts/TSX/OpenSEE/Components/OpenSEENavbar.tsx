@@ -29,6 +29,8 @@ import Tooltip from './../jQueryUI Widgets/Tooltip';
 import ScalarStats from './../jQueryUI Widgets/ScalarStats';
 import HarmonicStats from './../jQueryUI Widgets/HarmonicStats';
 import TimeCorrelatedSags from './../jQueryUI Widgets/TimeCorrelatedSags';
+import LightningData from './../jQueryUI Widgets/LightningData';
+
 import { Navbar, NavDropdown, Nav, Button, Form, Row} from 'react-bootstrap';
 
 declare var homePath;
@@ -55,7 +57,10 @@ export default class OpenSEENavbar extends React.Component {
                             <NavDropdown.Item onClick={this.showhidePhasor.bind(this)}>Show Phasor</NavDropdown.Item>
                             <NavDropdown.Item onClick={this.showhideStats.bind(this)}>Show Stats</NavDropdown.Item>
                             <NavDropdown.Item onClick={this.showhideCorrelatedSags.bind(this)}>Show Correlated Sags</NavDropdown.Item>
+
+                            {(this.props.PostedData.enableLightningData ? <NavDropdown.Item onClick={this.showhideLightningData.bind(this)}>Show Lightning Data</NavDropdown.Item> : null)}
                             {(this.props.PostedData.postedEventName == "Snapshot" ? <NavDropdown.Item onClick={this.showhideHarmonics.bind(this)}>Show Harmonics</NavDropdown.Item> : null)}
+
                             <NavDropdown.Divider />
                             <NavDropdown.Item onClick={this.exportData.bind(this, "csv")}>Export CSV</NavDropdown.Item>
                             <NavDropdown.Item onClick={this.exportComtrade.bind(this)}>Export COMTRADE</NavDropdown.Item>
@@ -88,7 +93,9 @@ export default class OpenSEENavbar extends React.Component {
                 <Tooltip data={this.props.TableData} hover={this.props.Hover} callback={this.props.stateSetter} />
                 <ScalarStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
                 <HarmonicStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
-                <TimeCorrelatedSags eventId={this.props.eventid} callback={this.props.stateSetter} />
+                <TimeCorrelatedSags eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
+                <LightningData eventId={this.props.eventid} callback={this.props.stateSetter} />
+
             </Navbar>
         );
     }
@@ -117,6 +124,12 @@ export default class OpenSEENavbar extends React.Component {
     showhideHarmonics(evt) {
         $('#harmonicstats').show();
     }
+
+    showhideLightningData() {
+        $('#lightningquery').show();
+    }
+
+
 
     exportData(type) {
         window.open( homePath + `/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.props.eventid}` +

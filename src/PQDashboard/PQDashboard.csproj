@@ -1315,17 +1315,8 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\WaveformViewerGraph.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\AccumulatedPoints.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\LightningData.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\TimeCorrelatedSags.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Menu.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Legend.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\LightningData.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\openSEE.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PolarChart.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\HarmonicStats.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\ScalarStats.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\Tooltip.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\WaveformViewerGraph.tsx" />
     <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />
   </ItemGroup>
   <ItemGroup>
