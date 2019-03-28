@@ -28,12 +28,9 @@ import { style } from "typestyle"
 
 // styles
 const outerDiv: React.CSSProperties = {
-    minWidth: '200px',
-    maxWidth: '400px',
     fontSize: '12px',
     marginLeft: 'auto',
     marginRight: 'auto',
-    overflowY: 'auto',
     padding: '0em',
     zIndex: 1000,
     boxShadow: '4px 4px 2px #888888',

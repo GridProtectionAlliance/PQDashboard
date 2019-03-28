@@ -22,6 +22,9 @@
 //******************************************************************************************************
 declare var homePath: string;
 
+export type StandardAnalyticServiceFunction = (eventid: number, pixels: number, startDate?: string, endDate?: string) => JQuery.jqXHR
+export type BarChartAnalyticServiceFunction = (eventid: number, startDate?: string, endDate?: string) => JQuery.jqXHR
+
 export default class OpenSEEService{
     waveformDataHandle: JQuery.jqXHR ;
     frequencyDataHandle: JQuery.jqXHR ;
@@ -50,6 +53,7 @@ export default class OpenSEEService{
     fftDataHandle: JQuery.jqXHR;
     specifiedHarmonicDataHandle: JQuery.jqXHR;
     overlappingWaveformDataHandle: JQuery.jqXHR;
+    harmonicSpectrumDataHandle: JQuery.jqXHR;
 
 
     constructor() {
@@ -73,6 +77,7 @@ export default class OpenSEEService{
         this.getFFTData = this.getFFTData.bind(this);
         this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
         this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
+        this.getHarmonicSpectrumData = this.getHarmonicSpectrumData.bind(this);
 
     }
 
@@ -568,7 +573,7 @@ export default class OpenSEEService{
         return this.freqencyAnalyticDataHandle;
     }
 
-    getFFTData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+    getFFTData(eventid: number, startDate?: string, endDate?: string): JQuery.jqXHR {
         if (this.fftDataHandle !== undefined)
             this.fftDataHandle.abort();
 
@@ -576,8 +581,7 @@ export default class OpenSEEService{
             type: "GET",
             url: `${homePath}api/OpenSEE/GetFFTData?eventId=${eventid}` +
                 `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
-                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
-                `&pixels=${pixels}`,
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
@@ -623,6 +627,25 @@ export default class OpenSEEService{
         });
 
         return this.overlappingWaveformDataHandle;
+    }
+
+    getHarmonicSpectrumData(eventid: number, cycles: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.harmonicSpectrumDataHandle !== undefined)
+            this.harmonicSpectrumDataHandle.abort();
+
+        this.harmonicSpectrumDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetHarmonicSpectrumData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&cycles=${cycles}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.harmonicSpectrumDataHandle;
     }
 
 }

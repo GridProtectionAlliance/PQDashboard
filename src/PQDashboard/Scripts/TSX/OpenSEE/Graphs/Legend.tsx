@@ -117,11 +117,16 @@ export default class Legend extends React.Component<any, any>{
 
                     </div> : null)}
 
-                {(this.props.type.toLowerCase() == "fft" ?
+                {(this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum"?
                     <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Mag" onChange={this.toggleFFT.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="Mag" style={{ width: '50%', height: 28 }}>Mag</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Ang" style={{ width: '50%', height: 28 }}>Ang</ToggleButton>
+
+                        {(this.props.type.toLowerCase() == "harmonicspectrum" ? <input type="number" defaultValue="10" min="1" onChange={this.handleSelected.bind(this)} /> : null)}
+
+                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Vmag" onChange={this.toggleFFT.bind(this)}>
+                            <ToggleButton type="radio" name="radio" value="Vmag" style={{ width: '25%', height: 28 }}>Vm</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Vang" style={{ width: '25%', height: 28 }}>Vph</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Imag" style={{ width: '25%', height: 28 }}>Im</ToggleButton>
+                            <ToggleButton type="radio" name="radio" value="Iang" style={{ width: '25%', height: 28 }}>Iph</ToggleButton>
                         </ToggleButtonGroup>
 
                     </div> : null)}
@@ -308,7 +313,7 @@ export default class Legend extends React.Component<any, any>{
     }
 
     toggleFFT(type, event) {
-        var setKey = Array.from(this.props.data).find(x => x[1].enabled)[0].split(' ')[0];
+        var setKey = Array.from(this.props.data).find(x => x[1].enabled)[0].split(' ')[0].slice(1, 3);
         var newKey;
         this.props.data.forEach((row, key, map) => {
 
@@ -316,7 +321,8 @@ export default class Legend extends React.Component<any, any>{
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
 
-            if (type == "Mag" && key.indexOf('Mag') >= 0) {
+
+            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0) {
                 row.enabled = key.indexOf(setKey) >= 0;
                 row.display = true;
 
@@ -324,17 +330,36 @@ export default class Legend extends React.Component<any, any>{
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (type == "Ang" && key.indexOf('Ang') >= 0) {
+            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0) {
                 row.enabled = key.indexOf(setKey) >= 0;
                 row.display = true;
 
                 if (row.enabled) newKey = key;
                 $('[name="' + key + '"]').prop('checked', true);
             }
+
+            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0) {
+                row.enabled = key.indexOf(setKey) >= 0;
+                row.display = true;
+
+                if (row.enabled) newKey = key;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0) {
+                row.enabled = key.indexOf(setKey) >= 0;
+                row.display = true;
+
+                if (row.enabled) newKey = key;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
 
         });
 
-        this.props.callback(_,_, newKey);
+        this.props.callback(undefined, undefined, newKey);
 
     }
 
@@ -419,8 +444,9 @@ export default class Legend extends React.Component<any, any>{
             row.harmonic = event.target.value;
         });
 
-        this.props.callback(_,_,_, true);
+        this.props.callback(undefined,undefined,undefined, true);
     }
+
 
 }
 

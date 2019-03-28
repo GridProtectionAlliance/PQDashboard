@@ -29,13 +29,14 @@ import Legend, { iLegendData } from './../Graphs/Legend';
 import 'flot';
 //import './../../../flot/jquery.flot.crosshair.min.js';
 import './../../../flot/jquery.flot.navigate.min.js';
+import { BarChartAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
 export type GetDataFunction = (props: BarChartAnaltyicalBaseProps, ctrl: BarChartAnalyticBase) => void;
 
 export interface BarChartAnaltyicalBaseProps { eventId: number, pixels: number, stateSetter: Function, height: number, tableData: Map<string, { data: number, color: string }>, pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime: string, fftEndTime: string };
 interface BarChartAnalyticBasePropsExtended extends BarChartAnaltyicalBaseProps{
-    openSEEServiceFunction: Function, legendEnable: Function, legendDisplay: Function,
-    legendKey: string
+    openSEEServiceFunction: BarChartAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
+    legendKey: string, getData?: GetDataFunction
 }
 export default class BarChartAnalyticBase extends React.Component<any, any>{
     plot: any;
@@ -85,6 +86,8 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
 
         ctrl.panCenter = null;
         ctrl.clickHandled = false;
+
+        if (ctrl.props.getData != undefined) ctrl.getData = (props) => ctrl.props.getData(props, ctrl);
     }
 
     getColor(label, index) {
@@ -146,7 +149,7 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
     }
 
     getData(props: BarChartAnalyticBasePropsExtended) {
-        var handle = this.props.openSEEServiceFunction(props.eventId, props.pixels, props.fftStartTime, props.fftEndTime).then(data => {
+        var handle = this.props.openSEEServiceFunction(props.eventId, props.fftStartTime, props.fftEndTime).then(data => {
             if (data == null) {
                 return;
             }
@@ -201,10 +204,17 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
 
     createDataRows(data, legend: Map<string, iLegendData>) {
         // if start and end date are not provided calculate them from the data set
+
+        var legendRow = this.state.legendRows.entries().next().value;
+        var harmonic = 1;
+        if (legendRow != undefined)
+            harmonic = 1/legendRow[1].harmonic;
+
+
         var ctrl = this;
         var setKey = Array.from(legend).find(x => x[1].enabled);
         var dataPoints = data.Data.find(x => x.ChartLabel == setKey[0]);
-        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(a => [a, dataPoints.DataPoints[a]]), bars: { show: true, fillColor: setKey[1].color, barWidth: .8 }, color: '#464646'}];
+        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(a => [a, dataPoints.DataPoints[a]]), bars: { show: true, fillColor: setKey[1].color, barWidth: harmonic }, color: '#464646'}];
 
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotHover();
@@ -227,14 +237,21 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         });
     }
 
-    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iLegendData, key: string): void {
-        var legendRows = this.state.legendRows;
-        var oldRow = Array.from(this.state.legendRows).find(x => x[1].enabled)[0];
-        legendRows.get(oldRow).enabled = false;
-        legendRows.get(key).enabled = true;
+    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iLegendData, key: string, getData?: boolean): void {
+        if (key != undefined) {
+            var legendRows = this.state.legendRows;
+            var oldRow = Array.from(this.state.legendRows).find(x => x[1].enabled)[0];
+            legendRows.get(oldRow).enabled = false;
+            legendRows.get(key).enabled = true;
 
-        this.setState({ legendRows: legendRows });
-        this.createDataRows(this.state.dataSet, legendRows);
+            this.setState({ legendRows: legendRows });
+            this.createDataRows(this.state.dataSet, legendRows);
+        }
+
+
+        if (getData == true)
+            this.getData(this.props);
+
     }
 
 

@@ -32,6 +32,7 @@ import './../../../flot/jquery.flot.navigate.min.js';
 import './../../../flot/jquery.flot.selection.min.js';
 import './../../../flot/jquery.flot.time.min.js';
 import './../../../flot/jquery.flot.rangeSelection.js';
+import { StandardAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
 export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iLegendData, key?: string, getData?: boolean) => void;
 export type GetDataFunction = (props: LineChartAnaltyicalBaseProps, ctrl: LineChartAnalyticBase) => void;
@@ -43,7 +44,7 @@ export interface LineChartAnaltyicalBaseProps {
 };
 
 interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
-    legendKey: string, openSEEServiceFunction: Function, legendEnable: Function, legendDisplay: Function,
+    legendKey: string, openSEEServiceFunction: StandardAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
     getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction
 
 }

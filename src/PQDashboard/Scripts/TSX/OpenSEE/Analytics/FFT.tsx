@@ -42,7 +42,7 @@ export default class FFT extends React.Component<any, any>{
         return <BarChartAnalyticBase
             openSEEServiceFunction={this.openSEEService.getFFTData}
             legendEnable={(key) => key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0}
-            legendDisplay={(key) => key.indexOf("Mag") >= 0}
+            legendDisplay={(key) => key.indexOf("V") == 0 && key.indexOf("Mag") >= 0}
             legendKey="FFT"
             fftStartTime={this.props.fftStartTime}
             fftEndTime={this.props.fftEndTime}

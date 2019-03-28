@@ -1276,6 +1276,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HarmonicSpectrum.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\OverlappingWaveform.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />

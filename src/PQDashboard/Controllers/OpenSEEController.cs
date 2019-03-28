@@ -1622,6 +1622,105 @@ namespace OpenSEE.Controller
         }
         #endregion
 
+        #region [ Harmonic Spectrum ]
+        [HttpGet]
+        public Task<FFTReturn> GetHarmonicSpectrumData(CancellationToken cancellationToken)
+        {
+            return Task.Run(() => {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    int cycles = int.Parse(query["cycles"]);
+
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                    double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
+                    double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667*cycles;
+                    DataGroup dataGroup = QueryDataGroup(eventId, meter);
+
+                    Dictionary<string, FFTSeries> dict = GetHarmonicSpectrumLookup(dataGroup, startTime, endTime, systemFrequency, cycles);
+                    if (dict.Count == 0) return null;
+
+                    List<FFTSeries> returnList = new List<FFTSeries>();
+                    foreach (string key in dict.Keys)
+                    {
+                        FFTSeries series = new FFTSeries();
+                        series = dict[key];
+                        series.DataPoints = dict[key].DataPoints;
+                        returnList.Add(series);
+                    }
+                    FFTReturn returnDict = new FFTReturn();
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = startTime;
+                    returnDict.CalculationEnd = endTime;
+
+                    return returnDict;
+                }
+
+            }, cancellationToken);
+        }
+
+        private Dictionary<string, FFTSeries> GetHarmonicSpectrumLookup(DataGroup dataGroup, double startTime, double endTime, double systemFrequency, int cycles)
+        {
+            Dictionary<string, FFTSeries> dataLookup = new Dictionary<string, FFTSeries>();
+
+            DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+
+            if (vAN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, vAN, "VAN", startTime, endTime, cycles);
+            if (vBN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, vBN, "VBN", startTime, endTime, cycles);
+            if (vCN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, vCN, "VCN", startTime, endTime, cycles);
+            if (iAN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, iAN, "IAN", startTime, endTime, cycles);
+            if (iBN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, iBN, "IBN", startTime, endTime, cycles);
+            if (iCN != null) GenerateHarmonicSpectrum(dataLookup, systemFrequency, iCN, "ICN", startTime, endTime, cycles);
+
+            return dataLookup;
+        }
+
+        private void GenerateHarmonicSpectrum(Dictionary<string, FFTSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, double startTime, double endTime, int cycles)
+        {
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
+
+            List<DataPoint> cycleData = dataSeries.DataPoints.SkipWhile(point => point.Time.Subtract(m_epoch).TotalMilliseconds < startTime).Take(samplesPerCycle*cycles).ToList();
+            FFTSeries fftMag = new FFTSeries()
+            {
+                ChartLabel = $"{label} DFT Mag",
+                ChannelID = dataSeries.SeriesInfo.ChannelID,
+                DataPoints = new Dictionary<int, double>()
+            };
+
+            FFTSeries fftAng = new FFTSeries()
+            {
+                ChartLabel = $"{label} DFT Ang",
+                ChannelID = dataSeries.SeriesInfo.ChannelID,
+                DataPoints = new Dictionary<int, double>()
+            };
+
+            if (cycleData.Count() != samplesPerCycle * cycles) return;
+            double[] points = cycleData.Select(point => point.Value / samplesPerCycle).ToArray();
+            double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
+
+            Complex[] result = FFT(points);
+
+            fftMag.DataPoints = frequencyScale.Select((Value, Index) => new { Value, Result = result[Index], Index }).Where(point => point.Value >= 0).ToList().ToDictionary(obj => (int)obj.Value, obj => ((obj.Result.Magnitude * 2)/cycles) / Math.Sqrt(2));
+            fftAng.DataPoints = frequencyScale.Select((Value, Index) => new { Value, Result = result[Index], Index }).Where(point => point.Value >= 0).ToList().ToDictionary(obj => (int)obj.Value, obj => obj.Result.Phase * 180 / Math.PI);
+
+            dataLookup.Add($"DFT {label} Mag", fftMag);
+            dataLookup.Add($"DFT {label} Ang", fftAng);
+
+        }
+        #endregion
+
+
         #region [ LowPassFilter ]
         [HttpGet]
         public Task<JsonReturn> GetLowPassFilterData(CancellationToken cancellationToken)

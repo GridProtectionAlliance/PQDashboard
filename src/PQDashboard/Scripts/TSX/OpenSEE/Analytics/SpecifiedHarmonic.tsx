@@ -33,6 +33,9 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
+
+        this.createLegendRows = this.createLegendRows.bind(this);
+        this.getData = this.getData.bind(this);
     }
 
     createLegendRows(data, ctrl) {
@@ -60,35 +63,37 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
 
     }
 
+    getData(props, ctrl: LineChartAnalyticBase) {
+        var legendRow = ctrl.state.legendRows.entries().next().value;
+        var harmonic = 1;
+        if (legendRow != undefined)
+            harmonic = legendRow[1].harmonic;
+
+        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, harmonic, props.startDate, props.endDate).then(data => {
+            if (data == null) {
+                return;
+            }
+
+            var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample
+            ctrl.options['grid'].markings.push(hightlightFunction(data));
+
+            var legend = this.createLegendRows(data.Data, ctrl);
+
+            ctrl.createDataRows(data, legend);
+            ctrl.setState({ dataSet: data });
+        });
+        ctrl.setState({ dataHandle: handle });
+
+
+    }
     render() {
         var ctrl = this;
         return <LineChartAnalyticBase
             legendDisplay={(key) => key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0}
             legendEnable={(key) => key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0}
             legendKey="SpecifiedHarmonic"
-            openSEEServiceFunction={(eventId, pixels, startDate, endDate) => { }}
-            getData={(props, ctrl: LineChartAnalyticBase) => {
-                var legendRow = ctrl.state.legendRows.entries().next().value;
-                var harmonic = 1;
-                if (legendRow != undefined)
-                    harmonic = legendRow[1].harmonic;
-
-                var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, harmonic, props.startDate, props.endDate).then(data => {
-                    if (data == null) {
-                        return;
-                    }
-
-                    var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample
-                    ctrl.options['grid'].markings.push(hightlightFunction(data));
-
-                    var legend = this.createLegendRows(data.Data, ctrl);
-
-                    ctrl.createDataRows(data, legend);
-                    ctrl.setState({ dataSet: data });
-                });
-                ctrl.setState({ dataHandle: handle });
-
-            }}
+            openSEEServiceFunction={ctrl.openSEEService.getFirstDerivativeData}
+            getData={this.getData}
 
             endDate={this.props.endDate}
             eventId={this.props.eventId}
