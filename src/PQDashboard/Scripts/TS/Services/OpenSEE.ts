@@ -258,7 +258,7 @@ export default class OpenSEEService{
         });
     }
 
-    deleteNote(note): JQuery.jqXHR {
+    deleteNote(note): any {
         return $.ajax({
             type: "DELETE",
             url: `${homePath}api/OpenSEE/DeleteNote`,

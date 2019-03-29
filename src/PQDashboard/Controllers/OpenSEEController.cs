@@ -783,9 +783,9 @@ namespace OpenSEE.Controller
 	                Line ON Line.ID = Event.LineID JOIN
 	                MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
                 WHERE
-	                Event.ID != {0} AND ( 
-	                Event.StartTime BETWEEN {1} AND {2} OR
-	                Event.EndTime BETWEEN {1} AND {2} )
+	                Event.ID != {0} AND  
+	                Event.StartTime <= {2} AND
+	                Event.EndTime >= {1} 
                 ", eventId, ToDateTime2(connection, startTime), ToDateTime2(connection, endTime));
                 return dataTable;
 
@@ -2798,7 +2798,7 @@ namespace OpenSEE.Controller
                     {
                         int eventID = row.ConvertField<int>("ID");
                         DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup);
+                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup, systemFrequency);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2835,31 +2835,45 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup)
+        private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup, double systemFrequency)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataGroup.DataSeries.First(), systemFrequency);
 
-            List<DataPoint> vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN").DataPoints;
-            List<DataPoint> vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN").DataPoints;
-            List<DataPoint> vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN").DataPoints;
-            List<DataPoint> iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN").DataPoints;
-            List<DataPoint> iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN").DataPoints;
-            List<DataPoint> iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN").DataPoints;
-                           
+            var vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN").DataPoints.ToList();
+            var vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN").DataPoints.ToList();
+            var vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN").DataPoints.ToList();
+            var iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN").DataPoints.ToList();
+            var iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN").DataPoints.ToList();
+            var iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN").DataPoints.ToList();
 
 
             if (vAN != null && vBN != null && vCN != null)
             {
 
-                dataLookup.Add("Rectifier Voltage", new FlotSeries() { ChartLabel = "Voltage Rectifier", DataPoints = vAN.Select((point, index) => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, new List<double>() { Math.Abs(point.Value), Math.Abs(vBN[index].Value), Math.Abs(vCN[index].Value)}.Max() }).ToList() });
+
+                IEnumerable<DataPoint> phaseMaxes = vAN.Select((point, index) => new DataPoint() { Time = point.Time, Value = new double[] { Math.Abs(vAN[index].Value), Math.Abs(vBN[index].Value), Math.Abs(vCN[index].Value) }.Max() });
+                IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
+
+                dataLookup.Add("Rectifier Voltage", 
+                    new FlotSeries() {
+                        ChartLabel = "Voltage Rectifier",
+                        DataPoints = cycleMaxes.Select(point  => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
+                    });
 
             }
 
 
             if (iAN != null && iBN != null && iCN != null)
             {
+                IEnumerable<DataPoint> phaseMaxes = iAN.Select((point, index) => new DataPoint() { Time = point.Time, Value = new double[] { Math.Abs(iAN[index].Value), Math.Abs(iBN[index].Value), Math.Abs(iCN[index].Value) }.Max() });
+                IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
 
-                dataLookup.Add("Rectifier Current", new FlotSeries() { ChartLabel = "Current Rectifier", DataPoints = iAN.Select((point, index) => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, new List<double>() { Math.Abs(point.Value), Math.Abs(iBN[index].Value), Math.Abs(iCN[index].Value) }.Max() }).ToList() });
+
+                dataLookup.Add("Rectifier Current", new FlotSeries() {
+                    ChartLabel = "Current Rectifier",
+                    DataPoints = cycleMaxes.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
+                });
 
             }
 
@@ -3302,10 +3316,12 @@ namespace OpenSEE.Controller
         [HttpDelete]
         public IHttpActionResult DeleteNote(FormData note)
         {
-            IHttpActionResult result = ValidateAdminRequest();
-            if (result != null) return result;
             try
             {
+               IHttpActionResult result = ValidateAdminRequest();
+
+                if (result != null) return result;
+
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     EventNote record = new TableOperations<EventNote>(connection).QueryRecordWhere("ID = {0}", note.ID);
@@ -3313,13 +3329,14 @@ namespace OpenSEE.Controller
                     result = Ok(record);
 
                 }
+                return result;
+
             }
             catch (Exception ex)
             {
-                result = InternalServerError(ex);
+                return InternalServerError(ex);
             }
 
-            return result;
 
         }
 

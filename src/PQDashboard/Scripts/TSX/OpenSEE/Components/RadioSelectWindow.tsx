@@ -34,26 +34,25 @@ export default class RadioselectWindow extends React.Component{
         super(props, context);
         this.state = {
             analytics: [
+                { label: 'Fault Distance', analytic: 'FaultDistance' },
                 { label: 'FFT', analytic: 'FFT' },
                 { label: 'First Derivative', analytic: 'FirstDerivative' },
-                { label: 'Impedance, Resistance, Reactance', analytic: 'Impedance' },
-                { label: 'Remove Current', analytic: 'RemoveCurrent' },
-                //{ label: 'Remove Post-Event Current', analytic: 'RemovePostEventCurrent' },
-                { label: 'Symmetrical Components', analytic: 'SymmetricalComponents' },
-                { label: 'Unbalance', analytic: 'Unbalance' },
-                { label: 'Power', analytic: 'Power' },
-                { label: 'Missing Voltage', analytic: 'MissingVoltage' },
-                { label: 'Show Points', analytic: 'ShowPoints' },
                 { label: 'Fix Clipped Waveforms', analytic: 'ClippedWaveforms' },
+                { label: 'Frequency', analytic: 'Frequency' },
                 { label: 'Harmonic Spectrum', analytic: 'HarmonicSpectrum' },
-                { label: 'Low Pass Filter', analytic: 'LowPassFilter' },
-                { label: 'High Pass Filter', analytic: 'HighPassFilter' },
+                { label: 'High Pass', analytic: 'HighPassFilter' },
+                { label: 'Low Pass', analytic: 'LowPassFilter' },
+                { label: 'Missing Voltage', analytic: 'MissingVoltage' },
                 { label: 'Overlapping Waveform', analytic: 'OverlappingWaveform' },
+                { label: 'Power', analytic: 'Power' },
                 { label: 'Rapid Voltage Change', analytic: 'RapidVoltageChange' },
                 { label: 'Rectifier Output', analytic: 'Rectifier' },
-                { label: 'Frequency', analytic: 'Frequency' },
-                { label: 'THD', analytic: 'THD' },
+                { label: 'Remove Current', analytic: 'RemoveCurrent' },
                 { label: 'Specified Harmonic', analytic: 'SpecifiedHarmonic' },
+                { label: 'Symmetrical Components', analytic: 'SymmetricalComponents' },
+                { label: 'THD', analytic: 'THD' },
+                { label: 'Unbalance', analytic: 'Unbalance' },
+                { label: 'Z, R, jX', analytic: 'Impedance' },
             ]
         }
     }

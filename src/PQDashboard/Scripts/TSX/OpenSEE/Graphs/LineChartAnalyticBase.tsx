@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import * as moment from "moment";
 import Legend, { iLegendData } from './../Graphs/Legend';
@@ -283,12 +282,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         var ctrl = this;
         var startString = this.props.startDate;
         var endString = this.props.endDate;
-        if (this.props.startDate == null) {
-            startString = moment(data.StartDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
-        }
-        if (this.props.endDate == null) {
-            endString = moment(data.EndDate).format('YYYY-MM-DDTHH:mm:ss.SSSSSSS');
-        }
+
         var newVessel = [];
         legend.forEach((row, key, map) => {
             if (row.enabled)

@@ -385,6 +385,8 @@
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Compile Include="Model\AppModel.cs" />
+    <Content Include="Images\2-Line - 500.png" />
+    <Content Include="Images\openSEE - Waveform Viewer Header.png" />
     <Content Include="Images\PQI.png" />
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
@@ -1288,6 +1290,7 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\Unbalance.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\SymmetricalComponents.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\About.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />

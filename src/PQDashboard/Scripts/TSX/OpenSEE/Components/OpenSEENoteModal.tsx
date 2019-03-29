@@ -23,9 +23,7 @@
 import 'react-app-polyfill/ie11';
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import 'bootstrap/dist/css/bootstrap.css'
-import { Table, Navbar, NavDropdown, Nav, Button, Form, FormControl, Row, Modal } from 'react-bootstrap';
+import 'bootstrap'
 import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
 
@@ -33,27 +31,28 @@ import OpenSEE2Service from './../../../TS/Services/OpenSEE';
 
 export default class OpenSEENoteModal extends React.Component {
     openSEE2Service: OpenSEE2Service;
-    state: { show: boolean, tableRows: Array<any>, note: string }
+    state: { tableRows: Array<any>, note: string, count: number }
     props: { eventId: number }
     constructor(props, context) {
         super(props, context);
 
-        this.handleShow = this.handleShow.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.openSEE2Service = new OpenSEE2Service();
         this.state = {
-            show: false,
             tableRows: [],
-            note: ''
+            note: '',
+            count: 0
         };
 
         this.handleAdd = this.handleAdd.bind(this)
         this.handleClose = this.handleClose.bind(this)
         this.handleShow = this.handleShow.bind(this)
+        this.handleDelete = this.handleDelete.bind(this)
+        this.handleEdit = this.handleEdit.bind(this)
+
     }
 
     handleClose() {
-        this.setState({ show: false });
+        $(this.refs.modal).hide();
     }
 
     handleAdd() {
@@ -64,59 +63,62 @@ export default class OpenSEENoteModal extends React.Component {
     }
 
     handleShow() {
-        this.setState({ show: true });
+        $(this.refs.modal).show();
+    }
+
+    handleDelete(d) {
+        this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
+    }
+
+    handleEdit(d) {
+        this.setState({ note: d.Note });
+        this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
     }
 
     componentDidMount() {
         this.openSEE2Service.getNotes(this.props.eventId).done(data => {
             var rows = data.map(d => <tr key={d.ID}><td>{d.Note}</td><td>{moment(d.Timestamp).format("MM/DD/YYYY HH:mm")}</td><td>{d.UserAccount}</td><td>
-                <Button variant="light" size="sm" onClick={(e) => {
-                    this.setState({ note: d.Note });
-                    this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
-                }}><FaPencilAlt /></Button>
-                <Button variant="light" size="sm" onClick={(e) => {
-                    this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
-                }}><FaTimes /></Button>
+                <button className="btn btn-sm" onClick={(e) => this.handleEdit(d)}><FaPencilAlt /></button>
+                <button className="btn btn-sm" onClick={(e) => this.handleDelete(d)}><FaTimes /></button>
             </td></tr>)
 
-            this.setState({ tableRows: rows });
+            this.setState({ tableRows: rows, count: rows.length });
         });
     }
 
     render() {
         return (
             <>
-            <Button variant="link" onClick={this.handleShow}>Manage Notes</Button>
+            <button className="btn btn-link" onClick={this.handleShow}>Manage Notes{(this.state.count > 0 ? ` [${this.state.count}]`: null)}</button>
 
-            <Modal show={this.state.show} onHide={this.handleClose} size='lg'>
-                <Modal.Header closeButton>
-                    <Modal.Title>Manage notes for the event.</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group>
-                            <Form.Label>Notes:</Form.Label>
-                            <Table>
+            <div className="modal fade show" ref="modal" role="dialog">
+                <div className="modal-dialog modal-xl" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3 className="modal-title">Manage notes for the event.</h3>
+                            <button type="button" className="close" onClick={this.handleClose}>
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <table className="table">
                                 <thead>
-                                    <tr><td style={{width: '50%'}}>Note</td><td>Time</td><td>User</td><td></td></tr>
+                                    <tr><td style={{ width: '50%' }}>Note</td><td>Time</td><td>User</td><td></td></tr>
                                 </thead>
                                 <tbody>
                                     {this.state.tableRows}
                                 </tbody>
 
-                            </Table>
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label></Form.Label>
-                            <Form.Control as="textarea" value={this.state.note} onChange={(e) => this.setState({note: (e.target as any).value})}/>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={this.handleClose}>Close</Button>
-                    <Button variant="primary" onClick={this.handleAdd} disabled={this.state.note.length == 0}>Add Note</Button>
-                </Modal.Footer>
-            </Modal>
+                            </table>
+                            <textarea className="form-control" value={this.state.note} onChange={(e) => this.setState({ note: (e.target as any).value })}></textarea>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={this.handleClose}>Close</button>
+                            <button className="btn btn-primary" onClick={this.handleAdd} disabled={this.state.note.length == 0}>Add Note</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             </>
         );
     }

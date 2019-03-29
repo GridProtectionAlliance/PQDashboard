@@ -24,16 +24,17 @@ import * as React from 'react';
 import * as _ from "lodash";
 import './../../../jquery-ui.js';
 import './../../../PrimeUI/primeui.js';
-import { style } from "typestyle"
+import { style } from "typestyle";
+
+import './../../../../Content/themes/redmond/jquery-ui.css';
+import './../../../PrimeUI/primeui.min.css';
 
 // styles
 const outerDiv: React.CSSProperties = {
     minWidth: '200px',
-    maxWidth: '400px',
     fontSize: '12px',
     marginLeft: 'auto',
     marginRight: 'auto',
-    overflowY: 'auto',
     padding: '0em',
     zIndex: 1000,
     boxShadow: '4px 4px 2px #888888',

@@ -22,7 +22,6 @@ module.exports = {
             { test: /\.tsx?$/, loader: "ts-loader" },
             {
                 test: /\.css$/,
-                include: /node_modules/,
                 loaders: ['style-loader', 'css-loader'],
             },
             {

@@ -27,8 +27,7 @@ import 'react-app-polyfill/ie11';
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'bootstrap/dist/css/bootstrap.css'
-import { Tab, Tabs, Nav } from 'react-bootstrap';
+import 'bootstrap'
 
 import OpenSEEService from './../../TS/Services/OpenSEE';
 import createHistory from "history/createBrowserHistory"
@@ -64,8 +63,13 @@ import OverlappingWaveform from './Analytics/OverlappingWaveform';
 import HarmonicSpectrum from './Analytics/HarmonicSpectrum';
 
 import OpenSEENavbar from './Components/OpenSEENavbar';
-import { TabContent, Card } from 'react-bootstrap';
+import About from './Components/About';
+
 import { LineChartAnaltyicalBaseProps } from './Graphs/LineChartAnalyticBase';
+
+declare var eventID: number;
+declare var eventStartTime: string;
+declare var eventEndTime: string;
 
 export class OpenSEE extends React.Component<any, any>{
     history: object;
@@ -74,7 +78,7 @@ export class OpenSEE extends React.Component<any, any>{
     resizeId: any;
     TableData: Map<string, { data: number, color: string }>;
     state: {
-        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, faultcurves: boolean, breakerdigitals: boolean, Width: number,
+        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, breakerdigitals: boolean, Width: number,
         Hover: number, PointsTable: Array<any>, TableData: Map<string, { data: number, color: string }>, PostedData: iPostedData, nextBackLookup: iNextBackLookup, navigation: string, tab: string
         comparedEvents: Array<number>, overlappingEvents: Array<iListObject>, analytic: string, fftStartTime?: string, fftEndTime?: string
     }
@@ -85,12 +89,11 @@ export class OpenSEE extends React.Component<any, any>{
         var query = queryString.parse(this.history['location'].search);
         this.resizeId;
         this.state = {
-            eventid: (query['eventid'] != undefined ? query['eventid'] : 0),
-            StartDate: query['StartDate'],
-            EndDate: query['EndDate'],
+            eventid: (query['eventid'] != undefined ? query['eventid'] : eventID),
+            StartDate: (query['StartDate'] != undefined ? query['StartDate'] : eventStartTime),
+            EndDate: (query['EndDate'] != undefined ? query['EndDate'] : eventEndTime),
             displayVolt: true,
             displayCur: true,
-            faultcurves: query['faultcurves'] == '1' || query['faultcurves'] == 'true',
             breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
             Width: window.innerWidth - 300,
             Hover: 0,
@@ -104,7 +107,7 @@ export class OpenSEE extends React.Component<any, any>{
                 Line: {}
             },
             navigation: query["navigation"] != undefined ? query["navigation"] : "system",
-            tab: query["tab"] != undefined ? query["tab"] : "info",
+            tab: query["tab"] != undefined ? query["tab"] : "Info",
             comparedEvents: (query["comparedEvents"] != undefined ? (Array.isArray(query["comparedEvents"]) ? query["comparedEvents"].map(a => parseInt(a)) : [parseInt(query["comparedEvents"])]) : []),
             overlappingEvents: [],
             analytic: query["analytic"] != undefined ? query["analytic"] : null,
@@ -148,7 +151,7 @@ export class OpenSEE extends React.Component<any, any>{
         clearTimeout(this.resizeId);
         this.resizeId = setTimeout(() => {
             this.setState({
-                Width: window.innerWidth,
+                Width: window.innerWidth - 300,
                 Height: this.calculateHeights(this.state)
             });
         }, 500);
@@ -161,26 +164,31 @@ export class OpenSEE extends React.Component<any, any>{
             <div style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden' }}>
                 {/* the navigation side bar*/}
                 <div style={{ width: 300, height: 'inherit', backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
+                    <a href="https://www.gridprotectionalliance.org"><img style={{width: 280, margin: 10}} src="./../../Images/2-Line - 500.png"/></a>
                     <fieldset className="border" style={{ padding: '10px' }}>
-                        <legend className="w-auto">Views:</legend>
+                        <legend className="w-auto" style={{ fontSize: 'large' }}>Waveform Views:</legend>
                         <form>
-                            <label style={{ marginLeft: '10px' }}><input type="checkbox" onChange={() => this.stateSetter({ displayVolt: !this.state.displayVolt})} checked={this.state.displayVolt} />Volt</label>
-                            <label style={{ marginLeft: '10px' }}><input type="checkbox" onChange={() => this.stateSetter({ displayCur: !this.state.displayCur })} checked={this.state.displayCur} />Curr</label>
-                            <label style={{ marginLeft: '10px' }}><input type="checkbox" onChange={() => this.stateSetter({ breakerdigitals: !this.state.breakerdigitals })} checked={this.state.breakerdigitals}/>Dig</label>
-                            <label style={{ marginLeft: '10px' }}><input type="checkbox" onChange={() => this.stateSetter({ faultcurves: !this.state.faultcurves })} checked={this.state.faultcurves}/>Ft Loc</label>
+                            <label style={{ marginLeft: '10px' }}><input type="checkbox" onChange={() => this.stateSetter({ displayVolt: !this.state.displayVolt})} checked={this.state.displayVolt} />Voltage</label>
+                            <label style={{ marginLeft: '15px' }}><input type="checkbox" onChange={() => this.stateSetter({ displayCur: !this.state.displayCur })} checked={this.state.displayCur} />Current</label>
+                            <label style={{ marginLeft: '15px' }}><input type="checkbox" onChange={() => this.stateSetter({ breakerdigitals: !this.state.breakerdigitals })} checked={this.state.breakerdigitals}/>Digitals</label>
                         </form>
                     </fieldset>
 
                     <br />
 
-                    <Tab.Container id="tabSelector" activeKey={this.state.tab} onSelect={(key) => this.stateSetter({ tab: key })}>
-                        <Nav variant="tabs">
-                            <Nav.Item><Nav.Link eventKey="info">Info</Nav.Link></Nav.Item>
-                            <Nav.Item><Nav.Link eventKey="compare">Compare</Nav.Link></Nav.Item>
-                            <Nav.Item><Nav.Link eventKey="analysis">Analysis</Nav.Link></Nav.Item>
-                        </Nav>
-                        <Tab.Content style={{ height: 'calc(100% - 200px)' }}>
-                        <Tab.Pane eventKey="info" title="Info">
+                    <ul className="nav nav-tabs" id="myTab" role="tablist">
+                        <li className="nav-item">
+                            <a className={"nav-link" + (this.state.tab == "Info" ?  " active" : '') } id="home-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true" onClick={(obj: any) => this.stateSetter({ tab: obj.target.text })} >Info</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className={"nav-link" + (this.state.tab == "Compare" ? " active" : '')} id="profile-tab" data-toggle="tab" href="#compare" role="tab" aria-controls="compare" aria-selected="false" onClick={(obj: any) => this.stateSetter({ tab: obj.target.text })} >Compare</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className={"nav-link" + (this.state.tab == "Analytics" ? " active" : '')} id="contact-tab" data-toggle="tab" href="#analysis" role="tab" aria-controls="analysis" aria-selected="false" onClick={(obj: any) => this.stateSetter({ tab: obj.target.text })} >Analytics</a>
+                        </li>
+                    </ul>
+                    <div className="tab-content" id="myTabContent" style={{ height: 'calc(100% - 325px)' }}>
+                        <div className={"tab-pane fade" + (this.state.tab == "Info" ? " show active" : '') } id="info" role="tabpanel" aria-labelledby="home-tab">
                             <table className="table">
                                 <tbody>
                                     <tr><td>Meter:</td><td>{this.state.PostedData.postedMeterName}</td></tr>
@@ -197,18 +205,22 @@ export class OpenSEE extends React.Component<any, any>{
                                     {(this.state.PostedData.postedBreakerTiming != undefined ? <tr><td>Timing:</td><td>{this.state.PostedData.postedBreakerTiming}</td></tr> : null)}
                                     {(this.state.PostedData.postedBreakerSpeed != undefined ? <tr><td>Speed:</td><td>{this.state.PostedData.postedBreakerSpeed}</td></tr> : null)}
                                     {(this.state.PostedData.postedBreakerOperation != undefined ? <tr><td>Operation:</td><td>{this.state.PostedData.postedBreakerOperation}</td></tr> : null)}
-                                    <tr><td><button className="btn btn-link" onClick={(e) => { window.open(this.state.PostedData.xdaInstance + '/Workbench/Event.cshtml?EventID=' + this.state.eventid) }}>Edit</button></td><td>{(userIsAdmin? <OpenSEENoteModal eventId={this.state.eventid} /> : null)}</td></tr>
+                                    <tr><td><button className="btn btn-link" onClick={(e) => { window.open(this.state.PostedData.xdaInstance + '/Workbench/Event.cshtml?EventID=' + this.state.eventid) }}>Edit</button></td><td>{(userIsAdmin ? <OpenSEENoteModal eventId={this.state.eventid} /> : null)}</td></tr>
                                 </tbody>
                             </table>
-                        </Tab.Pane>
-                        <Tab.Pane eventKey="compare" title="Compare" style={{height: '100%'}}>
-                            <MultiselectWindow comparedEvents={this.state.comparedEvents} stateSetter={this.stateSetter.bind(this)} data={this.state.overlappingEvents}/>
-                        </Tab.Pane>
-                        <Tab.Pane eventKey="analysis" title="Analysis" >
-                                <RadioselectWindow stateSetter={this.stateSetter.bind(this)} analytic={this.state.analytic}/>
-                        </Tab.Pane>
-                        </Tab.Content>
-                    </Tab.Container>
+                        </div>
+                        <div className={"tab-pane fade" + (this.state.tab == "Compare" ? " show active" : '')} id="compare" role="tabpanel" aria-labelledby="profile-tab">
+                            <MultiselectWindow comparedEvents={this.state.comparedEvents} stateSetter={this.stateSetter.bind(this)} data={this.state.overlappingEvents} />
+                        </div>
+                        <div className={"tab-pane fade" + (this.state.tab == "Analytics" ? " show active" : '')} id="analysis" role="tabpanel" aria-labelledby="contact-tab">
+                            <RadioselectWindow stateSetter={this.stateSetter.bind(this)} analytic={this.state.analytic} />
+                        </div>
+                    </div>
+                    <div style={{width: '100%', textAlign: 'center'}}>
+                        <span>Version 3.0</span>
+                        <br/>
+                        <span><About/></span>
+                    </div>
                 </div> 
                 <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' }}>
                     <OpenSEENavbar
@@ -227,26 +239,27 @@ export class OpenSEE extends React.Component<any, any>{
                         TableData={this.state.TableData}
                     />
                     <div style={{ padding: '0', height: "calc(100% - 62px)", overflowY: 'auto' }}>
-                        <ViewerWindow key={this.state.eventid} eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCurves={this.state.faultcurves} postedData={this.state.PostedData} isCompare={(this.state.tab == "compare")} label={this.state.PostedData.postedLineName} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime} analytic={this.state.analytic}/>
-                        {(this.state.tab == "compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(a => <ViewerWindow key={a} eventId={a} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} displayFaultCurves={this.state.faultcurves} postedData={this.state.PostedData} isCompare={(this.state.tab == "compare")} label={this.state.overlappingEvents.find(x => x.value == a).label} tableSetter={this.tableUpdater.bind(this)} />) : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "Impedance" ? <Impedance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "Power" ? <Power eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "FirstDerivative" ? <FirstDerivative eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "RemoveCurrent" ? <RemoveCurrent eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "MissingVoltage" ? <MissingVoltage eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "LowPassFilter" ? <LowPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "HighPassFilter" ? <HighPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "SymmetricalComponents" ? <SymmetricalComponents eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "Unbalance" ? <Unbalance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "Rectifier" ? <Rectifier eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "ClippedWaveforms" ? <ClippedWaveforms eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "RapidVoltageChange" ? <RapidVoltageChange eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "THD" ? <THD eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "Frequency" ? <Frequency eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "FFT" ? <FFT eventId={this.state.eventid}  pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime}/> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "SpecifiedHarmonic" ? <SpecifiedHarmonic eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "OverlappingWaveform" ? <OverlappingWaveform eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} height={height}  /> : null)}
-                        {(this.state.tab == "analysis" && this.state.analytic == "HarmonicSpectrum" ? <HarmonicSpectrum eventId={this.state.eventid} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime} /> : null)}
+                        <ViewerWindow key={this.state.eventid} eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} postedData={this.state.PostedData} isCompare={(this.state.tab == "Compare")} label={this.state.PostedData.postedLineName} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime} analytic={this.state.analytic}/>
+                        {(this.state.tab == "Compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(a => <ViewerWindow key={a} eventId={a} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} displayVolt={this.state.displayVolt} displayCur={this.state.displayCur} displayDigitals={this.state.breakerdigitals} postedData={this.state.PostedData} isCompare={true} label={<a href={homePath+ 'Main/OpenSEE?eventid=' +a }>{this.state.overlappingEvents.find(x => x.value == a).label}</a>} tableSetter={this.tableUpdater.bind(this)} />) : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "Impedance" ? <Impedance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "Power" ? <Power eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "FirstDerivative" ? <FirstDerivative eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "RemoveCurrent" ? <RemoveCurrent eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "MissingVoltage" ? <MissingVoltage eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "LowPassFilter" ? <LowPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "HighPassFilter" ? <HighPassFilter eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "SymmetricalComponents" ? <SymmetricalComponents eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "Unbalance" ? <Unbalance eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "Rectifier" ? <Rectifier eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "ClippedWaveforms" ? <ClippedWaveforms eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "RapidVoltageChange" ? <RapidVoltageChange eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "THD" ? <THD eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable}  postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "Frequency" ? <Frequency eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "FFT" ? <FFT eventId={this.state.eventid}  pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime}/> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "SpecifiedHarmonic" ? <SpecifiedHarmonic eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "OverlappingWaveform" ? <OverlappingWaveform eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} height={height}  /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "HarmonicSpectrum" ? <HarmonicSpectrum eventId={this.state.eventid} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} fftStartTime={this.state.fftStartTime} fftEndTime={this.state.fftEndTime} /> : null)}
+                        {(this.state.tab == "Analytics" && this.state.analytic == "FaultDistance" ? <FaultLocation eventId={this.state.eventid} startDate={this.state.StartDate} endDate={this.state.EndDate} pixels={this.state.Width} stateSetter={this.stateSetter.bind(this)} height={height} hover={this.state.Hover} tableData={this.TableData} pointsTable={this.state.PointsTable} postedData={this.state.PostedData} tableSetter={this.tableUpdater.bind(this)} /> : null)}
 
                     </div>
                 </div>
@@ -297,12 +310,12 @@ export class OpenSEE extends React.Component<any, any>{
 
     resetZoom() {
         clearTimeout(this.historyHandle);
-        this.history['push'](this.history['location'].pathname + '?eventid=' + this.state.eventid + (this.state.faultcurves ? '&faultcurves=1' : '') + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
+        this.history['push'](this.history['location'].pathname + '?eventid=' + this.state.eventid + (this.state.breakerdigitals ? '&breakerdigitals=1' : ''));
     }
 
     calculateHeights(obj: any) {
-        if (obj.tab == "compare") return 300;
-        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.faultcurves) + Number(obj.breakerdigitals) + Number(obj.tab == "analysis"))
+        if (obj.tab == "Compare") return 300;
+        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.breakerdigitals) + Number(obj.tab == "Analytics"))
     }
 
 
@@ -312,26 +325,24 @@ export class OpenSEE extends React.Component<any, any>{
 }
 
 interface ViewerWindowProps extends LineChartAnaltyicalBaseProps {
-    isCompare: boolean, displayVolt: boolean, displayCur: boolean, displayDigitals: boolean, displayFaultCurves: boolean, label: string
+    isCompare: boolean, displayVolt: boolean, displayCur: boolean, displayDigitals: boolean, label: string | JSX.Element
 }
 
 const ViewerWindow = (props: ViewerWindowProps) => {
     return ( props.isCompare ? 
-        <Card style={{ height: (props.isCompare ? null : '100%') }}>
-            <Card.Header>{props.label}</Card.Header>
-                <Card.Body style={{padding: 0}}>
-                {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData}  /> : null)}
-                {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} /> : null)}
-                {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} /> : null)}
-                {(props.displayFaultCurves ? <FaultLocation eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} /> : null)}
-                </Card.Body>
-        </Card>
+        <div className="card" style={{ height: (props.isCompare ? null : '100%') }}>
+            <div className="card-header">{props.label}</div>
+            <div className="card-body" style={{padding: 0}}>
+            {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData}  /> : null)}
+            {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} /> : null)}
+            {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} /> : null)}
+            </div>
+        </div>
         :
         <>
             {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} /> : null)}
             {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic}/> : null)}
             {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} />: null)}
-            {(props.displayFaultCurves ? <FaultLocation eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} />: null)}
         </>
             
         );
