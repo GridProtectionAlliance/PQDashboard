@@ -287,7 +287,7 @@ export class OpenSEE extends React.Component<any, any>{
             delete prop.PostedData;
             delete prop.nextBackLookup;
             delete prop.overlappingEvents;
-
+            delete prop.TooltipWithDeltaTable;
             return queryString.stringify(prop, { encode: false });
         }
 
