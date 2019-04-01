@@ -100,7 +100,7 @@ export default class OpenSEENavbar extends React.Component {
                 <PolarChart data={this.props.TableData} callback={this.props.stateSetter} />
                 <Points pointsTable={this.props.PointsTable} callback={this.props.stateSetter} postedData={this.props.PostedData} />
                 <Tooltip data={this.props.TableData} hover={this.props.Hover} callback={this.props.stateSetter} />
-                <TooltipWithDelta data={this.props.TooltipWithDeltaTable} />
+                <TooltipWithDelta data={this.props.TooltipWithDeltaTable} callback={this.props.stateSetter}/>
                 <ScalarStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
                 <HarmonicStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
                 <TimeCorrelatedSags eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
@@ -120,6 +120,8 @@ export default class OpenSEENavbar extends React.Component {
     }
 
     showhideTooltipWithDelta(evt) {
+        this.props.stateSetter({ TooltipWithDeltaTable: new Map<string, Map<string, { data: number, color: string }>>() });
+
         $('#tooltipwithdelta').show();
         $('.legendCheckbox').show();
     }

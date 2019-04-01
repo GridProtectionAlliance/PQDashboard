@@ -73,7 +73,8 @@ const closeButton = style({
 });
 
 export interface TooltipWithDeltaProps {
-    data: Map<string, Map<string, { data: number, color: string}>>
+    data: Map<string, Map<string, { data: number, color: string }>>,
+    callback: Function
 }
 
 export default class TooltipWithDelta extends React.Component<any, any>{
@@ -126,6 +127,7 @@ export default class TooltipWithDelta extends React.Component<any, any>{
                 <button className={closeButton} onClick={() => {
                     $('#tooltipwithdelta').hide();
                     $('.legendCheckbox').hide();
+                    this.props.callback({ TooltipWithDeltaTable: new Map<string, Map<string, { data: number, color: string }>>()});
                 }}>X</button>
             </div>
         );
