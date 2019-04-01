@@ -85,12 +85,19 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                         v = Number.NaN,
                         prev;
 
-                    do {
-                        prev = v;
-                        v = start + i * axis.delta;
-                        ticks.push(v);
-                        ++i;
-                    } while (v < axis.max && v != prev);
+                    //do {
+                    //    prev = v;
+                    //    v = start + i * axis.delta;
+                    //    ticks.push(v);
+                    //    ++i;
+                    //} while (v < axis.max && v != prev);
+                    do
+                    {
+                        i++;
+                        ticks.push(axis.min + i * axis.delta);
+                    }
+                    while(ticks[i - 1] < axis.max);
+
                     return ticks;
                 },
                 tickFormatter: function (value, axis) {
@@ -280,8 +287,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
     createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
-        var startString = this.props.startDate;
-        var endString = this.props.endDate;
+        var startString = ( ctrl.getMillisecondTime(this.props.startDate) > ctrl.getMillisecondTime(data.StartDate) ? data.StartDate : this.props.startDate);
+        var endString = (ctrl.getMillisecondTime(this.props.endDate) < ctrl.getMillisecondTime(data.StartDate) ? data.EndDate : this.props.endDate);
 
         var newVessel = [];
         legend.forEach((row, key, map) => {
