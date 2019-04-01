@@ -26,6 +26,8 @@ import * as ReactDOM from 'react-dom';
 import PolarChart from './../jQueryUI Widgets/PolarChart';
 import Points from './../jQueryUI Widgets/AccumulatedPoints';
 import Tooltip from './../jQueryUI Widgets/Tooltip';
+import TooltipWithDelta from './../jQueryUI Widgets/TooltipWithDelta';
+
 import ScalarStats from './../jQueryUI Widgets/ScalarStats';
 import HarmonicStats from './../jQueryUI Widgets/HarmonicStats';
 import TimeCorrelatedSags from './../jQueryUI Widgets/TimeCorrelatedSags';
@@ -36,7 +38,7 @@ import 'bootstrap';
 declare var homePath;
 
 export default class OpenSEENavbar extends React.Component {
-    props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string }
+    props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string, TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>}
     state: {}
     constructor(props, context) {
         super(props, context);
@@ -55,6 +57,7 @@ export default class OpenSEENavbar extends React.Component {
                             <div className="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <a className="dropdown-item" onClick={this.showhidePoints.bind(this)}>Show Points</a>
                                 <a className="dropdown-item" onClick={this.showhideTooltip.bind(this)}>Show Tooltip</a>
+                                <a className="dropdown-item" onClick={this.showhideTooltipWithDelta.bind(this)}>Show Tooltip w/ Delta</a>
                                 <a className="dropdown-item" onClick={this.showhidePhasor.bind(this)}>Show Phasor</a>
                                 <a className="dropdown-item" onClick={this.showhideStats.bind(this)}>Show Stats</a>
                                 <a className="dropdown-item" onClick={this.showhideCorrelatedSags.bind(this)}>Show Correlated Sags</a>
@@ -97,6 +100,7 @@ export default class OpenSEENavbar extends React.Component {
                 <PolarChart data={this.props.TableData} callback={this.props.stateSetter} />
                 <Points pointsTable={this.props.PointsTable} callback={this.props.stateSetter} postedData={this.props.PostedData} />
                 <Tooltip data={this.props.TableData} hover={this.props.Hover} callback={this.props.stateSetter} />
+                <TooltipWithDelta data={this.props.TooltipWithDeltaTable} />
                 <ScalarStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
                 <HarmonicStats eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
                 <TimeCorrelatedSags eventId={this.props.eventid} callback={this.props.stateSetter} exportCallback={(type) => this.exportData(type)} />
@@ -112,6 +116,11 @@ export default class OpenSEENavbar extends React.Component {
 
     showhideTooltip(evt) {
         $('#unifiedtooltip').show();
+        $('.legendCheckbox').show();
+    }
+
+    showhideTooltipWithDelta(evt) {
+        $('#tooltipwithdelta').show();
         $('.legendCheckbox').show();
     }
 

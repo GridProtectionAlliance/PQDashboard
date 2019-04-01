@@ -106,7 +106,7 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
             stateSetter={this.props.stateSetter}
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
-
+            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
         />
     }
 

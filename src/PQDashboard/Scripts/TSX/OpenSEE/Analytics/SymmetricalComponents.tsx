@@ -66,6 +66,7 @@ export default class SymmetricalComponents extends React.Component {
             stateSetter={this.props.stateSetter}
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
+            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
                />
     }
 }

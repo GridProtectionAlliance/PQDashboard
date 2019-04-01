@@ -39,7 +39,7 @@ export type GetColorFunction = (key: {ChartLabel: string}, index: number) => str
 
 export interface LineChartAnaltyicalBaseProps {
     eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number, tableData: Map<string, { data: number, color: string }>,
-    pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime?: string, fftEndTime?: string, analytic?: string
+    pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime?: string, fftEndTime?: string, analytic?: string, tooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>
 };
 
 interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
@@ -80,6 +80,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                 reserveSpace: false,
                 ticks: function (axis) {
                     var ticks = [],
+                        delta = (axis.max - axis.min)/11,
                         start = ctrl.floorInBase(axis.min, axis.delta),
                         i = 0,
                         v = Number.NaN,
@@ -91,12 +92,10 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                     //    ticks.push(v);
                     //    ++i;
                     //} while (v < axis.max && v != prev);
-                    do
+                    for (var i = 1; i < 11; ++i)
                     {
-                        i++;
-                        ticks.push(axis.min + i * axis.delta);
+                        ticks.push(axis.min + i * delta);
                     }
-                    while(ticks[i - 1] < axis.max);
 
                     return ticks;
                 },
@@ -181,6 +180,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
             }
 
             var hightlightFunction = this.props.highlightCycle == undefined || this.props.highlightCycle ? this.highlightCycle : this.highlightSample
+            this.options['grid'].markings = [];
+
             this.options['grid'].markings.push(hightlightFunction(data));
 
 
@@ -287,8 +288,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
     createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
-        var startString = ( ctrl.getMillisecondTime(this.props.startDate) > ctrl.getMillisecondTime(data.StartDate) ? data.StartDate : this.props.startDate);
-        var endString = (ctrl.getMillisecondTime(this.props.endDate) < ctrl.getMillisecondTime(data.StartDate) ? data.EndDate : this.props.endDate);
+        var startString = this.props.startDate;
+        var endString = this.props.endDate;
 
         var newVessel = [];
         legend.forEach((row, key, map) => {
@@ -297,6 +298,11 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
+
+        if ($('#tooltipwithdelta').css('display') != 'none') {
+            this.props.tooltipWithDeltaTable.forEach((value, key, map) => this.options['grid'].markings.push(this.highlightCycleForDelta(this.getMillisecondTime(key))));
+            
+        }
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotSelected();
         this.plotZoom();
@@ -439,6 +445,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         var ctrl = this;
         $(ctrl.refs.graphWindow).off("plotclick");
         $(ctrl.refs.graphWindow).bind("plotclick", function (event, pos, item) {
+            var timeString = ctrl.getDateString(pos.x);
+
             var time;
             var deltatime;
             var deltavalue;
@@ -469,7 +477,12 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                 arrayIndex: ctrl.props.pointsTable.length
             });
 
-            ctrl.props.stateSetter({ PointsTable: pointsTable });
+            var map = new Map(ctrl.props.tooltipWithDeltaTable);
+            if (map.size > 1)
+                map.clear();
+            map.set(timeString, ctrl.props.tableData);
+
+            ctrl.props.stateSetter({ PointsTable: pointsTable, TooltipWithDeltaTable: map});
         });
     }
 
@@ -545,6 +558,16 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                     to: series.CalculationEnd
                 }
             };
+    }
+
+    highlightCycleForDelta(time) {
+        return {
+            color: "#0062cc",
+            xaxis: {
+                from: time,
+                to: time
+            }
+        };
     }
 
     highlightFFTCycle() {

@@ -1312,6 +1312,7 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\ScalarStats.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TimeCorrelatedSags.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TooltipWithDelta.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
