@@ -24,7 +24,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
-import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { LegendClickCallback } from './LineChartAnalyticBase';
 
 export interface iLegendData {
@@ -45,7 +44,8 @@ export default class Legend extends React.Component<any, any>{
         this.samplesPerCycleOptions = [];
 
         for (var i = 0; i <= samplesPerCycle / 2; ++i)
-            this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>)
+            this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>);
+
     }
 
     render() {
@@ -59,89 +59,41 @@ export default class Legend extends React.Component<any, any>{
 
         return (
             <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
-                {(this.props.type == "Voltage" || this.props.type == "Current"?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="checkbox" name="options" defaultValue="Wave" onChange={this.toggleAll.bind(this)}>
-                            <ToggleButton type="checkbox" name="checkbox" value="Wave" style={{ width: '25%', height: 28 }}>W</ToggleButton>
-                            <ToggleButton type="checkbox" name="checkbox" value="RMS" style={{ width: '25%', height: 28 }}>R</ToggleButton>
-                            <ToggleButton type="checkbox" name="checkbox" value="Amp" style={{ width: '25%', height: 28 }}>A</ToggleButton>
-                            <ToggleButton type="checkbox" name="checkbox" value="Phase" style={{ width: '25%', height: 28 }}>Ph</ToggleButton>
-                        </ToggleButtonGroup>
-
-                    </div> : null)}
-                {(this.props.type.toLowerCase() == "digital"?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="options" defaultValue="All" onChange={this.toggleDigitals.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="All" style={{ width: '33%', height: 28 }}>All</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="StatusChange" style={{ width: '33%', height: 28 }}>Chng</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Breakers" style={{ width: '33%', height: 28}}>Brs</ToggleButton>
-                        </ToggleButtonGroup>
-                    </div> : null)}
-                {(this.props.type.toLowerCase() == "power"?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="P" onChange={this.togglePower.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="P" style={{ width: '25%', height: 28 }}>P</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="S" style={{ width: '25%', height: 28 }}>S</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Q" style={{ width: '25%', height: 28 }}>Q</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="PF" style={{ width: '25%', height: 28 }}>PF</ToggleButton>
-                        </ToggleButtonGroup>
-
-                    </div> : null)}
+                {(this.props.type == "Voltage" || this.props.type == "Current" ?
+                    <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleAll.bind(this)}/>
+                : null)}
+                {(this.props.type.toLowerCase() == "digital" ?
+                    <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'All', value: 'All', active: true }, { label: 'Chng', value: 'StatusChange', active: false }, { label: 'Brs', value: 'Breakers', active: false }]} onChange={this.toggleDigitals.bind(this)} />
+                : null)}
+                {(this.props.type.toLowerCase() == "power" ?
+                    <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'P', value: 'P', active: true }, { label: 'S', value: 'S', active: false }, { label: 'Q', value: 'Q', active: false }, { label: 'PF', value: 'PF', active: false }]} onChange={this.togglePower.bind(this)} />
+                : null)}
                 {(this.props.type.toLowerCase() == "impedance" ?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="R" onChange={this.toggleImpedance.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="R" style={{ width: '33%', height: 28 }}>R</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="X" style={{ width: '33%', height: 28 }}>X</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Z" style={{ width: '33%', height: 28 }}>Z</ToggleButton>
-                        </ToggleButtonGroup>
-
-                    </div> : null)}
+                    <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'R', value: 'R', active: true }, { label: 'X', value: 'X', active: false }, { label: 'Z', value: 'Z', active: false }]} onChange={this.toggleImpedance.bind(this)} />
+                : null)}
 
                 {(this.props.type.toLowerCase() == "firstderivative" || this.props.type.toLowerCase() == "lowpassfilter" ||
                     this.props.type.toLowerCase() == "highpassfilter" || this.props.type.toLowerCase() == "symmetricalcomponents" ||
                     this.props.type.toLowerCase() == "unbalance" || this.props.type.toLowerCase() == "rectifier" ||
                     this.props.type.toLowerCase() == "clippedwaveforms" || this.props.type.toLowerCase() == "thd" || this.props.type.toLowerCase() == "overlappingwaveform" ?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Volt" onChange={this.toggleFirstDerivative.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="Volt" style={{ width: '50%', height: 28 }}>Volt</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Cur" style={{ width: '50%', height: 28 }}>Cur</ToggleButton>
-                        </ToggleButtonGroup>
 
-                    </div> : null)}
-                {(this.props.type.toLowerCase() == "removecurrent" || this.props.type.toLowerCase() == "missingvoltage"?
-                    <div className="d-flex flex-column btn-group">
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Pre" onChange={this.toggleRemoveCurrent.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="Pre" style={{ width: '50%', height: 28 }}>Pre</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Post" style={{ width: '50%', height: 28 }}>Post</ToggleButton>
-                        </ToggleButtonGroup>
-
-                    </div> : null)}
+                    <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Volt', value: 'Volt', active: true }, { label: 'Cur', value: 'Cur', active: false }]} onChange={this.toggleFirstDerivative.bind(this)} />
+                : null)}
+                {(this.props.type.toLowerCase() == "removecurrent" || this.props.type.toLowerCase() == "missingvoltage" ?
+                    <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Pre', value: 'Pre', active: true }, { label: 'Post', value: 'Post', active: false }]} onChange={this.toggleRemoveCurrent.bind(this)} />
+                : null)}
 
                 {(this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum"?
-                    <div className="d-flex flex-column btn-group">
+                    <div className="d-flex flex-column">
 
                         {(this.props.type.toLowerCase() == "harmonicspectrum" ? <input type="number" defaultValue="10" min="1" onChange={this.handleSelected.bind(this)} /> : null)}
-
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Vmag" onChange={this.toggleFFT.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="Vmag" style={{ width: '25%', height: 28 }}>Vm</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Vang" style={{ width: '25%', height: 28 }}>Vph</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Imag" style={{ width: '25%', height: 28 }}>Im</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Iang" style={{ width: '25%', height: 28 }}>Iph</ToggleButton>
-                        </ToggleButtonGroup>
-
+                        <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }]} onChange={this.toggleFFT.bind(this)} />
                     </div> : null)}
 
                 {(this.props.type.toLowerCase() == "specifiedharmonic" ?
                     <div className="d-flex flex-column btn-group">
                         <select defaultValue={'1'} onChange={this.handleSelected.bind(this)}>{this.samplesPerCycleOptions}</select>
-
-                        <ToggleButtonGroup type="radio" name="radio" defaultValue="Vmag" onChange={this.toggleSpecifiedHarmonic.bind(this)}>
-                            <ToggleButton type="radio" name="radio" value="Vmag" style={{ width: '25%', height: 28 }}>Vm</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Vang" style={{ width: '25%', height: 28 }}>Vph</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Imag" style={{ width: '25%', height: 28 }}>Im</ToggleButton>
-                            <ToggleButton type="radio" name="radio" value="Iang" style={{ width: '25%', height: 28 }}>Iph</ToggleButton>
-                        </ToggleButtonGroup>
-
+                        <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }]} onChange={this.toggleSpecifiedHarmonic.bind(this)} />
                     </div> : null)}
 
 
@@ -154,7 +106,7 @@ export default class Legend extends React.Component<any, any>{
         );
     }
 
-    toggleAll(type, event) {
+    toggleAll(type) {
         this.props.data.forEach((row, key, map) => {
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
@@ -477,4 +429,53 @@ function convertHex(hex, opacity) {
 
     var result = 'rgba(' + r + ',' + g + ',' + b + ',' + opacity / 100 + ')';
     return result;
+}
+
+class ToggleButtonGroup extends React.Component {
+    props: { type: "radio" | "checkbox", buttons: { label: string, value: string, active: boolean }[], onChange: Function, defaultValue: string }
+    state: { buttons: { label: string, value: string, active: boolean }[]}
+    constructor(props, context) {
+        super(props, context);
+
+        this.state = {
+            buttons: this.props.buttons
+        }
+
+    }
+
+    handleToggle(value: string): void {
+        if (this.props.type == "checkbox") {
+            var buttons = JSON.parse(JSON.stringify(this.state.buttons)) as { label: string, value: string, active: boolean }[];
+            var button = buttons.find(x => x.value == value);
+            button.active = !button.active;
+            this.setState({buttons: buttons}, () => this.props.onChange(this.state.buttons.filter(x=> x.active).map(x=> x.value)));
+        }
+        else {
+            var buttons = JSON.parse(JSON.stringify(this.state.buttons)) as { label: string, value: string, active: boolean }[];
+            buttons.forEach(x => x.active = false);
+            var button = buttons.find(x => x.value == value);
+            button.active = true;
+            this.setState({ buttons: buttons }, () => this.props.onChange(this.state.buttons.filter(x => x.active).map(x => x.value)));
+        }
+    }
+
+    render() {
+        let rows = this.state.buttons.map(x => <ToggleButton key={x.value} active={x.active} value={x.value} style={{ width: 100 / this.props.buttons.length + '%', height: 28 }} label={x.label} onChange={(value) => this.handleToggle(value)}/>);
+        return (
+            <div className="btn-group btn-group-toggle" style={{ width: '100%' }}>{rows}</div>
+        );
+    }
+
+}
+
+class ToggleButton extends React.Component {
+    props: { active: boolean, value: string, style: React.CSSProperties, label: string, onChange: Function}
+    constructor(props, context) {
+        super(props, context);
+
+    }
+
+    render() {
+        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} ><input type="checkbox" name="checkbox" value={this.props.value} style={this.props.style} onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
+    }
 }

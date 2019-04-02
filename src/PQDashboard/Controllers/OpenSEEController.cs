@@ -24,6 +24,7 @@ using FaultData.DataAnalysis;
 using GSF;
 using GSF.Data;
 using GSF.Data.Model;
+using GSF.Identity;
 using GSF.NumericalAnalysis;
 using GSF.Security;
 using GSF.Web;
@@ -3377,19 +3378,35 @@ namespace OpenSEE.Controller
         private IHttpActionResult ValidateAdminRequest()
         {
             string username = User.Identity.Name;
-            ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
-            securityProvider.PassthroughPrincipal = User;
+            string userid = UserInfo.UserNameToSID(username);
 
-            if (!securityProvider.Authenticate())
-                return StatusCode(HttpStatusCode.Forbidden);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+                bool isAdmin = connection.ExecuteScalar<int>(@"
+					select 
+						COUNT(*) 
+					from 
+						UserAccount JOIN 
+						ApplicationRoleUserAccount ON ApplicationRoleUserAccount.UserAccountID = UserAccount.ID JOIN
+						ApplicationRole ON ApplicationRoleUserAccount.ApplicationRoleID = ApplicationRole.ID
+					WHERE 
+						ApplicationRole.Name = 'Administrator' AND UserAccount.Name = {0}
+                ", userid) > 0;
 
-            SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
-            SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+                if (isAdmin) return null;
+                else return StatusCode(HttpStatusCode.Forbidden);
+            }
+            //    ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
+            //securityProvider.PassthroughPrincipal = User;
 
-            if (!approverPrincipal.IsInRole("Administrator"))
-                return StatusCode(HttpStatusCode.Forbidden);
+            //if (!securityProvider.Authenticate())
+            //    return StatusCode(HttpStatusCode.Forbidden);
 
-            return null;
+            //SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
+            //SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+
+            //if (!approverPrincipal.IsInRole("Administrator"))
+            //    return StatusCode(HttpStatusCode.Forbidden);
+
         }
         #endregion
 

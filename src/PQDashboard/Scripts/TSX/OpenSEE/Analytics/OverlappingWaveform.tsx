@@ -210,10 +210,10 @@ export default class OverlappingWaveform extends React.Component<any, any>{
 
     render() {
         return (
-            <>
+            <div>
             <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/ }}></div>
             <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type="OverlappingWaveform" height={this.props.height} />
-            </>
+            </div>
         );
     }
 }

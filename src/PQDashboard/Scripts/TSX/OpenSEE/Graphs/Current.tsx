@@ -49,9 +49,7 @@ export default class Current extends React.Component<any, any>{
 
     getData(props: LineChartAnaltyicalBaseProps, baseCtrl: LineChartAnalyticBase, ctrl: Current): void {
 
-        var obj: any = JSON.parse(JSON.stringify(props));
-        obj.type = "Current";
-        var eventDataHandle = ctrl.openSEEService.getWaveformData(obj).then(data => {
+        var eventDataHandle = ctrl.openSEEService.getWaveformData(props.eventId, props.pixels, "Current", props.startDate, props.endDate).then(data => {
             baseCtrl.options['grid'].markings = [];
             baseCtrl.options['rangeselection'] = undefined;
             baseCtrl.options['selection'] = { mode: 'x' };
@@ -85,7 +83,7 @@ export default class Current extends React.Component<any, any>{
         });
         this.setState({ eventDataHandle: eventDataHandle });
 
-        var frequencyDataHandle = this.openSEEService.getFrequencyData(obj).then(data => {
+        var frequencyDataHandle = this.openSEEService.getFrequencyData(props.eventId, props.pixels, "Current", props.startDate, props.endDate).then(data => {
             if (data == null) return;
 
             var legend = baseCtrl.createLegendRows(data.Data);

@@ -20,10 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-import 'react-app-polyfill/ie11';
-
 import * as React from 'react';
-import 'bootstrap'
 import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
 
@@ -88,38 +85,38 @@ export default class OpenSEENoteModal extends React.Component {
 
     render() {
         return (
-            <>
-            <button className="btn btn-link" onClick={this.handleShow}>Manage Notes{(this.state.count > 0 ? ` [${this.state.count}]`: null)}</button>
+            <div>
+                <button className="btn btn-link" onClick={this.handleShow}>Manage Notes{(this.state.count > 0 ? ` [${this.state.count}]`: null)}</button>
 
-            <div className="modal fade show" ref="modal" role="dialog">
-                <div className="modal-dialog modal-xl" role="document">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h3 className="modal-title">Manage notes for the event.</h3>
-                            <button type="button" className="close" onClick={this.handleClose}>
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <table className="table">
-                                <thead>
-                                    <tr><td style={{ width: '50%' }}>Note</td><td>Time</td><td>User</td><td></td></tr>
-                                </thead>
-                                <tbody>
-                                    {this.state.tableRows}
-                                </tbody>
+                <div className="modal fade show" ref="modal" role="dialog">
+                    <div className="modal-dialog modal-xl" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h3 className="modal-title">Manage notes for the event.</h3>
+                                <button type="button" className="close" onClick={this.handleClose}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <table className="table">
+                                    <thead>
+                                        <tr><td style={{ width: '50%' }}>Note</td><td>Time</td><td>User</td><td></td></tr>
+                                    </thead>
+                                    <tbody>
+                                        {this.state.tableRows}
+                                    </tbody>
 
-                            </table>
-                            <textarea className="form-control" value={this.state.note} onChange={(e) => this.setState({ note: (e.target as any).value })}></textarea>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={this.handleClose}>Close</button>
-                            <button className="btn btn-primary" onClick={this.handleAdd} disabled={this.state.note.length == 0}>Add Note</button>
+                                </table>
+                                <textarea className="form-control" value={this.state.note} onChange={(e) => this.setState({ note: (e.target as any).value })}></textarea>
+                            </div>
+                            <div className="modal-footer">
+                                <button className="btn btn-secondary" onClick={this.handleClose}>Close</button>
+                                <button className="btn btn-primary" onClick={this.handleAdd} disabled={this.state.note.length == 0}>Add Note</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            </>
         );
     }
 }

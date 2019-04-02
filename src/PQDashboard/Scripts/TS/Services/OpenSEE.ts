@@ -81,17 +81,17 @@ export default class OpenSEEService{
 
     }
 
-    getWaveformData(filters): JQuery.jqXHR{
+    getWaveformData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR{
         if (this.waveformDataHandle !== undefined)
             this.waveformDataHandle.abort();
 
         this.waveformDataHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
-                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
-                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
-                `&pixels=${filters.pixels}` +
-                `&type=${filters.type}` +
+            url: `${homePath}api/OpenSEE/GetData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&type=${type}` +
                 `&dataType=Time`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
@@ -102,17 +102,17 @@ export default class OpenSEEService{
         return this.waveformDataHandle;
     }
 
-    getFrequencyData(filters): JQuery.jqXHR{
+    getFrequencyData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR{
         if (this.frequencyDataHandle !== undefined)
             this.frequencyDataHandle.abort();
 
         this.frequencyDataHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/GetData?eventId=${filters.eventId}` +
-                `${filters.startDate != undefined ? `&startDate=${filters.startDate}` : ``}` +
-                `${filters.endDate != undefined ? `&endDate=${filters.endDate}` : ``}` +
-                `&pixels=${filters.pixels}` +
-                `&type=${filters.type}` +
+            url: `${homePath}api/OpenSEE/GetData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&type=${type}` +
                 `&dataType=Freq`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
@@ -235,7 +235,7 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/GetNotes?eventId=${eventid}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
-            cache: true,
+            cache: false,
             async: true
         });
 
@@ -249,7 +249,7 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/AddNote`,
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
-            cache: true,
+            cache: false,
             async: true,
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {
@@ -264,7 +264,7 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/DeleteNote`,
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
-            cache: true,
+            cache: false,
             async: true,
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {

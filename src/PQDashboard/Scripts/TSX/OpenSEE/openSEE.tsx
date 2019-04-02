@@ -23,16 +23,15 @@
 
 /// <reference path="./openSee.d.ts" />
 
-import 'react-app-polyfill/ie11';
+import 'react-app-polyfill/ie11'
+import 'bootstrap'
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'bootstrap'
 
 import OpenSEEService from './../../TS/Services/OpenSEE';
 import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
-import * as moment from 'moment';
 import * as _ from "lodash";
 
 import Current from './Graphs/Current';
@@ -146,6 +145,11 @@ export class OpenSEE extends React.Component<any, any>{
 
     componentWillUnmount() {
         $(window).off('resize');
+    }
+
+    componentDidCatch(error, info) {
+        console.log(error);
+        console.log(info);
     }
 
     handleScreenSizeChange() {
@@ -341,11 +345,11 @@ const ViewerWindow = (props: ViewerWindowProps) => {
             </div>
         </div>
         :
-        <>
+        <div>
         {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
         {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
         {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/>: null)}
-        </>
+        </div>
             
         );
 }

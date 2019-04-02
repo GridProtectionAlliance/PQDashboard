@@ -21,11 +21,9 @@
 //
 //******************************************************************************************************
 
-import 'react-app-polyfill/ie11';
 import * as _ from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'bootstrap/dist/css/bootstrap.css'
 
 export default class RadioselectWindow extends React.Component{
     props: { style?: object, className?: string, stateSetter: Function, analytic: string}
@@ -52,7 +50,7 @@ export default class RadioselectWindow extends React.Component{
                 { label: 'Symmetrical Components', analytic: 'SymmetricalComponents' },
                 { label: 'THD', analytic: 'THD' },
                 { label: 'Unbalance', analytic: 'Unbalance' },
-                { label: 'Z, R, jX', analytic: 'Impedance' },
+                { label: 'R, X, Z', analytic: 'Impedance' },
             ]
         }
     }

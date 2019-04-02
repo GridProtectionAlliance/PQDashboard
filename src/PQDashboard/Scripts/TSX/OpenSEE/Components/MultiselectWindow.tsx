@@ -21,11 +21,9 @@
 //
 //******************************************************************************************************
 
-import 'react-app-polyfill/ie11';
 import * as _ from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'bootstrap/dist/css/bootstrap.css'
 
 export interface iListObject {
     group?: string;

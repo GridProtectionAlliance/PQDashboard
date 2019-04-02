@@ -146,7 +146,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
      }
 
     getData(props: Props, ): void {
-        var eventDataHandle = this.openSEEService.getWaveformData(props).then(data => {
+        var eventDataHandle = this.openSEEService.getWaveformData(props.eventId, props.pixels, props.type, props.startDate, props.endDate).then(data => {
 
             this.options['grid'].markings.push(this.highlightCycle(data));
             var legend = this.createLegendRows(data.Data);
@@ -162,7 +162,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
         });
         this.setState({ eventDataHandle: eventDataHandle });
 
-        var frequencyDataHandle = this.openSEEService.getFrequencyData(props).then(data => {
+        var frequencyDataHandle = this.openSEEService.getFrequencyData(props.eventId, props.pixels, props.type, props.startDate, props.endDate).then(data => {
             if (data == null) return;
 
             var legend = this.createLegendRows(data.Data);

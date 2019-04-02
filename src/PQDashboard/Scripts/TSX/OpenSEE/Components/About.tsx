@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import 'bootstrap';
 
 export default class About extends React.Component {
     state: { show: boolean }
@@ -48,7 +47,7 @@ export default class About extends React.Component {
 
     render() {
         return (
-            <>
+            <div>
             <button className="btn btn-link" onClick={this.handleShow}>About</button>
 
             <div className="modal fade show" ref="modal" role="dialog">
@@ -102,7 +101,7 @@ export default class About extends React.Component {
                     </div>
                 </div>
             </div>
-            </>
+            </div>
         );
 
     }

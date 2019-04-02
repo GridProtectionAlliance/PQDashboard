@@ -33,8 +33,6 @@ import HarmonicStats from './../jQueryUI Widgets/HarmonicStats';
 import TimeCorrelatedSags from './../jQueryUI Widgets/TimeCorrelatedSags';
 import LightningData from './../jQueryUI Widgets/LightningData';
 
-import 'bootstrap';
-
 declare var homePath;
 
 export default class OpenSEENavbar extends React.Component {
@@ -73,27 +71,32 @@ export default class OpenSEENavbar extends React.Component {
                         <li className="nav-item" style={{ width: 'calc(100% - 450px)', textAlign: 'center' }}>
                             <img src="../Images/openSEE - Waveform Viewer Header.png"/>
                         </li>
-                        <li className="nav-item" style={{ width: '150px' }}>
+                        <li className="nav-item" style={{ width: '156px' }}>
                             <button className="btn btn-primary" onClick={this.props.resetZoom}>Reset Zoom</button>
 
                         </li>
-                        <li className="nav-item" style={{ width: '200px' }}>
-                            {(this.props.selected == "system" ? <a href={(this.props.nextBackLookup.System.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.System.m_Item1.ID + "&navigation=system" : '#')} id="system-back" key="system-back" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.System.m_Item1 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&lt;</a> : null)}
-                            {(this.props.selected == "station" ? <a href={(this.props.nextBackLookup.Station.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Station.m_Item1.ID + "&navigation=station" : '#')} id="station-back" key="station-back" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Station.m_Item1 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.Station.m_Item1 != null ? this.props.nextBackLookup.Station.m_Item1.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&lt;</a> : null)}
-                            {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item.ID + "&navigation=meter" : '#')} id="meter-back" key="meter-back" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Meter.m_Item1 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item1 != null ? this.props.nextBackLookup.Meter.m_Item1.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&lt;</a> : null)}
-                            {(this.props.selected == "line" ? <a href={(this.props.nextBackLookup.Line.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Line.m_Item1.ID + "&navigation=line" : '#')} id="line-back" key="line-back" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Line.m_Item1 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&lt;</a> : null)}
+                        <li className="nav-item" style={{ width: '193px' }}>
+                            <div className="input-group mb-3">
+                                <div className="input-group-prepend">
+                                    {(this.props.selected == "system" ? <a href={(this.props.nextBackLookup.System.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.System.m_Item1.ID + "&navigation=system" : '#')} id="system-back" key="system-back" className={'btn btn-primary' + (this.props.nextBackLookup.System.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
+                                    {(this.props.selected == "station" ? <a href={(this.props.nextBackLookup.Station.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Station.m_Item1.ID + "&navigation=station" : '#')} id="station-back" key="station-back" className={'btn btn-primary' + (this.props.nextBackLookup.Station.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Station.m_Item1 != null ? this.props.nextBackLookup.Station.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
+                                    {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item.ID + "&navigation=meter" : '#')} id="meter-back" key="meter-back" className={'btn btn-primary' + (this.props.nextBackLookup.Meter.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item1 != null ? this.props.nextBackLookup.Meter.m_Item1.StartTime : '')} style={{ padding: '4px 20px' }}>&lt;</a> : null)}
+                                    {(this.props.selected == "line" ? <a href={(this.props.nextBackLookup.Line.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Line.m_Item1.ID + "&navigation=line" : '#')} id="line-back" key="line-back" className={'btn btn-primary' + (this.props.nextBackLookup.Line.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
+                                </div>
+                                <select id="next-back-selection" value={this.props.selected} onChange={(e) => this.props.stateSetter({ navigation: e.target.value })}>
+                                    <option value="system">System</option>
+                                    <option value="station">Station</option>
+                                    <option value="meter">Meter</option>
+                                    <option value="line">Line</option>
+                                    </select>
+                                <div className="input-group-append">
 
-                            <select id="next-back-selection" value={this.props.selected} onChange={(e) => this.props.stateSetter({ navigation: e.target.value })}>
-                                <option value="system">System</option>
-                                <option value="station">Station</option>
-                                <option value="meter">Meter</option>
-                                <option value="line">Line</option>
-                            </select>
-                            {(this.props.selected == "system" ? <a href={(this.props.nextBackLookup.System.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.System.m_Item2.ID + "&navigation=system" : '#')} id="system-next" key="system-next" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.System.m_Item2 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.System.m_Item2 != null ? this.props.nextBackLookup.System.m_Item2.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&gt;</a> : null)}
-                            {(this.props.selected == "station" ? <a href={(this.props.nextBackLookup.Station.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Station.m_Item2.ID + "&navigation=station" : '#')} id="station-next" key="station-next" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Station.m_Item2 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.Station.m_Item2 != null ? this.props.nextBackLookup.Station.m_Item2.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&gt;</a> : null)}
-                            {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item2.ID + "&navigation=meter" : '#')} id="meter-next" key="meter-next" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Meter.m_Item2 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item2 != null ? this.props.nextBackLookup.Meter.m_Item2.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&gt;</a> : null)}
-                            {(this.props.selected == "line" ? <a href={(this.props.nextBackLookup.Line.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Line.m_Item2.ID + "&navigation=line" : '#')} id="line-next" key="line-next" className={'nextbackbutton smallbutton' + (this.props.nextBackLookup.Line.m_Item2 == null ? '-disabled' : '')} title={(this.props.nextBackLookup.Line.m_Item2 != null ? this.props.nextBackLookup.Line.m_Item2.StartTime : '')} style={{ padding: '4px 20px', margin: '0px 10px' }}>&gt;</a> : null)}
-
+                                    {(this.props.selected == "system" ? <a href={(this.props.nextBackLookup.System.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.System.m_Item2.ID + "&navigation=system" : '#')} id="system-next" key="system-next" className={'btn btn-primary' + (this.props.nextBackLookup.System.m_Item2 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.System.m_Item2 != null ? this.props.nextBackLookup.System.m_Item2.StartTime : '')} style={{ padding: '4px 20px' }}>&gt;</a> : null)}
+                                    {(this.props.selected == "station" ? <a href={(this.props.nextBackLookup.Station.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Station.m_Item2.ID + "&navigation=station" : '#')} id="station-next" key="station-next" className={'btn btn-primary' + (this.props.nextBackLookup.Station.m_Item2 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Station.m_Item2 != null ? this.props.nextBackLookup.Station.m_Item2.StartTime : '')} style={{ padding: '4px 20px'}}>&gt;</a> : null)}
+                                    {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item2.ID + "&navigation=meter" : '#')} id="meter-next" key="meter-next" className={'btn btn-primary' + (this.props.nextBackLookup.Meter.m_Item2 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item2 != null ? this.props.nextBackLookup.Meter.m_Item2.StartTime : '')} style={{ padding: '4px 20px'}}>&gt;</a> : null)}
+                                    {(this.props.selected == "line" ? <a href={(this.props.nextBackLookup.Line.m_Item2 != null ? "?eventid=" + this.props.nextBackLookup.Line.m_Item2.ID + "&navigation=line" : '#')} id="line-next" key="line-next" className={'btn btn-primary' + (this.props.nextBackLookup.Line.m_Item2 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Line.m_Item2 != null ? this.props.nextBackLookup.Line.m_Item2.StartTime : '')} style={{ padding: '4px 20px'}}>&gt;</a> : null)}
+                                </div>
+                            </div>
                         </li>
                     </ul>
                   </div>
