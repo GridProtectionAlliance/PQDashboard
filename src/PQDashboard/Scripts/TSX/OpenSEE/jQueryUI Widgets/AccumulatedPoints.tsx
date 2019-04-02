@@ -40,7 +40,8 @@ const outerDiv: React.CSSProperties = {
     boxShadow: '4px 4px 2px #888888',
     border: '2px solid black',
     position: 'absolute',
-    top: '0',
+    top: 0,
+    left: 0,
     display: 'none',
     backgroundColor: 'white',
     width: '520px',
@@ -118,7 +119,7 @@ export default class Points extends React.Component<any, any>{
         return (
             <div id="accumulatedpoints" className="ui-widget-content" style={outerDiv}>
                 <div style={{ border: 'black solid 2px' }}>
-                    <div id="accumulatedpointshandle" className={handle}>></div>
+                    <div id="accumulatedpointshandle" className={handle}></div>
                     <div style={{ overflowY: 'scroll', height: '200px' }}><div id="accumulatedpointscontent" style={{ height: '100%' }}></div></div>
                     <div style={{ margin: '5px', textAlign: 'right' }}>
                         <input className="smallbutton" type="button" value="Remove" onClick={() => this.removePoint()} />

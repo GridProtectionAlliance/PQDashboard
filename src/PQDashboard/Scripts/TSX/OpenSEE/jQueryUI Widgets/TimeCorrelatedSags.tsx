@@ -41,6 +41,7 @@ const outerDiv: React.CSSProperties = {
     border: '2px solid black',
     position: 'absolute',
     top: '0',
+    left: 0,
     display: 'none',
     backgroundColor: 'white'
 };
