@@ -23,13 +23,11 @@
 
 import * as React from 'react';
 import * as _ from "lodash";
-import './../../../jquery-ui.js';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import { style } from "typestyle"
 
 const outerDiv: React.CSSProperties = {
     minWidth: '200px',
-    maxWidth: '400px',
     fontSize: '12px',
     marginLeft: 'auto',
     marginRight: 'auto',
@@ -41,7 +39,6 @@ const outerDiv: React.CSSProperties = {
     position: 'absolute',
     top: '0',
     left: 0,
-
     display: 'none',
     backgroundColor: 'white'
 };
@@ -124,7 +121,7 @@ export default class HarmonicStats extends React.Component<any, any>{
         return (
             <div id="harmonicstats" className="ui-widget-content" style={outerDiv}>
                 <div id="harmonichandle" className={handle}></div>
-                <div id="harmoniccontent">
+                <div id="harmoniccontent" style={{ maxWidth: 1700 }}>
                     <table className="table" style={{fontSize: 'large', marginBottom: 0}}>
                         <thead style={{ display: 'table', tableLayout: 'fixed', width: 'calc(100% - 1em)'}}>
                             {this.state.header}
@@ -155,7 +152,7 @@ const Row = (row) => {
 
 const HeaderRow = (row, callback) => {
     return (
-        <tr key='Header'><th colSpan={1}><button className='btn btn-primary' onClick={() => callback('harmonics')}>Export(csv)</button></th>
+        <tr key='Header'><th colSpan={1}><button className='btn btn-primary' style={{width: 75}}onClick={() => callback('harmonics')}>Export</button></th>
             {row.map(key => <th colSpan={2} scope='colgroup' key={key}>{key}</th>)}
         </tr>
     );

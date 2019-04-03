@@ -683,7 +683,7 @@ namespace OpenSEE.Controller
                 {
                     const string SagDepthQuery =
                         "SELECT TOP 1 " +
-                        "    (1 - PerUnitMagnitude) * 100 " +
+                        "    PerUnitMagnitude * 100 " +
                         "FROM " +
                         "    FaultSummary JOIN " +
                         "    Disturbance ON " +

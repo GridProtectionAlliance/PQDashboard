@@ -22,8 +22,6 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
-import * as moment from 'moment';
 
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';

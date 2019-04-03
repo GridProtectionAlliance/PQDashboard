@@ -20,9 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-import 'bootstrap/dist/css/bootstrap.css'
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import { LegendClickCallback } from './LineChartAnalyticBase';
 

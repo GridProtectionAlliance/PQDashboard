@@ -24,7 +24,6 @@
 import * as React from 'react';
 import * as _ from "lodash";
 import * as moment from "moment";
-import './../../../jquery-ui.js';
 import { style } from "typestyle"
 
 // styles

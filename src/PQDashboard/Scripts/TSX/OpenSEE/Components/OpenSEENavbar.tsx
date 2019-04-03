@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import PolarChart from './../jQueryUI Widgets/PolarChart';
 import Points from './../jQueryUI Widgets/AccumulatedPoints';
 import Tooltip from './../jQueryUI Widgets/Tooltip';
@@ -32,8 +31,9 @@ import ScalarStats from './../jQueryUI Widgets/ScalarStats';
 import HarmonicStats from './../jQueryUI Widgets/HarmonicStats';
 import TimeCorrelatedSags from './../jQueryUI Widgets/TimeCorrelatedSags';
 import LightningData from './../jQueryUI Widgets/LightningData';
+import 'bootstrap'
 
-declare var homePath;
+declare var homePath: string;
 
 export default class OpenSEENavbar extends React.Component {
     props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string, TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>}
@@ -152,7 +152,7 @@ export default class OpenSEENavbar extends React.Component {
 
 
     exportData(type) {
-        window.open( homePath + `/OpenSEECSVDownload.ashx?type=${type}&eventID=${this.props.eventid}` +
+        window.open( homePath + `OpenSEECSVDownload.ashx?type=${type}&eventID=${this.props.eventid}` +
             `${this.props.startDate != undefined ? `&startDate=${this.props.startDate}` : ``}` +
             `${this.props.endDate != undefined ? `&endDate=${this.props.endDate}` : ``}` +
             `&Meter=${this.props.PostedData.postedMeterName}` +
@@ -160,7 +160,7 @@ export default class OpenSEENavbar extends React.Component {
     }
 
     exportComtrade(evt) {
-        window.open(homePath + `/OpenSEEComtradeDownload.ashx?eventID=${this.props.eventid}` +
+        window.open(homePath + `OpenSEEComtradeDownload.ashx?eventID=${this.props.eventid}` +
             `${this.props.startDate != undefined ? `&startDate=${this.props.startDate}` : ``}` +
             `${this.props.endDate != undefined ? `&endDate=${this.props.endDate}` : ``}` +
             `&Meter=${this.props.PostedData.postedMeterName}` +

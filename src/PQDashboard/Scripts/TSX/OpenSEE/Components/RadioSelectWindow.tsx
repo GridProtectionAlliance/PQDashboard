@@ -23,7 +23,6 @@
 
 import * as _ from 'lodash';
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 
 export default class RadioselectWindow extends React.Component{
     props: { style?: object, className?: string, stateSetter: Function, analytic: string}
@@ -43,6 +42,7 @@ export default class RadioselectWindow extends React.Component{
                 { label: 'Missing Voltage', analytic: 'MissingVoltage' },
                 { label: 'Overlapping Waveform', analytic: 'OverlappingWaveform' },
                 { label: 'Power', analytic: 'Power' },
+                { label: 'R, X, Z', analytic: 'Impedance' },
                 { label: 'Rapid Voltage Change', analytic: 'RapidVoltageChange' },
                 { label: 'Rectifier Output', analytic: 'Rectifier' },
                 { label: 'Remove Current', analytic: 'RemoveCurrent' },
@@ -50,7 +50,6 @@ export default class RadioselectWindow extends React.Component{
                 { label: 'Symmetrical Components', analytic: 'SymmetricalComponents' },
                 { label: 'THD', analytic: 'THD' },
                 { label: 'Unbalance', analytic: 'Unbalance' },
-                { label: 'R, X, Z', analytic: 'Impedance' },
             ]
         }
     }

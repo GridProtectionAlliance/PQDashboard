@@ -21,18 +21,16 @@
 //
 //******************************************************************************************************
 
-import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
+import * as React from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
-import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
+import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from '../Graphs/LineChartAnalyticBase';
 
-export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>) => void;
-
-export default class RemoveCurrent extends React.Component<any, any>{
+export default class RemoveCurrent extends React.Component{
     openSEEService: OpenSEEService;
     props: LineChartAnaltyicalBaseProps
     constructor(props) {
         super(props);
+
         this.openSEEService = new OpenSEEService();
     }
     render() {

@@ -21,20 +21,13 @@
 //
 //******************************************************************************************************
 
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import * as _ from "lodash";
 import * as moment from "moment";
 import Legend, { iLegendData } from './Legend';
-import 'flot';
-import './../../../flot/jquery.flot.crosshair.min.js';
-import './../../../flot/jquery.flot.navigate.min.js';
-import './../../../flot/jquery.flot.selection.min.js';
-import './../../../flot/jquery.flot.time.min.js';
-import { WheelEvent, MouseEvent } from 'react';
+import * as React from 'react';
 
-export type LegendClickCallback = (event?: MouseEvent<HTMLDivElement>) => void;
+export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>) => void;
 interface State {
     legendRows: Map<string, iLegendData>, dataSet: any, eventDataHandle: JQuery.jqXHR, frequencyDataHandle: JQuery.jqXHR
 }
@@ -42,7 +35,7 @@ interface Props {
     eventId: number, startDate: string, endDate: string, pixels: number, stateSetter: Function, height: number, hover: number,
     tableData: Object, pointsTable: any[], postedData: iPostedData, tableSetter: Function, type: string
 }
-export default class WaveformViewerGraph extends React.Component<any, any>{
+export default class WaveformViewerGraph extends React.Component{
     openSEEService: OpenSEEService;
     plot: any;
     options: object;
@@ -498,7 +491,7 @@ export default class WaveformViewerGraph extends React.Component<any, any>{
     }
 
 
-    handleSeriesLegendClick(event: MouseEvent<HTMLDivElement>):void {
+    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>):void {
         this.setState({ legendRows: this.state.legendRows});
         this.createDataRows(this.state.dataSet, this.state.legendRows);
     }

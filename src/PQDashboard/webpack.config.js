@@ -34,14 +34,13 @@ module.exports = {
     },
     plugins: [
         new webpack.ProvidePlugin({
-          $: 'jquery',
-          jQuery: 'jquery',
-          'window.jQuery':'jquery',
-          Map: 'core-js/es6/map',
-          Set: 'core-js/es6/set',
-          requestAnimationFrame: 'raf',
-          cancelAnimationFrame: ['raf', 'cancel'],
-
+            $: 'jquery',
+            jQuery: 'jquery',
+            'window.jQuery':'jquery',
+            Map: 'core-js/es6/map',
+            Set: 'core-js/es6/set',
+            requestAnimationFrame: 'raf',
+            cancelAnimationFrame: ['raf', 'cancel'],
         }),
         //new webpack.DefinePlugin({
         //    'process.env.NODE_ENV': JSON.stringify('production')

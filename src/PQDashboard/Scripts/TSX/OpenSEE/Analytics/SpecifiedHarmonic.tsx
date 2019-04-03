@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 import { iLegendData } from '../Graphs/Legend';

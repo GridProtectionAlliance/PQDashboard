@@ -433,6 +433,7 @@
     <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
+    <Content Include="webpack4.config.js" />
     <Content Include="webpack.config.js" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />

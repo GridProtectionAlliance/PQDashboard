@@ -22,13 +22,9 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from "lodash";
 import * as moment from "moment";
 import Legend, { iLegendData } from './../Graphs/Legend';
-import 'flot';
-//import './../../../flot/jquery.flot.crosshair.min.js';
-import './../../../flot/jquery.flot.navigate.min.js';
 import { BarChartAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
 export type GetDataFunction = (props: BarChartAnaltyicalBaseProps, ctrl: BarChartAnalyticBase) => void;

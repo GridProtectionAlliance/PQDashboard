@@ -25,12 +25,6 @@ import * as React  from 'react';
 import * as _ from "lodash";
 import * as moment from "moment";
 import Legend, { iLegendData } from './../Graphs/Legend';
-import 'flot';
-import './../../../flot/jquery.flot.crosshair.min.js';
-import './../../../flot/jquery.flot.navigate.min.js';
-import './../../../flot/jquery.flot.selection.min.js';
-import './../../../flot/jquery.flot.time.min.js';
-import './../../../flot/jquery.flot.rangeSelection.js';
 import { StandardAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
 export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iLegendData, key?: string, getData?: boolean) => void;

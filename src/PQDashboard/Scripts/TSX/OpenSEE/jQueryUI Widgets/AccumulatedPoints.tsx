@@ -22,12 +22,8 @@
 //******************************************************************************************************
 import * as React from 'react';
 import * as _ from "lodash";
-import './../../../jquery-ui.js';
-import './../../../PrimeUI/primeui.js';
 import { style } from "typestyle";
 
-import './../../../../Content/themes/redmond/jquery-ui.css';
-import './../../../PrimeUI/primeui.min.css';
 
 // styles
 const outerDiv: React.CSSProperties = {

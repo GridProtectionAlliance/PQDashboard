@@ -22,6 +22,7 @@
 //******************************************************************************************************
 
 import * as React from 'react';
+import 'bootstrap';
 
 export default class About extends React.Component {
     state: { show: boolean }

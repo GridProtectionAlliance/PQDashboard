@@ -24,12 +24,13 @@
 /// <reference path="./openSee.d.ts" />
 
 import 'react-app-polyfill/ie11'
+import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap'
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 
-import OpenSEEService from './../../TS/Services/OpenSEE';
+import OpenSEEService from '../../TS/Services/OpenSEE';
 import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
 import * as _ from "lodash";
@@ -65,6 +66,17 @@ import OpenSEENavbar from './Components/OpenSEENavbar';
 import About from './Components/About';
 
 import { LineChartAnaltyicalBaseProps } from './Graphs/LineChartAnalyticBase';
+
+import '../../jquery-ui.js';
+import '../../../Content/themes/redmond/jquery-ui.css';
+import '../../PrimeUI/primeui.js';
+import '../../PrimeUI/primeui.min.css';
+import 'flot';
+import '../../flot/jquery.flot.crosshair.min.js';
+import '../../flot/jquery.flot.navigate.min.js';
+import '../../flot/jquery.flot.selection.min.js';
+import '../../flot/jquery.flot.time.min.js';
+import '../../flot/jquery.flot.rangeselection.js';
 
 declare var eventID: number;
 declare var eventStartTime: string;
@@ -354,5 +366,5 @@ const ViewerWindow = (props: ViewerWindowProps) => {
         );
 }
 
-ReactDOM.render(<OpenSEE />, document.getElementById('DockCharts'));
+render(<OpenSEE />, document.getElementById('DockCharts'));
 

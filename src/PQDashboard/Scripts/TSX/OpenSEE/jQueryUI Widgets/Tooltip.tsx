@@ -23,9 +23,6 @@
 
 import * as React from 'react';
 import * as _ from "lodash";
-import './../../../jquery-ui.js';
-import 'flot';
-import './../../../flot/jquery.flot.time.min.js';
 import { style } from "typestyle"
 
 // styles

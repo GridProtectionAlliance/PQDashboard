@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
 import * as _ from 'lodash';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import BarChartAnalyticBase, { BarChartAnaltyicalBaseProps } from './../Graphs/BarChartAnalyticBase';

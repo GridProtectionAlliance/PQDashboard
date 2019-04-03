@@ -20,19 +20,16 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-
-import * as React  from 'react';
-import * as ReactDOM from 'react-dom';
+import * as React from "react";
 import * as _ from "lodash";
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import Legend, { iLegendData } from './../Graphs/Legend';
-import 'flot';
 
 export interface OverlappingWaveformProps {
     eventId: number, startDate: string, endDate: string, height: number, pixels: number
 };
 
-export default class OverlappingWaveform extends React.Component<any, any>{
+export default class OverlappingWaveform extends React.Component{
     plot: any;
     options: object;
     openSEEService: OpenSEEService;

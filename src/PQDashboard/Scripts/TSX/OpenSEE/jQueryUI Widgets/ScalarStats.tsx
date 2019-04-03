@@ -23,7 +23,6 @@
 
 import * as React from 'react';
 import * as _ from "lodash";
-import './../../../jquery-ui.js';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import { style } from "typestyle"
 
