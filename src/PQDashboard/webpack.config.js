@@ -2,6 +2,7 @@
 const webpack = require("webpack");
 
 module.exports = {
+    mode: 'development',
     entry: {
         OpenSEE: "./Scripts/TSX/OpenSEE/openSEE.tsx",
 
@@ -17,7 +18,7 @@ module.exports = {
         extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js", ".css"]
     },
     module: {
-        loaders: [
+        rules: [
             // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
             { test: /\.tsx?$/, loader: "ts-loader" },
             {
