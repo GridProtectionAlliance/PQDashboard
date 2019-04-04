@@ -590,6 +590,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Info ]
+
         [HttpGet]
         public Dictionary<string, dynamic> GetHeaderData()
         {
@@ -639,6 +640,7 @@ namespace OpenSEE.Controller
                 returnDict.Add("postedDate", theEvent.StartTime.ToShortDateString());
                 returnDict.Add("postedEventMilliseconds", theEvent.StartTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds.ToString());
 
+                returnDict.Add("enableLightningData", connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'"));
                 returnDict.Add("xdaInstance", connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'"));
 
                 using (IDbCommand cmd = connection.Connection.CreateCommand())
@@ -748,11 +750,8 @@ namespace OpenSEE.Controller
                     }
                 }
 
-
                 return returnDict;
-
             }
-
         }
 
 
