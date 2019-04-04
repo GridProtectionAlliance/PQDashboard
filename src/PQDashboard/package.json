@@ -4,10 +4,11 @@
   "private": true,
   "devDependencies": {
     "css-loader": "0.28.11",
+    "file-loader": "^3.0.1",
     "source-map-loader": "0.2.3",
-    "url-loader": "1.0.1",
     "style-loader": "0.21.0",
-    "file-loader": "^3.0.1"
+    "url-loader": "1.0.1",
+    "webpack-cli": "^3.3.0"
   },
   "dependencies": {
     "@types/flot": "0.0.31",
