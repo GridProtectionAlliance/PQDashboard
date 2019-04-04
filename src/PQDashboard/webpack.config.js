@@ -1,6 +1,6 @@
 ﻿"use strict";
 const webpack = require("webpack");
-
+const path = require("path");
 module.exports = {
     mode: 'development',
     entry: {
@@ -8,7 +8,8 @@ module.exports = {
 
     },
     output: {
-        filename: "./Scripts/[name].js"
+        path: path.resolve(__dirname, 'Scripts'),
+        filename: "[name].js"
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
