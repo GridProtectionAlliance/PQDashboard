@@ -181,7 +181,7 @@ export class OpenSEE extends React.Component<any, any>{
             <div style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden' }}>
                 {/* the navigation side bar*/}
                 <div style={{ width: 300, height: 'inherit', backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
-                    <a href="https://www.gridprotectionalliance.org"><img style={{width: 280, margin: 10}} src="./../../Images/2-Line - 500.png"/></a>
+                    <a href="https://www.gridprotectionalliance.org"><img style={{width: 280, margin: 10}} src="../Images/2-Line - 500.png"/></a>
                     <fieldset className="border" style={{ padding: '10px' }}>
                         <legend className="w-auto" style={{ fontSize: 'large' }}>Waveform Views:</legend>
                         <form>
