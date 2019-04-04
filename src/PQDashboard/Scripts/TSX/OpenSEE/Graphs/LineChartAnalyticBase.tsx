@@ -22,8 +22,8 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as _ from "lodash";
-import * as moment from "moment";
+import { clone, isEqual, each, findLast} from "lodash";
+import { utc } from "moment";
 import Legend, { iLegendData } from './../Graphs/Legend';
 import { StandardAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
@@ -100,10 +100,10 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
                     }
 
                     if (axis.delta < 1000) {
-                        return moment(value).format("mm:ss.SS");
+                        return utc(value).format("mm:ss.SS");
                     }
                     else {
-                        return moment(value).utc().format("HH:mm:ss.S");
+                        return utc(value).format("HH:mm:ss.S");
                     }
                 }
             },
@@ -195,8 +195,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
     }
 
     componentWillReceiveProps(nextProps: LineChartAnaltyicalBaseProps) {
-        var props = _.clone(this.props) as any;
-        var nextPropsClone = _.clone(nextProps);
+        var props = clone(this.props) as any;
+        var nextPropsClone = clone(nextProps);
 
         delete props.hover;
         delete nextPropsClone.hover;
@@ -233,7 +233,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
             }
         }
 
-        if (!(_.isEqual(props, nextPropsClone))) {
+        if (!(isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
         }
         else if (this.props.hover != nextProps.hover) {
@@ -242,8 +242,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
 
             //var table = new Map([...Array.from(this.props.tableData)]);
             var table = this.props.tableData;
-            _.each(this.state.dataSet.Data, (data, i) => {
-                var vector = _.findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
+            each(this.state.dataSet.Data, (data, i) => {
+                var vector = findLast(data.DataPoints, (x) => x[0] <= nextProps.hover);
                 if (vector)
                     table.set(data.ChartLabel, { data: vector[1], color: this.state.legendRows.get(data.ChartLabel).color });
             });
@@ -451,7 +451,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
 
             }
 
-            var pointsTable = _.clone(ctrl.props.pointsTable);
+            var pointsTable = clone(ctrl.props.pointsTable);
 
             time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
             deltatime = 0.0;
@@ -525,7 +525,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
     }
 
     getMillisecondTime(date) {
-        var milliseconds = moment.utc(date).valueOf();
+        var milliseconds = utc(date).valueOf();
         var millisecondsFractionFloat = parseFloat((date.toString().indexOf('.') >= 0 ? '.' + date.toString().split('.')[1] : '0')) * 1000;
 
         return milliseconds + millisecondsFractionFloat - Math.floor(millisecondsFractionFloat);
@@ -576,7 +576,7 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
     }
 
     getDateString(float) {
-        var date = moment.utc(float).format('YYYY-MM-DDTHH:mm:ss.SSS');
+        var date = utc(float).format('YYYY-MM-DDTHH:mm:ss.SSS');
         var millisecondFraction = parseInt((float.toString().indexOf('.') >= 0 ? float.toString().split('.')[1] : '0'))
 
         return date + millisecondFraction.toString();

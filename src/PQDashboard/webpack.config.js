@@ -1,6 +1,9 @@
-﻿"use strict";
+/// <binding ProjectOpened='Watch - Development' />
+"use strict";
 const webpack = require("webpack");
 const path = require("path");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
 module.exports = {
     mode: 'development',
     entry: {
@@ -44,9 +47,8 @@ module.exports = {
             requestAnimationFrame: 'raf',
             cancelAnimationFrame: ['raf', 'cancel'],
         }),
-        //new webpack.DefinePlugin({
-        //    'process.env.NODE_ENV': JSON.stringify('production')
-        //}),
-        //new webpack.optimize.UglifyJsPlugin()
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify('production')
+        }),
     ]
 };

@@ -33,16 +33,16 @@ import { render } from 'react-dom';
 import OpenSEEService from '../../TS/Services/OpenSEE';
 import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
-import * as _ from "lodash";
+import { clone, isEqual} from "lodash";
 
 import Current from './Graphs/Current';
 import Digital from './Graphs/Digital';
-import FaultLocation from './Graphs/FaultLocation';
 import Voltage from './Graphs/Voltage';
 
 import OpenSEENoteModal from './Components/OpenSEENoteModal';
 import MultiselectWindow, { iListObject } from './Components/MultiselectWindow';
 import RadioselectWindow from './Components/RadioselectWindow';
+
 import Impedance from './Analytics/Impedance';
 import Power from './Analytics/Power';
 import FirstDerivative from './Analytics/FirstDerivative';
@@ -57,6 +57,7 @@ import ClippedWaveforms from './Analytics/ClippedWaveforms';
 import RapidVoltageChange from './Analytics/RapidVoltageChange';
 import THD from './Analytics/THD';
 import Frequency from './Analytics/Frequency';
+import FaultLocation from './Analytics/FaultLocation';
 import FFT from './Analytics/FFT';
 import SpecifiedHarmonic from './Analytics/SpecifiedHarmonic';
 import OverlappingWaveform from './Analytics/OverlappingWaveform';
@@ -69,8 +70,6 @@ import { LineChartAnaltyicalBaseProps } from './Graphs/LineChartAnalyticBase';
 
 import '../../jquery-ui.js';
 import '../../../Content/themes/redmond/jquery-ui.css';
-import '../../PrimeUI/primeui.js';
-import '../../PrimeUI/primeui.min.css';
 import 'flot';
 import '../../flot/jquery.flot.crosshair.min.js';
 import '../../flot/jquery.flot.navigate.min.js';
@@ -287,7 +286,7 @@ export class OpenSEE extends React.Component<any, any>{
 
     stateSetter(obj) {
         function toQueryString(state) {
-            var prop = _.clone(state);
+            var prop = clone(state);
             delete prop.Hover;
             delete prop.Width;
             delete prop.TableData;
@@ -314,7 +313,7 @@ export class OpenSEE extends React.Component<any, any>{
             var newQueryString = toQueryString(this.state);
             var newQuery = queryString.parse(newQueryString);
 
-            if (!_.isEqual(oldQuery, newQuery)) {
+            if (!isEqual(oldQuery, newQuery)) {
                 clearTimeout(this.historyHandle);
                 this.historyHandle = setTimeout(() => this.history['push'](this.history['location'].pathname + '?' + newQueryString), 500);
             }

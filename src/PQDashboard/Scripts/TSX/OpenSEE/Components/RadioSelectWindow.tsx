@@ -21,7 +21,6 @@
 //
 //******************************************************************************************************
 
-import * as _ from 'lodash';
 import * as React from 'react';
 
 export default class RadioselectWindow extends React.Component{

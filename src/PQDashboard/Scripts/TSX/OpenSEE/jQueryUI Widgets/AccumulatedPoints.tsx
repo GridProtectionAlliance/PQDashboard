@@ -21,9 +21,9 @@
 //
 //******************************************************************************************************
 import * as React from 'react';
-import * as _ from "lodash";
+import { clone } from "lodash";
 import { style } from "typestyle";
-
+import "bootstrap";
 
 // styles
 const outerDiv: React.CSSProperties = {
@@ -41,7 +41,7 @@ const outerDiv: React.CSSProperties = {
     display: 'none',
     backgroundColor: 'white',
     width: '520px',
-    height: '260px'
+    //height: '260px'
 };
 
 const handle = style({
@@ -72,6 +72,7 @@ const closeButton = style({
 });
 
 export default class Points extends React.Component<any, any>{
+    props: { pointsTable: Array<{ arrayIndex: number, theseries: string, thetime: number, thevalue: any, deltatime: number, deltavalue: any }>, callback: Function, postedData: any}
     constructor(props) {
         super(props);
 
@@ -82,45 +83,30 @@ export default class Points extends React.Component<any, any>{
 
     componentDidMount() {
         ($("#accumulatedpoints") as any).draggable({ scroll: false, handle: '#accumulatedpointshandle' });
-        this.buildTable(this.props);
     }
 
-    buildTable(props) {
-        var ctrl = this;
-        ($('#accumulatedpointscontent') as any).puidatatable({
-            stickyHeader: false,
-            selectionMode: 'single',
-            rowSelect: function (event, data) {
-                ctrl.setState({ selectedPoint: data.arrayIndex });
-            },
-            columns: [
-                { field: 'theseries', headerText: 'Series' },
-                { field: 'thetime', headerText: 'Time', content: function (data) { return ctrl.showTime(data) } },
-                { field: 'thevalue', headerText: 'Value' },
-                { field: 'deltatime', headerText: 'Delta Time', content: function (data) { return ctrl.showDeltaTime(data) } },
-                { field: 'deltavalue', headerText: 'Delta Value' }
-            ],
-            datasource: props.pointsTable
-        });
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (!(_.isEqual(this.props.pointsTable, nextProps.pointsTable))) {           
-            ($('#accumulatedpointscontent') as any).puidatatable('reset');
-            this.buildTable(nextProps);
-        }
-    }
 
     render() {
+        var rows = this.props.pointsTable.map(a => Row(a, this.props.postedData.postedSystemFrequency, (obj) => this.setState(obj), this.state.selectedPoint))
         return (
             <div id="accumulatedpoints" className="ui-widget-content" style={outerDiv}>
                 <div style={{ border: 'black solid 2px' }}>
                     <div id="accumulatedpointshandle" className={handle}></div>
-                    <div style={{ overflowY: 'scroll', height: '200px' }}><div id="accumulatedpointscontent" style={{ height: '100%' }}></div></div>
+                    <div style={{ overflowY: 'scroll' }}>
+                        <table className="table table-bordered table-hover">
+                            <thead>
+                                <tr><td>Series</td><td>Time</td><td>Value</td><td>Delta Time</td><td>Delta Value</td></tr>
+                            </thead>
+                            <tbody>
+                                {rows}
+                            </tbody>
+                        </table>
+                        <div id="accumulatedpointscontent" style={{ height: '100%' }}></div>
+                    </div>
                     <div style={{ margin: '5px', textAlign: 'right' }}>
-                        <input className="smallbutton" type="button" value="Remove" onClick={() => this.removePoint()} />
-                        <input className="smallbutton" type="button" value="Pop" onClick={() => this.popAccumulatedPoints()} />
-                        <input className="smallbutton" type="button" value="Clear" onClick={() => this.clearAccumulatedPoints()} />
+                        <input className="btn btn-primary" type="button" value="Remove" onClick={() => this.removePoint()} />
+                        <input className="btn btn-primary" type="button" value="Pop" onClick={() => this.popAccumulatedPoints()} />
+                        <input className="btn btn-primary" type="button" value="Clear" onClick={() => this.clearAccumulatedPoints()} />
                     </div>
                     <button className={closeButton} style={{ top: '2px', right: '2px' }} onClick={() => {
                         this.props.callback({ pointsButtonText: "Show Points" });
@@ -134,7 +120,7 @@ export default class Points extends React.Component<any, any>{
     }
 
     removePoint() {
-        var data = _.clone(this.props.pointsTable);
+        var data = clone(this.props.pointsTable);
         var selectedPoint = this.state.selectedPoint;
 
         if (selectedPoint === data.length - 1) {
@@ -169,7 +155,7 @@ export default class Points extends React.Component<any, any>{
     }
 
     popAccumulatedPoints() {
-        var data = _.clone(this.props.pointsTable);
+        var data = clone(this.props.pointsTable);
         if (data.length > 0)
             data.pop();
 
@@ -183,14 +169,26 @@ export default class Points extends React.Component<any, any>{
             PointsTable: []
         });
     }
-
-    showTime(rowdata) {
-        var html = rowdata.thetime.toFixed(7) + " sec<br>" + (rowdata.thetime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
-        return html;
-    }
-
-    showDeltaTime(rowdata) {
-        var html = rowdata.deltatime.toFixed(7) + " sec<br>" + (rowdata.deltatime * Number(this.props.postedData.postedSystemFrequency)).toFixed(2) + " cycles";
-        return html;
-    }
 }
+
+const Row = (row: { arrayIndex: number, theseries: string, thetime: number, thevalue: any, deltatime: number, deltavalue: any }, systemFrequency: number, stateSetter: Function, arrayIndex) => {
+    function showTime(thetime) {
+        return <span>{ thetime.toFixed(7) } sec<br/>{(thetime * Number(systemFrequency)).toFixed(2)} cycles</span>;
+    }
+
+    function showDeltaTime(deltatime) {
+        return <span>{deltatime.toFixed(7)} sec<br />{(deltatime * Number(systemFrequency)).toFixed(2)} cycles</span>;
+    }
+
+    return (
+        <tr key={row.theseries} onClick={(e) => stateSetter({ selectedPoint: row.arrayIndex })} style={{backgroundColor: (row.arrayIndex == arrayIndex ? 'yellow': null)}}>
+            <td>{row.theseries}</td>
+            <td>{showTime(row.thetime)}</td>
+            <td>{row.thevalue}</td>
+            <td>{showDeltaTime(row.deltatime)}</td>
+            <td>{row.deltavalue}</td>
+
+        </tr>
+    );
+}
+

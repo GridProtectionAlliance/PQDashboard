@@ -36,7 +36,7 @@ import 'bootstrap'
 declare var homePath: string;
 
 export default class OpenSEENavbar extends React.Component {
-    props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<object>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string, TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>}
+    props: { TableData: Map<string, { data: number, color: string }>, PointsTable: Array<{ arrayIndex: number, theseries: string, thetime: number, thevalue: any, deltatime: number, deltavalue: any }>, eventid: number, resetZoom: any, stateSetter: Function, PostedData: any, Hover: number, nextBackLookup: any, selected: string, startDate: string, endDate: string, TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>}
     state: {}
     constructor(props, context) {
         super(props, context);

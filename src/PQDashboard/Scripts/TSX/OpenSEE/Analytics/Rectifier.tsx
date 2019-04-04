@@ -21,19 +21,12 @@
 //
 //******************************************************************************************************
 
-import * as React from 'react';
+import { createElement } from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 
-export default class Retifier extends React.Component {
-    openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
-    constructor(props, context) {
-        super(props, context);
-
-        this.openSEEService = new OpenSEEService();
-    }
-    getColor(label) {
+export default function Retifier(props: LineChartAnaltyicalBaseProps): JSX.Element {
+    function getColor(label) {
         if (label.ChartLabel.indexOf('Rectifier') >= 0) return '#2e2a41';
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
@@ -44,26 +37,24 @@ export default class Retifier extends React.Component {
         }
     }
 
-    render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => key.indexOf("V") == 0}
-            legendEnable={(key) => key.indexOf("V") == 0}
-            legendKey="Rectifier"
-            openSEEServiceFunction={this.openSEEService.getRectifierData}
-            getColor={this.getColor}
-
-            endDate={this.props.endDate}
-            eventId={this.props.eventId}
-            height={this.props.height}
-            hover={this.props.hover}
-            pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
-            startDate={this.props.startDate}
-            stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
-               />
-    }
+    var openSEEService = new OpenSEEService();
+    return createElement(LineChartAnalyticBase, {
+        legendDisplay: (key) => key.indexOf("V") == 0,
+        legendEnable: (key) => key.indexOf("V") == 0,
+        legendKey: "Rectifier",
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getRectifierData(eventid, pixels, startDate, endDate),
+        endDate: props.endDate,
+        getColor: (key, index) => getColor(key),
+        eventId: props.eventId,
+        height: props.height,
+        hover: props.hover,
+        pixels: props.pixels,
+        pointsTable: props.pointsTable,
+        postedData: props.postedData,
+        startDate: props.startDate,
+        stateSetter: props.stateSetter,
+        tableData: props.tableData,
+        tableSetter: props.tableSetter,
+        tooltipWithDeltaTable: props.tooltipWithDeltaTable,
+    }, null);
 }

@@ -21,7 +21,7 @@
 //
 //******************************************************************************************************
 
-import * as _ from 'lodash';
+import { groupBy } from 'lodash';
 import * as React from 'react';
 
 export interface iListObject {
@@ -33,11 +33,8 @@ export interface iListObject {
 
 export default class MultiselectWindow extends React.Component{
     props: { data: Array<iListObject>, style?: object, className?: string, stateSetter: Function, comparedEvents: Array<number>}
-    state: {}
     constructor(props, context) {
         super(props, context);
-        this.state = {
-        }
     }
 
     handleClicks(e) {
@@ -45,7 +42,7 @@ export default class MultiselectWindow extends React.Component{
     }
 
     render() {
-        var groups = _.groupBy(this.props.data, 'group'); 
+        var groups = groupBy(this.props.data, 'group'); 
         var formStyle = (this.props.style == undefined ? {} : this.props.style);
 
         if (formStyle['backgroundColor'] == undefined) formStyle['backgroundColor'] = 'white';

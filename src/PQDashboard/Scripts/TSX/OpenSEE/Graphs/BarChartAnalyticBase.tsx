@@ -22,8 +22,7 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import * as _ from "lodash";
-import * as moment from "moment";
+import { clone, isEqual } from "lodash";
 import Legend, { iLegendData } from './../Graphs/Legend';
 import { BarChartAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
@@ -168,8 +167,8 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
     }
 
     componentWillReceiveProps(nextProps: BarChartAnalyticBasePropsExtended) {
-        var props = _.clone(this.props) as any;
-        var nextPropsClone = _.clone(nextProps);
+        var props = clone(this.props) as any;
+        var nextPropsClone = clone(nextProps);
 
         delete props.stateSetter;
         delete nextPropsClone.stateSetter;
@@ -192,7 +191,7 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         delete props.legendDisplay;
         delete nextPropsClone.legendDisplay;
 
-        if (!(_.isEqual(props, nextPropsClone))) {
+        if (!(isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
         }
 

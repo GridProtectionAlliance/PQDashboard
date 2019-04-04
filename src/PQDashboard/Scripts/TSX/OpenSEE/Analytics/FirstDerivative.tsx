@@ -21,37 +21,29 @@
 //
 //******************************************************************************************************
 
-import * as React  from 'react';
+import { createElement }  from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 
-export default class FirstDerivative extends React.Component<any, any>{
-    openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
-    constructor(props) {
-        super(props);
-        this.openSEEService = new OpenSEEService();
-    }
-    render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => key.indexOf("V") == 0}
-            legendEnable={(key) => key.indexOf("V") == 0}
-            legendKey="FirstDerivative"
-            openSEEServiceFunction={this.openSEEService.getFirstDerivativeData}
-
-            endDate={this.props.endDate}
-            eventId={this.props.eventId}
-            height={this.props.height}
-            hover={this.props.hover}
-            pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
-            startDate={this.props.startDate}
-            stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
-        />
-    }
+export default function FirstDerivative(props: LineChartAnaltyicalBaseProps){
+        var openSEEService = new OpenSEEService();
+        return createElement(LineChartAnalyticBase, {
+            legendDisplay:(key) => key.indexOf("V") == 0,
+            legendEnable:(key) => key.indexOf("V") == 0,
+            legendKey:"FirstDerivative",
+            openSEEServiceFunction:(eventid, pixels, startDate, endDate) => openSEEService.getFirstDerivativeData(eventid, pixels, startDate, endDate),
+            endDate: props.endDate,
+            eventId:props.eventId,
+            height:props.height,
+            hover:props.hover,
+            pixels:props.pixels,
+            pointsTable:props.pointsTable,
+            postedData:props.postedData,
+            startDate:props.startDate,
+            stateSetter:props.stateSetter,
+            tableData:props.tableData,
+            tableSetter:props.tableSetter,
+            tooltipWithDeltaTable:props.tooltipWithDeltaTable,
+        }, null);
 
 }

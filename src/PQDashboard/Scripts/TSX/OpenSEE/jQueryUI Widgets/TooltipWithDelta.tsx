@@ -22,8 +22,7 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import * as _ from "lodash";
-import * as moment from "moment";
+import { utc } from "moment";
 import { style } from "typestyle"
 
 // styles
@@ -87,7 +86,7 @@ export default class TooltipWithDelta extends React.Component<any, any>{
     }
 
     getMillisecondTime(date) {
-        var milliseconds = moment.utc(date).valueOf();
+        var milliseconds = utc(date).valueOf();
         var millisecondsFractionFloat = parseFloat((date.toString().indexOf('.') >= 0 ? '.' + date.toString().split('.')[1] : '0')) * 1000;
 
         return milliseconds + millisecondsFractionFloat - Math.floor(millisecondsFractionFloat);

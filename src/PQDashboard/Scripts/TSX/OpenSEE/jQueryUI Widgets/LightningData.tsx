@@ -22,8 +22,7 @@
 //******************************************************************************************************
 
 import * as React from 'react';
-import * as _ from "lodash";
-import * as moment from 'moment';
+import { utc } from 'moment';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 
 declare var window: any
@@ -76,8 +75,8 @@ export default class LightningData extends React.Component<any, any>{
             var noData = { State: "No Data" };
 
             var lineKey = lightningParameters.LineKey;
-            var startTime = moment.utc(lightningParameters.StartTime).toDate();
-            var endTime = moment.utc(lightningParameters.EndTime).toDate();
+            var startTime = utc(lightningParameters.StartTime).toDate();
+            var endTime = utc(lightningParameters.EndTime).toDate();
 
             if (!lineKey) {
                 updateTable(noData);

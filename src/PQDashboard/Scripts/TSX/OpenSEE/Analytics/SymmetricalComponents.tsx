@@ -21,19 +21,12 @@
 //
 //******************************************************************************************************
 
-import * as React from 'react';
+import { createElement } from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 
-export default class SymmetricalComponents extends React.Component {
-    openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
-    constructor(props, context) {
-        super(props, context);
-
-        this.openSEEService = new OpenSEEService();
-    }
-    getColor(label) {
+export default function SymmetricalComponents(props: LineChartAnaltyicalBaseProps): JSX.Element  {
+    function getColor(label) {
         if (label.ChartLabel.indexOf('S0') >= 0) return '#2e2a41';
         if (label.ChartLabel.indexOf('S1') >= 0) return '#d417a3';
         if (label.ChartLabel.indexOf('S2') >= 0) return '#78e0fd';
@@ -46,26 +39,24 @@ export default class SymmetricalComponents extends React.Component {
         }
     }
 
-    render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => key.indexOf("V") == 0}
-            legendEnable={(key) => key.indexOf("V") == 0}
-            legendKey="SymmetricalComponents"
-            openSEEServiceFunction={this.openSEEService.getSymmetricalComponentsData}
-            getColor={this.getColor}
-
-            endDate={this.props.endDate}
-            eventId={this.props.eventId}
-            height={this.props.height}
-            hover={this.props.hover}
-            pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
-            startDate={this.props.startDate}
-            stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
-               />
-    }
+    var openSEEService = new OpenSEEService();
+    return createElement(LineChartAnalyticBase, {
+        legendDisplay: (key) => key.indexOf("V") == 0,
+        legendEnable: (key) => key.indexOf("V") == 0,
+        legendKey: "ClippedWaveforms",
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getSymmetricalComponentsData(eventid, pixels, startDate, endDate),
+        endDate: props.endDate,
+        eventId: props.eventId,
+        getColor: (key, index) => getColor(key),
+        height: props.height,
+        hover: props.hover,
+        pixels: props.pixels,
+        pointsTable: props.pointsTable,
+        postedData: props.postedData,
+        startDate: props.startDate,
+        stateSetter: props.stateSetter,
+        tableData: props.tableData,
+        tableSetter: props.tableSetter,
+        tooltipWithDeltaTable: props.tooltipWithDeltaTable,
+    }, null);
 }

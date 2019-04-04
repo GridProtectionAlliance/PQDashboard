@@ -25,16 +25,11 @@ import * as React from 'react';
 import 'bootstrap';
 
 export default class About extends React.Component {
-    state: { show: boolean }
     constructor(props, context) {
         super(props, context);
 
         this.handleShow = this.handleShow.bind(this);
         this.handleClose = this.handleClose.bind(this);
-
-        this.state = {
-            show: false,
-        };
     }
 
     handleClose() {

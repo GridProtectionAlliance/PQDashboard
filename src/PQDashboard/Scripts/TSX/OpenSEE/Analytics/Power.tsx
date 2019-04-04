@@ -21,20 +21,12 @@
 //
 //******************************************************************************************************
 
-import * as React from 'react';
+import { createElement } from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 
-export default class Power extends React.Component<any, any>{
-    openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
-    constructor(props) {
-        super(props);
-        this.openSEEService = new OpenSEEService();
-    }
-
-
-    getColor(label, index) {
+export default function Power (props: LineChartAnaltyicalBaseProps): JSX.Element{
+    function getColor(label, index) {
         if (label.ChartLabel.indexOf('AN') >= 0) return '#A30000';
         if (label.ChartLabel.indexOf('BN') >= 0) return '#0029A3';
         if (label.ChartLabel.indexOf('CN') >= 0) return '#007A29';
@@ -48,28 +40,25 @@ export default class Power extends React.Component<any, any>{
             return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
         }
     }
-    render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => key.indexOf("Active") >= 0}
-            legendEnable={(key) => key.indexOf("Active") >= 0}
-            legendKey="Power"
-            openSEEServiceFunction={this.openSEEService.getPowerData}
-
-            getColor={this.getColor}
-            endDate={this.props.endDate}
-            eventId={this.props.eventId}
-            height={this.props.height}
-            hover={this.props.hover}
-            pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
-            startDate={this.props.startDate}
-            stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
-        />
-    }
-
+    var openSEEService = new OpenSEEService();
+    return createElement(LineChartAnalyticBase, {
+        legendDisplay: (key) => key.indexOf("Active") >= 0,
+        legendEnable: (key) => key.indexOf("Active") >= 0,
+        legendKey: "Power",
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getPowerData(eventid, pixels, startDate, endDate),
+        endDate: props.endDate,
+        getColor: (key, index) => getColor(key, index),
+        eventId: props.eventId,
+        height: props.height,
+        hover: props.hover,
+        pixels: props.pixels,
+        pointsTable: props.pointsTable,
+        postedData: props.postedData,
+        startDate: props.startDate,
+        stateSetter: props.stateSetter,
+        tableData: props.tableData,
+        tableSetter: props.tableSetter,
+        tooltipWithDeltaTable: props.tooltipWithDeltaTable,
+    }, null);
 
 }
