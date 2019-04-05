@@ -23,7 +23,6 @@
 import * as React from 'react';
 import { clone } from "lodash";
 import { style } from "typestyle";
-import "bootstrap";
 
 // styles
 const outerDiv: React.CSSProperties = {
@@ -101,7 +100,6 @@ export default class Points extends React.Component<any, any>{
                                 {rows}
                             </tbody>
                         </table>
-                        <div id="accumulatedpointscontent" style={{ height: '100%' }}></div>
                     </div>
                     <div style={{ margin: '5px', textAlign: 'right' }}>
                         <input className="btn btn-primary" type="button" value="Remove" onClick={() => this.removePoint()} />
@@ -181,7 +179,7 @@ const Row = (row: { arrayIndex: number, theseries: string, thetime: number, thev
     }
 
     return (
-        <tr key={row.theseries} onClick={(e) => stateSetter({ selectedPoint: row.arrayIndex })} style={{backgroundColor: (row.arrayIndex == arrayIndex ? 'yellow': null)}}>
+        <tr key={row.arrayIndex} onClick={(e) => stateSetter({ selectedPoint: row.arrayIndex })} style={{backgroundColor: (row.arrayIndex == arrayIndex ? 'yellow': null)}}>
             <td>{row.theseries}</td>
             <td>{showTime(row.thetime)}</td>
             <td>{row.thevalue}</td>

@@ -220,6 +220,8 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
         delete nextPropsClone.getColor;
         delete props.getData;
         delete nextPropsClone.getData;
+        delete props.analytic;
+        delete nextPropsClone.analytic;
 
         if (nextProps.startDate && nextProps.endDate) {
             if (this.plot != null && (this.props.startDate != nextProps.startDate || this.props.endDate != nextProps.endDate)) {
@@ -451,32 +453,39 @@ export default class LineChartAnalyticBase extends React.Component<any, any>{
 
             }
 
-            var pointsTable = clone(ctrl.props.pointsTable);
+            if ($('#accumulatedpoints').css('display') != "none") {
+                var pointsTable = clone(ctrl.props.pointsTable);
 
-            time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
-            deltatime = 0.0;
-            deltavalue = 0.0;
+                time = (item.datapoint[0] - Number(ctrl.props.postedData.postedEventMilliseconds)) / 1000.0;
+                deltatime = 0.0;
+                deltavalue = 0.0;
 
-            if (pointsTable.length > 0) {
-                deltatime = time - pointsTable[pointsTable.length - 1].thetime;
-                deltavalue = item.datapoint[1] - pointsTable[pointsTable.length - 1].thevalue;
+                if (pointsTable.length > 0) {
+                    deltatime = time - pointsTable[pointsTable.length - 1].thetime;
+                    deltavalue = item.datapoint[1] - pointsTable[pointsTable.length - 1].thevalue;
+                }
+
+                pointsTable.push({
+                    theseries: item.series.label,
+                    thetime: time,
+                    thevalue: item.datapoint[1].toFixed(3),
+                    deltatime: deltatime,
+                    deltavalue: deltavalue.toFixed(3),
+                    arrayIndex: ctrl.props.pointsTable.length
+                });
+                ctrl.props.stateSetter({ PointsTable: pointsTable });
+
+
             }
+            if ($('#tooltipwithdelta').css('display') != "none") {
+                var map = new Map(ctrl.props.tooltipWithDeltaTable);
+                if (map.size > 1)
+                    map.clear();
+                map.set(timeString, ctrl.props.tableData);
 
-            pointsTable.push({
-                theseries: item.series.label,
-                thetime: time,
-                thevalue: item.datapoint[1].toFixed(3),
-                deltatime: deltatime,
-                deltavalue: deltavalue.toFixed(3),
-                arrayIndex: ctrl.props.pointsTable.length
-            });
+                ctrl.props.stateSetter({ TooltipWithDeltaTable: map });
 
-            var map = new Map(ctrl.props.tooltipWithDeltaTable);
-            if (map.size > 1)
-                map.clear();
-            map.set(timeString, ctrl.props.tableData);
-
-            ctrl.props.stateSetter({ PointsTable: pointsTable, TooltipWithDeltaTable: map});
+            }
         });
     }
 

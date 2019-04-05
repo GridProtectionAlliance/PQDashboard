@@ -31,7 +31,6 @@ import ScalarStats from './../jQueryUI Widgets/ScalarStats';
 import HarmonicStats from './../jQueryUI Widgets/HarmonicStats';
 import TimeCorrelatedSags from './../jQueryUI Widgets/TimeCorrelatedSags';
 import LightningData from './../jQueryUI Widgets/LightningData';
-import 'bootstrap'
 
 declare var homePath: string;
 

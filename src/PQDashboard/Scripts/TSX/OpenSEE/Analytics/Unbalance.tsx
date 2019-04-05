@@ -46,7 +46,7 @@ export default function Unbalance(props: LineChartAnaltyicalBaseProps): JSX.Elem
         legendKey: "Unbalance",
         openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getUnbalanceData(eventid, pixels, startDate, endDate),
         endDate: props.endDate,
-        getColor: (key) => this.getColor(key),
+        getColor: (key) => getColor(key),
         eventId: props.eventId,
         height: props.height,
         hover: props.hover,

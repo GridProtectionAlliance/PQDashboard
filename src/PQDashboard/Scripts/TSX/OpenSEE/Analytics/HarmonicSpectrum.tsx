@@ -21,8 +21,8 @@
 //
 //******************************************************************************************************
 
-import * as React  from 'react';
-import * as _ from 'lodash';
+import * as React from 'react';
+import { each } from 'lodash';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import BarChartAnalyticBase, { BarChartAnaltyicalBaseProps } from './../Graphs/BarChartAnalyticBase';
 import { iLegendData } from '../Graphs/Legend';
@@ -82,10 +82,10 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
             this.props.stateSetter({ fftStartTime: data.CalculationTime, fftEndTime: data.CalculationEnd });
 
 
-            _.each(data.Data, (record) => {
+            each(data.Data, (record) => {
                 var theData = {};
 
-                _.each(Object.keys(record.DataPoints).map(a => parseInt(a)), (key, index) => {
+                each(Object.keys(record.DataPoints).map(a => parseInt(a)), (key, index) => {
                     var newKey = key / 60;
                     theData[newKey] = record.DataPoints[key];
                 });

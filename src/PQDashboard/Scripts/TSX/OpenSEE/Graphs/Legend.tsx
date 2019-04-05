@@ -458,7 +458,7 @@ class ToggleButtonGroup extends React.Component {
     }
 
     render() {
-        let rows = this.state.buttons.map(x => <ToggleButton key={x.value} active={x.active} value={x.value} style={{ width: 100 / this.props.buttons.length + '%', height: 28 }} label={x.label} onChange={(value) => this.handleToggle(value)}/>);
+        let rows = this.state.buttons.map(x => <ToggleButton key={x.value} active={x.active} value={x.value} style={{ width: 100 / this.props.buttons.length + '%', height: 35 }} label={x.label} onChange={(value) => this.handleToggle(value)}/>);
         return (
             <div className="btn-group btn-group-toggle" style={{ width: '100%' }}>{rows}</div>
         );
@@ -474,6 +474,6 @@ class ToggleButton extends React.Component {
     }
 
     render() {
-        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} ><input type="checkbox" name="checkbox" value={this.props.value} style={this.props.style} onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
+        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} style={this.props.style}><input type="checkbox" name="checkbox" value={this.props.value}  onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
     }
 }

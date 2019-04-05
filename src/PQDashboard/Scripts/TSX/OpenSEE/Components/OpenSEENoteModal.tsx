@@ -23,7 +23,6 @@
 import * as React from 'react';
 import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
-import 'bootstrap'
 
 import OpenSEE2Service from './../../../TS/Services/OpenSEE';
 

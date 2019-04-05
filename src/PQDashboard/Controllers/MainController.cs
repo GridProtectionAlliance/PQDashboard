@@ -71,7 +71,7 @@ namespace PQDashboard.Controllers
             ViewData.Add("DataContext", m_dataContext);
 
             // Set default model for pages used by layout
-            m_appModel = new AppModel(m_dataContext);
+            m_appModel = new AppModel();
             ViewData.Model = m_appModel;
         }
 

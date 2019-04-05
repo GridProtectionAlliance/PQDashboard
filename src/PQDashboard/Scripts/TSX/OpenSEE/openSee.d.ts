@@ -26,6 +26,10 @@
 // global variables declared in openSEE.cshtml scripts section
 declare var homePath: string;
 declare var userIsAdmin: boolean;
+declare var eventID: number;
+declare var eventStartTime: string;
+declare var eventEndTime: string;
+
 declare const MOMENT_DATETIME_FORMAT = 'MM/DD/YYYYTHH:mm:ss.SSSSSSSS';
 
 declare interface iXDAEvent {

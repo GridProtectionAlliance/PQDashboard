@@ -2,9 +2,9 @@
 "use strict";
 const webpack = require("webpack");
 const path = require("path");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const _ = require("lodash");
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     context: path.resolve(__dirname, 'Scripts'),
     cache: true,
     entry: {
@@ -13,7 +13,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'Scripts'),
-        filename: "[name].js",
+        filename: "[name].js"
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
@@ -28,7 +28,7 @@ module.exports = {
             { test: /\.tsx?$/, loader: "ts-loader" },
             {
                 test: /\.css$/,
-                use: [{loader: 'style-loader'}, {loader: 'css-loader'}],
+                loaders: ['style-loader', 'css-loader'],
             },
             {
                 test: /\.js$/,
@@ -41,9 +41,10 @@ module.exports = {
     externals: {
         //lodash: _,
         jquery: 'jQuery',
-        jquery: '$',
+        react: 'React',
         'react-dom': 'ReactDOM',
         moment: 'moment'
+
     },
     plugins: [
         new webpack.ProvidePlugin({
@@ -55,45 +56,5 @@ module.exports = {
             requestAnimationFrame: 'raf',
             cancelAnimationFrame: ['raf', 'cancel'],
         }),
-    ],
-    optimization: {
-        //splitChunks: {
-        //    cacheGroups: {
-        //        default: false,
-        //        vendors: false,
-        //        // vendor chunk
-        //        vendor: {
-        //            // name of the chunk
-        //            name: 'vendor',
-        //            // sync + async chunks
-        //            chunks: 'all',
-        //            // import file path containing node_modules
-        //            test: /node_modules/,
-        //            // priority
-        //            priority: 20
-        //        },
-        //        common: {
-        //            name: 'common',
-        //            minChunks: 2,
-        //            chunks: 'async',
-        //            priority: 10,
-        //            reuseExistingChunk: true,
-        //            enforce: true
-        //        }
-        //    }
-        //},
-        minimizer: [
-            // we specify a custom UglifyJsPlugin here to get source maps in production
-            new UglifyJsPlugin({
-                cache: true,
-                parallel: true,
-                uglifyOptions: {
-                    compress: true,
-                    ecma: 6,
-                    mangle: true
-                },
-                sourceMap: true
-            })
-        ]
-    }
+    ]
 };

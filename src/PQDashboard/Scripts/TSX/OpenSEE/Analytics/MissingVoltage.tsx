@@ -28,8 +28,8 @@ import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from '../Graphs/L
 export default function RemoveCurrent(props: LineChartAnaltyicalBaseProps): JSX.Element{
     var openSEEService = new OpenSEEService();
     return createElement(LineChartAnalyticBase, {
-        legendDisplay: (key) => key.indexOf("Pre") == 0,
-        legendEnable: (key) => key.indexOf("Pre") == 0,
+        legendDisplay: (key) => key.indexOf("Pre") >= 0,
+        legendEnable: (key) => key.indexOf("Pre") >= 0,
         legendKey: "MissingVoltage",
         openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getMissingVoltageData(eventid, pixels, startDate, endDate),
         endDate: props.endDate,
