@@ -31,21 +31,34 @@
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
-    string historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
-    IEnumerable<AssetGroup> assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("ID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
-    List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
-    {
-        savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
+    string historianConnection;
+    IEnumerable<AssetGroup> assetGroups;
+    List<DeviceFilter> deviceFilters;
+    List<SavedViews> savedViews;
+    int meterCount;
+    SavedViews defaultView;
+    string xdaInstance;
+    string yearBegin;
+
+    using(DataContext dataContext = new DataContext("systemSettings")) {
+        historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
+        assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("ID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
+        deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+        savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+            
+        if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
+        {
+            savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
+        }
+
+        meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
+
+        defaultView = savedViews.First();
+
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
+
     }
-    int meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
-
-    SavedViews defaultView = savedViews.First();
-
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
 
     int defaulAssetGroupID = -1;
 

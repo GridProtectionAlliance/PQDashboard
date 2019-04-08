@@ -29,41 +29,48 @@
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
+    List<DashSettings> dashSettings;
+    List<UserDashSettings> userDashSettings;
+    int meterCount;
+    IEnumerable<DashSettings> kml;
 
-    List<DashSettings> dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
+    using (DataContext dataContext = new DataContext("systemSettings")) {
+        dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
 
-    List<UserDashSettings> userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
-    int meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
-    foreach (DashSettings setting in dashSettings)
-    {
-        if (setting.Name == "DashTab" || setting.Name == "KML" || setting.Name.EndsWith("Chart"))
+       userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
+        meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
+        foreach (DashSettings setting in dashSettings)
         {
-            var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-            if (index >= 0)
+            if (setting.Name == "DashTab" || setting.Name == "KML" || setting.Name.EndsWith("Chart"))
             {
-                setting.Enabled = userDashSettings[index].Enabled;
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
+                if (index >= 0)
+                {
+                    setting.Enabled = userDashSettings[index].Enabled;
+                }
+            }
+            else if (setting.Name.EndsWith("Colors") )
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value.Split(',')[0] == setting.Value.Split(',')[0]);
+                if (index >= 0)
+                {
+                    setting.Value = userDashSettings[index].Value;
+                }
+            }
+            else if (setting.Name.Contains("System."))
+            {
+                var index = userDashSettings.IndexOf(x => x.Name == setting.Name);
+                if (index >= 0)
+                {
+                    setting.Value = userDashSettings[index].Value;
+                }
             }
         }
-        else if (setting.Name.EndsWith("Colors") )
-        {
-            var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value.Split(',')[0] == setting.Value.Split(',')[0]);
-            if (index >= 0)
-            {
-                setting.Value = userDashSettings[index].Value;
-            }
-        }
-        else if (setting.Name.Contains("System."))
-        {
-            var index = userDashSettings.IndexOf(x => x.Name == setting.Name);
-            if (index >= 0)
-            {
-                setting.Value = userDashSettings[index].Value;
-            }
-        }
+
+        kml = dashSettings.Where(x => x.Name == "KML");
+
     }
 
-    IEnumerable<DashSettings> kml = dashSettings.Where(x => x.Name == "KML");
 
 }
 <div id="settingsModal" class="modal fade" role="dialog">
