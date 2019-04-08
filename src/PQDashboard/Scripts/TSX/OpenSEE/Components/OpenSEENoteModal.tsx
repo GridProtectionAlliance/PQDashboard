@@ -19,81 +19,64 @@
 //  03/11/2019 - Billy Ernest
 //       Generated original version of source code.
 //
-//******************************************************************************************************
+//*****************************************************************************************************
 import * as React from 'react';
 import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
 
 import OpenSEE2Service from './../../../TS/Services/OpenSEE';
 
-export default class OpenSEENoteModal extends React.Component {
-    openSEE2Service: OpenSEE2Service;
-    state: { tableRows: Array<any>, note: string, count: number }
-    props: { eventId: number }
-    constructor(props, context) {
-        super(props, context);
+export default function OpenSEENoteModal (props: { eventId: number }): JSX.Element{
 
-        this.openSEE2Service = new OpenSEE2Service();
-        this.state = {
-            tableRows: [],
-            note: '',
-            count: 0
-        };
+        var openSEE2Service = new OpenSEE2Service();
 
-        this.handleAdd = this.handleAdd.bind(this)
-        this.handleClose = this.handleClose.bind(this)
-        this.handleShow = this.handleShow.bind(this)
-        this.handleDelete = this.handleDelete.bind(this)
-        this.handleEdit = this.handleEdit.bind(this)
+        const [tableRows, setTableRows] = React.useState<Array<JSX.Element>>([]);
+        const [note, setNote] = React.useState<string>('');
+        const [count, setCount] = React.useState<number>(0);
+        const [show, setShow] = React.useState<boolean>(false);
 
-    }
+        React.useEffect(() => {
+            createTableRows();
+        }, []);
 
-    handleClose() {
-        $(this.refs.modal).hide();
-    }
+        function createTableRows() {
+            openSEE2Service.getNotes(props.eventId).done(data => {
+                var rows = data.map(d => <tr key={d.ID}><td>{d.Note}</td><td>{moment(d.Timestamp).format("MM/DD/YYYY HH:mm")}</td><td>{d.UserAccount}</td><td>
+                    <button className="btn btn-sm" onClick={(e) => handleEdit(d)}><FaPencilAlt /></button>
+                    <button className="btn btn-sm" onClick={(e) => handleDelete(d)}><FaTimes /></button>
+                </td></tr>)
 
-    handleAdd() {
-        this.openSEE2Service.addNote({ ID: 0, EventID: this.props.eventId, Note: this.state.note }).done(e => {
-            this.setState({note: ''});
-            this.componentDidMount();
-        });
-    }
+                setTableRows(rows);
+                setCount(rows.length);
+            });
+        }
 
-    handleShow() {
-        $(this.refs.modal).show();
-    }
+        function handleAdd() {
+            openSEE2Service.addNote({ ID: 0, EventID: props.eventId, Note: note }).done(e => {
+                setNote('');
+                createTableRows();
+            });
+        }
 
-    handleDelete(d) {
-        this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
-    }
+        function handleDelete(d) {
+            openSEE2Service.deleteNote(d).done(() => createTableRows());
+        }
 
-    handleEdit(d) {
-        this.setState({ note: d.Note });
-        this.openSEE2Service.deleteNote(d).done(() => this.componentDidMount());
-    }
+        function handleEdit(d) {
+            setNote(d.Note);
+            openSEE2Service.deleteNote(d).done(() => createTableRows());
+        }
 
-    componentDidMount() {
-        this.openSEE2Service.getNotes(this.props.eventId).done(data => {
-            var rows = data.map(d => <tr key={d.ID}><td>{d.Note}</td><td>{moment(d.Timestamp).format("MM/DD/YYYY HH:mm")}</td><td>{d.UserAccount}</td><td>
-                <button className="btn btn-sm" onClick={(e) => this.handleEdit(d)}><FaPencilAlt /></button>
-                <button className="btn btn-sm" onClick={(e) => this.handleDelete(d)}><FaTimes /></button>
-            </td></tr>)
-
-            this.setState({ tableRows: rows, count: rows.length });
-        });
-    }
-
-    render() {
         return (
             <div>
-                <button className="btn btn-link" onClick={this.handleShow}>Manage Notes{(this.state.count > 0 ? ` [${this.state.count}]`: null)}</button>
+                <button className="btn btn-link" onClick={() => { setShow(true) }}>Manage Notes{(count > 0 ? ` [${count}]`: null)}</button>
 
-                <div className="modal fade show" ref="modal" role="dialog">
-                    <div className="modal-dialog modal-xl" role="document">
+                <div className="modal fade show" style={{display: (show ? 'block': 'none' )}} role="dialog">
+                    <div className="modal-dialog modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h3 className="modal-title">Manage notes for the event.</h3>
-                                <button type="button" className="close" onClick={this.handleClose}>
+                                <button type="button" className="close" onClick={() => setShow(false)}>
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
@@ -103,20 +86,19 @@ export default class OpenSEENoteModal extends React.Component {
                                         <tr><td style={{ width: '50%' }}>Note</td><td>Time</td><td>User</td><td></td></tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.tableRows}
+                                        {tableRows}
                                     </tbody>
 
                                 </table>
-                                <textarea className="form-control" value={this.state.note} onChange={(e) => this.setState({ note: (e.target as any).value })}></textarea>
+                                <textarea className="form-control" value={note} onChange={(e) => setNote((e.target as any).value)}></textarea>
                             </div>
                             <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={this.handleClose}>Close</button>
-                                <button className="btn btn-primary" onClick={this.handleAdd} disabled={this.state.note.length == 0}>Add Note</button>
+                                <button className="btn btn-secondary" onClick={() => setShow(false)}>Close</button>
+                                <button className="btn btn-primary" onClick={handleAdd} disabled={note.length == 0}>Add Note</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         );
-    }
 }

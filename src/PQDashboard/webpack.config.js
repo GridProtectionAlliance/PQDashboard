@@ -8,6 +8,7 @@ module.exports = {
     mode: 'development',
     entry: {
         OpenSEE: "./Scripts/TSX/OpenSEE/openSEE.tsx",
+        PQDashboard: "./Scripts/TSX/PQDashboard/PQDashboard.tsx",
 
     },
     output: {

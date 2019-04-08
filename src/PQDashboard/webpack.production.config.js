@@ -9,6 +9,7 @@ module.exports = {
     cache: true,
     entry: {
         OpenSEE: "./TSX/OpenSEE/openSEE.tsx",
+        PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
 
     },
     output: {

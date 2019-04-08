@@ -34210,81 +34210,53 @@ exports.default = Unbalance;
 
 "use strict";
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "react");
-var About = (function (_super) {
-    __extends(About, _super);
-    function About(props, context) {
-        var _this = _super.call(this, props, context) || this;
-        _this.handleShow = _this.handleShow.bind(_this);
-        _this.handleClose = _this.handleClose.bind(_this);
-        return _this;
-    }
-    About.prototype.handleClose = function () {
-        $(this.refs.modal).hide();
-    };
-    About.prototype.handleShow = function () {
-        $(this.refs.modal).show();
-    };
-    About.prototype.render = function () {
-        return (React.createElement("div", null,
-            React.createElement("button", { className: "btn btn-link", onClick: this.handleShow }, "About"),
-            React.createElement("div", { className: "modal fade show", ref: "modal", role: "dialog" },
-                React.createElement("div", { className: "modal-dialog modal-xl", role: "document" },
-                    React.createElement("div", { className: "modal-content" },
-                        React.createElement("div", { className: "modal-header" },
-                            React.createElement("h3", { className: "modal-title" }, "About openSEE -- System Event Explorer"),
-                            React.createElement("button", { type: "button", className: "close", onClick: this.handleClose },
-                                React.createElement("span", { "aria-hidden": "true" }, "\u00D7"))),
-                        React.createElement("div", { className: "modal-body", style: { textAlign: 'left', maxHeight: 800 } },
-                            React.createElement("p", null, "Version 3.0"),
-                            React.createElement("p", null, "openSEE is a browser-based waveform display and analytics tool that is used to view waveforms recorded by DFRs, Power Quality meters, relays and other substation devices that are stored in the openXDA database. The link in the URL window of openSEE can be embedded in emails so that recipients can quickly access the waveforms being studied."),
-                            React.createElement("p", null,
-                                React.createElement("b", null, "General Navigation Features")),
-                            React.createElement("p", null, "The navigational context of openSEE is relative to the \"waveform-of-focus\" -- the waveform displayed in the top-most collection of charts that is displayed when openSEE is first opened -- typically after clicking a link to drill down into a specific waveform in the Open PQ Dashboard. Tools in openSEE allow the user to dig deeper and understand more about this waveform-of-focus. Tools in openSee also enable users to easily change the waveform-of-focus from the open initially loaded -- moving forward or back sententially in time."),
-                            React.createElement("ul", null,
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Waveform View Check Boxes"),
-                                    " - These check boxes are used to select the individual charts that are displayed for each waveform being displayed.  Options are voltages, currents, and digitals."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Info, Compare and Analytics Tabs"),
-                                    " - These tabs are used to show summary information about the waveform of focus, select one of from 20+ analytics to perform on the waveform-of-focus, or to find additional waveforms to compare to the waveform-of-focus -- and might be interesting, for example, in the case of double-ended fault location."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Data Tools Menu"),
-                                    " - This menu allows the user to \"pop up\" tools to display additional information about the waveform-of-focus."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Region Select Zooming"),
-                                    " - The waveform initially loads with the the time-scale set to the full length of the waveform capture. With the mouse, the user can select a region of the waveform to zoom in and see more detail."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Reset Zoom"),
-                                    " - After zooming in, this button can be used to set the time-scale back to the full length of the waveform."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Forward and Back Navigation"),
-                                    " - Using the collection of controls in the upper-right of the openSEE display, the user can select the basis for changing to a new waveform-of-focus.  A selection of \"system\" means that user can step forward or back to next event in the openXDA base globally (for all DFRs, PQ Meters, etc.), i.e., what havened immediately previously or next on the system relative to the current waveform-of-focus.  A selection of \"asset\" (or \"line\") limits this navigation to just events on this asset. A selection of \"meter\" limits this navigation to just events recored by this substation device."),
-                                React.createElement("li", null,
-                                    React.createElement("u", null, "Chart Trace Section"),
-                                    " - To the right of each chart, the user has the ability to turn on and off individual traces.  Tabs are provided to organize these selections by data type.")),
-                            React.createElement("p", null,
-                                "The open-source code for openSEE can be found on GitHub as part of the openXDA Project.   See: ",
-                                React.createElement("a", { href: "https://github.com/GridProtectionAlliance/openXDA" }, "https://github.com/GridProtectionAlliance/openXDA"))),
-                        React.createElement("div", { className: "modal-footer" },
-                            React.createElement("button", { type: "button", className: "btn btn-secondary", onClick: this.handleClose }, "Close")))))));
-    };
-    return About;
-}(React.Component));
+function About() {
+    var _a = React.useState(false), show = _a[0], setShow = _a[1];
+    return (React.createElement("div", null,
+        React.createElement("button", { className: "btn btn-link", onClick: function () { setShow(true); } }, "About"),
+        React.createElement("div", { className: "modal fade show", style: { display: (show ? 'block' : 'none') }, role: "dialog" },
+            React.createElement("div", { className: "modal-dialog", style: { maxWidth: 1200 }, role: "document" },
+                React.createElement("div", { className: "modal-content" },
+                    React.createElement("div", { className: "modal-header" },
+                        React.createElement("h3", { className: "modal-title" }, "About openSEE -- System Event Explorer"),
+                        React.createElement("button", { type: "button", className: "close", onClick: function () { setShow(false); } },
+                            React.createElement("span", { "aria-hidden": "true" }, "\u00D7"))),
+                    React.createElement("div", { className: "modal-body", style: { textAlign: 'left', maxHeight: 800 } },
+                        React.createElement("p", null, "Version 3.0"),
+                        React.createElement("p", null, "openSEE is a browser-based waveform display and analytics tool that is used to view waveforms recorded by DFRs, Power Quality meters, relays and other substation devices that are stored in the openXDA database. The link in the URL window of openSEE can be embedded in emails so that recipients can quickly access the waveforms being studied."),
+                        React.createElement("p", null,
+                            React.createElement("b", null, "General Navigation Features")),
+                        React.createElement("p", null, "The navigational context of openSEE is relative to the \"waveform-of-focus\" -- the waveform displayed in the top-most collection of charts that is displayed when openSEE is first opened -- typically after clicking a link to drill down into a specific waveform in the Open PQ Dashboard. Tools in openSEE allow the user to dig deeper and understand more about this waveform-of-focus. Tools in openSee also enable users to easily change the waveform-of-focus from the open initially loaded -- moving forward or back sententially in time."),
+                        React.createElement("ul", null,
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Waveform View Check Boxes"),
+                                " - These check boxes are used to select the individual charts that are displayed for each waveform being displayed.  Options are voltages, currents, and digitals."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Info, Compare and Analytics Tabs"),
+                                " - These tabs are used to show summary information about the waveform of focus, select one of from 20+ analytics to perform on the waveform-of-focus, or to find additional waveforms to compare to the waveform-of-focus -- and might be interesting, for example, in the case of double-ended fault location."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Data Tools Menu"),
+                                " - This menu allows the user to \"pop up\" tools to display additional information about the waveform-of-focus."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Region Select Zooming"),
+                                " - The waveform initially loads with the the time-scale set to the full length of the waveform capture. With the mouse, the user can select a region of the waveform to zoom in and see more detail."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Reset Zoom"),
+                                " - After zooming in, this button can be used to set the time-scale back to the full length of the waveform."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Forward and Back Navigation"),
+                                " - Using the collection of controls in the upper-right of the openSEE display, the user can select the basis for changing to a new waveform-of-focus.  A selection of \"system\" means that user can step forward or back to next event in the openXDA base globally (for all DFRs, PQ Meters, etc.), i.e., what havened immediately previously or next on the system relative to the current waveform-of-focus.  A selection of \"asset\" (or \"line\") limits this navigation to just events on this asset. A selection of \"meter\" limits this navigation to just events recored by this substation device."),
+                            React.createElement("li", null,
+                                React.createElement("u", null, "Chart Trace Section"),
+                                " - To the right of each chart, the user has the ability to turn on and off individual traces.  Tabs are provided to organize these selections by data type.")),
+                        React.createElement("p", null,
+                            "The open-source code for openSEE can be found on GitHub as part of the openXDA Project.   See: ",
+                            React.createElement("a", { href: "https://github.com/GridProtectionAlliance/openXDA" }, "https://github.com/GridProtectionAlliance/openXDA"))),
+                    React.createElement("div", { className: "modal-footer" },
+                        React.createElement("button", { type: "button", className: "btn btn-secondary", onClick: function () { setShow(false); } }, "Close")))))));
+}
 exports.default = About;
 
 
@@ -34518,107 +34490,73 @@ exports.default = OpenSEENavbar;
 
 "use strict";
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "react");
 var fa_1 = __webpack_require__(/*! react-icons/fa */ "../node_modules/react-icons/fa/index.js");
 var moment = __webpack_require__(/*! moment */ "moment");
 var OpenSEE_1 = __webpack_require__(/*! ./../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
-var OpenSEENoteModal = (function (_super) {
-    __extends(OpenSEENoteModal, _super);
-    function OpenSEENoteModal(props, context) {
-        var _this = _super.call(this, props, context) || this;
-        _this.openSEE2Service = new OpenSEE_1.default();
-        _this.state = {
-            tableRows: [],
-            note: '',
-            count: 0
-        };
-        _this.handleAdd = _this.handleAdd.bind(_this);
-        _this.handleClose = _this.handleClose.bind(_this);
-        _this.handleShow = _this.handleShow.bind(_this);
-        _this.handleDelete = _this.handleDelete.bind(_this);
-        _this.handleEdit = _this.handleEdit.bind(_this);
-        return _this;
-    }
-    OpenSEENoteModal.prototype.handleClose = function () {
-        $(this.refs.modal).hide();
-    };
-    OpenSEENoteModal.prototype.handleAdd = function () {
-        var _this = this;
-        this.openSEE2Service.addNote({ ID: 0, EventID: this.props.eventId, Note: this.state.note }).done(function (e) {
-            _this.setState({ note: '' });
-            _this.componentDidMount();
-        });
-    };
-    OpenSEENoteModal.prototype.handleShow = function () {
-        $(this.refs.modal).show();
-    };
-    OpenSEENoteModal.prototype.handleDelete = function (d) {
-        var _this = this;
-        this.openSEE2Service.deleteNote(d).done(function () { return _this.componentDidMount(); });
-    };
-    OpenSEENoteModal.prototype.handleEdit = function (d) {
-        var _this = this;
-        this.setState({ note: d.Note });
-        this.openSEE2Service.deleteNote(d).done(function () { return _this.componentDidMount(); });
-    };
-    OpenSEENoteModal.prototype.componentDidMount = function () {
-        var _this = this;
-        this.openSEE2Service.getNotes(this.props.eventId).done(function (data) {
+function OpenSEENoteModal(props) {
+    var openSEE2Service = new OpenSEE_1.default();
+    var _a = React.useState([]), tableRows = _a[0], setTableRows = _a[1];
+    var _b = React.useState(''), note = _b[0], setNote = _b[1];
+    var _c = React.useState(0), count = _c[0], setCount = _c[1];
+    var _d = React.useState(false), show = _d[0], setShow = _d[1];
+    React.useEffect(function () {
+        createTableRows();
+    }, []);
+    function createTableRows() {
+        openSEE2Service.getNotes(props.eventId).done(function (data) {
             var rows = data.map(function (d) { return React.createElement("tr", { key: d.ID },
                 React.createElement("td", null, d.Note),
                 React.createElement("td", null, moment(d.Timestamp).format("MM/DD/YYYY HH:mm")),
                 React.createElement("td", null, d.UserAccount),
                 React.createElement("td", null,
-                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return _this.handleEdit(d); } },
+                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return handleEdit(d); } },
                         React.createElement(fa_1.FaPencilAlt, null)),
-                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return _this.handleDelete(d); } },
+                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return handleDelete(d); } },
                         React.createElement(fa_1.FaTimes, null)))); });
-            _this.setState({ tableRows: rows, count: rows.length });
+            setTableRows(rows);
+            setCount(rows.length);
         });
-    };
-    OpenSEENoteModal.prototype.render = function () {
-        var _this = this;
-        return (React.createElement("div", null,
-            React.createElement("button", { className: "btn btn-link", onClick: this.handleShow },
-                "Manage Notes",
-                (this.state.count > 0 ? " [" + this.state.count + "]" : null)),
-            React.createElement("div", { className: "modal fade show", ref: "modal", role: "dialog" },
-                React.createElement("div", { className: "modal-dialog modal-xl", role: "document" },
-                    React.createElement("div", { className: "modal-content" },
-                        React.createElement("div", { className: "modal-header" },
-                            React.createElement("h3", { className: "modal-title" }, "Manage notes for the event."),
-                            React.createElement("button", { type: "button", className: "close", onClick: this.handleClose },
-                                React.createElement("span", { "aria-hidden": "true" }, "\u00D7"))),
-                        React.createElement("div", { className: "modal-body" },
-                            React.createElement("table", { className: "table" },
-                                React.createElement("thead", null,
-                                    React.createElement("tr", null,
-                                        React.createElement("td", { style: { width: '50%' } }, "Note"),
-                                        React.createElement("td", null, "Time"),
-                                        React.createElement("td", null, "User"),
-                                        React.createElement("td", null))),
-                                React.createElement("tbody", null, this.state.tableRows)),
-                            React.createElement("textarea", { className: "form-control", value: this.state.note, onChange: function (e) { return _this.setState({ note: e.target.value }); } })),
-                        React.createElement("div", { className: "modal-footer" },
-                            React.createElement("button", { className: "btn btn-secondary", onClick: this.handleClose }, "Close"),
-                            React.createElement("button", { className: "btn btn-primary", onClick: this.handleAdd, disabled: this.state.note.length == 0 }, "Add Note")))))));
-    };
-    return OpenSEENoteModal;
-}(React.Component));
+    }
+    function handleAdd() {
+        openSEE2Service.addNote({ ID: 0, EventID: props.eventId, Note: note }).done(function (e) {
+            setNote('');
+            createTableRows();
+        });
+    }
+    function handleDelete(d) {
+        openSEE2Service.deleteNote(d).done(function () { return createTableRows(); });
+    }
+    function handleEdit(d) {
+        setNote(d.Note);
+        openSEE2Service.deleteNote(d).done(function () { return createTableRows(); });
+    }
+    return (React.createElement("div", null,
+        React.createElement("button", { className: "btn btn-link", onClick: function () { setShow(true); } },
+            "Manage Notes",
+            (count > 0 ? " [" + count + "]" : null)),
+        React.createElement("div", { className: "modal fade show", style: { display: (show ? 'block' : 'none') }, role: "dialog" },
+            React.createElement("div", { className: "modal-dialog modal-lg", role: "document" },
+                React.createElement("div", { className: "modal-content" },
+                    React.createElement("div", { className: "modal-header" },
+                        React.createElement("h3", { className: "modal-title" }, "Manage notes for the event."),
+                        React.createElement("button", { type: "button", className: "close", onClick: function () { return setShow(false); } },
+                            React.createElement("span", { "aria-hidden": "true" }, "\u00D7"))),
+                    React.createElement("div", { className: "modal-body" },
+                        React.createElement("table", { className: "table" },
+                            React.createElement("thead", null,
+                                React.createElement("tr", null,
+                                    React.createElement("td", { style: { width: '50%' } }, "Note"),
+                                    React.createElement("td", null, "Time"),
+                                    React.createElement("td", null, "User"),
+                                    React.createElement("td", null))),
+                            React.createElement("tbody", null, tableRows)),
+                        React.createElement("textarea", { className: "form-control", value: note, onChange: function (e) { return setNote(e.target.value); } })),
+                    React.createElement("div", { className: "modal-footer" },
+                        React.createElement("button", { className: "btn btn-secondary", onClick: function () { return setShow(false); } }, "Close"),
+                        React.createElement("button", { className: "btn btn-primary", onClick: handleAdd, disabled: note.length == 0 }, "Add Note")))))));
+}
 exports.default = OpenSEENoteModal;
 
 
