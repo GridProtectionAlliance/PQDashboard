@@ -30,13 +30,18 @@
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
 
     NameValueCollection parameters = Request.QueryString;
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
-    EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+    EventView theEvent;
+    string xdaInstance;
+    using (DataContext dataContext = new DataContext("systemSettings"))
+    {
+
+        theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+    }
     string context = parameters["context"] ?? "day";
 }
 

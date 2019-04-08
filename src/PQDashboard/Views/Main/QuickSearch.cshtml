@@ -27,12 +27,15 @@
 @using PQDashboard.Model
 @model AppModel
 @{
-    DataContext dataContext = Model.DataContext;
 
     Layout = null;
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
-
+    string xdaInstance;
+    string timeWindow;
+    using (DataContext dataContext = new DataContext("systemSettings"))
+    {
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+    }
 }
 <!DOCTYPE html>
 

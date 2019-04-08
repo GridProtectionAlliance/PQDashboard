@@ -30,22 +30,29 @@
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
 
     NameValueCollection parameters = Request.QueryString;
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     string postedDateString = parameters["posteddate"] ?? "";
-    EventView theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
-    DateTime postedDate = theEvent.StartTime;
-
-    if (postedDateString != "")
+    EventView theEvent;
+    DateTime postedDate;
+    string xdaInstance;
+    string timeWindow;
+    using (DataContext dataContext = new DataContext("systemSettings"))
     {
-        DateTime.TryParse(postedDateString, out postedDate);
-    }
+        theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
+        postedDate = theEvent.StartTime;
 
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+        if (postedDateString != "")
+        {
+            DateTime.TryParse(postedDateString, out postedDate);
+        }
+
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+
+    }
     string context = parameters["context"] ?? "day";
 }
 

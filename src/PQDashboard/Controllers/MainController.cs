@@ -53,7 +53,6 @@ namespace PQDashboard.Controllers
         #region [ Members ]
 
         // Fields
-        private readonly DataContext m_dataContext;
         private readonly AppModel m_appModel;
         private bool m_disposed;
 
@@ -66,10 +65,6 @@ namespace PQDashboard.Controllers
         /// </summary>
         public MainController()
         {
-            // Establish data context for the view
-            m_dataContext = new DataContext(exceptionHandler: MvcApplication.LogException);
-            ViewData.Add("DataContext", m_dataContext);
-
             // Set default model for pages used by layout
             m_appModel = new AppModel();
             ViewData.Model = m_appModel;
@@ -79,49 +74,60 @@ namespace PQDashboard.Controllers
 
         #region [ Methods ]
 
-        /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="MainController"/> object and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!m_disposed)
-            {
-                try
-                {
-                    if (disposing)
-                        m_dataContext?.Dispose();
-                }
-                finally
-                {
-                    m_disposed = true;          // Prevent duplicate dispose.
-                    base.Dispose(disposing);    // Call base class Dispose().
-                }
-            }
-        }
 
         public ActionResult Home()
         {
-            m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
+            using (DataContext dataContext = new DataContext("systemSettings")) {
+                m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
 
-            try
-            {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
-
-                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                try
                 {
-                    ViewBag.username = "External";
-                    ViewBag.usersid = "External";
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.username = "";
-            }
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-            return View();
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
+                }
+
+                return View();
+            }
         }
+
+        public ActionResult Home2()
+        {
+            using (DataContext dataContext = new DataContext("systemSettings"))
+            {
+
+                m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
+
+                try
+                {
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
+                }
+
+                return View();
+            }
+        }
+
+
 
         public ActionResult Help()
         {
@@ -153,23 +159,25 @@ namespace PQDashboard.Controllers
 
         public ActionResult OpenSEE()
         {
-            ViewBag.EnableLightningQuery = m_dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
+            using (DataContext dataContext = new DataContext("systemSettings"))
+            {
+                ViewBag.EnableLightningQuery = dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
 
-            ViewBag.IsAdmin = ValidateAdminRequest();
-            int eventID = int.Parse(Request.QueryString["eventid"]);
-            Event evt = m_dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventID);
-            ViewBag.EventID = eventID;
-            ViewBag.EventStartTime = evt.StartTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-            ViewBag.EventEndTime = evt.EndTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                ViewBag.IsAdmin = ValidateAdminRequest();
+                int eventID = int.Parse(Request.QueryString["eventid"]);
+                Event evt = dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventID);
+                ViewBag.EventID = eventID;
+                ViewBag.EventStartTime = evt.StartTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
+                ViewBag.EventEndTime = evt.EndTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
 
 
-            ViewBag.SamplesPerCycle = m_dataContext.Connection.ExecuteScalar<double>("select SamplesPerCycle from event join meter on event.meterid = meter.id where event.id = {0}", eventID);
-            return View();
+                ViewBag.SamplesPerCycle = dataContext.Connection.ExecuteScalar<double>("select SamplesPerCycle from event join meter on event.meterid = meter.id where event.id = {0}", eventID);
+                return View();
+            }
         }
 
         public ActionResult OpenSTE()
         {
-            //m_appModel.ConfigureView(Url.RequestContext, "OpenSEE", ViewBag);
             return View();
         }
 
@@ -177,22 +185,25 @@ namespace PQDashboard.Controllers
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
 
-            try
+            using (DataContext dataContext = new DataContext("systemSettings"))
             {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                try
                 {
-                    ViewBag.username = "External";
-                    ViewBag.usersid = "External";
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
                 }
             }
-            catch (Exception ex)
-            {
-                ViewBag.username = "";
-            }
-
             return View();
         }
 
@@ -200,67 +211,78 @@ namespace PQDashboard.Controllers
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
 
-            try
+            using (DataContext dataContext = new DataContext("systemSettings"))
             {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                try
                 {
-                    ViewBag.username = "External";
-                    ViewBag.usersid = "External";
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
                 }
             }
-            catch (Exception ex)
-            {
-                ViewBag.username = "";
-            }
-
             return View();
         }
 
         public ActionResult MeterDisturbancesByLine()
         {
-            try
+            using (DataContext dataContext = new DataContext("systemSettings"))
             {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                try
                 {
-                    ViewBag.username = "External";
-                    ViewBag.usersid = "External";
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.username = "";
-            }
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-            m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
-            return View();
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
+                }
+
+                m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
+                return View();
+            }
         }
 
         public ActionResult QuickSearch()
         {
-            try
+            using (DataContext dataContext = new DataContext("systemSettings"))
             {
-                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                if (m_dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                try
                 {
-                    ViewBag.username = "External";
-                    ViewBag.usersid = "External";
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.username = "";
-            }
+                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-            m_appModel.ConfigureView(Url.RequestContext, "QuickSearch", ViewBag);
-            return View();
+                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
+                    {
+                        ViewBag.username = "External";
+                        ViewBag.usersid = "External";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.username = "";
+                }
+
+                m_appModel.ConfigureView(Url.RequestContext, "QuickSearch", ViewBag);
+                return View();
+            }
         }
         #endregion
 

@@ -46,16 +46,27 @@
 
     DateTime posteddate = DateTime.Parse(parameters["date"] ?? "");
     int postedchannelid = int.Parse(parameters["channelid"] ?? "-1");
-    Channel channel = Model.DataContext.Table<Channel>().QueryRecordWhere("ID = {0}", postedchannelid);
+    Channel channel;
+    int postedmeterid;
+    string postedmeasurementtype;
+    string postedcharacteristic;
+    string postedphasename;
+    string postedlinename;
+    string postedmetername;
 
-    int postedmeterid = channel.MeterID;
-    string postedmeasurementtype =  Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementType WHERE ID = {0}", channel.MeasurementTypeID);
-    string postedcharacteristic = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementCharacteristic WHERE ID = {0}", channel.MeasurementCharacteristicID);
-    string postedphasename = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM Phase WHERE ID = {0}", channel.PhaseID);
-    string postedlinename = Model.DataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", postedchannelid);
-    string postedmetername = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", postedmeterid);
+    using (DataContext dataContext = new DataContext("systemSettings"))
+    {
 
+        channel = dataContext.Table<Channel>().QueryRecordWhere("ID = {0}", postedchannelid);
 
+        postedmeterid = channel.MeterID;
+        postedmeasurementtype = dataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementType WHERE ID = {0}", channel.MeasurementTypeID);
+        postedcharacteristic = dataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementCharacteristic WHERE ID = {0}", channel.MeasurementCharacteristicID);
+        postedphasename = dataContext.Connection.ExecuteScalar<string>("Select Name FROM Phase WHERE ID = {0}", channel.PhaseID);
+        postedlinename = dataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", postedchannelid);
+        postedmetername = dataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", postedmeterid);
+
+    }
 }
 
 <!DOCTYPE html>

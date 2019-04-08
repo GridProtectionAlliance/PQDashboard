@@ -31,7 +31,6 @@
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
 
     Dictionary<string, string> carrierList = new Dictionary<string, string>()
     {
@@ -77,9 +76,25 @@
         "WHERE EmailCategory.Name = 'Event' " +
         "ORDER BY XSLTemplate.Name";
 
-    TableOperations<XSLTemplate> xslTemplateTable = dataContext.Table<XSLTemplate>();
-    TableOperations<EmailType> emailTypeTable = dataContext.Table<EmailType>();
-    DataRow[] xslTemplates = dataContext.Connection.RetrieveData(xslTemplateQuery).Select();
+    Guid userAccountID = ViewBag.account.ID;
+    TableOperations<XSLTemplate> xslTemplateTable;
+    TableOperations<EmailType> emailTypeTable;
+    DataRow[] xslTemplates;
+    List<AssetGroup> regions;
+    List<UserAccountAssetGroup> userRegions;
+    List<EmailType> userEmails;
+    List<EmailType> userSMS;
+    using(DataContext dataContext = new DataContext("systemSettings"))
+    {
+        xslTemplateTable = dataContext.Table<XSLTemplate>();
+        emailTypeTable = dataContext.Table<EmailType>();
+        xslTemplates = dataContext.Connection.RetrieveData(xslTemplateQuery).Select();
+        regions = dataContext.Table<AssetGroup>().QueryRecords("Name").ToList();
+        userRegions = dataContext.Table<UserAccountAssetGroup>().QueryRecordsWhere("UserAccountID = {0} AND Email <> 0", userAccountID).ToList();
+        userEmails = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0))", userAccountID).ToList();
+        userSMS = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0))", userAccountID).ToList();
+    }
+
 
     List<XSLTemplate> jobTemplates = xslTemplates
         .Where(row => !row.ConvertField<bool>("SMS"))
@@ -91,12 +106,6 @@
         .Select(row => xslTemplateTable.LoadRecord(row))
         .ToList();
 
-    List<AssetGroup> regions = dataContext.Table<AssetGroup>().QueryRecords("Name").ToList();
-
-    Guid userAccountID = ViewBag.account.ID;
-    List<UserAccountAssetGroup> userRegions = dataContext.Table<UserAccountAssetGroup>().QueryRecordsWhere("UserAccountID = {0} AND Email <> 0", userAccountID).ToList();
-    List<EmailType> userEmails = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS = 0))", userAccountID).ToList();
-    List<EmailType> userSMS = dataContext.Table<EmailType>().QueryRecordsWhere("ID IN (SELECT EmailTypeID from UserAccountEmailType WHERE UserAccountID = {0} AND EmailTypeID IN (SELECT ID FROM EmailType WHERE SMS <> 0))", userAccountID).ToList();
 
     string[] phoneParts = ViewBag.account.Phone?.Split('@');
     string phone = phoneParts?[0];

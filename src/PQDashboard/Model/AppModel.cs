@@ -41,14 +41,11 @@ namespace PQDashboard.Model
     /// <remarks>
     /// Custom view Model should inherit from AppModel because the "Global" property is used by _Layout.cshtml.
     /// </remarks>
-    public class AppModel : IDisposable
+    public class AppModel
     {
         #region [ Members ]
 
         // Fields
-        private DataContext m_securityDataContext;
-        private DataContext m_dbDataContext;
-        private bool m_disposed;
 
         #endregion
 
@@ -60,15 +57,6 @@ namespace PQDashboard.Model
         public AppModel()
         {
             Global = MvcApplication.DefaultModel != null ? MvcApplication.DefaultModel.Global : new GlobalSettings();
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="AppModel"/> with the specified <paramref name="dataContext"/>.
-        /// </summary>
-        /// <param name="dataContext">Data context to provide to model.</param>
-        public AppModel(DataContext dataContext) : this()
-        {
-            DataContext = dataContext;
         }
 
         #endregion
@@ -83,71 +71,10 @@ namespace PQDashboard.Model
             get;
         }
 
-        /// <summary>
-        /// Gets default data context for model.
-        /// </summary>
-        public DataContext DataContext
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets security data context for model.
-        /// </summary>
-        public DataContext SecurityDataContext
-        {
-            get
-            {
-                return m_securityDataContext ?? (m_securityDataContext = new DataContext("securityProvider", exceptionHandler: MvcApplication.LogException));
-            }
-        }
-
-        /// <summary>
-        /// Gets db data context for model.
-        /// </summary>
-        public DataContext DbDataContext
-        {
-            get
-            {
-                return m_dbDataContext ?? (m_dbDataContext = new DataContext("thirdDb", exceptionHandler: MvcApplication.LogException));
-            }
-        }
 
         #endregion
 
         #region [ Methods ]
-
-        /// <summary>
-        /// Releases all the resources used by the <see cref="AppModel"/> object.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="AppModel"/> object and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!m_disposed)
-            {
-                try
-                {
-                    if (disposing)
-                    {
-                        m_securityDataContext?.Dispose();
-                        m_dbDataContext?.Dispose();
-                    }
-                }
-                finally
-                {
-                    m_disposed = true;  // Prevent duplicate dispose.
-                }
-            }
-        }
 
 
         /// <summary>
@@ -160,7 +87,9 @@ namespace PQDashboard.Model
         /// <returns>Rendered paged view model configuration script.</returns>
         public string RenderViewModelConfiguration<TModel>(object viewBag, string defaultSortField = null, params object[] parentKeys) where TModel : class, new()
         {
-            return DataContext.RenderViewModelConfiguration<TModel, DataHub>(viewBag, defaultSortField, "dataHub", parentKeys);
+            using (DataContext dataContext = new DataContext("systemSettings")) {
+                return dataContext.RenderViewModelConfiguration<TModel, DataHub>(viewBag, defaultSortField, "dataHub", parentKeys);
+            }
         }
 
         /// <summary>
