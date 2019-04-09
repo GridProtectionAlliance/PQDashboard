@@ -169,9 +169,7 @@ namespace PQDashboard.Controllers
                 ViewBag.EventID = eventID;
                 ViewBag.EventStartTime = evt.StartTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
                 ViewBag.EventEndTime = evt.EndTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-
-
-                ViewBag.SamplesPerCycle = dataContext.Connection.ExecuteScalar<double>("select SamplesPerCycle from event join meter on event.meterid = meter.id where event.id = {0}", eventID);
+                ViewBag.SamplesPerCycle = evt.SamplesPerCycle;
                 return View();
             }
         }
