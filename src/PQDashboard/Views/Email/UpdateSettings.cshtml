@@ -119,6 +119,32 @@
     {
         carrierList.Add("Unknown Carrier", carrier);
     }
+
+    string contentPath = Server.MapPath("~/override/UpdateSettings.content");
+    string content = null;
+
+    if (File.Exists(contentPath))
+    {
+        content = File.ReadAllText(contentPath);
+    }
+}
+@helper DefaultContent(string company)
+{
+    <p>
+        This page is used to sign up for and manage the self subscription email service. Once you submit your request
+        you will need to verify your email address and, if applicable, your phone number. You will begin receiving emails and
+        messages from openXDA once you have been approved by the system administrator.
+    </p>
+
+    <p>
+        <b>*** The notifications you receive contain @Html.Raw(company) Operation Sensitive Data and should not
+        be shared or forwarded to ANYONE without expressed permission. ***</b>
+    </p>
+
+    <p>
+        You only need to provide a cell phone number if you wish to receive SMS messages. Selecting "None" for the email template field will unsubscribe you from emails.
+        Selecting "None" for the SMS template field will unsubscribe you from SMS messages.
+    </p>
 }
 
 <!DOCTYPE html>
@@ -153,20 +179,18 @@
         <div class="well">
             <form action="./HandleUpdateSettingForm" method="post">
                 @AntiForgery.GetHtml()
-                <p>
-                    This page is used to sign up for and manage the self subscription email service. Once you submit your request
-                    you will need to verify your email address and, if applicable, your phone number. You will begin recieving emails and
-                    messages from openXDA once you have been approved by the system administrator. </p>
 
-                <p><b> *** The notifications you recieve contain TVA Operation Sensitive Data and should not
-                    be shared or forwarded to ANYONE without expressed permission. ***</b>
-                </p>
+                @if (content != null)
+                {
+                    @Html.Raw(content)
+                }
+                else
+                {
+                    @DefaultContent(Model.Global.CompanyAcronym)
+                }
 
-                <p>
-                    You only need to provide a cell phone number if you wish to recieve SMS messages. Selecting "None" for the email template field will unsubscribe you from emails.
-                    Selecting "None" for the SMS template field will unsubscribe you from sms messages.
-                </p>
                 <hr />
+
                 @if (ViewBag.isRegistered && !ViewBag.account.Approved)
                 {
                     <div class="well">
