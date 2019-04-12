@@ -21,7 +21,7 @@
 //
 //******************************************************************************************************
 
-/// <reference path="./openSee.d.ts" />
+/// <reference path="openSee.d.ts" />
 
 import 'react-app-polyfill/ie11'
 
@@ -38,7 +38,7 @@ import Digital from './Graphs/Digital';
 import Voltage from './Graphs/Voltage';
 
 import OpenSEENoteModal from './Components/OpenSEENoteModal';
-import MultiselectWindow, { iListObject } from './Components/MultiselectWindow';
+import MultiselectWindow from './Components/MultiselectWindow';
 import RadioselectWindow from './Components/RadioselectWindow';
 
 import Impedance from './Analytics/Impedance';
@@ -67,18 +67,12 @@ import About from './Components/About';
 import { LineChartAnaltyicalBaseProps } from './Graphs/LineChartAnalyticBase';
 
 
-export class OpenSEE extends React.Component<any, any>{
+export class OpenSEE extends React.Component<{}, OpenSEEState>{
     history: object;
     historyHandle: any;
     openSEEService: OpenSEEService;
     resizeId: any;
     TableData: Map<string, { data: number, color: string }>;
-    state: {
-        eventid: number, StartDate: string, EndDate: string, displayVolt: boolean, displayCur: boolean, breakerdigitals: boolean, Width: number,
-        Hover: number, PointsTable: Array<any>, TableData: Map<string, { data: number, color: string }>, PostedData: iPostedData,
-        nextBackLookup: iNextBackLookup, navigation: string, tab: string, comparedEvents: Array<number>, overlappingEvents: Array<iListObject>,
-        analytic: string, fftStartTime?: string, fftEndTime?: string, TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>
-    }
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();

@@ -20,3 +20,47 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+
+export default class PQDashboardService {
+    mostActiveMeterHandle: JQuery.jqXHR;
+    eventSearchHandle: JQuery.jqXHR;
+
+    constructor() {
+        this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
+        this.getEventSearchData = this.getEventSearchData.bind(this);
+
+    }
+
+    getMostActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
+        if (this.mostActiveMeterHandle !== undefined)
+            this.mostActiveMeterHandle.abort();
+
+        this.mostActiveMeterHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetMostActiveMeterActivityData?numresults=${numresults}` +
+                `&column=${column}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.mostActiveMeterHandle;
+    }
+    getEventSearchData(): JQuery.jqXHR {
+        if (this.eventSearchHandle !== undefined)
+            this.eventSearchHandle.abort();
+
+        this.eventSearchHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetEventSearchData`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.eventSearchHandle;
+    }
+
+}

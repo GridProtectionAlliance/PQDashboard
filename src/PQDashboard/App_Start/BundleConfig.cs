@@ -97,7 +97,7 @@ namespace PQDashboard
 
 
             // Code removed for clarity.
-#if Debug
+#if DEBUG
             BundleTable.EnableOptimizations = true;
 #endif
 

@@ -126,6 +126,20 @@ namespace PQDashboard.Model
             viewBag.PageName = pageName;
         }
 
+        public bool IsDebug()
+        {
+#if DEBUG 
+            return true;
+#else
+            return false;
+#endif
+
+
+            #endregion
+
+            #region [ Static ]
+
+        }
         #endregion
     }
 }

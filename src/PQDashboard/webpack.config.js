@@ -1,4 +1,4 @@
-/// <binding ProjectOpened='Watch - Development' />
+/// <binding ProjectOpened='config: development' />
 "use strict";
 const webpack = require("webpack");
 const path = require("path");

@@ -92,3 +92,34 @@ declare interface iPostedData {
     postedSystemFrequency?: string;
     xdaInstance?: string;
 }
+
+declare interface OpenSEEState {
+    eventid: number,
+    StartDate: string,
+    EndDate: string,
+    displayVolt: boolean,
+    displayCur: boolean,
+    breakerdigitals: boolean,
+    Width: number,
+    Hover: number,
+    PointsTable: Array<any>,
+    TableData: Map<string, { data: number, color: string }>,
+    PostedData: iPostedData,
+    nextBackLookup: iNextBackLookup,
+    navigation: string,
+    tab: string,
+    comparedEvents: Array<number>,
+    overlappingEvents: Array<iListObject>,
+    analytic: string,
+    fftStartTime?: string,
+    fftEndTime?: string,
+    TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>,
+    Height?: number
+}
+
+declare interface iListObject {
+    group?: string;
+    label: string;
+    value: number;
+    selected: boolean;
+}

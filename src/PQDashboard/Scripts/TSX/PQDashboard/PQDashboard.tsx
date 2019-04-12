@@ -20,4 +20,61 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+/// <reference path="PQDashboard.d.ts" />
 
+import 'react-app-polyfill/ie11'
+
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { BrowserRouter as Router, Route, NavLink } from 'react-router-dom';
+import createHistory from "history/createBrowserHistory"
+import * as queryString from "query-string";
+
+import About from './Components/About';
+import PQDashboardNavbar from './Components/PQDashboardNavbar';
+import MeterActivity from './Components/MeterActivity';
+import EventSearch from './Components/EventSearch';
+
+class PQDashboard extends React.Component<{}, PQDashboardState>{
+    history: object;
+    historyHandle: any;
+
+    constructor(props, context) {
+        super(props, context);
+        this.history = createHistory();
+        var query = queryString.parse(this.history['location'].search);
+
+        this.state = {
+        }
+    }
+    render() {
+        return (
+            <Router>
+                <div style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden' }}>
+                    <div style={{ width: 300, height: 'inherit', backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
+                        <a href="https://www.gridprotectionalliance.org"><img style={{ width: 280, margin: 10 }} src={homePath + "Images/SE Dashboard with GPA 200 high.png"} /></a>
+                        <div style={{ width: '100%', height: '100%', marginTop: 30}}>
+                            <div className="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical" style={{ height: 'calc(100% - 240px)' }}>
+                                <NavLink activeClassName='nav-link active' className="nav-link" exact={true} to={controllerViewPath + "/"}>Home</NavLink>
+                                <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/eventsearch"}>Event Search</NavLink>
+                                <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/meteractivity"}>Meter Activity</NavLink>
+                            </div>
+                            <div style={{ width: '100%', textAlign: 'center' }}>
+
+                                <span>Version 3.0</span>
+                                <br />
+                                <span><About /></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' }}>
+                        <Route path={controllerViewPath + "/eventsearch"} component={EventSearch} />
+                        <Route path={controllerViewPath + "/meteractivity"} component={MeterActivity} />
+                    </div>
+                </div>
+        </Router>
+        );
+    }
+}
+
+ReactDOM.render(<PQDashboard />, document.getElementById('pageBody'));

@@ -31,7 +31,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head id="Head1" runat="server">
-    <title>PQDashboard</title>
+    <title>Open PQ Dashboard :: @ViewBag.username</title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta charset="utf-8" />
@@ -41,21 +41,21 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
 
-    <link rel="shortcut icon" type="image/ico" href="~/Images/openSEELogo.png" />
+    <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
     <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap4.css")" rel="stylesheet">
-
-    <style>
-    </style>
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/font-awesome.css")" rel="stylesheet">
+    <link href="~/Content/bootstrap4-datetimepicker.css" rel="stylesheet"/>
 </head>
 <body>
-    <div id="body"></div>
+    <div id="pageBody"></div>
     <script>
         var homePath = '@Html.Raw(Url.Content("~/"))';
-        var userIsAdmin = @Html.Raw((ViewBag.IsAdmin ? "true" : "false"));
+        var controllerViewPath = homePath + '@Html.Raw(this.ViewContext.RouteData.GetRequiredString("controller"))/@Html.Raw(this.ViewContext.RouteData.GetRequiredString("action"))';
+        @*var userIsAdmin = @Html.Raw((ViewBag.IsAdmin ? "true" : "false"));
         var samplesPerCycle = @Html.Raw(ViewBag.SamplesPerCycle);
         var eventID = @Html.Raw(ViewBag.EventID);
         var eventStartTime = '@Html.Raw(ViewBag.EventStartTime)';
-        var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
+        var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';*@
 
         // https://tc39.github.io/ecma262/#sec-array.prototype.find
         if (!Array.prototype.find) {
@@ -117,21 +117,17 @@
 
     <script src="@("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
+    <script src="~/Scripts/bootstrap4-datetimepicker.min.js"></script>
 
-@{ 
-#if Debug
-}
+@if (Model.IsDebug())
+{
     <script src="@("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
-    <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script>
-@{ 
-#else
+    <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script> 
 }
+else
+{
     <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
-
-}
-@{ 
-#endif
 }
     <script type="text/javascript" src="~/Scripts/PQDashboard.js"></script>
 

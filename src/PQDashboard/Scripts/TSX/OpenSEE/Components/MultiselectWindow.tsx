@@ -21,18 +21,12 @@
 //
 //******************************************************************************************************
 
+/// <reference path="../openSee.d.ts" />
+
 import { groupBy } from 'lodash';
 import * as React from 'react';
 
-export interface iListObject {
-    group?: string;
-    label: string;
-    value: number;
-    selected: boolean;
-}
-
-export default class MultiselectWindow extends React.Component{
-    props: { data: Array<iListObject>, style?: object, className?: string, stateSetter: Function, comparedEvents: Array<number>}
+export default class MultiselectWindow extends React.Component<{ data: Array<iListObject>, style?: object, className?: string, stateSetter: Function, comparedEvents: Array<number>}>{
     constructor(props, context) {
         super(props, context);
     }

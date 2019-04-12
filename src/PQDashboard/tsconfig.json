@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "noImplicitAny": false,
+    "jsx": "react",
+    "lib": [ "dom", "es5", "scripthost", "es2015" ],
     "noEmitOnError": true,
+    "noImplicitAny": false,
     "removeComments": true,
     "sourceMap": true,
     "target": "es5",
-    "jsx": "react",
-    "lib": [ "dom", "es5", "scripthost", "es2015" ]
+    "typeRoots": [ "node_modules/@types" ]
+    //"types": [ "flot", "jquery", "moment", "react", "react-dom", "eonasdan-bootstrap-datetimepicker" ]
   },
   "include": [ "Scripts/TSX", "Scripts/TS/*" ],
   "exclude": [

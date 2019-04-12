@@ -52,9 +52,7 @@
     <meta http-equiv="pragma" content="no-cache" />
 
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
-    <link rel="stylesheet" href="~/Content/bootstrap/theme.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
-    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css" />
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap.css")" rel="stylesheet">
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
@@ -88,11 +86,11 @@
 
     </style>
 
-    <script type="text/javascript" src="~/Scripts/jquery-3.3.1.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/jquery.js")"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/jquery-ui.js")"></script>
     <script src="~/Scripts/jquery.signalR.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/bootstrap.js")"></script>
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.js"></script>

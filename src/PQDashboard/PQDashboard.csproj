@@ -281,9 +281,11 @@
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\PQDashboardController.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
+    <Content Include="Content\bootstrap4-datetimepicker.css" />
     <Content Include="Content\bootstrap\images\ui-icons_333333_256x240.png" />
     <Content Include="Content\bootstrap\images\ui-icons_ffffff_256x240.png" />
     <Content Include="Content\bootstrap\theme.css" />
@@ -382,7 +384,9 @@
     <Compile Include="Model\AppModel.cs" />
     <Content Include="Images\2-Line - 500.png" />
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
+    <Content Include="Images\PQDashboardLogo II w-GPA_600.png" />
     <Content Include="Images\PQI.png" />
+    <Content Include="Images\SE Dashboard with GPA 200 high.png" />
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
@@ -407,6 +411,7 @@
     <Content Include="OpenSEEComtradeDownload.ashx" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
+    <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\openSEE-lightning-query.js" />
@@ -1304,6 +1309,12 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\LightningData.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\About.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\MeterActivity.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\PQDashboardNavbar.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\Table.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\PQDashboard.d.ts" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\PQDashboard.tsx" />
     <TypeScriptCompile Include="Scripts\TS\Services\OpenSEE.ts" />
     <TypeScriptCompile Include="Scripts\TS\Services\PQDashboard.ts" />

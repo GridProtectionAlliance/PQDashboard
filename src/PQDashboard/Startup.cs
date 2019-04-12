@@ -59,6 +59,18 @@ namespace PQDashboard
                 }
             );
 
+            //  Enable attribute based routing
+            //Map custom API controllers
+            config.Routes.MapHttpRoute(
+                name: "PQDashboard",
+                routeTemplate: "api/PQDashboard/{action}",
+                defaults: new
+                {
+                    controller = "PQDashboard"
+                }
+            );
+
+
             app.UseWebApi(config);
         }
     }
