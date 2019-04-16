@@ -2413,11 +2413,11 @@ namespace OpenSEE.Controller
             }
 
             DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
-            DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
-            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
-            DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
-            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
-            DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            //DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            //DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            //DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            //DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            //DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
 
             if (vAN != null)
                 dataLookup.Add("Frequency", GenerateFrequency(systemFrequency, vAN, ""));
@@ -2432,7 +2432,6 @@ namespace OpenSEE.Controller
         private FlotSeries GenerateFrequency(double systemFrequency, DataSeries dataSeries, string label)
         {
             int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
-            //var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
 
             FlotSeries fitWave = new FlotSeries()
             {
@@ -2442,19 +2441,18 @@ namespace OpenSEE.Controller
 
             double thresholdValue = 0;
 
+            var crosses = dataSeries.DataPoints.Zip(dataSeries.DataPoints.Skip(1), (Point1, Point2) => new { Point1, Point2 }).Where(obj => obj.Point1.Value * obj.Point2.Value < 0 || obj.Point1.Value == 0).Select(obj => {
+                double slope = (obj.Point2.Value - obj.Point1.Value) / (obj.Point2.Time - obj.Point1.Time).Ticks;
+                DateTime interpolatedCrossingTime = m_epoch.AddTicks((long)Math.Round((thresholdValue - obj.Point1.Value) / slope + obj.Point1.Time.Subtract(m_epoch).Ticks));
+                return new DataPoint{ Time = interpolatedCrossingTime, Value = thresholdValue };
 
-            List<DataPoint> crosses = dataSeries.DataPoints.Select((DataPoint, Index) => new { DataPoint, Index }).Where(obj => {
-                if (obj.DataPoint.Value == thresholdValue) return true;
-                else if (obj.Index == 0) return false;
-                else if (dataSeries.DataPoints.ToList()[obj.Index - 1].Value < thresholdValue) return obj.DataPoint.Value >= thresholdValue;
-                else if (dataSeries.DataPoints.ToList()[obj.Index - 1].Value >= thresholdValue) return obj.DataPoint.Value < thresholdValue;
-                else return false;
-            }).Select(obj => obj.DataPoint).ToList();
+            }).ToList();
 
-            fitWave.DataPoints = crosses.Select((dataPoint, index) => {
-                double frequency = (index == 0 ? systemFrequency : 1 / (dataPoint.Time.Subtract(m_epoch).TotalSeconds - crosses[index - 1].Time.Subtract(m_epoch).TotalSeconds)/2);
-                return new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, frequency };
-            }).ToList(); 
+            fitWave.DataPoints = crosses.Zip(crosses.Skip(2), (Point1, Point2) =>  {
+                double frequency =  1 / (Point2.Time - Point1.Time).TotalSeconds;
+                return new double[] {  Point1.Time.Subtract(m_epoch).TotalMilliseconds, frequency };
+
+            }).ToList();
 
             return fitWave;
         }
@@ -2976,7 +2974,7 @@ namespace OpenSEE.Controller
         private FlotSeries GenerateTHD(double systemFrequency, DataSeries dataSeries, string label)
         {
             int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
-            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+            //var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
 
             FlotSeries thd = new FlotSeries()
             {
@@ -2984,22 +2982,24 @@ namespace OpenSEE.Controller
                 DataPoints = new List<double[]>()
             };
 
-            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            double[][] dataArr = new double[(dataSeries.DataPoints.Count - samplesPerCycle)][];
+            Parallel.For(0, dataSeries.DataPoints.Count - samplesPerCycle, i =>
             {
-                if (cycle.Count() != samplesPerCycle) continue;
-                double[] points = cycle.Select(point => point.Value / samplesPerCycle).ToArray();
+
+                double[] points = dataSeries.DataPoints.Skip(i).Take(samplesPerCycle).Select(point => point.Value / samplesPerCycle).ToArray();
                 double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
 
                 Complex[] result = FFT(points);
 
-                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, i) => Math.Pow(result[i].Magnitude * 2 / Math.Sqrt(2), 2)).Sum();
+                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, j) => Math.Pow(result[j].Magnitude * 2 / Math.Sqrt(2), 2)).Sum();
                 int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == 60.0D);
                 double rmsHarm = result[index].Magnitude / Math.Sqrt(2);
                 double thdValue = 100 * Math.Sqrt(rmsHarmSum) / rmsHarm - 100;
 
-                thd.DataPoints = thd.DataPoints.Concat( cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, thdValue})).ToList();
-            }
+                dataArr[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, thdValue };
+            });
 
+            thd.DataPoints = dataArr.ToList();
             return thd;
         }
 
@@ -3111,7 +3111,7 @@ namespace OpenSEE.Controller
         private void GenerateSpecifiedHarmonic(Dictionary<string, FlotSeries> dataLookup, double systemFrequency, DataSeries dataSeries, string label, int specifiedHarmonic)
         {
             int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataSeries.SampleRate, systemFrequency);
-            var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
+            //var groupedByCycle = dataSeries.DataPoints.Select((Point, Index) => new { Point, Index }).GroupBy((Point) => Point.Index / samplesPerCycle).Select((grouping) => grouping.Select((obj) => obj.Point));
 
             FlotSeries SpecifiedHarmonicMag = new FlotSeries()
             {
@@ -3125,11 +3125,12 @@ namespace OpenSEE.Controller
                 DataPoints = new List<double[]>()
             };
 
+            double[][] dataArrHarm = new double[(dataSeries.DataPoints.Count - samplesPerCycle)][];
+            double[][] dataArrAngle = new double[(dataSeries.DataPoints.Count - samplesPerCycle)][];
 
-            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            Parallel.For(0, dataSeries.DataPoints.Count - samplesPerCycle, i =>
             {
-                if (cycle.Count() != samplesPerCycle) continue;
-                double[] points = cycle.Select(point => point.Value / samplesPerCycle).ToArray();
+                double[] points = dataSeries.DataPoints.Skip(i).Take(samplesPerCycle).Select(point => point.Value / samplesPerCycle).ToArray();
                 double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
                 double specifiedFrequency = systemFrequency * specifiedHarmonic;
                 int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == specifiedFrequency);
@@ -3138,10 +3139,13 @@ namespace OpenSEE.Controller
 
                 Complex specifiedHarmonicCycleResult = result[index];
 
-                SpecifiedHarmonicMag.DataPoints = SpecifiedHarmonicMag.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Magnitude * 2 / Math.Sqrt(2) })).ToList();
-                SpecifiedHarmonicAng.DataPoints = SpecifiedHarmonicAng.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Phase * 180 / Math.PI })).ToList();
+                dataArrHarm[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Magnitude * 2 / Math.Sqrt(2) };
+                dataArrAngle[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Phase * 180 / Math.PI };
 
-            }
+            });
+
+            SpecifiedHarmonicMag.DataPoints = dataArrHarm.ToList();
+            SpecifiedHarmonicAng.DataPoints = dataArrAngle.ToList();
 
             dataLookup.Add(SpecifiedHarmonicMag.ChartLabel, SpecifiedHarmonicMag);
             dataLookup.Add(SpecifiedHarmonicAng.ChartLabel, SpecifiedHarmonicAng);

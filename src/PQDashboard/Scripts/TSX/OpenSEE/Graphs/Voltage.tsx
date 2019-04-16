@@ -104,8 +104,13 @@ export default class Voltage extends React.Component<any, any>{
     }
     getColor(key, index) {
         if (key.ChartLabel.indexOf('VAN') >= 0) return '#A30000';
+        if (key.ChartLabel.indexOf('VAB') >= 0) return '#A30000';
         if (key.ChartLabel.indexOf('VBN') >= 0) return '#0029A3';
+        if (key.ChartLabel.indexOf('VBC') >= 0) return '#0029A3';
         if (key.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
+        if (key.ChartLabel.indexOf('VCA') >= 0) return '#007A29';
+        if (key.ChartLabel.indexOf('NG') >= 0) return '#d3d3d3';
+
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
@@ -118,8 +123,8 @@ export default class Voltage extends React.Component<any, any>{
 
     render() {
         return <LineChartAnalyticBase
-            legendDisplay={(key) => true}
-            legendEnable={(key) => key.length == 3}
+            legendDisplay={(key) => key[2] == 'N'}
+            legendEnable={(key) => key[2] == 'N' && key.length == 3}
             legendKey="Voltage"
             openSEEServiceFunction={this.openSEEService.getWaveformData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}

@@ -57,9 +57,16 @@ export default class Legend extends React.Component<any, any>{
 
         return (
             <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
-                {(this.props.type == "Voltage" || this.props.type == "Current" ?
-                    <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleAll.bind(this)}/>
-                : null)}
+                {(this.props.type == "Voltage" ?
+                    <>
+                        <ToggleButtonGroup type="radio" defaultValue="LN" buttons={[{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }]} onChange={this.toggleVoltage.bind(this)} />
+                        <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleVoltage.bind(this)} />
+                    </>
+                    : null)}
+                {( this.props.type == "Current" ?
+                        <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleAll.bind(this)} />
+                    : null)}
+
                 {(this.props.type.toLowerCase() == "digital" ?
                     <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'All', value: 'All', active: true }, { label: 'Chng', value: 'StatusChange', active: false }, { label: 'Brs', value: 'Breakers', active: false }]} onChange={this.toggleDigitals.bind(this)} />
                 : null)}
@@ -95,7 +102,7 @@ export default class Legend extends React.Component<any, any>{
                     </div> : null)}
 
 
-                <table ref="table" style={{ maxHeight: this.props.height - 70, overflowY: 'auto', display: 'block' }}>
+                <table ref="table" style={{ maxHeight: 'calc(100% - ' + (this.props.type == 'Voltage' ? '70' : '35') + 'px)', overflowY: 'auto', display: 'block' }}>
                 <tbody >
                     {rows}
                 </tbody>
@@ -103,6 +110,46 @@ export default class Legend extends React.Component<any, any>{
             </div>
         );
     }
+    toggleVoltage(type) {
+        this.props.data.forEach((row, key, map) => {
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if ($('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("L-N") >= 0 && key[2] == 'N') {
+                row.display = true;
+            }
+            else if ($('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("L-L") >= 0 && key[2] != 'N') {
+                row.display = true;
+            }
+
+
+            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+        });
+
+        this.props.callback();
+
+    }
+
 
     toggleAll(type) {
         this.props.data.forEach((row, key, map) => {
@@ -474,6 +521,6 @@ class ToggleButton extends React.Component {
     }
 
     render() {
-        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} style={this.props.style}><input type="checkbox" name="checkbox" value={this.props.value}  onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
+        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} style={this.props.style}><input className="toggleButton" type="checkbox" name="checkbox" value={this.props.value}  onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
     }
 }

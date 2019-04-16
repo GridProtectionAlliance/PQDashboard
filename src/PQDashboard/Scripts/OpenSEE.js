@@ -35100,7 +35100,12 @@ var Legend = (function (_super) {
                 rows.push(React.createElement(Row, { key: key, label: key, color: row.color, enabled: row.enabled, callback: function (e) { return _this.props.callback(e, row, key); } }));
         });
         return (React.createElement("div", { id: this.props.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' } },
-            (this.props.type == "Voltage" || this.props.type == "Current" ?
+            (this.props.type == "Voltage" ?
+                React.createElement(React.Fragment, null,
+                    React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "LN", buttons: [{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }], onChange: this.toggleVoltage.bind(this) }),
+                    React.createElement(ToggleButtonGroup, { type: "checkbox", defaultValue: "Wave", buttons: [{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }], onChange: this.toggleVoltage.bind(this) }))
+                : null),
+            (this.props.type == "Current" ?
                 React.createElement(ToggleButtonGroup, { type: "checkbox", defaultValue: "Wave", buttons: [{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }], onChange: this.toggleAll.bind(this) })
                 : null),
             (this.props.type.toLowerCase() == "digital" ?
@@ -35129,8 +35134,38 @@ var Legend = (function (_super) {
                 React.createElement("div", { className: "d-flex flex-column btn-group" },
                     React.createElement("select", { defaultValue: '1', onChange: this.handleSelected.bind(this) }, this.samplesPerCycleOptions),
                     React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }], onChange: this.toggleSpecifiedHarmonic.bind(this) })) : null),
-            React.createElement("table", { ref: "table", style: { maxHeight: this.props.height - 70, overflowY: 'auto', display: 'block' } },
+            React.createElement("table", { ref: "table", style: { maxHeight: 'calc(100% - ' + (this.props.type == 'Voltage' ? '70' : '35') + 'px)', overflowY: 'auto', display: 'block' } },
                 React.createElement("tbody", null, rows))));
+    };
+    Legend.prototype.toggleVoltage = function (type) {
+        this.props.data.forEach(function (row, key, map) {
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+            if ($('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-N") >= 0 && key[2] == 'N') {
+                row.display = true;
+            }
+            else if ($('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-L") >= 0 && key[2] != 'N') {
+                row.display = true;
+            }
+            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
+                row.enabled = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+        });
+        this.props.callback();
     };
     Legend.prototype.toggleAll = function (type) {
         this.props.data.forEach(function (row, key, map) {
@@ -35402,7 +35437,7 @@ var ToggleButton = (function (_super) {
     ToggleButton.prototype.render = function () {
         var _this = this;
         return React.createElement("label", { className: "btn btn-primary" + (this.props.active ? ' active' : ''), style: this.props.style },
-            React.createElement("input", { type: "checkbox", name: "checkbox", value: this.props.value, onChange: function (e) { return _this.props.onChange(_this.props.value); } }),
+            React.createElement("input", { className: "toggleButton", type: "checkbox", name: "checkbox", value: this.props.value, onChange: function (e) { return _this.props.onChange(_this.props.value); } }),
             this.props.label);
     };
     return ToggleButton;
@@ -35981,10 +36016,18 @@ var Voltage = (function (_super) {
     Voltage.prototype.getColor = function (key, index) {
         if (key.ChartLabel.indexOf('VAN') >= 0)
             return '#A30000';
+        if (key.ChartLabel.indexOf('VAB') >= 0)
+            return '#A30000';
         if (key.ChartLabel.indexOf('VBN') >= 0)
+            return '#0029A3';
+        if (key.ChartLabel.indexOf('VBC') >= 0)
             return '#0029A3';
         if (key.ChartLabel.indexOf('VCN') >= 0)
             return '#007A29';
+        if (key.ChartLabel.indexOf('VCA') >= 0)
+            return '#007A29';
+        if (key.ChartLabel.indexOf('NG') >= 0)
+            return '#d3d3d3';
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
@@ -35994,7 +36037,7 @@ var Voltage = (function (_super) {
     };
     Voltage.prototype.render = function () {
         var _this = this;
-        return React.createElement(LineChartAnalyticBase_1.default, { legendDisplay: function (key) { return true; }, legendEnable: function (key) { return key.length == 3; }, legendKey: "Voltage", openSEEServiceFunction: this.openSEEService.getWaveformData, getData: function (props, ctrl) { return _this.getData(props, ctrl, _this); }, getColor: this.getColor, fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, analytic: this.props.analytic, endDate: this.props.endDate, eventId: this.props.eventId, height: this.props.height, hover: this.props.hover, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, startDate: this.props.startDate, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter, tooltipWithDeltaTable: this.props.tooltipWithDeltaTable });
+        return React.createElement(LineChartAnalyticBase_1.default, { legendDisplay: function (key) { return key[2] == 'N'; }, legendEnable: function (key) { return key[2] == 'N' && key.length == 3; }, legendKey: "Voltage", openSEEServiceFunction: this.openSEEService.getWaveformData, getData: function (props, ctrl) { return _this.getData(props, ctrl, _this); }, getColor: this.getColor, fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, analytic: this.props.analytic, endDate: this.props.endDate, eventId: this.props.eventId, height: this.props.height, hover: this.props.hover, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, startDate: this.props.startDate, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter, tooltipWithDeltaTable: this.props.tooltipWithDeltaTable });
     };
     return Voltage;
 }(React.Component));
