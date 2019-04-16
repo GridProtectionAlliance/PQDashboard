@@ -520,7 +520,8 @@ namespace OpenSEE.Controller
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(meter, data);
-            return dataGroup;
+            VIDataGroup vIDataGroup = new VIDataGroup(dataGroup);
+            return vIDataGroup.ToDataGroup();
         }
 
         private List<double[]> Downsample(List<double[]> series, int maxSampleCount, Range<DateTime> range)
