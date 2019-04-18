@@ -21,7 +21,6 @@
 //
 //*****************************************************************************************************
 import * as React from 'react';
-import { FaTimes, FaPencilAlt } from 'react-icons/fa';
 import * as moment from 'moment';
 
 import OpenSEE2Service from './../../../TS/Services/OpenSEE';
@@ -42,8 +41,8 @@ export default function OpenSEENoteModal (props: { eventId: number }): JSX.Eleme
         function createTableRows() {
             openSEE2Service.getNotes(props.eventId).done(data => {
                 var rows = data.map(d => <tr key={d.ID}><td>{d.Note}</td><td>{moment(d.Timestamp).format("MM/DD/YYYY HH:mm")}</td><td>{d.UserAccount}</td><td>
-                    <button className="btn btn-sm" onClick={(e) => handleEdit(d)}><FaPencilAlt /></button>
-                    <button className="btn btn-sm" onClick={(e) => handleDelete(d)}><FaTimes /></button>
+                    <button className="btn btn-sm" onClick={(e) => handleEdit(d)}><span><i className="fa fa-pencil"></i></span></button>
+                    <button className="btn btn-sm" onClick={(e) => handleDelete(d)}><span><i className="fa fa-times"></i></span></button>
                 </td></tr>)
 
                 setTableRows(rows);

@@ -41,12 +41,11 @@ interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
     getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction
 
 }
-export default class LineChartAnalyticBase extends React.Component<any, any>{
+export default class LineChartAnalyticBase extends React.Component<LineChartAnalyticBassClassProps, any>{
     plot: any;
     options: object;
     clickHandled: boolean;
     panCenter: number;
-    props: LineChartAnalyticBassClassProps
     state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR }
     constructor(props, context) {
         super(props, context);

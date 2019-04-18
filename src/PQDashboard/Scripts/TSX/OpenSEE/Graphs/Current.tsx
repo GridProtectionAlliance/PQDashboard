@@ -48,7 +48,7 @@ export default class Current extends React.Component<any, any>{
 
     getData(props: LineChartAnaltyicalBaseProps, baseCtrl: LineChartAnalyticBase, ctrl: Current): void {
 
-        var eventDataHandle = ctrl.openSEEService.getWaveformData(props.eventId, props.pixels, "Current", props.startDate, props.endDate).then(data => {
+        var eventDataHandle = ctrl.openSEEService.getWaveformCurrentData(props.eventId, props.pixels, props.startDate, props.endDate).then(data => {
             baseCtrl.options['grid'].markings = [];
             baseCtrl.options['rangeselection'] = undefined;
             baseCtrl.options['selection'] = { mode: 'x' };
@@ -123,7 +123,7 @@ export default class Current extends React.Component<any, any>{
             legendDisplay={(key) => true}
             legendEnable={(key) => key.length == 3}
             legendKey="Current"
-            openSEEServiceFunction={this.openSEEService.getWaveformData}
+            openSEEServiceFunction={this.openSEEService.getWaveformCurrentData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
             getColor={this.getColor}
             fftStartTime={this.props.fftStartTime}

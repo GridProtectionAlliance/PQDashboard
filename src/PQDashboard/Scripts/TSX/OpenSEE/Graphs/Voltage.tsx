@@ -49,7 +49,7 @@ export default class Voltage extends React.Component<any, any>{
 
     getData(props: LineChartAnaltyicalBaseProps, baseCtrl: LineChartAnalyticBase, ctrl: Voltage): void {
         
-        var eventDataHandle = ctrl.openSEEService.getWaveformData(props.eventId, props.pixels, "Voltage", props.startDate, props.endDate).then(data => {
+        var eventDataHandle = ctrl.openSEEService.getWaveformVoltageData(props.eventId, props.pixels, props.startDate, props.endDate).then(data => {
             baseCtrl.options['grid'].markings = [];
             baseCtrl.options['rangeselection'] = undefined;
             baseCtrl.options['selection'] = { mode: 'x' };
@@ -126,7 +126,7 @@ export default class Voltage extends React.Component<any, any>{
             legendDisplay={(key) => key[2] == 'N'}
             legendEnable={(key) => key[2] == 'N' && key.length == 3}
             legendKey="Voltage"
-            openSEEServiceFunction={this.openSEEService.getWaveformData}
+            openSEEServiceFunction={this.openSEEService.getWaveformVoltageData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
             getColor={this.getColor}
             fftStartTime={this.props.fftStartTime}

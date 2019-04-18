@@ -2,7 +2,7 @@
 "use strict";
 const webpack = require("webpack");
 const path = require("path");
-const _ = require("lodash");
+
 module.exports = {
     mode: 'development',
     context: path.resolve(__dirname, 'Scripts'),
@@ -40,7 +40,6 @@ module.exports = {
         ]
     },
     externals: {
-        //lodash: _,
         jquery: 'jQuery',
         react: 'React',
         'react-dom': 'ReactDOM',

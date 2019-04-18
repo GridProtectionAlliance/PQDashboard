@@ -26,7 +26,8 @@ export type StandardAnalyticServiceFunction = (eventid: number, pixels: number, 
 export type BarChartAnalyticServiceFunction = (eventid: number, startDate?: string, endDate?: string) => JQuery.jqXHR
 
 export default class OpenSEEService{
-    waveformDataHandle: JQuery.jqXHR ;
+    waveformVoltageDataHandle: JQuery.jqXHR;
+    waveformCurrentDataHandle: JQuery.jqXHR;
     frequencyDataHandle: JQuery.jqXHR ;
     faultDistanceDataHandle: JQuery.jqXHR ;
     breakerDigitalsDataHandle: JQuery.jqXHR ;
@@ -57,7 +58,9 @@ export default class OpenSEEService{
     lighteningDataHandle: JQuery.jqXHR;
 
     constructor() {
-        this.getWaveformData = this.getWaveformData.bind(this);
+        this.getWaveformVoltageData = this.getWaveformVoltageData.bind(this);
+        this.getWaveformCurrentData = this.getWaveformCurrentData.bind(this);
+
         this.getFaultDistanceData = this.getFaultDistanceData.bind(this);
         this.getDigitalsData = this.getDigitalsData.bind(this);
         this.getRemoveCurrentData = this.getRemoveCurrentData.bind(this);
@@ -81,17 +84,17 @@ export default class OpenSEEService{
 
     }
 
-    getWaveformData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR{
-        if (this.waveformDataHandle !== undefined)
-            this.waveformDataHandle.abort();
+    getWaveformVoltageData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR{
+        if (this.waveformVoltageDataHandle !== undefined)
+            this.waveformVoltageDataHandle.abort();
 
-        this.waveformDataHandle = $.ajax({
+        this.waveformVoltageDataHandle = $.ajax({
             type: "GET",
             url: `${homePath}api/OpenSEE/GetData?eventId=${eventid}` +
                 `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
                 `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
                 `&pixels=${pixels}` +
-                `&type=${type}` +
+                `&type=Voltage` +
                 `&dataType=Time`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
@@ -99,7 +102,28 @@ export default class OpenSEEService{
             async: true
         });
 
-        return this.waveformDataHandle;
+        return this.waveformVoltageDataHandle;
+    }
+
+    getWaveformCurrentData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.waveformCurrentDataHandle !== undefined)
+            this.waveformCurrentDataHandle.abort();
+
+        this.waveformCurrentDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&type=Current` +
+                `&dataType=Time`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.waveformCurrentDataHandle;
     }
 
     getFrequencyData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR{

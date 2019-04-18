@@ -287,19 +287,39 @@ namespace PQDashboard.Controllers
         private bool ValidateAdminRequest()
         {
             string username = User.Identity.Name;
-            ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
-            securityProvider.PassthroughPrincipal = User;
+            string userid = UserInfo.UserNameToSID(username);
 
-            if (!securityProvider.Authenticate())
-                return false;
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                bool isAdmin = connection.ExecuteScalar<int>(@"
+					select 
+						COUNT(*) 
+					from 
+						UserAccount JOIN 
+						ApplicationRoleUserAccount ON ApplicationRoleUserAccount.UserAccountID = UserAccount.ID JOIN
+						ApplicationRole ON ApplicationRoleUserAccount.ApplicationRoleID = ApplicationRole.ID
+					WHERE 
+						ApplicationRole.Name = 'Administrator' AND UserAccount.Name = {0}
+                ", userid) > 0;
 
-            SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
-            SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+                if (isAdmin) return true;
+                else return false;
+            }
 
-            if (!approverPrincipal.IsInRole("Administrator"))
-                return false;
+            //string username = User.Identity.Name;
+            //ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
+            //securityProvider.PassthroughPrincipal = User;
 
-            return true;
+            //if (!securityProvider.Authenticate())
+            //    return false;
+
+            //SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
+            //SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
+
+            //if (!approverPrincipal.IsInRole("Administrator"))
+            //    return false;
+
+            //return true;
         }
 
     }

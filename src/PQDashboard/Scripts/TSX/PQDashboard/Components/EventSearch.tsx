@@ -22,6 +22,8 @@
 //******************************************************************************************************
 
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
 import Table from './Table';
 import * as moment from 'moment';
 import * as _ from 'lodash';
@@ -30,6 +32,8 @@ import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
 
 import PQDashboardService from './../../../TS/Services/PQDashboard';
+import OpenSEEService from './../../../TS/Services/OpenSEE';
+
 import { History } from 'history';
 
 const updateInterval = 300000;
@@ -86,37 +90,17 @@ export default class EventSearch extends React.Component<IProps, IState>{
             eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
 
         };
-
-        this.history['listen']((location, action) => {
-            var query = queryString.parse(this.history['location'].search);
-            var searchBarProps = {
-                dfr: (query['dfr'] != undefined ? query['dfr'] == 'true' : true),
-                pqMeter: (query['pqMeter'] != undefined ? query['pqMeter'] == 'true' : true),
-                g500: (query['g500'] != undefined ? query['g500'] == 'true' : true),
-                one62to500: (query['one62to500'] != undefined ? query['one62to500'] == 'true' : true),
-                seventyTo161: (query['seventyTo161'] != undefined ? query['seventyTo161'] == 'true' : true),
-                l70: (query['l70'] != undefined ? query['l70'] == 'true' : true),
-                faults: (query['faults'] != undefined ? query['faults'] == 'true' : true),
-                sags: (query['sags'] != undefined ? query['sags'] == 'true' : true),
-                swells: (query['swells'] != undefined ? query['swells'] == 'true' : true),
-                interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
-                breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
-                transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
-                others: (query['others'] != undefined ? query['others'] == 'true' : true),
-                date: (query['date'] != undefined ? query['date'] : moment.utc().format(momentDateFormat)),
-                time: (query['time'] != undefined ? query['time'] : moment.utc().format(momentTimeFormat)),
-                windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
-                timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
-                stateSetter: this.stateSetter.bind(this)
-            };
-
-            this.setState({
-                searchBarProps: searchBarProps,
-                eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
-            });
-        });
-
     }
+
+    componentDidMount() {
+    }
+
+    componentWillUnmount() {
+    }
+
+    componentWillReceiveProps(nextProps: IProps) {
+    }
+
     render() {
         return (
             <div style={{ width: '100%', height: '100%' }}>
@@ -357,61 +341,203 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
     );
 }
 
-const EventSearchList: React.FunctionComponent<{ eventid: number, stateSetter(obj): void}> = (props) => {
-    const [sortField, setSortField] = React.useState<string>("FileStartTime");
-    const [ascending, setAscending] = React.useState<boolean>(false);
+class EventSearchList extends React.Component<{ eventid: number, stateSetter(obj): void }, { sortField: string, ascending: boolean, data: Array<any> }> {
+    pqDashboardService: PQDashboardService;
+    constructor(props, context) {
+        super(props, context);
 
-    const [data, setData] = React.useState<Array<any>>([]);
-    var pqDashboardService = new PQDashboardService();
+        this.pqDashboardService = new PQDashboardService();
 
-    React.useEffect(() => {
-        pqDashboardService.getEventSearchData().done(results => {
+        this.state = {
+            sortField: "FileStartTime",
+            ascending: false,
+            data: []
+        };
+
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+    }
+
+    componentDidMount() {
+        this.getData();
+        document.addEventListener("keydown", this.handleKeyPress, false);
+    }
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.handleKeyPress, false);
+    }
+
+    handleKeyPress(event) {
+        if (this.state.data.length == 0) return;
+
+        var index = this.state.data.map(a => a.EventID.toString()).indexOf(this.props.eventid.toString());
+
+        if (event.keyCode == 40) // arrow down key
+        {
+            if (this.props.eventid == -1)
+                this.props.stateSetter({ eventid: this.state.data[0].EventID });
+            else if (index == this.state.data.length - 1)
+                this.props.stateSetter({ eventid: this.state.data[0].EventID });
+            else
+                this.props.stateSetter({ eventid: this.state.data[index + 1].EventID });
+
+        }
+        else if (event.keyCode == 38)  // arrow up key
+        {
+            if (this.props.eventid == -1)
+                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
+            else if (index == 0)
+                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
+            else
+                this.props.stateSetter({ eventid: this.state.data[index - 1].EventID });
+        }
+
+        this.setScrollBar();
+    }
+
+    setScrollBar() {
+        var tableHeight = $(ReactDOM.findDOMNode(this).parentElement).children()[0].clientHeight - 45;
+        var index = this.state.data.map(a => a.EventID.toString()).indexOf(this.props.eventid.toString());
+        $(ReactDOM.findDOMNode(this).parentElement).scrollTop(index * tableHeight / this.state.data.length);
+    }
+
+    getData() {
+        this.pqDashboardService.getEventSearchData().done(results => {
             var ordered = _.orderBy(results, ["FileStartTime"], ["desc"]);
-            setData(ordered)
+            this.setState({ data: ordered });
+            this.setScrollBar();
         });
-    }, [props]);
+    }
 
+    render() {
+        return (
+            <Table
+                cols={[
+                    { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' } },
+                    { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
+                    { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
+                    { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
+                    { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
+                    { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: (item, key, style) => <span><i className={(item.BreakerOperation > 0 ? "fa fa-check" : '')}></i></span> },
 
-    return (
-        <Table
-            cols={[
-                { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' } },
-                { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
-                { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
-                { key: 'VoltageClass', label: 'Volt Cl', headerStyle: { width: '15%' } },
-                { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
-                { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: (item, key, style) => <span><i className={( item.BreakerOperation > 0 ? "fa fa-check": '')}></i></span> },
-
-            ]}
-            tableClass="table table-hover"
-            data={data}
-            sortField={sortField}
-            ascending={ascending}
-            onSort={(d) => {
-                if (d.col == sortField) {
-                    var ordered = _.orderBy(data, [d.col], [(!ascending? "asc": "desc")]);
-                    setAscending(!ascending);
-                    setData(ordered);
-                }
-                else {
-                    setSortField(d.col);
-                    setAscending(true);
-                    var ordered = _.orderBy(data, [d.col], ["asc"]);
-                    setData(ordered);
-                }
-            }}
-            onClick={(item) => props.stateSetter({ eventid: item.row.EventID })}
-            theadStyle={{ fontSize: 'smaller' }}
-            selected={(item) => {
-                if (item.EventID == props.eventid) return true;
-                else return false;
-            }}
-        />
-    );
+                ]}
+                tableClass="table table-hover"
+                data={this.state.data}
+                sortField={this.state.sortField}
+                ascending={this.state.ascending}
+                onSort={(d) => {
+                    if (d.col == this.state.sortField) {
+                        var ordered = _.orderBy(this.state.data, [d.col], [(!this.state.ascending ? "asc" : "desc")]);
+                        this.setState({ascending: !this.state.ascending, data: ordered});
+                    }
+                    else {
+                        var ordered = _.orderBy(this.state.data, [d.col], ["asc"]);
+                        this.setState({ ascending: true, data: ordered, sortField: d.col });
+                    }
+                }}
+                onClick={(item) => this.props.stateSetter({ eventid: item.row.EventID })}
+                theadStyle={{ fontSize: 'smaller' }}
+                selected={(item) => {
+                    if (item.EventID == this.props.eventid) return true;
+                    else return false;
+                }}
+            />
+        );
+    }
 }
 
-const EventPreviewPane: React.FunctionComponent<{eventid: number}> = (props) => {
-    return (
-        <div>{props.eventid}</div>
-    );
+class EventPreviewPane extends React.Component<{ eventid: number }, {}> {
+    openSEEService: OpenSEEService;
+    options: object;
+    constructor(props, context) {
+        super(props, context);
+
+        this.openSEEService = new OpenSEEService();
+        this.options = {
+            canvas: true,
+            legend: { show: false },
+            xaxis: { show: false },
+            yaxis: { show: false }
+        };
+
+
+
+    }
+
+    componentDidMount() {
+        if (this.props.eventid >= 0)
+            this.getData(this.props);
+    }
+    componentWillReceiveProps(nextProps) {
+        if (this.props.eventid >= 0)
+            this.getData(nextProps);
+    }
+
+    getColor(label) {
+        if (label.indexOf('VA') >= 0) return '#A30000';
+        if (label.indexOf('VB') >= 0) return '#0029A3';
+        if (label.indexOf('VC') >= 0) return '#007A29';
+        if (label.indexOf('VN') >= 0) return '#c3c3c3';
+        if (label.indexOf('IA') >= 0) return '#FF0000';
+        if (label.indexOf('IB') >= 0) return '#0066CC';
+        if (label.indexOf('IC') >= 0) return '#33CC33';
+        if (label.indexOf('IR') >= 0) return '#c3c3c3';
+
+        else {
+            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
+            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
+            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
+
+            return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
+        }
+    }
+
+    getData(props) {
+        $(this.refs.voltWindow).children().remove();
+        $(this.refs.curWindow).children().remove();
+        var pixels = (window.innerWidth - 300 - 40) / 2;
+
+        this.openSEEService.getWaveformVoltageData(props.eventid, pixels).then(data => {
+            if (data == null) {
+                return;
+            }
+
+            var newVessel = [];
+            $.each(data.Data, (index, value) => {
+                newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) })
+            });
+
+
+            $.plot($(this.refs.voltWindow), newVessel, this.options);
+
+
+        });
+
+        this.openSEEService.getWaveformCurrentData(props.eventid, pixels).then(data => {
+            if (data == null) {
+                return;
+            }
+
+            var newVessel = [];
+            $.each(data.Data, (index, value) => {
+                newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) })
+            });
+
+
+            $.plot($(this.refs.curWindow), newVessel, this.options);
+
+
+        });
+
+
+    }
+    render() {
+        var pixels = (window.innerWidth - 300 - 40) / 2;
+
+        return (
+            <div>
+                <a href={homePath + 'Main/OpenSEE?eventid=' + this.props.eventid} target="_blank"><h5>View in OpenSEE</h5></a>
+                <div ref="voltWindow" style={{ height: 200, float: 'left', width: pixels /*, margin: '0x', padding: '0px'*/ }}></div>
+                <div ref="curWindow" style={{ height: 200, float: 'left', width: pixels /*, margin: '0x', padding: '0px'*/ }}></div>
+            </div>
+        );
+    }
 }

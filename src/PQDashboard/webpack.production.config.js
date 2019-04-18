@@ -17,7 +17,7 @@ module.exports = {
         filename: "[name].js",
     },
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+    //devtool: "source-map",
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -40,9 +40,8 @@ module.exports = {
         ]
     },
     externals: {
-        //lodash: _,
         jquery: 'jQuery',
-        jquery: '$',
+        react: 'React',
         'react-dom': 'ReactDOM',
         moment: 'moment'
     },
@@ -93,7 +92,7 @@ module.exports = {
                     ecma: 6,
                     mangle: true
                 },
-                sourceMap: true
+                sourceMap: false
             })
         ]
     }

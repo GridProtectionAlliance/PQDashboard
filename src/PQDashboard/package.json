@@ -28,7 +28,6 @@
     "query-string": "5.1.1",
     "raf": "3.4.0",
     "react-app-polyfill": "^0.2.2",
-    "react-icons": "^3.5.0",
     "react-router-dom": "^5.0.0",
     "typescript": "^3.4.1",
     "typestyle": "^2.0.1"
