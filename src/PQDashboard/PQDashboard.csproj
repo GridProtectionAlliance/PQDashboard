@@ -412,6 +412,7 @@
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
+    <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\openSEE-lightning-query.js" />

@@ -22,8 +22,6 @@
 //******************************************************************************************************
 /// <reference path="PQDashboard.d.ts" />
 
-import 'react-app-polyfill/ie11'
-
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, NavLink } from 'react-router-dom';

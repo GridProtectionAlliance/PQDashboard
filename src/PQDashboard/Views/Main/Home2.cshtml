@@ -105,7 +105,10 @@
         }
 
     </script>
-    @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>*@
+    @if (Request.Browser.Browser == "InternetExplorer") {
+        <script src="~/Scripts/default.polyfill.min.js"></script>
+    }
+
     <script src="@("~/@GSF/Web/Shared/Scripts/jquery.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/jquery-ui.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/moment.js")"></script>

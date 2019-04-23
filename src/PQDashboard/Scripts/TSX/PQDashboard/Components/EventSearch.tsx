@@ -26,7 +26,7 @@ import * as ReactDOM from 'react-dom';
 
 import Table from './Table';
 import * as moment from 'moment';
-import * as _ from 'lodash';
+import { clone, isEqual, orderBy } from 'lodash';
 
 import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
@@ -121,7 +121,7 @@ export default class EventSearch extends React.Component<IProps, IState>{
     stateSetter(obj) {
         function toQueryString(state: IState) {
             var dataTypes = ["boolean", "number", "string"]
-            var stateObject: IState = _.clone(state.searchBarProps);
+            var stateObject: IState = clone(state.searchBarProps);
             stateObject.eventid = state.eventid;
             $.each(Object.keys(stateObject), (index, key) => {
                 if (dataTypes.indexOf(typeof (stateObject[key])) < 0)
@@ -137,7 +137,7 @@ export default class EventSearch extends React.Component<IProps, IState>{
             var newQueryString = toQueryString(this.state);
             var newQuery = queryString.parse(newQueryString);
 
-            if (!_.isEqual(oldQueryString, newQueryString)) {
+            if (!isEqual(oldQueryString, newQueryString)) {
                 clearTimeout(this.historyHandle);
                 this.historyHandle = setTimeout(() => this.history['push'](this.history['location'].pathname + '?' + newQueryString), 500);
             }
@@ -189,7 +189,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                                 <label style={{ width: 200, position: 'relative', float: "left" }} >Date: </label>
                                 <div className='input-group' style={{ width: 'calc(50% - 100px)', position: 'relative', float: "right" }}>
                                         <input id="timePicker" className='form-control' value={props.time} onChange={(e) => {
-                                            var object = _.clone(props);
+                                            var object = clone(props);
                                             object.time = (e.target as any).value;
                                             props.stateSetter({ searchBarProps: object });
                                         }} />
@@ -200,7 +200,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
 
                                 <div className='input-group date' style={{ width: 'calc(50% - 100px)', position: 'relative', float: "right" }}>
                                         <input className='form-control' id='datePicker' value={props.date} onChange={(e) => {
-                                            var object = _.clone(props);
+                                            var object = clone(props);
                                             object.date = (e.target as any).value;
                                             props.stateSetter({ searchBarProps: object });
                                         }} />
@@ -213,7 +213,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                             <div className="form-group" style={{ height: 30 }}>
                                 <label style={{ width: 200, position: 'relative', float: "left" }}>Time Window Size(+/-): </label>
                                     <input style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.windowSize} onChange={(e) => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.windowSize = (e.target as any).value;
                                         props.stateSetter({ searchBarProps: object });
                                     }} type="number"  />
@@ -221,7 +221,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                             <div className="form-group" style={{ height: 30 }}>
                                 <label style={{ width: 200, position: 'relative', float: "left" }}>Time Window Units: </label>
                                     <select style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.timeWindowUnits} onChange={(e) => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.timeWindowUnits = (e.target as any).value;
                                         props.stateSetter({ searchBarProps: object });
                                     }} >
@@ -245,22 +245,22 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                         <form>
                             <ul style={{ listStyleType: 'none', padding: 0, width: '50%', position: 'relative', float: 'left' }}>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.faults = !props.faults;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.faults} />  Faults </label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.sags = !props.sags;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.sags} />  Sags</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.swells = !props.swells;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.swells} />  Swells</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.interruptions = !props.interruptions;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.interruptions} />  Interruptions</label></li>
@@ -268,17 +268,17 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                             <ul style={{
                                 listStyleType: 'none', padding: 0, width: '50%', position: 'relative', float: 'right'}}>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.breakerOps = !props.breakerOps;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.breakerOps} />  Breaker Ops</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.transients = !props.transients;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.transients} />  Transients</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.others = !props.others;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.others} />  Others</label></li>
@@ -292,22 +292,22 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                         <form>
                             <ul style={{ listStyleType: 'none', padding: 0 }}>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.g500 = !props.g500;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.g500} />{ '> 500 kV'}</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.one62to500 = !props.one62to500;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.one62to500} />  162 - 500 kV</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.seventyTo161 = !props.seventyTo161;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.seventyTo161} />  70 - 161 kV</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.l70 = !props.l70;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.l70} />{'< 70 kV'}</label></li>
@@ -321,12 +321,12 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                         <form>
                             <ul style={{ listStyleType: 'none', padding: 0 }}>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.dfr = !props.dfr;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.dfr} />  DFR</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = _.clone(props);
+                                        var object = clone(props);
                                         object.pqMeter = !props.pqMeter;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.pqMeter} />  PQMeter</label></li>
@@ -401,7 +401,7 @@ class EventSearchList extends React.Component<{ eventid: number, stateSetter(obj
 
     getData() {
         this.pqDashboardService.getEventSearchData().done(results => {
-            var ordered = _.orderBy(results, ["FileStartTime"], ["desc"]);
+            var ordered = orderBy(results, ["FileStartTime"], ["desc"]);
             this.setState({ data: ordered });
             this.setScrollBar();
         });
@@ -411,7 +411,7 @@ class EventSearchList extends React.Component<{ eventid: number, stateSetter(obj
         return (
             <Table
                 cols={[
-                    { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' } },
+                    { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' }, content: (item, key, style) => <span>{moment(item.FileStartTime).format('MM/DD/YYYY')}<br />{moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')}</span> },
                     { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
                     { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
                     { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
@@ -425,11 +425,11 @@ class EventSearchList extends React.Component<{ eventid: number, stateSetter(obj
                 ascending={this.state.ascending}
                 onSort={(d) => {
                     if (d.col == this.state.sortField) {
-                        var ordered = _.orderBy(this.state.data, [d.col], [(!this.state.ascending ? "asc" : "desc")]);
+                        var ordered = orderBy(this.state.data, [d.col], [(!this.state.ascending ? "asc" : "desc")]);
                         this.setState({ascending: !this.state.ascending, data: ordered});
                     }
                     else {
-                        var ordered = _.orderBy(this.state.data, [d.col], ["asc"]);
+                        var ordered = orderBy(this.state.data, [d.col], ["asc"]);
                         this.setState({ ascending: true, data: ordered, sortField: d.col });
                     }
                 }}

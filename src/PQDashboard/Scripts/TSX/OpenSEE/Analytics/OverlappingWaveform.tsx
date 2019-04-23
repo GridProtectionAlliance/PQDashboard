@@ -21,7 +21,7 @@
 //
 //******************************************************************************************************
 import * as React from "react";
-import * as _ from "lodash";
+import { clone, isEqual } from "lodash";
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import Legend, { iLegendData } from './../Graphs/Legend';
 
@@ -125,8 +125,8 @@ export default class OverlappingWaveform extends React.Component{
     }
 
     componentWillReceiveProps(nextProps) {
-        var props = _.clone(this.props) as any;
-        var nextPropsClone = _.clone(nextProps);
+        var props = clone(this.props) as any;
+        var nextPropsClone = clone(nextProps);
 
         delete props.hover;
         delete nextPropsClone.hover;
@@ -147,7 +147,7 @@ export default class OverlappingWaveform extends React.Component{
         delete props.getData;
         delete nextPropsClone.getData;
 
-        if (!(_.isEqual(props, nextPropsClone))) {
+        if (!(isEqual(props, nextPropsClone))) {
             this.getData(nextProps);
         }
     }

@@ -21,7 +21,7 @@
 //
 //******************************************************************************************************
 import * as React from 'react';
-import * as _ from "lodash";
+
 import { LegendClickCallback } from './LineChartAnalyticBase';
 
 export interface iLegendData {
