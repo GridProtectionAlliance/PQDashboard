@@ -455,7 +455,8 @@ namespace OpenSEE.Controller
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 FaultCurve faultCurve = new TableOperations<FaultCurve>(connection).QueryRecordWhere("ID = {0}", faultCurveID);
-                DataGroup dataGroup = ToDataGroup(meter, faultCurve.Data);
+                DataGroup dataGroup = new DataGroup();
+                dataGroup.FromData(meter, faultCurve.Data);
                 FlotSeries flotSeries = new FlotSeries()
                 {
                     ChannelID = 0,

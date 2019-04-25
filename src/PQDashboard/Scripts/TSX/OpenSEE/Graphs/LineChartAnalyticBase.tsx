@@ -46,7 +46,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
     options: object;
     clickHandled: boolean;
     panCenter: number;
-    state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR }
+    state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR, harmonic: number }
     constructor(props, context) {
         super(props, context);
         var ctrl = this;
@@ -54,7 +54,8 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         ctrl.state = {
             legendRows: new Map<string, iLegendData>(),
             dataSet: {}, 
-            dataHandle: undefined
+            dataHandle: undefined,
+            harmonic: 1
         };
         ctrl.options = {
             canvas: true,
@@ -527,7 +528,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         return (
             <div>
                 <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
-                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} />
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic}/>
             </div>
         );
     }

@@ -1311,7 +1311,14 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\LightningData.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\About.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchList.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNavbar.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNoteWindow.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchPreviewPane.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\MeterActivity.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\PQDashboardNavbar.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\Table.tsx" />

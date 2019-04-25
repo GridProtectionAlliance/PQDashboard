@@ -33,13 +33,11 @@ interface BarChartAnalyticBasePropsExtended extends BarChartAnaltyicalBaseProps{
     openSEEServiceFunction: BarChartAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
     legendKey: string, getData?: GetDataFunction
 }
-export default class BarChartAnalyticBase extends React.Component<any, any>{
+export default class BarChartAnalyticBase extends React.Component<BarChartAnalyticBasePropsExtended, { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: any, harmonic: number }>{
     plot: any;
     options: object;
     clickHandled: boolean;
     panCenter: number;
-    props: BarChartAnalyticBasePropsExtended
-    state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR }
     constructor(props, context) {
         super(props, context);
         var ctrl = this;
@@ -47,7 +45,8 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         ctrl.state = {
             dataSet: {}, 
             dataHandle: undefined,
-            legendRows: new Map<string, iLegendData>()
+            legendRows: new Map<string, iLegendData>(),
+            harmonic: 1
         };
         ctrl.options = {
             canvas: true,
@@ -201,16 +200,12 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
         // if start and end date are not provided calculate them from the data set
 
         var legendRow = this.state.legendRows.entries().next().value;
-        var harmonic = 1;
-        if (legendRow != undefined && legendRow[1].harmonic != undefined)
-            harmonic = 1/legendRow[1].harmonic;
-
 
         var ctrl = this;
         var setKey = Array.from(legend).find(x => x[1].enabled);
         var dataPoints = data.Data.find(x => x.ChartLabel == setKey[0]);
-        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(a => [a, dataPoints.DataPoints[a]]), bars: { show: true, fillColor: setKey[1].color, barWidth: harmonic }, color: '#464646'}];
-
+        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(a => [a, dataPoints.DataPoints[a]]), bars: { show: true, fillColor: setKey[1].color, barWidth: 1/parseInt(this.state.harmonic.toString()) }, color: '#464646'}];
+        this.options['yaxis'].max = Math.max(...newVessel[0].data.filter((a, i) => a[0] != '1').map(a => a[1]))*1.2;
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotHover();
     }
@@ -253,8 +248,8 @@ export default class BarChartAnalyticBase extends React.Component<any, any>{
     render() {
         return (
             <div>
-            <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 }}></div>
-            <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} />
+                <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 }}></div>
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic}/>
 
             </div>
         );

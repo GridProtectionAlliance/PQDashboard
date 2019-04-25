@@ -33,42 +33,14 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
         super(props);
         this.openSEEService = new OpenSEEService();
 
-        this.createLegendRows = this.createLegendRows.bind(this);
         this.getData = this.getData.bind(this);
     }
 
-    createLegendRows(data, ctrl) {
-        var legend = new Map<string, iLegendData>();
-
-        $.each(data, function (i, key) {
-            var record = legend.get(key.ChartLabel);
-            if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, harmonic: 1 });
-            else
-                legend.get(key.ChartLabel).data = key.DataPoints
-        });
-
-        legend = new Map(Array.from(legend).sort((a, b) => {
-            return natural_compare(a[0], b[0]);
-        }));
-        ctrl.setState({ legendRows: legend });
-        return legend;
-
-        function pad(n) { return ("00000000" + n).substr(-8); }
-        function natural_expand(a) { return a.replace(/\d+/g, pad) };
-        function natural_compare(a, b) {
-            return natural_expand(a).localeCompare(natural_expand(b));
-        }
-
-    }
 
     getData(props, ctrl: LineChartAnalyticBase) {
         var legendRow = ctrl.state.legendRows.entries().next().value;
-        var harmonic = 1;
-        if (legendRow != undefined)
-            harmonic = legendRow[1].harmonic;
 
-        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, harmonic, props.startDate, props.endDate).then(data => {
+        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, ctrl.state.harmonic, props.startDate, props.endDate).then(data => {
             if (data == null) {
                 return;
             }
@@ -76,7 +48,7 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
             var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample
             ctrl.options['grid'].markings.push(hightlightFunction(data));
 
-            var legend = this.createLegendRows(data.Data, ctrl);
+            var legend = ctrl.createLegendRows(data.Data);
 
             ctrl.createDataRows(data, legend);
             ctrl.setState({ dataSet: data });

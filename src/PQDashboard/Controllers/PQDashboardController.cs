@@ -155,6 +155,93 @@ namespace PQDashboard.Controllers
 
         }
 
+        [HttpGet]
+        public DataTable GetEventSearchAssetVoltageDisturbances()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventID = int.Parse(query["EventID"]);
+
+                DataTable table = connection.RetrieveData(@" 
+                    SELECT 
+	                    EventType.Name as EventType,
+	                    Phase.Name as Phase,
+	                    Disturbance.PerUnitMagnitude,
+	                    Disturbance.DurationSeconds,
+	                    Disturbance.StartTime
+                    FROM 
+	                    Disturbance JOIN
+	                    Phase ON Disturbance.PhaseID = Phase.ID JOIN
+	                    EventType ON Disturbance.EventTypeID = EventType.ID
+                    WHERE
+	                    Phase.Name != 'WORST' AND  
+	                    eventid = {0}"
+                        , eventID
+                    );
+
+                return table;
+            }
+
+        }
+
+        [HttpGet]
+        public DataTable GetEventSearchFaultSegments()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventID = int.Parse(query["EventID"]);
+
+                DataTable table = connection.RetrieveData(@" 
+                    SELECT
+	                    SegmentType.Name as SegmentType, 
+	                    FaultSegment.StartTime,
+	                    FaultSegment.EndTime
+                    FROM
+	                    FaultSegment JOIN
+	                    SegmentType ON FaultSegment.SegmentTypeID = SegmentType.ID	                    
+                    WHERE
+                        eventid = {0} AND
+                        SegmentType.Name != 'Fault'"
+                        , eventID
+                    );
+
+                return table;
+            }
+
+        }
+
+        [HttpGet]
+        public DataTable GetEventSearchHistory()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventID = int.Parse(query["EventID"]);
+
+                DataTable table = connection.RetrieveData(@" 
+                    SELECT
+	                    EventType.Name as EventType,
+	                    Event.StartTime,
+	                    Event.ID
+                    FROM
+	                    Event JOIN
+	                    EventType ON Event.EventTypeID = EventType.ID JOIN
+	                    Event as OrgEvt ON Event.MeterID = OrgEvt.MeterID AND Event.LineID = OrgEvt.LineID AND Event.ID != OrgEvt.ID
+                    WHERE 
+	                    OrgEvt.ID = {0}"
+                    , eventID);
+
+                return table;
+            }
+
+        }
+
+
+
+
+
         #endregion
 
         #endregion

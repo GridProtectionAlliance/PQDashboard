@@ -24,10 +24,16 @@
 export default class PQDashboardService {
     mostActiveMeterHandle: JQuery.jqXHR;
     eventSearchHandle: JQuery.jqXHR;
+    eventSearchAssetVoltageDisturbancesHandle: JQuery.jqXHR;
+    eventSearchAssetFaultSegmentsHandle: JQuery.jqXHR;
+    eventSearchAssetHistoryHandle: JQuery.jqXHR;
 
     constructor() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
         this.getEventSearchData = this.getEventSearchData.bind(this);
+        this.getEventSearchAsssetVoltageDisturbancesData = this.getEventSearchAsssetVoltageDisturbancesData.bind(this);
+        this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
+        this.getEventSearchAsssetHistoryData = this.getEventSearchAsssetHistoryData.bind(this);
 
     }
 
@@ -47,6 +53,7 @@ export default class PQDashboardService {
 
         return this.mostActiveMeterHandle;
     }
+
     getEventSearchData(): JQuery.jqXHR {
         if (this.eventSearchHandle !== undefined)
             this.eventSearchHandle.abort();
@@ -62,5 +69,54 @@ export default class PQDashboardService {
 
         return this.eventSearchHandle;
     }
+
+    getEventSearchAsssetVoltageDisturbancesData(eventID: number): JQuery.jqXHR {
+        if (this.eventSearchAssetVoltageDisturbancesHandle !== undefined)
+            this.eventSearchAssetVoltageDisturbancesHandle.abort();
+
+        this.eventSearchAssetVoltageDisturbancesHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetEventSearchAssetVoltageDisturbances?EventID=${eventID}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.eventSearchAssetVoltageDisturbancesHandle;
+    }
+
+    getEventSearchAsssetFaultSegmentsData(eventID: number): JQuery.jqXHR {
+        if (this.eventSearchAssetFaultSegmentsHandle !== undefined)
+            this.eventSearchAssetFaultSegmentsHandle.abort();
+
+        this.eventSearchAssetFaultSegmentsHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetEventSearchFaultSegments?EventID=${eventID}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.eventSearchAssetFaultSegmentsHandle;
+    }
+
+    getEventSearchAsssetHistoryData(eventID: number): JQuery.jqXHR {
+        if (this.eventSearchAssetHistoryHandle !== undefined)
+            this.eventSearchAssetHistoryHandle.abort();
+
+        this.eventSearchAssetHistoryHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetEventSearchHistory?EventID=${eventID}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.eventSearchAssetHistoryHandle;
+    }
+
 
 }

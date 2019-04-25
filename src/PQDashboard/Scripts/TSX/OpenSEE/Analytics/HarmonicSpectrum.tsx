@@ -42,39 +42,9 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
         this.props.stateSetter({fftStartTime: undefined, fftEndTime: undefined});
     }
 
-    createLegendRows(data, ctrl) {
-        var legend = ctrl.state.legendRows as Map<string, iLegendData>;
-
-        $.each(data, function (i, key) {
-            var record = legend.get(key.ChartLabel);
-            if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, harmonic: 10 });
-            else
-                legend.get(key.ChartLabel).data = key.DataPoints
-        });
-
-        legend = new Map(Array.from(legend).sort((a, b) => {
-            return natural_compare(a[0], b[0]);
-        }));
-        ctrl.setState({ legendRows: legend });
-        return legend;
-
-        function pad(n) { return ("00000000" + n).substr(-8); }
-        function natural_expand(a) { return a.replace(/\d+/g, pad) };
-        function natural_compare(a, b) {
-            return natural_expand(a).localeCompare(natural_expand(b));
-        }
-
-    }
-
 
     getData(props, ctrl: BarChartAnalyticBase) {
-        var legendRow = ctrl.state.legendRows.entries().next().value;
-        var harmonic = 10;
-        if (legendRow != undefined)
-            harmonic = legendRow[1].harmonic;
-
-        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, harmonic, props.fftStartTime).then(data => {
+        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, ctrl.state.harmonic, props.fftStartTime).then(data => {
             if (data == null) {
                 return;
             }
@@ -94,7 +64,7 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
 
             });
 
-            var legend = this.createLegendRows(data.Data, ctrl);
+            var legend = ctrl.createLegendRows(data.Data);
 
             ctrl.createDataRows(data, legend);
             ctrl.setState({ dataSet: data });

@@ -20634,34 +20634,9 @@ var HarmonicSpectrum = (function (_super) {
     HarmonicSpectrum.prototype.componentWillUnmount = function () {
         this.props.stateSetter({ fftStartTime: undefined, fftEndTime: undefined });
     };
-    HarmonicSpectrum.prototype.createLegendRows = function (data, ctrl) {
-        var legend = ctrl.state.legendRows;
-        $.each(data, function (i, key) {
-            var record = legend.get(key.ChartLabel);
-            if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, harmonic: 10 });
-            else
-                legend.get(key.ChartLabel).data = key.DataPoints;
-        });
-        legend = new Map(Array.from(legend).sort(function (a, b) {
-            return natural_compare(a[0], b[0]);
-        }));
-        ctrl.setState({ legendRows: legend });
-        return legend;
-        function pad(n) { return ("00000000" + n).substr(-8); }
-        function natural_expand(a) { return a.replace(/\d+/g, pad); }
-        ;
-        function natural_compare(a, b) {
-            return natural_expand(a).localeCompare(natural_expand(b));
-        }
-    };
     HarmonicSpectrum.prototype.getData = function (props, ctrl) {
         var _this = this;
-        var legendRow = ctrl.state.legendRows.entries().next().value;
-        var harmonic = 10;
-        if (legendRow != undefined)
-            harmonic = legendRow[1].harmonic;
-        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, harmonic, props.fftStartTime).then(function (data) {
+        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, ctrl.state.harmonic, props.fftStartTime).then(function (data) {
             if (data == null) {
                 return;
             }
@@ -20674,7 +20649,7 @@ var HarmonicSpectrum = (function (_super) {
                 });
                 record.DataPoints = theData;
             });
-            var legend = _this.createLegendRows(data.Data, ctrl);
+            var legend = ctrl.createLegendRows(data.Data);
             ctrl.createDataRows(data, legend);
             ctrl.setState({ dataSet: data });
         });
@@ -21035,9 +21010,10 @@ var OverlappingWaveform = (function (_super) {
             this.getData(this.props);
     };
     OverlappingWaveform.prototype.render = function () {
+        var _this = this;
         return (React.createElement("div", null,
             React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
-            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: "OverlappingWaveform", height: this.props.height })));
+            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: "OverlappingWaveform", height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }); }, harmonic: 0 })));
     };
     return OverlappingWaveform;
 }(React.Component));
@@ -21261,44 +21237,18 @@ var SpecifiedHarmonic = (function (_super) {
     function SpecifiedHarmonic(props) {
         var _this = _super.call(this, props) || this;
         _this.openSEEService = new OpenSEE_1.default();
-        _this.createLegendRows = _this.createLegendRows.bind(_this);
         _this.getData = _this.getData.bind(_this);
         return _this;
     }
-    SpecifiedHarmonic.prototype.createLegendRows = function (data, ctrl) {
-        var legend = new Map();
-        $.each(data, function (i, key) {
-            var record = legend.get(key.ChartLabel);
-            if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, harmonic: 1 });
-            else
-                legend.get(key.ChartLabel).data = key.DataPoints;
-        });
-        legend = new Map(Array.from(legend).sort(function (a, b) {
-            return natural_compare(a[0], b[0]);
-        }));
-        ctrl.setState({ legendRows: legend });
-        return legend;
-        function pad(n) { return ("00000000" + n).substr(-8); }
-        function natural_expand(a) { return a.replace(/\d+/g, pad); }
-        ;
-        function natural_compare(a, b) {
-            return natural_expand(a).localeCompare(natural_expand(b));
-        }
-    };
     SpecifiedHarmonic.prototype.getData = function (props, ctrl) {
-        var _this = this;
         var legendRow = ctrl.state.legendRows.entries().next().value;
-        var harmonic = 1;
-        if (legendRow != undefined)
-            harmonic = legendRow[1].harmonic;
-        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, harmonic, props.startDate, props.endDate).then(function (data) {
+        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, ctrl.state.harmonic, props.startDate, props.endDate).then(function (data) {
             if (data == null) {
                 return;
             }
             var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample;
             ctrl.options['grid'].markings.push(hightlightFunction(data));
-            var legend = _this.createLegendRows(data.Data, ctrl);
+            var legend = ctrl.createLegendRows(data.Data);
             ctrl.createDataRows(data, legend);
             ctrl.setState({ dataSet: data });
         });
@@ -21954,7 +21904,8 @@ var BarChartAnalyticBase = (function (_super) {
         ctrl.state = {
             dataSet: {},
             dataHandle: undefined,
-            legendRows: new Map()
+            legendRows: new Map(),
+            harmonic: 1
         };
         ctrl.options = {
             canvas: true,
@@ -22089,13 +22040,11 @@ var BarChartAnalyticBase = (function (_super) {
     };
     BarChartAnalyticBase.prototype.createDataRows = function (data, legend) {
         var legendRow = this.state.legendRows.entries().next().value;
-        var harmonic = 1;
-        if (legendRow != undefined && legendRow[1].harmonic != undefined)
-            harmonic = 1 / legendRow[1].harmonic;
         var ctrl = this;
         var setKey = Array.from(legend).find(function (x) { return x[1].enabled; });
         var dataPoints = data.Data.find(function (x) { return x.ChartLabel == setKey[0]; });
-        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(function (a) { return [a, dataPoints.DataPoints[a]]; }), bars: { show: true, fillColor: setKey[1].color, barWidth: harmonic }, color: '#464646' }];
+        var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(function (a) { return [a, dataPoints.DataPoints[a]]; }), bars: { show: true, fillColor: setKey[1].color, barWidth: 1 / parseInt(this.state.harmonic.toString()) }, color: '#464646' }];
+        this.options['yaxis'].max = Math.max.apply(Math, newVessel[0].data.filter(function (a, i) { return a[0] != '1'; }).map(function (a) { return a[1]; })) * 1.2;
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotHover();
     };
@@ -22126,9 +22075,10 @@ var BarChartAnalyticBase = (function (_super) {
             this.getData(this.props);
     };
     BarChartAnalyticBase.prototype.render = function () {
+        var _this = this;
         return (React.createElement("div", null,
             React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
-            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height })));
+            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     return BarChartAnalyticBase;
 }(React.Component));
@@ -22388,7 +22338,7 @@ var Legend = (function (_super) {
                 : null),
             (this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum" ?
                 React.createElement("div", { className: "d-flex flex-column" },
-                    (this.props.type.toLowerCase() == "harmonicspectrum" ? React.createElement("input", { type: "number", defaultValue: "10", min: "1", onChange: this.handleSelected.bind(this) }) : null),
+                    (this.props.type.toLowerCase() == "harmonicspectrum" ? React.createElement("input", { type: "number", defaultValue: this.props.harmonic.toString(), min: "1", onChange: this.handleSelectedHarmonicSpectrum.bind(this) }) : null),
                     React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }], onChange: this.toggleFFT.bind(this) })) : null),
             (this.props.type.toLowerCase() == "specifiedharmonic" ?
                 React.createElement("div", { className: "d-flex flex-column btn-group" },
@@ -22603,26 +22553,27 @@ var Legend = (function (_super) {
         this.props.callback();
     };
     Legend.prototype.toggleSpecifiedHarmonic = function (type, event) {
+        var _this = this;
         this.props.data.forEach(function (row, key, map) {
             row.display = false;
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
-            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0) {
+            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('[' + _this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0) {
+            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + _this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0) {
+            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('[' + _this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0) {
+            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + _this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
                 $('[name="' + key + '"]').prop('checked', true);
@@ -22632,9 +22583,14 @@ var Legend = (function (_super) {
     };
     Legend.prototype.handleSelected = function (event) {
         this.props.data.forEach(function (row, key, map) {
-            row.harmonic = event.target.value;
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
         });
-        this.props.callback(undefined, undefined, undefined, true);
+        this.props.harmonicSetter(event.target.value);
+    };
+    Legend.prototype.handleSelectedHarmonicSpectrum = function (event) {
+        this.props.harmonicSetter(event.target.value);
     };
     return Legend;
 }(React.Component));
@@ -22742,7 +22698,8 @@ var LineChartAnalyticBase = (function (_super) {
         ctrl.state = {
             legendRows: new Map(),
             dataSet: {},
-            dataHandle: undefined
+            dataHandle: undefined,
+            harmonic: 1
         };
         ctrl.options = {
             canvas: true,
@@ -23126,9 +23083,10 @@ var LineChartAnalyticBase = (function (_super) {
             this.getData(this.props);
     };
     LineChartAnalyticBase.prototype.render = function () {
+        var _this = this;
         return (React.createElement("div", null,
             React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
-            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height })));
+            React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     LineChartAnalyticBase.prototype.getMillisecondTime = function (date) {
         var milliseconds = moment_1.utc(date).valueOf();

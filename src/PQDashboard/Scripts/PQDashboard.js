@@ -20386,7 +20386,7 @@ if (false) {} else {
 /*!****************************************************************!*\
   !*** ../node_modules/react-router-dom/esm/react-router-dom.js ***!
   \****************************************************************/
-/*! exports provided: BrowserRouter, HashRouter, Link, NavLink, MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext */
+/*! exports provided: MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext, BrowserRouter, HashRouter, Link, NavLink */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -24211,6 +24211,9 @@ var PQDashboardService = (function () {
     function PQDashboardService() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
         this.getEventSearchData = this.getEventSearchData.bind(this);
+        this.getEventSearchAsssetVoltageDisturbancesData = this.getEventSearchAsssetVoltageDisturbancesData.bind(this);
+        this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
+        this.getEventSearchAsssetHistoryData = this.getEventSearchAsssetHistoryData.bind(this);
     }
     PQDashboardService.prototype.getMostActiveMeterActivityData = function (numresults, column) {
         if (this.mostActiveMeterHandle !== undefined)
@@ -24238,6 +24241,45 @@ var PQDashboardService = (function () {
             async: true
         });
         return this.eventSearchHandle;
+    };
+    PQDashboardService.prototype.getEventSearchAsssetVoltageDisturbancesData = function (eventID) {
+        if (this.eventSearchAssetVoltageDisturbancesHandle !== undefined)
+            this.eventSearchAssetVoltageDisturbancesHandle.abort();
+        this.eventSearchAssetVoltageDisturbancesHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/GetEventSearchAssetVoltageDisturbances?EventID=" + eventID,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.eventSearchAssetVoltageDisturbancesHandle;
+    };
+    PQDashboardService.prototype.getEventSearchAsssetFaultSegmentsData = function (eventID) {
+        if (this.eventSearchAssetFaultSegmentsHandle !== undefined)
+            this.eventSearchAssetFaultSegmentsHandle.abort();
+        this.eventSearchAssetFaultSegmentsHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/GetEventSearchFaultSegments?EventID=" + eventID,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.eventSearchAssetFaultSegmentsHandle;
+    };
+    PQDashboardService.prototype.getEventSearchAsssetHistoryData = function (eventID) {
+        if (this.eventSearchAssetHistoryHandle !== undefined)
+            this.eventSearchAssetHistoryHandle.abort();
+        this.eventSearchAssetHistoryHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/GetEventSearchHistory?EventID=" + eventID,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.eventSearchAssetHistoryHandle;
     };
     return PQDashboardService;
 }());
@@ -24307,10 +24349,10 @@ exports.default = About;
 
 /***/ }),
 
-/***/ "./TSX/PQDashboard/Components/EventSearch.tsx":
-/*!****************************************************!*\
-  !*** ./TSX/PQDashboard/Components/EventSearch.tsx ***!
-  \****************************************************/
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearch.tsx":
+/*!****************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearch.tsx ***!
+  \****************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -24342,22 +24384,16 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "react");
-var ReactDOM = __webpack_require__(/*! react-dom */ "react-dom");
-var Table_1 = __webpack_require__(/*! ./Table */ "./TSX/PQDashboard/Components/Table.tsx");
 var moment = __webpack_require__(/*! moment */ "moment");
 var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
 var createBrowserHistory_1 = __webpack_require__(/*! history/createBrowserHistory */ "../node_modules/history/createBrowserHistory.js");
 var queryString = __webpack_require__(/*! query-string */ "../node_modules/query-string/index.js");
-var PQDashboard_1 = __webpack_require__(/*! ./../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
-var OpenSEE_1 = __webpack_require__(/*! ./../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
-var updateInterval = 300000;
-var rowsPerPage = 7;
-var autoUpdate = setInterval(function () {
-}, updateInterval);
+var EventSearchList_1 = __webpack_require__(/*! ./EventSearchList */ "./TSX/PQDashboard/Components/EventSearch/EventSearchList.tsx");
+var EventSearchNavbar_1 = __webpack_require__(/*! ./EventSearchNavbar */ "./TSX/PQDashboard/Components/EventSearch/EventSearchNavbar.tsx");
+var EventSearchPreviewPane_1 = __webpack_require__(/*! ./EventSearchPreviewPane */ "./TSX/PQDashboard/Components/EventSearch/EventSearchPreviewPane.tsx");
 var momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
 var momentDateFormat = "MM/DD/YYYY";
 var momentTimeFormat = "HH:mm:ss.SSS";
-var dateTimeFormat = "yyyy/MM/dd HH:mm:ss";
 var EventSearch = (function (_super) {
     __extends(EventSearch, _super);
     function EventSearch(props, context) {
@@ -24397,12 +24433,12 @@ var EventSearch = (function (_super) {
     };
     EventSearch.prototype.render = function () {
         return (React.createElement("div", { style: { width: '100%', height: '100%' } },
-            React.createElement(EventSearchNavbar, __assign({}, this.state.searchBarProps)),
+            React.createElement(EventSearchNavbar_1.default, __assign({}, this.state.searchBarProps)),
             React.createElement("div", { style: { width: '100%', height: 'calc( 100% - 210px)' } },
                 React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'scroll' } },
-                    React.createElement(EventSearchList, { eventid: this.state.eventid, stateSetter: this.state.searchBarProps.stateSetter })),
+                    React.createElement(EventSearchList_1.default, { eventid: this.state.eventid, stateSetter: this.state.searchBarProps.stateSetter })),
                 React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' } },
-                    React.createElement(EventPreviewPane, { eventid: this.state.eventid })))));
+                    React.createElement(EventSearchPreviewPane_1.default, { eventid: this.state.eventid })))));
     };
     EventSearch.prototype.stateSetter = function (obj) {
         var _this = this;
@@ -24430,6 +24466,382 @@ var EventSearch = (function (_super) {
     return EventSearch;
 }(React.Component));
 exports.default = EventSearch;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetFaultSegments.tsx":
+/*!**********************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchAssetFaultSegments.tsx ***!
+  \**********************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var PQDashboard_1 = __webpack_require__(/*! ./../../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var EventSearchFaultSegments = (function (_super) {
+    __extends(EventSearchFaultSegments, _super);
+    function EventSearchFaultSegments(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.pqDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            tableRows: [],
+            count: 0
+        };
+        return _this;
+    }
+    EventSearchFaultSegments.prototype.componentDidMount = function () {
+        if (this.props.eventId >= 0)
+            this.createTableRows(this.props.eventId);
+    };
+    EventSearchFaultSegments.prototype.componentWillUnmount = function () {
+    };
+    EventSearchFaultSegments.prototype.componentWillReceiveProps = function (nextProps) {
+        if (nextProps.eventId >= 0)
+            this.createTableRows(nextProps.eventId);
+    };
+    EventSearchFaultSegments.prototype.createTableRows = function (eventID) {
+        var _this = this;
+        this.pqDashboardService.getEventSearchAsssetFaultSegmentsData(eventID).done(function (data) {
+            var rows = data.map(function (d, i) {
+                return React.createElement("tr", { key: i },
+                    React.createElement("td", null, d.SegmentType),
+                    React.createElement("td", null, moment(d.StartTime).format('mm:ss.SSS')),
+                    React.createElement("td", null, moment(d.EndTime).format('mm:ss.SSS')));
+            });
+            _this.setState({ tableRows: rows, count: rows.length });
+        });
+    };
+    EventSearchFaultSegments.prototype.render = function () {
+        return (React.createElement("div", { className: "card", style: { display: (this.state.count > 0 ? 'block' : 'none') } },
+            React.createElement("div", { className: "card-header" }, "Fault Evolution Summary:"),
+            React.createElement("div", { className: "card-body" },
+                React.createElement("table", { className: "table" },
+                    React.createElement("thead", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", null, "Evolution"),
+                            React.createElement("td", null, "Inception"),
+                            React.createElement("td", null, "End"))),
+                    React.createElement("tbody", null, this.state.tableRows)))));
+    };
+    return EventSearchFaultSegments;
+}(React.Component));
+exports.default = EventSearchFaultSegments;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetHistory.tsx":
+/*!****************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchAssetHistory.tsx ***!
+  \****************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var PQDashboard_1 = __webpack_require__(/*! ./../../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var EventSearchHistory = (function (_super) {
+    __extends(EventSearchHistory, _super);
+    function EventSearchHistory(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.pqDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            tableRows: []
+        };
+        return _this;
+    }
+    EventSearchHistory.prototype.componentDidMount = function () {
+        if (this.props.eventId >= 0)
+            this.createTableRows(this.props.eventId);
+    };
+    EventSearchHistory.prototype.componentWillUnmount = function () {
+    };
+    EventSearchHistory.prototype.componentWillReceiveProps = function (nextProps) {
+        if (nextProps.eventId >= 0)
+            this.createTableRows(nextProps.eventId);
+    };
+    EventSearchHistory.prototype.createTableRows = function (eventID) {
+        var _this = this;
+        this.pqDashboardService.getEventSearchAsssetHistoryData(eventID).done(function (data) {
+            var rows = data.map(function (d, i) {
+                return React.createElement("tr", { key: i },
+                    React.createElement("td", null, d.EventType),
+                    React.createElement("td", null, moment(d.StartTime).format('MM/DD/YYYY HH:mm:ss.SSS')),
+                    React.createElement("td", null,
+                        React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + d.ID, target: "_blank" }, "View in OpenSEE")));
+            });
+            _this.setState({ tableRows: rows });
+        });
+    };
+    EventSearchHistory.prototype.render = function () {
+        return (React.createElement("div", { className: "card" },
+            React.createElement("div", { className: "card-header" }, "Asset History:"),
+            React.createElement("div", { className: "card-body" },
+                React.createElement("table", { className: "table" },
+                    React.createElement("thead", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", null, "Event Type"),
+                            React.createElement("td", null, "Date"),
+                            React.createElement("td", null))),
+                    React.createElement("tbody", null, this.state.tableRows)))));
+    };
+    return EventSearchHistory;
+}(React.Component));
+exports.default = EventSearchHistory;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetVoltageDisturbances.tsx":
+/*!****************************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchAssetVoltageDisturbances.tsx ***!
+  \****************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var PQDashboard_1 = __webpack_require__(/*! ./../../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var EventSearchAssetVoltageDisturbances = (function (_super) {
+    __extends(EventSearchAssetVoltageDisturbances, _super);
+    function EventSearchAssetVoltageDisturbances(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.pqDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            tableRows: []
+        };
+        return _this;
+    }
+    EventSearchAssetVoltageDisturbances.prototype.componentDidMount = function () {
+        if (this.props.eventId >= 0)
+            this.createTableRows(this.props.eventId);
+    };
+    EventSearchAssetVoltageDisturbances.prototype.componentWillUnmount = function () {
+    };
+    EventSearchAssetVoltageDisturbances.prototype.componentWillReceiveProps = function (nextProps) {
+        if (nextProps.eventId >= 0)
+            this.createTableRows(nextProps.eventId);
+    };
+    EventSearchAssetVoltageDisturbances.prototype.createTableRows = function (eventID) {
+        var _this = this;
+        this.pqDashboardService.getEventSearchAsssetVoltageDisturbancesData(eventID).done(function (data) {
+            var rows = data.map(function (d, i) {
+                return React.createElement("tr", { key: i },
+                    React.createElement("td", null, d.EventType),
+                    React.createElement("td", null, d.Phase),
+                    React.createElement("td", null, d.PerUnitMagnitude.toFixed(3)),
+                    React.createElement("td", null, d.DurationSeconds.toFixed(3)),
+                    React.createElement("td", null, moment(d.StartTime).format('mm:ss.SSS')));
+            });
+            _this.setState({ tableRows: rows });
+        });
+    };
+    EventSearchAssetVoltageDisturbances.prototype.render = function () {
+        return (React.createElement("div", { className: "card" },
+            React.createElement("div", { className: "card-header" }, "Voltage Disturbance in Waveform:"),
+            React.createElement("div", { className: "card-body" },
+                React.createElement("table", { className: "table" },
+                    React.createElement("thead", null,
+                        React.createElement("tr", null,
+                            React.createElement("td", null, "Distrubance Type"),
+                            React.createElement("td", null, "Phase"),
+                            React.createElement("td", null, "Magnitude"),
+                            React.createElement("td", null, "Duration"),
+                            React.createElement("td", null, "Start Time"))),
+                    React.createElement("tbody", null, this.state.tableRows)))));
+    };
+    return EventSearchAssetVoltageDisturbances;
+}(React.Component));
+exports.default = EventSearchAssetVoltageDisturbances;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchList.tsx":
+/*!********************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchList.tsx ***!
+  \********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var ReactDOM = __webpack_require__(/*! react-dom */ "react-dom");
+var Table_1 = __webpack_require__(/*! ./../Table */ "./TSX/PQDashboard/Components/Table.tsx");
+var PQDashboard_1 = __webpack_require__(/*! ./../../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
+var moment = __webpack_require__(/*! moment */ "moment");
+var EventSearchList = (function (_super) {
+    __extends(EventSearchList, _super);
+    function EventSearchList(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.pqDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            sortField: "FileStartTime",
+            ascending: false,
+            data: []
+        };
+        _this.handleKeyPress = _this.handleKeyPress.bind(_this);
+        return _this;
+    }
+    EventSearchList.prototype.componentDidMount = function () {
+        this.getData();
+        document.addEventListener("keydown", this.handleKeyPress, false);
+    };
+    EventSearchList.prototype.componentWillUnmount = function () {
+        document.removeEventListener("keydown", this.handleKeyPress, false);
+    };
+    EventSearchList.prototype.handleKeyPress = function (event) {
+        if (this.state.data.length == 0)
+            return;
+        var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
+        if (event.keyCode == 40) {
+            if (this.props.eventid == -1)
+                this.props.stateSetter({ eventid: this.state.data[0].EventID });
+            else if (index == this.state.data.length - 1)
+                this.props.stateSetter({ eventid: this.state.data[0].EventID });
+            else
+                this.props.stateSetter({ eventid: this.state.data[index + 1].EventID });
+        }
+        else if (event.keyCode == 38) {
+            if (this.props.eventid == -1)
+                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
+            else if (index == 0)
+                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
+            else
+                this.props.stateSetter({ eventid: this.state.data[index - 1].EventID });
+        }
+        this.setScrollBar();
+    };
+    EventSearchList.prototype.setScrollBar = function () {
+        var tableHeight = $(ReactDOM.findDOMNode(this).parentElement).children()[0].clientHeight - 45;
+        var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
+        $(ReactDOM.findDOMNode(this).parentElement).scrollTop(index * tableHeight / this.state.data.length - 50);
+    };
+    EventSearchList.prototype.getData = function () {
+        var _this = this;
+        this.pqDashboardService.getEventSearchData().done(function (results) {
+            var ordered = lodash_1.orderBy(results, ["FileStartTime"], ["desc"]);
+            _this.setState({ data: ordered });
+            _this.setScrollBar();
+        });
+    };
+    EventSearchList.prototype.render = function () {
+        var _this = this;
+        return (React.createElement(Table_1.default, { cols: [
+                { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' }, content: function (item, key, style) { return React.createElement("span", null,
+                        moment(item.FileStartTime).format('MM/DD/YYYY'),
+                        React.createElement("br", null),
+                        moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')); } },
+                { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
+                { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
+                { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
+                { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
+                { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: function (item, key, style) { return React.createElement("span", null,
+                        React.createElement("i", { className: (item.BreakerOperation > 0 ? "fa fa-check" : '') })); } },
+            ], tableClass: "table table-hover", data: this.state.data, sortField: this.state.sortField, ascending: this.state.ascending, onSort: function (d) {
+                if (d.col == _this.state.sortField) {
+                    var ordered = lodash_1.orderBy(_this.state.data, [d.col], [(!_this.state.ascending ? "asc" : "desc")]);
+                    _this.setState({ ascending: !_this.state.ascending, data: ordered });
+                }
+                else {
+                    var ordered = lodash_1.orderBy(_this.state.data, [d.col], ["asc"]);
+                    _this.setState({ ascending: true, data: ordered, sortField: d.col });
+                }
+            }, onClick: function (item) { return _this.props.stateSetter({ eventid: item.row.EventID }); }, theadStyle: { fontSize: 'smaller' }, selected: function (item) {
+                if (item.EventID == _this.props.eventid)
+                    return true;
+                else
+                    return false;
+            } }));
+    };
+    return EventSearchList;
+}(React.Component));
+exports.default = EventSearchList;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchNavbar.tsx":
+/*!**********************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchNavbar.tsx ***!
+  \**********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
+var momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
+var momentDateFormat = "MM/DD/YYYY";
+var momentTimeFormat = "HH:mm:ss.SSS";
 var EventSearchNavbar = function (props) {
     React.useEffect(function () {
         $('#datePicker').datetimepicker({ format: momentDateFormat });
@@ -24609,105 +25021,176 @@ var EventSearchNavbar = function (props) {
                                             }, checked: props.pqMeter }),
                                         "  PQMeter"))))))))));
 };
-var EventSearchList = (function (_super) {
-    __extends(EventSearchList, _super);
-    function EventSearchList(props, context) {
-        var _this = _super.call(this, props, context) || this;
-        _this.pqDashboardService = new PQDashboard_1.default();
-        _this.state = {
-            sortField: "FileStartTime",
-            ascending: false,
-            data: []
-        };
-        _this.handleKeyPress = _this.handleKeyPress.bind(_this);
-        return _this;
-    }
-    EventSearchList.prototype.componentDidMount = function () {
-        this.getData();
-        document.addEventListener("keydown", this.handleKeyPress, false);
-    };
-    EventSearchList.prototype.componentWillUnmount = function () {
-        document.removeEventListener("keydown", this.handleKeyPress, false);
-    };
-    EventSearchList.prototype.handleKeyPress = function (event) {
-        if (this.state.data.length == 0)
-            return;
-        var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
-        if (event.keyCode == 40) {
-            if (this.props.eventid == -1)
-                this.props.stateSetter({ eventid: this.state.data[0].EventID });
-            else if (index == this.state.data.length - 1)
-                this.props.stateSetter({ eventid: this.state.data[0].EventID });
-            else
-                this.props.stateSetter({ eventid: this.state.data[index + 1].EventID });
-        }
-        else if (event.keyCode == 38) {
-            if (this.props.eventid == -1)
-                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
-            else if (index == 0)
-                this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
-            else
-                this.props.stateSetter({ eventid: this.state.data[index - 1].EventID });
-        }
-        this.setScrollBar();
-    };
-    EventSearchList.prototype.setScrollBar = function () {
-        var tableHeight = $(ReactDOM.findDOMNode(this).parentElement).children()[0].clientHeight - 45;
-        var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
-        $(ReactDOM.findDOMNode(this).parentElement).scrollTop(index * tableHeight / this.state.data.length);
-    };
-    EventSearchList.prototype.getData = function () {
-        var _this = this;
-        this.pqDashboardService.getEventSearchData().done(function (results) {
-            var ordered = lodash_1.orderBy(results, ["FileStartTime"], ["desc"]);
-            _this.setState({ data: ordered });
-            _this.setScrollBar();
+exports.default = EventSearchNavbar;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchNoteWindow.tsx":
+/*!**************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchNoteWindow.tsx ***!
+  \**************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var OpenSEE_1 = __webpack_require__(/*! ./../../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+function EventSearchNoteWindow(props) {
+    var openSEEService = new OpenSEE_1.default();
+    var _a = React.useState([]), tableRows = _a[0], setTableRows = _a[1];
+    var _b = React.useState(''), note = _b[0], setNote = _b[1];
+    var _c = React.useState(0), count = _c[0], setCount = _c[1];
+    React.useEffect(function () {
+        createTableRows();
+    }, [props.eventId]);
+    function createTableRows() {
+        openSEEService.getNotes(props.eventId).done(function (data) {
+            var rows = data.map(function (d) { return React.createElement("tr", { key: d.ID },
+                React.createElement("td", null, d.Note),
+                React.createElement("td", null, moment(d.Timestamp).format("MM/DD/YYYY HH:mm")),
+                React.createElement("td", null, d.UserAccount),
+                React.createElement("td", null,
+                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return handleEdit(d); } },
+                        React.createElement("span", null,
+                            React.createElement("i", { className: "fa fa-pencil" }))),
+                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return handleDelete(d); } },
+                        React.createElement("span", null,
+                            React.createElement("i", { className: "fa fa-times" }))))); });
+            setTableRows(rows);
+            setCount(rows.length);
         });
+    }
+    function handleAdd() {
+        openSEEService.addNote({ ID: 0, EventID: props.eventId, Note: note }).done(function (e) {
+            setNote('');
+            createTableRows();
+        });
+    }
+    function handleDelete(d) {
+        openSEEService.deleteNote(d).done(function () { return createTableRows(); });
+    }
+    function handleEdit(d) {
+        setNote(d.Note);
+        openSEEService.deleteNote(d).done(function () { return createTableRows(); });
+    }
+    return (React.createElement("div", { className: "card" },
+        React.createElement("div", { className: "card-header" }, "Notes:"),
+        React.createElement("div", { className: "card-body" },
+            React.createElement("table", { className: "table" },
+                React.createElement("thead", null,
+                    React.createElement("tr", null,
+                        React.createElement("td", { style: { width: '50%' } }, "Note"),
+                        React.createElement("td", null, "Time"),
+                        React.createElement("td", null, "User"),
+                        React.createElement("td", null))),
+                React.createElement("tbody", null, tableRows)),
+            React.createElement("textarea", { className: "form-control", rows: 4, value: note, onChange: function (e) { return setNote(e.target.value); } })),
+        React.createElement("div", { className: "card-footer" },
+            React.createElement("button", { className: "btn btn-primary", onClick: handleAdd, disabled: note.length == 0 }, "Add Note"))));
+}
+exports.default = EventSearchNoteWindow;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchPreviewPane.tsx":
+/*!***************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchPreviewPane.tsx ***!
+  \***************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     };
-    EventSearchList.prototype.render = function () {
-        var _this = this;
-        return (React.createElement(Table_1.default, { cols: [
-                { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' }, content: function (item, key, style) { return React.createElement("span", null,
-                        moment(item.FileStartTime).format('MM/DD/YYYY'),
-                        React.createElement("br", null),
-                        moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')); } },
-                { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
-                { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
-                { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
-                { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
-                { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: function (item, key, style) { return React.createElement("span", null,
-                        React.createElement("i", { className: (item.BreakerOperation > 0 ? "fa fa-check" : '') })); } },
-            ], tableClass: "table table-hover", data: this.state.data, sortField: this.state.sortField, ascending: this.state.ascending, onSort: function (d) {
-                if (d.col == _this.state.sortField) {
-                    var ordered = lodash_1.orderBy(_this.state.data, [d.col], [(!_this.state.ascending ? "asc" : "desc")]);
-                    _this.setState({ ascending: !_this.state.ascending, data: ordered });
-                }
-                else {
-                    var ordered = lodash_1.orderBy(_this.state.data, [d.col], ["asc"]);
-                    _this.setState({ ascending: true, data: ordered, sortField: d.col });
-                }
-            }, onClick: function (item) { return _this.props.stateSetter({ eventid: item.row.EventID }); }, theadStyle: { fontSize: 'smaller' }, selected: function (item) {
-                if (item.EventID == _this.props.eventid)
-                    return true;
-                else
-                    return false;
-            } }));
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    return EventSearchList;
-}(React.Component));
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var OpenSEE_1 = __webpack_require__(/*! ./../../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+var EventSearchNoteWindow_1 = __webpack_require__(/*! ./EventSearchNoteWindow */ "./TSX/PQDashboard/Components/EventSearch/EventSearchNoteWindow.tsx");
+var EventSearchAssetVoltageDisturbances_1 = __webpack_require__(/*! ./EventSearchAssetVoltageDisturbances */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetVoltageDisturbances.tsx");
+var EventSearchAssetFaultSegments_1 = __webpack_require__(/*! ./EventSearchAssetFaultSegments */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetFaultSegments.tsx");
+var EventSearchAssetHistory_1 = __webpack_require__(/*! ./EventSearchAssetHistory */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetHistory.tsx");
 var EventPreviewPane = (function (_super) {
     __extends(EventPreviewPane, _super);
     function EventPreviewPane(props, context) {
         var _this = _super.call(this, props, context) || this;
         _this.openSEEService = new OpenSEE_1.default();
-        _this.options = {
+        _this.optionsV = {
             canvas: true,
             legend: { show: false },
             xaxis: { show: false },
             yaxis: { show: false }
         };
+        _this.optionsI = {
+            canvas: true,
+            legend: { show: false },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: {
+                mode: "time",
+                tickLength: 10,
+                reserveSpace: false,
+                ticks: function (axis) {
+                    var ticks = [], delta = (axis.max - axis.min) / 11, start = _this.floorInBase(axis.min, axis.delta), i = 0, v = Number.NaN, prev;
+                    for (var i = 1; i < 11; ++i) {
+                        ticks.push(axis.min + i * delta);
+                    }
+                    return ticks;
+                },
+                tickFormatter: function (value, axis) {
+                    if (axis.delta < 1) {
+                        var trunc = value - _this.floorInBase(value, 1000);
+                        return _this.defaultTickFormatter(trunc, axis) + " ms";
+                    }
+                    if (axis.delta < 1000) {
+                        return moment(value).format("mm:ss.SS");
+                    }
+                    else {
+                        return moment(value).format("HH:mm:ss.S");
+                    }
+                }
+            },
+            yaxis: { show: false }
+        };
         return _this;
     }
+    EventPreviewPane.prototype.defaultTickFormatter = function (value, axis) {
+        var factor = axis.tickDecimals ? Math.pow(10, axis.tickDecimals) : 1;
+        var formatted = "" + Math.round(value * factor) / factor;
+        if (axis.tickDecimals != null) {
+            var decimal = formatted.indexOf(".");
+            var precision = decimal == -1 ? 0 : formatted.length - decimal - 1;
+            if (precision < axis.tickDecimals) {
+                return (precision ? formatted : formatted + ".") + ("" + factor).substr(1, axis.tickDecimals - precision);
+            }
+        }
+        return formatted;
+    };
+    ;
+    EventPreviewPane.prototype.floorInBase = function (n, base) {
+        return base * Math.floor(n / base);
+    };
     EventPreviewPane.prototype.componentDidMount = function () {
         if (this.props.eventid >= 0)
             this.getData(this.props);
@@ -24753,7 +25236,7 @@ var EventPreviewPane = (function (_super) {
             $.each(data.Data, function (index, value) {
                 newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
             });
-            $.plot($(_this.refs.voltWindow), newVessel, _this.options);
+            $.plot($(_this.refs.voltWindow), newVessel, _this.optionsV);
         });
         this.openSEEService.getWaveformCurrentData(props.eventid, pixels).then(function (data) {
             if (data == null) {
@@ -24763,19 +25246,26 @@ var EventPreviewPane = (function (_super) {
             $.each(data.Data, function (index, value) {
                 newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
             });
-            $.plot($(_this.refs.curWindow), newVessel, _this.options);
+            $.plot($(_this.refs.curWindow), newVessel, _this.optionsI);
         });
     };
     EventPreviewPane.prototype.render = function () {
         var pixels = (window.innerWidth - 300 - 40) / 2;
         return (React.createElement("div", null,
-            React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + this.props.eventid, target: "_blank" },
-                React.createElement("h5", null, "View in OpenSEE")),
-            React.createElement("div", { ref: "voltWindow", style: { height: 200, float: 'left', width: pixels } }),
-            React.createElement("div", { ref: "curWindow", style: { height: 200, float: 'left', width: pixels } })));
+            React.createElement("div", { className: "card" },
+                React.createElement("div", { className: "card-header" },
+                    React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + this.props.eventid, target: "_blank" }, "View in OpenSEE")),
+                React.createElement("div", { className: "card-body" },
+                    React.createElement("div", { ref: "voltWindow", style: { height: 200, width: pixels - 40 } }),
+                    React.createElement("div", { ref: "curWindow", style: { height: 200, width: pixels - 40 } }))),
+            React.createElement(EventSearchAssetFaultSegments_1.default, { eventId: this.props.eventid }),
+            React.createElement(EventSearchAssetVoltageDisturbances_1.default, { eventId: this.props.eventid }),
+            React.createElement(EventSearchAssetHistory_1.default, { eventId: this.props.eventid }),
+            React.createElement(EventSearchNoteWindow_1.default, { eventId: this.props.eventid })));
     };
     return EventPreviewPane;
 }(React.Component));
+exports.default = EventPreviewPane;
 
 
 /***/ }),
@@ -24953,7 +25443,7 @@ var createBrowserHistory_1 = __webpack_require__(/*! history/createBrowserHistor
 var queryString = __webpack_require__(/*! query-string */ "../node_modules/query-string/index.js");
 var About_1 = __webpack_require__(/*! ./Components/About */ "./TSX/PQDashboard/Components/About.tsx");
 var MeterActivity_1 = __webpack_require__(/*! ./Components/MeterActivity */ "./TSX/PQDashboard/Components/MeterActivity.tsx");
-var EventSearch_1 = __webpack_require__(/*! ./Components/EventSearch */ "./TSX/PQDashboard/Components/EventSearch.tsx");
+var EventSearch_1 = __webpack_require__(/*! ./Components/EventSearch/EventSearch */ "./TSX/PQDashboard/Components/EventSearch/EventSearch.tsx");
 var PQDashboard = (function (_super) {
     __extends(PQDashboard, _super);
     function PQDashboard(props, context) {

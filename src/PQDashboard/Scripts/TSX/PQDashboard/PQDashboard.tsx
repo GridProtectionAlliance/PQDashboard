@@ -29,9 +29,8 @@ import createHistory from "history/createBrowserHistory"
 import * as queryString from "query-string";
 
 import About from './Components/About';
-import PQDashboardNavbar from './Components/PQDashboardNavbar';
 import MeterActivity from './Components/MeterActivity';
-import EventSearch from './Components/EventSearch';
+import EventSearch from './Components/EventSearch/EventSearch';
 
 class PQDashboard extends React.Component<{}, PQDashboardState>{
     history: object;

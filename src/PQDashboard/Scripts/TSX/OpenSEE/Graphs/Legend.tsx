@@ -21,21 +21,20 @@
 //
 //******************************************************************************************************
 import * as React from 'react';
-
+import * as _ from 'lodash';
 import { LegendClickCallback } from './LineChartAnalyticBase';
 
 export interface iLegendData {
     color: string,
     display: boolean,
     enabled: boolean,
-    data: Array<Array<number>>,
-    harmonic?: number,
+    data: Array<Array<number>>
 }
 
 declare var samplesPerCycle: number;
 
 export default class Legend extends React.Component<any, any>{
-    props: { type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number };
+    props: { type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number, harmonicSetter: (obj: number, callback?: any) => void, harmonic: number };
     samplesPerCycleOptions: any[];
     constructor(props) {
         super(props);
@@ -91,7 +90,7 @@ export default class Legend extends React.Component<any, any>{
                 {(this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum"?
                     <div className="d-flex flex-column">
 
-                        {(this.props.type.toLowerCase() == "harmonicspectrum" ? <input type="number" defaultValue="10" min="1" onChange={this.handleSelected.bind(this)} /> : null)}
+                        {(this.props.type.toLowerCase() == "harmonicspectrum" ? <input type="number" defaultValue={this.props.harmonic.toString()} min="1" onChange={this.handleSelectedHarmonicSpectrum.bind(this)} /> : null)}
                         <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }]} onChange={this.toggleFFT.bind(this)} />
                     </div> : null)}
 
@@ -402,28 +401,28 @@ export default class Legend extends React.Component<any, any>{
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
 
-            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0) {
+            if (type == "Vmag" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('['+this.props.harmonic+']') >= 0) {
                 row.enabled = true;
                 row.display = true;
 
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0) {
+            if (type == "Vang" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
 
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0) {
+            if (type == "Imag" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('[' + this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
 
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0) {
+            if (type == "Iang" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + this.props.harmonic + ']') >= 0) {
                 row.enabled = true;
                 row.display = true;
 
@@ -438,12 +437,17 @@ export default class Legend extends React.Component<any, any>{
 
     handleSelected(event) {
         this.props.data.forEach((row, key, map) => {
-            row.harmonic = event.target.value;
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
         });
 
-        this.props.callback(undefined,undefined,undefined, true);
+        this.props.harmonicSetter(event.target.value) ;
     }
 
+    handleSelectedHarmonicSpectrum(event) {
+        this.props.harmonicSetter(event.target.value);
+    }
 
 }
 
