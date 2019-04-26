@@ -205,7 +205,10 @@ export default class BarChartAnalyticBase extends React.Component<BarChartAnalyt
         var setKey = Array.from(legend).find(x => x[1].enabled);
         var dataPoints = data.Data.find(x => x.ChartLabel == setKey[0]);
         var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(a => [a, dataPoints.DataPoints[a]]), bars: { show: true, fillColor: setKey[1].color, barWidth: 1/parseInt(this.state.harmonic.toString()) }, color: '#464646'}];
-        this.options['yaxis'].max = Math.max(...newVessel[0].data.filter((a, i) => a[0] != '1').map(a => a[1]))*1.2;
+
+        var max = Math.max(...newVessel[0].data.map(a => a[1]));
+   
+        this.options['yaxis'].max = Math.max(...newVessel[0].data.filter(d => d[1] < max).map(a => a[1])) * 1.2;
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotHover();
     }

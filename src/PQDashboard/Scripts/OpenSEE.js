@@ -22044,7 +22044,8 @@ var BarChartAnalyticBase = (function (_super) {
         var setKey = Array.from(legend).find(function (x) { return x[1].enabled; });
         var dataPoints = data.Data.find(function (x) { return x.ChartLabel == setKey[0]; });
         var newVessel = [{ data: Object.keys(dataPoints.DataPoints).map(function (a) { return [a, dataPoints.DataPoints[a]]; }), bars: { show: true, fillColor: setKey[1].color, barWidth: 1 / parseInt(this.state.harmonic.toString()) }, color: '#464646' }];
-        this.options['yaxis'].max = Math.max.apply(Math, newVessel[0].data.filter(function (a, i) { return a[0] != '1'; }).map(function (a) { return a[1]; })) * 1.2;
+        var max = Math.max.apply(Math, newVessel[0].data.map(function (a) { return a[1]; }));
+        this.options['yaxis'].max = Math.max.apply(Math, newVessel[0].data.filter(function (d) { return d[1] < max; }).map(function (a) { return a[1]; })) * 1.2;
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
         this.plotHover();
     };
