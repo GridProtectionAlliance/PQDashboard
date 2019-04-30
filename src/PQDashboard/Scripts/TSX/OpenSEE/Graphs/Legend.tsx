@@ -436,11 +436,42 @@ export default class Legend extends React.Component<any, any>{
     }
 
     handleSelected(event) {
+        var type = $($(this.refs.legend).find('label.active')[0]).text()
         this.props.data.forEach((row, key, map) => {
             row.display = false;
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
+
+            if (type == "Vm" && key.indexOf('V') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('[' + event.target.value + ']') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Vph" && key.indexOf('V') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + event.target.value + ']') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Im" && key.indexOf('I') >= 0 && key.indexOf('Mag') >= 0 && key.indexOf('[' + event.target.value + ']') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "Iph" && key.indexOf('I') >= 0 && key.indexOf('Ang') >= 0 && key.indexOf('[' + event.target.value + ']') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
         });
+
 
         this.props.harmonicSetter(event.target.value) ;
     }
