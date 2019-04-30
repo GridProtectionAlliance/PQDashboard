@@ -22310,7 +22310,7 @@ var Legend = (function (_super) {
             if (row.display)
                 rows.push(React.createElement(Row, { key: key, label: key, color: row.color, enabled: row.enabled, callback: function (e) { return _this.props.callback(e, row, key); } }));
         });
-        return (React.createElement("div", { id: this.props.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' } },
+        return (React.createElement("div", { ref: "legend", id: this.props.type + '-legend', className: 'legend', style: { float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' } },
             (this.props.type == "Voltage" ?
                 React.createElement(React.Fragment, null,
                     React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "LN", buttons: [{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }], onChange: this.toggleVoltage.bind(this) }),
@@ -22349,29 +22349,30 @@ var Legend = (function (_super) {
                 React.createElement("tbody", null, rows))));
     };
     Legend.prototype.toggleVoltage = function (type) {
+        var _this = this;
         this.props.data.forEach(function (row, key, map) {
             row.display = false;
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
-            if ($('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-N") >= 0 && key[2] == 'N') {
+            if ($(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-N") >= 0 && key[2] == 'N') {
                 row.display = true;
             }
-            else if ($('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-L") >= 0 && key[2] != 'N') {
+            else if ($(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("L-L") >= 0 && key[2] != 'N') {
                 row.display = true;
             }
-            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
+            if (row.display && $(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
+            if (row.display && $(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
+            if (row.display && $(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
-            if (row.display && $('#Voltage-legend label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
+            if (row.display && $(_this.refs.legend).find('label.active').toArray().map(function (x) { return $(x).text(); }).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }

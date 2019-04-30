@@ -55,7 +55,7 @@ export default class Legend extends React.Component<any, any>{
         });
 
         return (
-            <div id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
+            <div ref="legend" id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
                 {(this.props.type == "Voltage" ?
                     <>
                         <ToggleButtonGroup type="radio" defaultValue="LN" buttons={[{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }]} onChange={this.toggleVoltage.bind(this)} />
@@ -115,30 +115,30 @@ export default class Legend extends React.Component<any, any>{
             row.enabled = false;
             $('[name="' + key + '"]').prop('checked', false);
 
-            if ($('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("L-N") >= 0 && key[2] == 'N') {
+            if ($(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("L-N") >= 0 && key[2] == 'N') {
                 row.display = true;
             }
-            else if ($('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("L-L") >= 0 && key[2] != 'N') {
+            else if ($(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("L-L") >= 0 && key[2] != 'N') {
                 row.display = true;
             }
 
 
-            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }
 
-            if (row.display && $('#Voltage-legend label.active').toArray().map(x => $(x).text()).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
                 row.enabled = true;
                 $('[name="' + key + '"]').prop('checked', true);
             }

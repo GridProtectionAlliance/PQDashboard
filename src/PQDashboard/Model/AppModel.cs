@@ -134,11 +134,6 @@ namespace PQDashboard.Model
             return false;
 #endif
 
-
-            #endregion
-
-            #region [ Static ]
-
         }
         #endregion
     }
