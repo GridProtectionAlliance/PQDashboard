@@ -32,16 +32,23 @@ export interface iLegendData {
 }
 
 declare var samplesPerCycle: number;
+declare var cycles: number;
 
 export default class Legend extends React.Component<any, any>{
     props: { type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number, harmonicSetter: (obj: number, callback?: any) => void, harmonic: number };
     samplesPerCycleOptions: any[];
+    cyclesOptions: any[];
     constructor(props) {
         super(props);
         this.samplesPerCycleOptions = [];
 
         for (var i = 0; i <= samplesPerCycle / 2; ++i)
             this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>);
+
+        this.cyclesOptions = [];
+
+        for (var i = 0; i < cycles ; ++i)
+            this.cyclesOptions.push(<option key={i} value={i.toString()}>{i}</option>);
 
     }
 
@@ -90,7 +97,7 @@ export default class Legend extends React.Component<any, any>{
                 {(this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum"?
                     <div className="d-flex flex-column">
 
-                        {(this.props.type.toLowerCase() == "harmonicspectrum" ? <input type="number" defaultValue={this.props.harmonic.toString()} min="1" onChange={this.handleSelectedHarmonicSpectrum.bind(this)} /> : null)}
+                        {(this.props.type.toLowerCase() == "harmonicspectrum" ? <select defaultValue={'5'} onChange={this.handleSelectedHarmonicSpectrum.bind(this)}>{this.cyclesOptions}</select> /*<input type="number" defaultValue={this.props.harmonic.toString()} min="1" onChange={this.handleSelectedHarmonicSpectrum.bind(this)} />*/ : null)}
                         <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }]} onChange={this.toggleFFT.bind(this)} />
                     </div> : null)}
 

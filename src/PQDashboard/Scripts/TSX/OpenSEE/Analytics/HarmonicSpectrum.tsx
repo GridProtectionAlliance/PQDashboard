@@ -77,7 +77,7 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
 
     render() {
         return <BarChartAnalyticBase
-            openSEEServiceFunction={(eventID, startDate, endDate) => this.openSEEService.getHarmonicSpectrumData(eventID, 1, startDate, endDate)}
+            openSEEServiceFunction={(eventID, startDate, endDate) => this.openSEEService.getHarmonicSpectrumData(eventID, 5, startDate, endDate)}
             legendEnable={(key) => key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0}
             legendDisplay={(key) => key.indexOf("V") == 0 && key.indexOf("Mag") >= 0}
             legendKey="HarmonicSpectrum"
@@ -93,7 +93,7 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
             stateSetter={this.props.stateSetter}
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
-
+            harmonic={5}
         />
     }
 

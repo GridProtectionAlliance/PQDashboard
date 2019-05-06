@@ -72,7 +72,7 @@
     <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap.css")" rel="stylesheet">
     <link href="@Url.Content("~/@GSF/Web/Shared/Content/font-awesome.css")" rel="stylesheet">
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
-    <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/primeui.css")" rel="stylesheet">
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
     <link rel="stylesheet" href="~/Content/jquery.jspanel.min.css" />
     <style>
@@ -88,7 +88,7 @@
 
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")
-    @Scripts.Render("~/Scripts/PrimeUI/primeui")
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/primeui.js")"></script>
     @Scripts.Render("~/Scripts/random")
     @Scripts.Render("~/Scripts/others")
     <script src="~/signalr/hubs"></script>

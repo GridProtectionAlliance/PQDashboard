@@ -31,7 +31,7 @@ export type GetDataFunction = (props: BarChartAnaltyicalBaseProps, ctrl: BarChar
 export interface BarChartAnaltyicalBaseProps { eventId: number, pixels: number, stateSetter: Function, height: number, tableData: Map<string, { data: number, color: string }>, pointsTable: any[], postedData: iPostedData, tableSetter: Function, fftStartTime: string, fftEndTime: string };
 interface BarChartAnalyticBasePropsExtended extends BarChartAnaltyicalBaseProps{
     openSEEServiceFunction: BarChartAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
-    legendKey: string, getData?: GetDataFunction
+    legendKey: string, getData?: GetDataFunction, harmonic: number
 }
 export default class BarChartAnalyticBase extends React.Component<BarChartAnalyticBasePropsExtended, { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: any, harmonic: number }>{
     plot: any;
@@ -46,7 +46,7 @@ export default class BarChartAnalyticBase extends React.Component<BarChartAnalyt
             dataSet: {}, 
             dataHandle: undefined,
             legendRows: new Map<string, iLegendData>(),
-            harmonic: 1
+            harmonic: this.props.harmonic
         };
         ctrl.options = {
             canvas: true,

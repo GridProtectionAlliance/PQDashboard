@@ -170,6 +170,7 @@ namespace PQDashboard.Controllers
                 ViewBag.EventStartTime = evt.StartTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
                 ViewBag.EventEndTime = evt.EndTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
                 ViewBag.SamplesPerCycle = evt.SamplesPerCycle;
+                ViewBag.Cycles = Math.Floor((evt.EndTime - evt.StartTime).TotalSeconds * 60.0D); 
                 return View();
             }
         }
