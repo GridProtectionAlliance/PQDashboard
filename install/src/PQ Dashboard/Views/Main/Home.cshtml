@@ -82,11 +82,19 @@
     <meta http-equiv="pragma" content="no-cache" />
 
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
-    @Styles.Render("~/Content/bootstrap/bootstrap")
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap.css")" rel="stylesheet">
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/font-awesome.css")" rel="stylesheet">
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/jquery-ui.css")" rel="stylesheet">
+    <link href="~/Content/jquery.jspanel.css" rel="stylesheet">
     @Styles.Render("~/Content/primeui")
     @Styles.Render("~/Content/Default")
     <link rel="stylesheet" href="~/Content/daterangepicker.css" />
     <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css" />
+    <style>
+        .modal-dialog {
+            z-index: 10000;
+        }
+    </style>
     <script>
         var mg = @defaulAssetGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';

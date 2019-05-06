@@ -20438,7 +20438,7 @@ var FFT = (function (_super) {
         this.props.stateSetter({ fftStartTime: undefined, fftEndTime: undefined });
     };
     FFT.prototype.render = function () {
-        return React.createElement(BarChartAnalyticBase_1.default, { openSEEServiceFunction: this.openSEEService.getFFTData, legendEnable: function (key) { return key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0; }, legendDisplay: function (key) { return key.indexOf("V") == 0 && key.indexOf("Mag") >= 0; }, legendKey: "FFT", fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, eventId: this.props.eventId, height: this.props.height, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter });
+        return React.createElement(BarChartAnalyticBase_1.default, { openSEEServiceFunction: this.openSEEService.getFFTData, legendEnable: function (key) { return key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0; }, legendDisplay: function (key) { return key.indexOf("V") == 0 && key.indexOf("Mag") >= 0; }, legendKey: "FFT", fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, eventId: this.props.eventId, height: this.props.height, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter, harmonic: 1 });
     };
     return FFT;
 }(React.Component));
@@ -20657,7 +20657,7 @@ var HarmonicSpectrum = (function (_super) {
     };
     HarmonicSpectrum.prototype.render = function () {
         var _this = this;
-        return React.createElement(BarChartAnalyticBase_1.default, { openSEEServiceFunction: function (eventID, startDate, endDate) { return _this.openSEEService.getHarmonicSpectrumData(eventID, 1, startDate, endDate); }, legendEnable: function (key) { return key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0; }, legendDisplay: function (key) { return key.indexOf("V") == 0 && key.indexOf("Mag") >= 0; }, legendKey: "HarmonicSpectrum", fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, getData: this.getData, eventId: this.props.eventId, height: this.props.height, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter });
+        return React.createElement(BarChartAnalyticBase_1.default, { openSEEServiceFunction: function (eventID, startDate, endDate) { return _this.openSEEService.getHarmonicSpectrumData(eventID, 5, startDate, endDate); }, legendEnable: function (key) { return key.indexOf("VAN") == 0 && key.indexOf("Mag") >= 0; }, legendDisplay: function (key) { return key.indexOf("V") == 0 && key.indexOf("Mag") >= 0; }, legendKey: "HarmonicSpectrum", fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, getData: this.getData, eventId: this.props.eventId, height: this.props.height, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter, harmonic: 5 });
     };
     return HarmonicSpectrum;
 }(React.Component));
@@ -21905,7 +21905,7 @@ var BarChartAnalyticBase = (function (_super) {
             dataSet: {},
             dataHandle: undefined,
             legendRows: new Map(),
-            harmonic: 1
+            harmonic: _this.props.harmonic
         };
         ctrl.options = {
             canvas: true,
@@ -22299,6 +22299,9 @@ var Legend = (function (_super) {
         _this.samplesPerCycleOptions = [];
         for (var i = 0; i <= samplesPerCycle / 2; ++i)
             _this.samplesPerCycleOptions.push(React.createElement("option", { key: i, value: i.toString() }, i));
+        _this.cyclesOptions = [];
+        for (var i = 0; i < cycles; ++i)
+            _this.cyclesOptions.push(React.createElement("option", { key: i, value: i.toString() }, i));
         return _this;
     }
     Legend.prototype.render = function () {
@@ -22339,7 +22342,7 @@ var Legend = (function (_super) {
                 : null),
             (this.props.type.toLowerCase() == "fft" || this.props.type.toLowerCase() == "harmonicspectrum" ?
                 React.createElement("div", { className: "d-flex flex-column" },
-                    (this.props.type.toLowerCase() == "harmonicspectrum" ? React.createElement("input", { type: "number", defaultValue: this.props.harmonic.toString(), min: "1", onChange: this.handleSelectedHarmonicSpectrum.bind(this) }) : null),
+                    (this.props.type.toLowerCase() == "harmonicspectrum" ? React.createElement("select", { defaultValue: '5', onChange: this.handleSelectedHarmonicSpectrum.bind(this) }, this.cyclesOptions) : null),
                     React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Vm', value: 'Vmag', active: true }, { label: 'Vph', value: 'Vang', active: false }, { label: 'Im', value: 'Imag', active: false }, { label: 'Iph', value: 'Iang', active: false }], onChange: this.toggleFFT.bind(this) })) : null),
             (this.props.type.toLowerCase() == "specifiedharmonic" ?
                 React.createElement("div", { className: "d-flex flex-column btn-group" },

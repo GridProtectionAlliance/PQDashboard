@@ -64,6 +64,7 @@
         var eventID = @Html.Raw(ViewBag.EventID);
         var eventStartTime = '@Html.Raw(ViewBag.EventStartTime)';
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
+        var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
     @if (enableLightningQuery)
     {
