@@ -533,7 +533,7 @@
                 <textarea id="note" class="form-control"></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="saveNote()">Save</button>
+                <button type="button" class="btn btn-primary" onclick="saveNote()">Save</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -599,7 +599,7 @@
 
     function OpenWindowToFaultSpecifics(id) {
         var datarow = id;
-        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,width=300,height=200,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
+        var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
     }
 

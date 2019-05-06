@@ -58,23 +58,18 @@
     <meta http-equiv="pragma" content="no-cache" />
 
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
-    <link rel="stylesheet" href="~/Content/bootstrap/theme.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
-    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css" />
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap.css")" rel="stylesheet">
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/font-awesome.css")" rel="stylesheet">
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
 
-    <script type="text/javascript" src="~/Scripts/jquery-3.3.1.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
+    @Scripts.Render("~/Scripts/jquery")
+    @Scripts.Render("~/Scripts/bootstrap")
+    @Scripts.Render("~/Scripts/PrimeUI/primeui")
+    @Scripts.Render("~/Scripts/random")
+    @Scripts.Render("~/Scripts/others")
     <script src="~/signalr/hubs"></script>
-    <script type="text/javascript" src="~/Scripts/Site.js"></script>
-    <script type="text/javascript" src="~/Scripts/jstorage.js"></script>
-    <script type="text/javascript" src="~/Scripts/moment.js"></script>
 
 </head>
 
@@ -89,7 +84,7 @@
 
 <!-- Modals -->
 <div id="notesModal" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 50%">
+    <div class="modal-dialog" style="width: 50%; z-index: 10000">
 
         <!-- Modal content-->
         <div class="modal-content">

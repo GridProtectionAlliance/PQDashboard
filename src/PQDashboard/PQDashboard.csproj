@@ -409,6 +409,8 @@
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
     <Content Include="OpenSEECSVDownload.ashx" />
     <Content Include="OpenSEEComtradeDownload.ashx" />
+    <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
+    <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />

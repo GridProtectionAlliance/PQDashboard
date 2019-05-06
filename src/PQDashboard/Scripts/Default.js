@@ -3283,6 +3283,7 @@ function moveDateBackward() {
     $('#dateRange').data('daterangepicker').setStartDate(startDate.subtract(duration.asDays() - 1, 'days'));
 
     $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
     loadDataForDate();
 }
 
@@ -3297,6 +3298,7 @@ function moveDateForward() {
 
     $('#dateRange').data('daterangepicker').setStartDate(endDate);
     $('#dateRange').data('daterangepicker').setEndDate(endDate.add(duration.asDays() - 1, 'days'));
+    $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
 
     $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
     loadDataForDate();
