@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css"/>  
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
 
-    <script type="text/javascript" src="./Scripts/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="./Scripts/jquery-3.3.1.js"></script>
     <script type="text/javascript" src="./Scripts/jquery-ui.js"></script>    
     <script type="text/javascript" src="./Scripts/jquery.blockUI.js"></script> 
     <script type="text/javascript" src="./Scripts/bootstrap-3.3.2.min.js"></script>

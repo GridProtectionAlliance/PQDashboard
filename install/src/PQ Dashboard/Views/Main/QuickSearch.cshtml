@@ -27,12 +27,15 @@
 @using PQDashboard.Model
 @model AppModel
 @{
-    DataContext dataContext = Model.DataContext;
 
     Layout = null;
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
-
+    string xdaInstance;
+    string timeWindow;
+    using (DataContext dataContext = new DataContext("systemSettings"))
+    {
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+    }
 }
 <!DOCTYPE html>
 
@@ -49,9 +52,7 @@
     <meta http-equiv="pragma" content="no-cache" />
 
     <link rel="shortcut icon" type="image/ico" href="~/favicon.ico" />
-    <link rel="stylesheet" href="~/Content/bootstrap/theme.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/font-awesome.css" />
-    <link rel="stylesheet" href="~/Content/bootstrap-3.3.2.min.css" />
+    <link href="@Url.Content("~/@GSF/Web/Shared/Content/bootstrap.css")" rel="stylesheet">
     <link rel="stylesheet" href="~/Content/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="~/Scripts/PrimeUI/primeui.min.css" />
     <link rel="stylesheet" href="~/Content/MeterEventsByLine.css" type="text/css" />
@@ -59,20 +60,37 @@
     <link rel="stylesheet" href="~/Content/daterangepicker.css" />
 
     <style>
-        .jsPanelTable,.jsPanelTable th, .jsPanelTable td{
-            width: 100%;
-            border: 1px solid black;
-            border-collapse: collapse;
-            padding: 0;
-            margin: 0;
+        .vertical-menu {
+            width: 250px; /* Set a width if you like */
+            height: inherit;
+            background-color: #86b6da;
+            position: relative;
+            float: left;
+            padding: 10px;
+            color: white;   
         }
+
+        body {
+            overflow-y: hidden;
+        }
+
+        .screen {
+            position: absolute;
+        }
+        #chartsDiv {
+            overflow-y: auto;
+            width: calc(100% - 250px);
+            height: 100%;
+            max-height: calc(100%);
+        }
+
     </style>
 
-    <script type="text/javascript" src="~/Scripts/jquery-2.1.1.js"></script>
-    <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/jquery.js")"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/jquery-ui.js")"></script>
+    <script src="~/Scripts/jquery.signalR.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
-    <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/bootstrap.js")"></script>
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
     <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/jquery.jspanel-compiled.js"></script>
@@ -82,55 +100,53 @@
 </head>
 
 <body>
-    <div class="gridheader">
-        <center>
-            <span>Quick Search</span>
-        </center>
+    <div class="screen" style="height:100%; width: 100%">
+        <div class="vertical-menu">
+            <h4>Quick Search</h4>
+            <div class="form-group">
+                <label>Date: </label>
+                <input class="form-control" id="datePicker" />
+            </div>
+            <div class="form-group">
+                <label>Time Window Size(+/-): </label>
+                <input id="minutes" value="10" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Time Window Units: </label>
+                <select id="timeUnits" class="form-control">
+                    <option value="7">Year</option>
+                    <option value="6">Month</option>
+                    <option value="5">Week</option>
+                    <option value="4">Day</option>
+                    <option value="3">Hour</option>
+                    <option value="2" selected>Minute</option>
+                    <option value="1">Second</option>
+                    <option value="0">Millisecond</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Charts To Show: </label>
+                <select id="charts" class="form-control" multiple>
+                    <option value="Events" selected>Events</option>
+                    <option value="Disturbances" selected>Disturbances</option>
+                    <option value="Faults" selected>Faults</option>
+                    <option value="Breakers" selected>Breakers</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button style="margin: 10px" class="btn btn-primary" onclick="apply()">Apply</button>
+                <button class="btn btn-primary" onclick="openMultiNoteModalAll()">Add Notes</button>
+            </div>
+        </div>
+        <div id="chartsDiv">
+            <div style="display: inline-block" id="eventTable"></div>
+            <div style="display: inline-block" id="disturbanceTable"></div>
+            <div style="display: inline-block" id="faultTable"></div>
+            <div style="display: inline-block" id="breakerTable"></div>
+        </div>
     </div>
 
-    <div class="gridheader">
-        <center>
-            <table>
-                <tbody>
-                    <tr>
-                        <td align="center" width="200px"><input class="form-control" id="datePicker" /></td>
-                        <td align="center" width="50px">
-                            <span>(+/-)</span>
-                        </td>
-                        <td align="center" width="50px"><input id="minutes" value="10" class="form-control" /></td>
-                        <td align="center" width="100px">
-                            <select id="timeUnits" class="form-control">
-                                <option value="7">Year</option>
-                                <option value="6">Month</option>
-                                <option value="5">Week</option>
-                                <option value="4">Day</option>
-                                <option value="3">Hour</option>
-                                <option value="2" selected>Minute</option>
-                                <option value="1">Second</option>
-                                <option value="0">Millisecond</option>
-                            </select>
-                        </td>
-
-                        <td align="center" width="100px"><button style="margin: 10px" class="btn btn-primary" onclick="apply()">Apply</button></td>
-                        <td align="center" width="50px"><button class="btn" onclick="openMultiNoteModalAll()"><span class="glyphicon glyphicon-pencil"></span></button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </center>
-    </div>
-
-
-    <div id="chartsDiv" style="width: 100%;overflow-y: auto">
-        <div class="gridheader">Events</div>
-        <div style="display: inline-block" id="eventTable"></div>
-        <div class="gridheader">Disturbances</div>
-        <div style="display: inline-block" id="disturbanceTable"></div>
-        <div class="gridheader">Faults</div>
-        <div style="display: inline-block" id="faultTable"></div>
-        <div class="gridheader">Breaker</div>
-        <div style="display: inline-block" id="breakerTable"></div>
-
-    </div>
 
     <!-- Modals -->
     <div id="notesModal" class="modal fade" role="dialog">
@@ -208,7 +224,6 @@
     var json = [];
 
     $(document).ready(function () {
-        $('#chartsDiv').css('max-height', window.innerHeight - 77)
         $(window).on('hubConnected', function () {
             $('#datePicker').daterangepicker({
                 timePicker: true,
@@ -226,11 +241,17 @@
     });
 
     function apply() {
-        getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
-        getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
-        getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
-        getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
 
+        $('#chartsDiv').children().remove();
+
+        $('#chartsDiv').append('<div style="display: inline-block" id="eventTable"></div>');
+        $('#chartsDiv').append('<div style="display: inline-block" id="disturbanceTable"></div>');
+        $('#chartsDiv').append('<div style="display: inline-block" id="faultTable"></div>');
+        $('#chartsDiv').append('<div style="display: inline-block" id="breakerTable"></div>');
+
+        $.each($('#charts').val(), function (i, value) {
+            window['get' + value](moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+        })
     }
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 
@@ -248,18 +269,20 @@
                 obj.thecurrentdistance = Number(obj.thecurrentdistance);
             });
 
+
             $('#eventTable').puidatatable({
                 scrollable: false,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
+                caption: 'Events',
                 columns: [
                     { headerStyle: 'width: 40px', content: function (row) { return '<input type="checkbox" class="' + row.theeventid + '" checked />' } },
-                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', sortable: true },
-                    { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 9%', sortable: true },
-                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', sortable: true },
-                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', sortable: true },
-                    { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', sortable: true },
-                    { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 9%', sortable: true },
+                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', sortable: true, filter: true },
+                    { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 9%', sortable: true, filter: true },
+                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', sortable: true, filter: true },
+                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', sortable: true, filter: true },
+                    { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', sortable: true, filter: true },
+                    { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 9%', sortable: true, filter: true },
                     { headerText: '', headerStyle: 'width: 4%', content: function (row) { return makeOpenSEEButton_html(row); } },
                     { headerText: '', headerStyle: 'width: 3%', content: function (row) { return makeNoteButton_html(row); } }
                 ],
@@ -290,17 +313,18 @@
                 scrollHeight: '100%',
                 scrollWidth: '100%',
                 sortMode: 'multiple',
+                caption: 'Disturbances',
                 sortMeta: [{ field: 'theinceptiontime', order: 1 }],
                 columns: [
                     { headerStyle: 'width: 40px',content: function (row) { return '<input type="checkbox" class="' + row.theeventid + '" checked />' } },
-                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', sortable: true },
-                    { field: 'disturbancetype', headerText: 'Type', headerStyle: 'width: 9%', sortable: true },
-                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', sortable: true },
-                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%',sortable: true },
-                    { field: 'SeverityCode', headerText: 'Severity', headerStyle: 'width: 9%', sortable: true },
-                    { field: 'phase', headerText: 'Phase', headerStyle: 'width: 9%', sortable: true },
-                    { field: 'magnitude', headerText: 'Magnitude (pu)', headerStyle: 'width: 9%', sortable: true },
-                    { field: 'duration', headerText: 'Duration (s)', headerStyle: 'width: 9%', sortable: true },
+                    { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 30%', sortable: true, filter: true},
+                    { field: 'disturbancetype', headerText: 'Type', headerStyle: 'width: 9%', sortable: true, filter: true },
+                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', sortable: true, filter: true },
+                    { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', sortable: true, filter: true },
+                    { field: 'SeverityCode', headerText: 'Severity', headerStyle: 'width: 9%', sortable: true, filter: true },
+                    { field: 'phase', headerText: 'Phase', headerStyle: 'width: 9%', sortable: true, filter: true },
+                    { field: 'magnitude', headerText: 'Magnitude (pu)', headerStyle: 'width: 9%', sortable: true, filter: true },
+                    { field: 'duration', headerText: 'Duration (s)', headerStyle: 'width: 9%', sortable: true, filter: true },
                     { headerText: '', headerStyle: 'width: 4%', content: function (row) { return makeOpenSEEButton_html(row); } },
                     { headerText: '', headerStyle: 'width: 3%', content: function (row) { return makeNoteButton_html(row); } }
 
@@ -323,21 +347,21 @@
 
             columns.push(
                 { headerStyle: 'width: 40px',content: function (row) { return '<input type="checkbox" class="' + row.theeventid + '" checked />' } },
-                { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%', bodyClass: '', sortable: true }
+                { field: 'theinceptiontime', headerText: 'Start Time', headerStyle: 'width: 15%', bodyStyle: 'width: 15%', bodyClass: '', sortable: true, filter: true }
             );
 
-            columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%', sortable: true });
+            columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%', sortable: true, filter: true });
 
             if (includeCauseCode)
-                columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 10%', bodyStyle: 'width: 10%', sortable: true });
+                columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 10%', bodyStyle: 'width: 10%', sortable: true, filter: true });
 
-            columns.push({ field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%', sortable: true });
-            columns.push({ field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%', sortable: true });
-            columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%', sortable: true });
-            columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%', sortable: true });
+            columns.push({ field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%', sortable: true, filter: true });
+            columns.push({ field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%', sortable: true, filter: true });
+            columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%', sortable: true, filter: true });
+            columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%', sortable: true, filter: true });
             columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%', content: makeOpenSEEButton_html });
             columns.push({ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%', content: makeFaultSpecificsButton_html });
-            columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
+            columns.push({ headerText: '', headerStyle: 'width: 3%', content: function (row) { return makeNoteButton_html(row); } });
 
             fixNumbers(data, ['voltage', 'thecurrentdistance']);
 
@@ -345,6 +369,7 @@
                 scrollable: false,
                 scrollHeight: '100%',
                 columns: columns,
+                caption: 'Faults',
                 datasource: data
             });
         });
@@ -354,22 +379,22 @@
     function getBreakers(date, minuteWindow, timeUnits) {
         dataHub.getBreakers(date, minuteWindow, timeUnits).done(function (data) {
             fixNumbers(data, ['timing', 'statustiming', 'speed']);
-
             $('#breakerTable').puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
+                caption: 'Breakers',
                 columns: [
                     { headerStyle: 'width: 40px',content: function (row) { return '<input type="checkbox" class="' + row.theeventid + '" checked />' } },
-                    { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true },
-                    { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-                    { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true },
-                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
-                    { field: 'timing', headerText: 'Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-                    { field: 'statustiming', headerText: 'Status Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
-                    { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
-                    { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
-                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                    { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } }
+                    { field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, filter: true },
+                    { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true, filter: true },
+                    { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true, filter: true },
+                    { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true, filter: true },
+                    { field: 'timing', headerText: 'Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true, filter: true },
+                    { field: 'statustiming', headerText: 'Status Timing', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true, filter: true },
+                    { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true, filter: true },
+                    { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true, filter: true },
+                    { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_htmlBreaker },
+                    { headerText: '', headerStyle: 'width: 3%', content: function (row) { return makeNoteButton_html(row); } }
 
                 ],
                 datasource: data
@@ -388,6 +413,16 @@
         return (return_html);
     }
 
+    function makeOpenSEEButton_htmlBreaker(id) {
+        var return_html = "";
+        //return_html += '<div style="cursor: pointer;">';
+        return_html += '<button onClick="OpenWindowToOpenSEEBreaker(' + id.theeventid + ',' + id.breakeroperationid + ');" title="Launch OpenSEE Waveform Viewer">';
+        return_html += '<img src="@Html.Raw(Url.Content("~/Images/seeButton.png"))" /></button>';
+        //return_html += '</div>';
+        return (return_html);
+    }
+
+
     function makeFaultSpecificsButton_html(id) {
         var return_html = "";
 
@@ -405,6 +440,11 @@
         return false;
     }
 
+    function OpenWindowToOpenSEEBreaker(id, breaker) {
+        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&breakerdigitals=1" + "&breakeroperationid=" + breaker, id + "openSEE");
+        return false;
+    }
+
     function OpenWindowToFaultSpecifics(id) {
         var popup = window.open("@Html.Raw(Url.Content("~/FaultSpecifics.aspx"))?eventid=" + id, id + "FaultLocation", "left=0,top=0,status=no,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no");
         return false;
@@ -412,7 +452,7 @@
 
     function makeNoteButton_html(id) {
         var return_html = "";
-        return_html += '<button onclick="openNoteModal(' + id.theeventid + ')"><span  class="glyphicon glyphicon-pencil"></span></button>';
+        return_html += '<button onclick="openNoteModal(' + id.theeventid + ')"><span  class="glyphicon glyphicon-pencil"></span><span style="color: green; position: sticky; bottom: 0">' + (id.Note > 0 ? '*' : '') +'</span></button>';
         return (return_html);
     }
 
@@ -488,8 +528,8 @@
     }
 
     function saveMultiNoteAll() {
-        dataHub.saveMultiNoteForAllEvents($.unique($('input[type=checkbox]:checked').toArray().map(x => $(x).attr('class'))), $('#multiNoteAll').val(), userId).done(function () {
-            getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm"), $('#minutes').val());
+        dataHub.saveMultiNoteForAllEvents($.unique($('input[type=checkbox]:checked').toArray().map(function (x) { return $(x).attr('class') })), $('#multiNoteAll').val(), userId).done(function () {
+            apply();
         });
     }
 

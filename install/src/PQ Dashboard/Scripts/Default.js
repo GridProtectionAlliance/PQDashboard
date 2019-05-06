@@ -1458,6 +1458,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         bar.on('mouseout', function () {
             tooltip.classed('hidden', true);
+            //$(tooltip).addClass('hidden')
+
         });
 
         bar.on('click', function (d) {
@@ -2779,6 +2781,10 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["Sag"];
         else if (dataPoint.Swell > 0)
             color = colors["Swell"];
+        else if (dataPoint.Transient > 0)
+            color = colors["Transient"];
+        else if (dataPoint.Snapshot > 0)
+            color = colors["Snapshot"];
         else if (dataPoint.Other > 0)
             color = colors["Other"];
         else 
@@ -3369,6 +3375,9 @@ function selectMeterGroup(thecontrol) {
 
     getMeters(mg);
 
+    if (mg !== 'ClickEvent')
+        $('#deviceFilterList option[value=ClickEvent]').remove();
+
     $.each(Object.keys(leafletMap), function (i, key) {
         if (leafletMap[key]) {
             mapMarkers[key].forEach(function (d) { leafletMap[key].removeLayer(d.marker) });
@@ -3719,14 +3728,14 @@ function loadLeafletMap(theDiv) {
             loadDoc("/KML/" + kmlData.Value, function (data) {
                 if (data == null) return;
 
-                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent) {
+                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().text()) {
                     var legend = L.control({ position: 'topright' });
 
                     legend.onAdd = function (map) {
 
                         var div = L.DomUtil.create('div', 'info legend');
 
-                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().context.textContent;
+                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().text();
 
                         return div;
                     };
@@ -3967,8 +3976,8 @@ function initiateTimeRangeSlider() {
 }
 
 function loadContourAnimationData() {
-    var dateFrom = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
-    var dateTo = new Date($('#mapHeaderTrendingDataTo').text() + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
+    var dateFrom = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
+    var dateTo = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
     var meters = "";
     $.each(meterList.selectedIds(), function (index, data) {
         if (index === 0)

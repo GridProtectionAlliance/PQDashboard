@@ -4118,7 +4118,7 @@ if ('onpointerup' in window) {
 
         document.body.addEventListener('click', function (e) {
             var isTT = jQuery(e.target).closest('.jsPanel').length;
-            if (isTT < 1 && !e.target.classList.contains('hasTooltip')) {
+            if (isTT < 1 && e.target.classList != undefined && !e.target.classList.contains('hasTooltip')) {
                 jsPanel.closePanels('tooltip');
                 jQuery('.hasTooltip').removeClass('hasTooltip');
             }

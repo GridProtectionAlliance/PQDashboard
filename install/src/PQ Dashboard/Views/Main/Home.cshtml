@@ -20,35 +20,51 @@
     //       Generated original version of source code.
     //
     //*****************************************************************************************************@
+@using System.Web.WebPages
 @using GSF.Collections;
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using Newtonsoft.Json
+@using openXDA.Model
+
 @model AppModel
 @{
     Layout = "";
-    DataContext dataContext = Model.DataContext;
-    string historianConnection = dataContext.Table<Settings>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
-    IEnumerable<MeterGroup> meterGroups = dataContext.Table<MeterGroup>().QueryRecordsWhere("ID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
-    List<DeviceFilter> deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    List<SavedViews> savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-    if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
-    {
-        savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
+    string historianConnection;
+    IEnumerable<AssetGroup> assetGroups;
+    List<DeviceFilter> deviceFilters;
+    List<SavedViews> savedViews;
+    int meterCount;
+    SavedViews defaultView;
+    string xdaInstance;
+    string yearBegin;
+
+    using(DataContext dataContext = new DataContext("systemSettings")) {
+        historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
+        assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("ID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
+        deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+        savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
+            
+        if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
+        {
+            savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
+        }
+
+        meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
+
+        defaultView = savedViews.First();
+
+        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
+
     }
-    int meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterMeterGroup WHERE MeterGroupID IN (SELECT MeterGroupID FROM UserAccountMeterGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
 
-    SavedViews defaultView = savedViews.First();
+    int defaulAssetGroupID = -1;
 
-    string xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-    string yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
-
-    int defaulMeterGroupID = -1;
-
-    if (meterGroups.Any())
+    if (assetGroups.Any())
     {
-        defaulMeterGroupID = meterGroups.First().ID;
+        defaulAssetGroupID = assetGroups.First().ID;
     }
 
     string[] tabs = new[] { "Events", "Disturbances", "Faults", "Breakers","Extensions", "Trending", "Completeness", "Correctness" };
@@ -57,8 +73,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Open PQ Dashboard :: @ViewBag.username</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
     <meta http-equiv="cache-control" content="max-age=0" />
     <meta http-equiv="cache-control" content="no-cache" />
     <meta http-equiv="expires" content="0" />
@@ -69,10 +85,10 @@
     @Styles.Render("~/Content/bootstrap/bootstrap")
     @Styles.Render("~/Content/primeui")
     @Styles.Render("~/Content/Default")
-    <link rel="stylesheet" href="~/Content/daterangepicker.css"/>
-    <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css"/>
+    <link rel="stylesheet" href="~/Content/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="~/Scripts/Leaflet/leaflet1.0.css" />
     <script>
-        var mg = @defaulMeterGroupID;
+        var mg = @defaulAssetGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var historianConnection = '@historianConnection';
         var xdaInstance = '@xdaInstance';
@@ -85,13 +101,15 @@
     @Scripts.Render("~/Scripts/bootstrap")
     @Scripts.Render("~/Scripts/random")
     @Scripts.Render("~/Scripts/PrimeUI/primeui")
-    <script src="~/signalr/hubs"></script>
     @Scripts.Render("~/Scripts/default")
     @Scripts.Render("~/Scripts/others")
     @Scripts.Render("~/Scripts/D3/d3")
     @Scripts.Render("~/Scripts/Leaflet/leaflet")
     @Scripts.Render("~/Scripts/flot/flot")
+
     <script src="~/Scripts/ie11-compatibility-functions.js"></script>
+    <script src="~/signalr/hubs"></script>
+
 </head>
 
 <body>
@@ -164,7 +182,7 @@
                 <td width="250px" align="right" style="z-index: 999; padding-right: 5px;" nowrap>
                     @*Monitor Group:*@
                     <select id="meterGroupSelect" class="smallbutton" onchange="selectMeterGroup(this);" hidden="hidden">
-                        @foreach (MeterGroup mg in meterGroups)
+                        @foreach (AssetGroup mg in assetGroups)
                         {
                             <option value="@mg.ID">@mg.Name</option>
                         }
@@ -211,28 +229,7 @@
         </ul>
 
         <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
-            <div id="meterActivityContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-                <div class="grid2" id="grid2MeterActivity">
-                    <div class="grid2-sizer"></div>
-                    <div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;">
-                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">METER ACTIVITY</h3>
-                            <span style="float: right; color: silver">Click on event count to view events</span>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
-                            <div id="meter-activity" style="background-color: white; border-color: black"></div>
-                        </div>
-                    </div>
-                    <div class="grid2-item-wide" id="grid2-item-today-5" style="top: 0;">
-                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">FILES PROCESSED LAST 24 HOURS</h3>
-                            <span style="float: right; color: silver" id="files-hint">Expand row to view events</span>
-                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
-                            <div id="meter-activity-files" style="background-color: white; border-color: black"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @Html.Partial("MeterActivity")
         </div>
 
         <div id="tabs-Overview-Today" style="background-color: #064e1b; width: 100%; height: 100%">
@@ -556,10 +553,10 @@
                 <div id="deviceFilterId" hidden="hidden"></div>
                 <label for="deviceFilterName">Name:</label>
                 <input type="text" class="form-control" id="deviceFilterName"/>
-                <label for="deviceFilterMeterGroup">Meter Group:</label>
+                <label for="deviceFilterMeterGroup">Asset Group:</label>
                 <select class="form-control" id="deviceFilterMeterGroup">
                     <option value="0">Union of All Groups</option>
-                    @foreach (MeterGroup mg in meterGroups)
+                    @foreach (AssetGroup mg in assetGroups)
                     {
                         <option value="@mg.ID">@mg.Name</option>
                     }
@@ -703,7 +700,7 @@
 
     function openFaultDetailsByDateXDAPage(){
         if(contextfromdate == contexttodate){
-            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + GetCurrentlySelectedSitesIDs() + "&Date=" + contexttodate + "&context=" + globalContext)
+            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + meterList.selectedIdsString() + "&Date=" + contexttodate + "&context=" + globalContext)
         }
     }
 

@@ -39,23 +39,34 @@
 @using GSF.Web
 @using GSF.Web.Model
 @using Newtonsoft.Json
-
+@using openXDA.Model
 @{
     Layout = "";
     NameValueCollection parameters = Request.QueryString;
 
-
-    int postedmeterid = int.Parse(parameters["meterid"] ?? "-1");
-    int postedchannelid = int.Parse(parameters["channelid"] ?? "-1");
     DateTime posteddate = DateTime.Parse(parameters["date"] ?? "");
-    string postedmeasurementtype = parameters["measurementtype"] ?? "";
-    string postedcharacteristic = parameters["characteristic"] ?? "";
-    string postedphasename = parameters["phasename"] ?? "";
+    int postedchannelid = int.Parse(parameters["channelid"] ?? "-1");
+    Channel channel;
+    int postedmeterid;
+    string postedmeasurementtype;
+    string postedcharacteristic;
+    string postedphasename;
+    string postedlinename;
+    string postedmetername;
 
-    string postedlinename = Model.DataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", postedchannelid);
-    string postedmetername = Model.DataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", postedmeterid);
+    using (DataContext dataContext = new DataContext("systemSettings"))
+    {
 
+        channel = dataContext.Table<Channel>().QueryRecordWhere("ID = {0}", postedchannelid);
 
+        postedmeterid = channel.MeterID;
+        postedmeasurementtype = dataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementType WHERE ID = {0}", channel.MeasurementTypeID);
+        postedcharacteristic = dataContext.Connection.ExecuteScalar<string>("Select Name FROM MeasurementCharacteristic WHERE ID = {0}", channel.MeasurementCharacteristicID);
+        postedphasename = dataContext.Connection.ExecuteScalar<string>("Select Name FROM Phase WHERE ID = {0}", channel.PhaseID);
+        postedlinename = dataContext.Connection.ExecuteScalar<string>("Select AssetKey FROM Line WHERE ID = (SELECT ID LineID FROM Channel WHERE ID = {0})", postedchannelid);
+        postedmetername = dataContext.Connection.ExecuteScalar<string>("Select Name FROM Meter WHERE ID = {0}", postedmeterid);
+
+    }
 }
 
 <!DOCTYPE html>
@@ -80,7 +91,7 @@
     <link rel="stylesheet" href="~/Content/jquery.multiselect.filter.css" />
     <link rel="stylesheet" href="~/Content/OpenSTE.css" type="text/css" />
 
-    <script type="text/javascript" src="~/Scripts/jquery-2.2.3.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery-3.3.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.multiselect.js"></script>
