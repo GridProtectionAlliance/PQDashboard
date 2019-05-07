@@ -930,7 +930,8 @@ namespace OpenSEE.Controller
                     {
                         int eventID = row.ConvertField<int>("ID");
                         DataGroup dataGroup = QueryDataGroup(eventId, meter);
-                        Dictionary<string, FlotSeries> temp = GetFirstDerivativeLookup(dataGroup);
+                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                        Dictionary<string, FlotSeries> temp = GetFirstDerivativeLookup(dataGroup, viCycleDataGroup);
 
                         foreach (string key in temp.Keys)
                         {
@@ -965,23 +966,40 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> GetFirstDerivativeLookup(DataGroup dataGroup)
+        private Dictionary<string, FlotSeries> GetFirstDerivativeLookup(DataGroup dataGroup, VICycleDataGroup viCycleDataGroup)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
 
             DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries vANRMS = viCycleDataGroup.VA.RMS;
+
             DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
+            DataSeries iANRMS = viCycleDataGroup.IA.RMS;
+
             DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vBNRMS = viCycleDataGroup.VB.RMS;
+
             DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries iBNRMS = viCycleDataGroup.IB.RMS;
+
             DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries vCNRMS = viCycleDataGroup.VC.RMS;
+
             DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries iCNRMS = viCycleDataGroup.IC.RMS;
 
             if (vAN != null) dataLookup.Add("First Derivative VAN", GetFirstDerivativeFlotSeries(vAN, "VAN"));
+            if (vANRMS != null) dataLookup.Add("First Derivative VAN RMS", GetFirstDerivativeFlotSeries(vANRMS, "VAN RMS"));
             if (iAN != null) dataLookup.Add("First Derivative IAN", GetFirstDerivativeFlotSeries(iAN, "IAN"));
+            if (iANRMS != null) dataLookup.Add("First Derivative IAN RMS", GetFirstDerivativeFlotSeries(iANRMS, "IAN RMS"));
             if (vBN != null) dataLookup.Add("First Derivative VBN", GetFirstDerivativeFlotSeries(vBN, "VBN"));
+            if (vBNRMS != null) dataLookup.Add("First Derivative VBN RMS", GetFirstDerivativeFlotSeries(vBNRMS, "VBN RMS"));
             if (iBN != null) dataLookup.Add("First Derivative IBN", GetFirstDerivativeFlotSeries(iBN, "IBN"));
+            if (iBNRMS != null) dataLookup.Add("First Derivative IBN RMS", GetFirstDerivativeFlotSeries(iBNRMS, "IBN RMS"));
             if (vCN != null) dataLookup.Add("First Derivative VCN", GetFirstDerivativeFlotSeries(vCN, "VCN"));
+            if (vCNRMS != null) dataLookup.Add("First Derivative VCN RMS", GetFirstDerivativeFlotSeries(vCNRMS, "VCN RMS"));
             if (iCN != null) dataLookup.Add("First Derivative ICN", GetFirstDerivativeFlotSeries(iCN, "ICN"));
+            if (iCNRMS != null) dataLookup.Add("First Derivative ICN RMS", GetFirstDerivativeFlotSeries(iCNRMS, "ICN RMS"));
 
             return dataLookup;
         }

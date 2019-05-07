@@ -20523,8 +20523,8 @@ var LineChartAnalyticBase_1 = __webpack_require__(/*! ./../Graphs/LineChartAnaly
 function FirstDerivative(props) {
     var openSEEService = new OpenSEE_1.default();
     return react_1.createElement(LineChartAnalyticBase_1.default, {
-        legendDisplay: function (key) { return key.indexOf("V") == 0; },
-        legendEnable: function (key) { return key.indexOf("V") == 0; },
+        legendDisplay: function (key) { return key.indexOf("V") == 0 && key.indexOf('RMS') < 0; },
+        legendEnable: function (key) { return key.indexOf("V") == 0 && key.indexOf('RMS') < 0; },
         legendKey: "FirstDerivative",
         openSEEServiceFunction: function (eventid, pixels, startDate, endDate) { return openSEEService.getFirstDerivativeData(eventid, pixels, startDate, endDate); },
         endDate: props.endDate,
@@ -22331,11 +22331,14 @@ var Legend = (function (_super) {
             (this.props.type.toLowerCase() == "impedance" ?
                 React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'R', value: 'R', active: true }, { label: 'X', value: 'X', active: false }, { label: 'Z', value: 'Z', active: false }], onChange: this.toggleImpedance.bind(this) })
                 : null),
-            (this.props.type.toLowerCase() == "firstderivative" || this.props.type.toLowerCase() == "lowpassfilter" ||
+            (this.props.type.toLowerCase() == "firstderivative" ?
+                React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'V', value: 'V', active: true }, { label: 'VR', value: 'VRMS', active: false }, { label: 'I', value: 'I', active: false }, { label: 'IR', value: 'IRMS', active: false }], onChange: this.toggleFirstDerivative.bind(this) })
+                : null),
+            (this.props.type.toLowerCase() == "lowpassfilter" ||
                 this.props.type.toLowerCase() == "highpassfilter" || this.props.type.toLowerCase() == "symmetricalcomponents" ||
                 this.props.type.toLowerCase() == "unbalance" || this.props.type.toLowerCase() == "rectifier" ||
                 this.props.type.toLowerCase() == "clippedwaveforms" || this.props.type.toLowerCase() == "thd" || this.props.type.toLowerCase() == "overlappingwaveform" ?
-                React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Volt', value: 'Volt', active: true }, { label: 'Cur', value: 'Cur', active: false }], onChange: this.toggleFirstDerivative.bind(this) })
+                React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Volt', value: 'Volt', active: true }, { label: 'Cur', value: 'Cur', active: false }], onChange: this.toggleLowPass.bind(this) })
                 : null),
             (this.props.type.toLowerCase() == "removecurrent" || this.props.type.toLowerCase() == "missingvoltage" ?
                 React.createElement(ToggleButtonGroup, { type: "radio", defaultValue: "Wave", buttons: [{ label: 'Pre', value: 'Pre', active: true }, { label: 'Post', value: 'Post', active: false }], onChange: this.toggleRemoveCurrent.bind(this) })
@@ -22457,6 +22460,34 @@ var Legend = (function (_super) {
         this.props.callback();
     };
     Legend.prototype.toggleFirstDerivative = function (type, event) {
+        this.props.data.forEach(function (row, key, map) {
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+            if (type == "V" && key.indexOf('V') == 0 && key.indexOf('RMS') < 0) {
+                row.enabled = true;
+                row.display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            else if (type == "VRMS" && key.indexOf('V') == 0 && key.indexOf('RMS') >= 0) {
+                row.enabled = true;
+                row.display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            else if (type == "I" && key.indexOf('I') == 0 && key.indexOf('RMS') < 0) {
+                row.enabled = true;
+                row.display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            else if (type == "IRMS" && key.indexOf('I') == 0 && key.indexOf('RMS') >= 0) {
+                row.enabled = true;
+                row.display = true;
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+        });
+        this.props.callback();
+    };
+    Legend.prototype.toggleLowPass = function (type, event) {
         this.props.data.forEach(function (row, key, map) {
             row.display = false;
             row.enabled = false;
