@@ -27,6 +27,7 @@ import EventSearchNoteWindow from './EventSearchNoteWindow';
 import EventSearchAssetVoltageDisturbances from './EventSearchAssetVoltageDisturbances';
 import EventSearchFaultSegments from './EventSearchAssetFaultSegments';
 import EventSearchHistory from './EventSearchAssetHistory';
+import EventSearchCorrelatedSags from './EventSearchCorrelatedSags';
 
 export default class EventPreviewPane extends React.Component<{ eventid: number }, {}> {
     openSEEService: OpenSEEService;
@@ -191,19 +192,18 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
 
     }
     render() {
-        var pixels = (window.innerWidth - 300 - 40) / 2;
-
         return (
             <div>
                 <div className="card">
                     <div className="card-header"><a href={homePath + 'Main/OpenSEE?eventid=' + this.props.eventid} target="_blank">View in OpenSEE</a></div>
                     <div className="card-body">
-                        <div ref="voltWindow" style={{ height: 200, width: pixels - 40 /*, margin: '0x', padding: '0px'*/ }}></div>
-                        <div ref="curWindow" style={{ height: 200, width: pixels - 40 /*, margin: '0x', padding: '0px'*/ }}></div>
+                        <div ref="voltWindow" style={{ height: 200, width: 'calc(100%)' /*, margin: '0x', padding: '0px'*/ }}></div>
+                        <div ref="curWindow" style={{ height: 200, width: 'calc(100%)' /*, margin: '0x', padding: '0px'*/ }}></div>
                     </div>
                 </div>
                 <EventSearchFaultSegments eventId={this.props.eventid} />
                 <EventSearchAssetVoltageDisturbances eventId={this.props.eventid} />
+                <EventSearchCorrelatedSags eventId={this.props.eventid} />
                 <EventSearchHistory eventId={this.props.eventid} />
                 <EventSearchNoteWindow eventId={this.props.eventid}/>
             </div>

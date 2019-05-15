@@ -37,7 +37,7 @@ export interface TableProps {
     tbodyStyle?: React.CSSProperties,
     tbodyClass?: string,
     selected?(data:any): boolean,
-
+    rowStyle?: React.CSSProperties,
 }
 
 const Table: React.FunctionComponent <TableProps> = (props) => {
@@ -71,10 +71,10 @@ const Table: React.FunctionComponent <TableProps> = (props) => {
                 </td>
             });
 
-            var style: React.CSSProperties = {
-                cursor: 'pointer',
-                backgroundColor: ( props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit')
-            };
+            var style: React.CSSProperties = clone(props.rowStyle);
+
+            style.cursor = 'pointer';
+            style.backgroundColor = (props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit');
 
             return <tr style={style} key={index.toString()}>{cells}</tr>;
         });

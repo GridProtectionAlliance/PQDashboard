@@ -20012,12 +20012,40 @@ var OpenSEEService = (function () {
             }
         });
     };
+    OpenSEEService.prototype.addMultiNote = function (note, eventIDs) {
+        return $.ajax({
+            type: "POST",
+            url: homePath + "api/OpenSEE/AddMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ note: note, eventIDs: eventIDs }),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
     OpenSEEService.prototype.deleteNote = function (note) {
         return $.ajax({
             type: "DELETE",
             url: homePath + "api/OpenSEE/DeleteNote",
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
+    OpenSEEService.prototype.deleteMultiNote = function (Note, UserAccount, Timestamp) {
+        return $.ajax({
+            type: "DELETE",
+            url: homePath + "api/OpenSEE/DeleteMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Note: Note, UserAccount: UserAccount, Timestamp: Timestamp }),
             cache: false,
             async: true,
             processData: false,
@@ -22078,7 +22106,7 @@ var BarChartAnalyticBase = (function (_super) {
     BarChartAnalyticBase.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
-            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: 'calc(100% - 220px)' } }),
             React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     return BarChartAnalyticBase;
@@ -23142,7 +23170,7 @@ var LineChartAnalyticBase = (function (_super) {
     LineChartAnalyticBase.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
-            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: 'calc(100% - 220px)' } }),
             React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     LineChartAnalyticBase.prototype.getMillisecondTime = function (date) {

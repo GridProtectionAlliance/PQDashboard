@@ -169,7 +169,7 @@ namespace OpenSEE.Controller
 
                 DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
                 DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                int pixels = int.Parse(query["pixels"]);
+                int pixels = (int)double.Parse(query["pixels"]);
                 DataTable table;
 
                 Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
@@ -3305,6 +3305,16 @@ namespace OpenSEE.Controller
             public string Note { get; set; }
         }
 
+        public class FormDataMultiNote
+        {
+            public int? ID { get; set; }
+            public int[] EventIDs { get; set; }
+            public string Note { get; set; }
+            public string UserAccount {get; set;}
+            public DateTime Timestamp { get; set; }
+        }
+
+
         [HttpPost]
         public IHttpActionResult AddNote(FormData note)
         {
@@ -3337,6 +3347,45 @@ namespace OpenSEE.Controller
             return result;
         }
 
+        [HttpPost]
+        public IHttpActionResult AddMultiNote(FormDataMultiNote note)
+        {
+            IHttpActionResult result = ValidateAdminRequest();
+            if (result != null) return result;
+
+            try
+            {
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    DateTime now = DateTime.Now;
+                    List<EventNote> records = new List<EventNote>();
+                    foreach(int eventId in note.EventIDs)
+                    {
+                        EventNote record = new EventNote()
+                        {
+                            EventID = eventId,
+                            Note = note.Note,
+                            UserAccount = User.Identity.Name,
+                            Timestamp = now
+                        };
+
+                        new TableOperations<EventNote>(connection).AddNewRecord(record);
+                        records.Add(record);
+                    }
+
+                    result = Ok(records);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                result = InternalServerError(ex);
+            }
+
+            return result;
+        }
+
+
         [HttpDelete]
         public IHttpActionResult DeleteNote(FormData note)
         {
@@ -3363,6 +3412,34 @@ namespace OpenSEE.Controller
 
 
         }
+
+        [HttpDelete]
+        public IHttpActionResult DeleteMultiNote(FormDataMultiNote note)
+        {
+            try
+            {
+                IHttpActionResult result = ValidateAdminRequest();
+
+                if (result != null) return result;
+
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    connection.ExecuteNonQuery(@"
+                        DELETE FROM EventNote WHERE Note = {0} AND UserAccount = {1} AND Timestamp = {2}
+                    ", note.Note, note.UserAccount, note.Timestamp);
+
+                }
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+
+        }
+
 
         [HttpPatch]
         public IHttpActionResult UpdateNote(FormData note)

@@ -20386,7 +20386,7 @@ if (false) {} else {
 /*!****************************************************************!*\
   !*** ../node_modules/react-router-dom/esm/react-router-dom.js ***!
   \****************************************************************/
-/*! exports provided: BrowserRouter, HashRouter, Link, NavLink, MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext */
+/*! exports provided: MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext, BrowserRouter, HashRouter, Link, NavLink */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -23847,12 +23847,40 @@ var OpenSEEService = (function () {
             }
         });
     };
+    OpenSEEService.prototype.addMultiNote = function (note, eventIDs) {
+        return $.ajax({
+            type: "POST",
+            url: homePath + "api/OpenSEE/AddMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ note: note, eventIDs: eventIDs }),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
     OpenSEEService.prototype.deleteNote = function (note) {
         return $.ajax({
             type: "DELETE",
             url: homePath + "api/OpenSEE/DeleteNote",
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
+    OpenSEEService.prototype.deleteMultiNote = function (Note, UserAccount, Timestamp) {
+        return $.ajax({
+            type: "DELETE",
+            url: homePath + "api/OpenSEE/DeleteMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Note: Note, UserAccount: UserAccount, Timestamp: Timestamp }),
             cache: false,
             async: true,
             processData: false,
@@ -24391,6 +24419,7 @@ var queryString = __webpack_require__(/*! query-string */ "../node_modules/query
 var EventSearchList_1 = __webpack_require__(/*! ./EventSearchList */ "./TSX/PQDashboard/Components/EventSearch/EventSearchList.tsx");
 var EventSearchNavbar_1 = __webpack_require__(/*! ./EventSearchNavbar */ "./TSX/PQDashboard/Components/EventSearch/EventSearchNavbar.tsx");
 var EventSearchPreviewPane_1 = __webpack_require__(/*! ./EventSearchPreviewPane */ "./TSX/PQDashboard/Components/EventSearch/EventSearchPreviewPane.tsx");
+var EventSearchListedEventsNoteWindow_1 = __webpack_require__(/*! ./EventSearchListedEventsNoteWindow */ "./TSX/PQDashboard/Components/EventSearch/EventSearchListedEventsNoteWindow.tsx");
 var momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
 var momentDateFormat = "MM/DD/YYYY";
 var momentTimeFormat = "HH:mm:ss.SSS";
@@ -24419,9 +24448,11 @@ var EventSearch = (function (_super) {
                 time: (query['time'] != undefined ? query['time'] : moment.utc().format(momentTimeFormat)),
                 windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
                 timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
-                stateSetter: _this.stateSetter.bind(_this)
+                stateSetter: _this.stateSetter.bind(_this),
             },
             eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
+            searchText: (query['searchText'] != undefined ? query['searchText'] : ''),
+            searchList: []
         };
         return _this;
     }
@@ -24432,11 +24463,16 @@ var EventSearch = (function (_super) {
     EventSearch.prototype.componentWillReceiveProps = function (nextProps) {
     };
     EventSearch.prototype.render = function () {
+        var _this = this;
         return (React.createElement("div", { style: { width: '100%', height: '100%' } },
             React.createElement(EventSearchNavbar_1.default, __assign({}, this.state.searchBarProps)),
             React.createElement("div", { style: { width: '100%', height: 'calc( 100% - 210px)' } },
-                React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'scroll' } },
-                    React.createElement(EventSearchList_1.default, { eventid: this.state.eventid, stateSetter: this.state.searchBarProps.stateSetter })),
+                React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'hidden' } },
+                    React.createElement("div", { style: { width: 'calc(100% - 120px)', padding: 10, float: 'left' } },
+                        React.createElement("input", { className: 'form-control', type: 'text', placeholder: 'Search...', value: this.state.searchText, onChange: function (evt) { return _this.setState({ searchText: evt.target.value }); } })),
+                    React.createElement("div", { style: { width: 120, float: 'right', padding: 10 } },
+                        React.createElement(EventSearchListedEventsNoteWindow_1.default, { searchList: this.state.searchList })),
+                    React.createElement(EventSearchList_1.default, { eventid: this.state.eventid, searchText: this.state.searchText, stateSetter: this.state.searchBarProps.stateSetter })),
                 React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' } },
                     React.createElement(EventSearchPreviewPane_1.default, { eventid: this.state.eventid })))));
     };
@@ -24446,6 +24482,8 @@ var EventSearch = (function (_super) {
             var dataTypes = ["boolean", "number", "string"];
             var stateObject = lodash_1.clone(state.searchBarProps);
             stateObject.eventid = state.eventid;
+            stateObject.searchText = state.searchText;
+            delete stateObject.searchList;
             $.each(Object.keys(stateObject), function (index, key) {
                 if (dataTypes.indexOf(typeof (stateObject[key])) < 0)
                     delete stateObject[key];
@@ -24453,10 +24491,8 @@ var EventSearch = (function (_super) {
             return queryString.stringify(stateObject, { encode: false });
         }
         var oldQueryString = toQueryString(this.state);
-        var oldQuery = queryString.parse(oldQueryString);
         this.setState(obj, function () {
             var newQueryString = toQueryString(_this.state);
-            var newQuery = queryString.parse(newQueryString);
             if (!lodash_1.isEqual(oldQueryString, newQueryString)) {
                 clearTimeout(_this.historyHandle);
                 _this.historyHandle = setTimeout(function () { return _this.history['push'](_this.history['location'].pathname + '?' + newQueryString); }, 500);
@@ -24536,9 +24572,9 @@ var EventSearchFaultSegments = (function (_super) {
                 React.createElement("table", { className: "table" },
                     React.createElement("thead", null,
                         React.createElement("tr", null,
-                            React.createElement("td", null, "Evolution"),
-                            React.createElement("td", null, "Inception"),
-                            React.createElement("td", null, "End"))),
+                            React.createElement("th", null, "Evolution"),
+                            React.createElement("th", null, "Inception"),
+                            React.createElement("th", null, "End"))),
                     React.createElement("tbody", null, this.state.tableRows)))));
     };
     return EventSearchFaultSegments;
@@ -24614,9 +24650,9 @@ var EventSearchHistory = (function (_super) {
                 React.createElement("table", { className: "table" },
                     React.createElement("thead", null,
                         React.createElement("tr", null,
-                            React.createElement("td", null, "Event Type"),
-                            React.createElement("td", null, "Date"),
-                            React.createElement("td", null))),
+                            React.createElement("th", null, "Event Type"),
+                            React.createElement("th", null, "Date"),
+                            React.createElement("th", null))),
                     React.createElement("tbody", null, this.state.tableRows)))));
     };
     return EventSearchHistory;
@@ -24693,16 +24729,120 @@ var EventSearchAssetVoltageDisturbances = (function (_super) {
                 React.createElement("table", { className: "table" },
                     React.createElement("thead", null,
                         React.createElement("tr", null,
-                            React.createElement("td", null, "Distrubance Type"),
-                            React.createElement("td", null, "Phase"),
-                            React.createElement("td", null, "Magnitude"),
-                            React.createElement("td", null, "Duration"),
-                            React.createElement("td", null, "Start Time"))),
+                            React.createElement("th", null, "Distrubance Type"),
+                            React.createElement("th", null, "Phase"),
+                            React.createElement("th", null, "Magnitude"),
+                            React.createElement("th", null, "Duration"),
+                            React.createElement("th", null, "Start Time"))),
                     React.createElement("tbody", null, this.state.tableRows)))));
     };
     return EventSearchAssetVoltageDisturbances;
 }(React.Component));
 exports.default = EventSearchAssetVoltageDisturbances;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchCorrelatedSags.tsx":
+/*!******************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchCorrelatedSags.tsx ***!
+  \******************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var OpenSEE_1 = __webpack_require__(/*! ./../../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+var EventSearchHistory = (function (_super) {
+    __extends(EventSearchHistory, _super);
+    function EventSearchHistory(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.openSEEService = new OpenSEE_1.default();
+        _this.state = {
+            tableRows: []
+        };
+        return _this;
+    }
+    EventSearchHistory.prototype.componentDidMount = function () {
+        if (this.props.eventId >= 0)
+            this.createTableRows(this.props.eventId);
+    };
+    EventSearchHistory.prototype.componentWillUnmount = function () {
+    };
+    EventSearchHistory.prototype.componentWillReceiveProps = function (nextProps) {
+        if (nextProps.eventId >= 0)
+            this.createTableRows(nextProps.eventId);
+    };
+    EventSearchHistory.prototype.createTableRows = function (eventID) {
+        var _this = this;
+        this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(function (data) {
+            var rows = [];
+            for (var index = 0; index < data.length; ++index) {
+                var row = data[index];
+                var background = 'default';
+                if (row.EventID == _this.props.eventId)
+                    background = 'lightyellow';
+                rows.push(Row(row, background));
+            }
+            _this.setState({ tableRows: rows });
+        });
+    };
+    EventSearchHistory.prototype.render = function () {
+        return (React.createElement("div", { className: "card" },
+            React.createElement("div", { className: "card-header" }, "Correlated Sags:"),
+            React.createElement("div", { className: "card-body" },
+                React.createElement("table", { className: "table" },
+                    React.createElement("thead", null,
+                        React.createElement(HeaderRow, null)),
+                    React.createElement("tbody", null, this.state.tableRows)))));
+    };
+    return EventSearchHistory;
+}(React.Component));
+exports.default = EventSearchHistory;
+var Row = function (row, background) {
+    return (React.createElement("tr", { style: { background: background }, key: row.EventID },
+        React.createElement("td", { key: 'EventID' + row.EventID },
+            React.createElement("a", { id: "eventLink", href: './OpenSEE?eventid=' + row.EventID },
+                React.createElement("div", { style: { width: '100%', height: '100%' } }, row.EventID))),
+        React.createElement("td", { key: 'EventType' + row.EventID }, row.EventType),
+        React.createElement("td", { key: 'SagMagnitude' + row.EventID },
+            row.SagMagnitudePercent,
+            "%"),
+        React.createElement("td", { key: 'SagDuration' + row.EventID },
+            row.SagDurationMilliseconds,
+            " ms (",
+            row.SagDurationCycles,
+            " cycles)"),
+        React.createElement("td", { key: 'StartTime' + row.EventID }, moment(row.StartTime).format('mm:ss.SSS')),
+        React.createElement("td", { key: 'MeterName' + row.EventID }, row.MeterName),
+        React.createElement("td", { key: 'LineName' + row.EventID }, row.LineName)));
+};
+var HeaderRow = function () {
+    return (React.createElement("tr", { key: 'Header' },
+        React.createElement("th", { key: 'EventID' }, "Event ID"),
+        React.createElement("th", { key: 'EventType' }, "Event Type"),
+        React.createElement("th", { key: 'SagMagnitude' }, "Magnitude"),
+        React.createElement("th", { key: 'SagDuration' }, "Duration"),
+        React.createElement("th", { key: 'StartTime' }, "Start Time"),
+        React.createElement("th", { key: 'MeterName' }, "Meter Name"),
+        React.createElement("th", { key: 'LineName' }, "Line Name")));
+};
 
 
 /***/ }),
@@ -24750,17 +24890,22 @@ var EventSearchList = (function (_super) {
         return _this;
     }
     EventSearchList.prototype.componentDidMount = function () {
-        this.getData();
+        this.getData(this.props);
         document.addEventListener("keydown", this.handleKeyPress, false);
     };
     EventSearchList.prototype.componentWillUnmount = function () {
         document.removeEventListener("keydown", this.handleKeyPress, false);
+    };
+    EventSearchList.prototype.componentWillReceiveProps = function (nextProps) {
+        if (this.props.searchText != nextProps.searchText)
+            this.getData(nextProps);
     };
     EventSearchList.prototype.handleKeyPress = function (event) {
         if (this.state.data.length == 0)
             return;
         var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
         if (event.keyCode == 40) {
+            event.preventDefault();
             if (this.props.eventid == -1)
                 this.props.stateSetter({ eventid: this.state.data[0].EventID });
             else if (index == this.state.data.length - 1)
@@ -24769,6 +24914,7 @@ var EventSearchList = (function (_super) {
                 this.props.stateSetter({ eventid: this.state.data[index + 1].EventID });
         }
         else if (event.keyCode == 38) {
+            event.preventDefault();
             if (this.props.eventid == -1)
                 this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
             else if (index == 0)
@@ -24779,30 +24925,47 @@ var EventSearchList = (function (_super) {
         this.setScrollBar();
     };
     EventSearchList.prototype.setScrollBar = function () {
-        var tableHeight = $(ReactDOM.findDOMNode(this).parentElement).children()[0].clientHeight - 45;
+        var rowHeight = $(ReactDOM.findDOMNode(this)).find('tbody').children()[0].clientHeight;
         var index = this.state.data.map(function (a) { return a.EventID.toString(); }).indexOf(this.props.eventid.toString());
-        $(ReactDOM.findDOMNode(this).parentElement).scrollTop(index * tableHeight / this.state.data.length - 50);
+        var tableHeight = this.state.data.length * rowHeight;
+        var windowHeight = window.innerHeight - 314;
+        var tableSectionCount = Math.ceil(tableHeight / windowHeight);
+        var tableSectionHeight = Math.ceil(tableHeight / tableSectionCount);
+        var rowsPerSection = tableSectionHeight / rowHeight;
+        var sectionIndex = Math.floor(index / rowsPerSection);
+        var scrollTop = $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop();
+        if (scrollTop <= sectionIndex * tableSectionHeight || scrollTop >= (sectionIndex + 1) * tableSectionHeight - tableSectionHeight / 2)
+            $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop(sectionIndex * tableSectionHeight);
     };
-    EventSearchList.prototype.getData = function () {
+    EventSearchList.prototype.getData = function (props) {
         var _this = this;
         this.pqDashboardService.getEventSearchData().done(function (results) {
-            var ordered = lodash_1.orderBy(results, ["FileStartTime"], ["desc"]);
+            var filtered = lodash_1.filter(results, function (obj) {
+                return obj.AssetName.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.AssetType.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.EventType.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    moment(obj.FileStartTime).format('MM/DD/YYYY').toLowerCase().indexOf(props.searchText) >= 0 ||
+                    moment(obj.FileStartTime).format('HH:mm:ss.SSSSSSS').toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.VoltageClass.toString().toLowerCase().indexOf(props.searchText) >= 0;
+            });
+            var ordered = lodash_1.orderBy(filtered, ["FileStartTime"], ["desc"]);
             _this.setState({ data: ordered });
+            _this.props.stateSetter({ searchList: ordered });
             _this.setScrollBar();
         });
     };
     EventSearchList.prototype.render = function () {
         var _this = this;
         return (React.createElement(Table_1.default, { cols: [
-                { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' }, content: function (item, key, style) { return React.createElement("span", null,
+                { key: 'FileStartTime', label: 'Time', headerStyle: { width: 'calc(20%)' }, rowStyle: { width: 'calc(20%)' }, content: function (item, key, style) { return React.createElement("span", null,
                         moment(item.FileStartTime).format('MM/DD/YYYY'),
                         React.createElement("br", null),
                         moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')); } },
-                { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
-                { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
-                { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
-                { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
-                { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: function (item, key, style) { return React.createElement("span", null,
+                { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' }, rowStyle: { width: '20%' } },
+                { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, rowStyle: { width: '15%' }, content: function (item, key, style) { return React.createElement("span", null,
                         React.createElement("i", { className: (item.BreakerOperation > 0 ? "fa fa-check" : '') })); } },
             ], tableClass: "table table-hover", data: this.state.data, sortField: this.state.sortField, ascending: this.state.ascending, onSort: function (d) {
                 if (d.col == _this.state.sortField) {
@@ -24813,7 +24976,7 @@ var EventSearchList = (function (_super) {
                     var ordered = lodash_1.orderBy(_this.state.data, [d.col], ["asc"]);
                     _this.setState({ ascending: true, data: ordered, sortField: d.col });
                 }
-            }, onClick: function (item) { return _this.props.stateSetter({ eventid: item.row.EventID }); }, theadStyle: { fontSize: 'smaller' }, selected: function (item) {
+            }, onClick: function (item) { return _this.props.stateSetter({ eventid: item.row.EventID }); }, theadStyle: { fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }, tbodyStyle: { display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight - 314 }, rowStyle: { display: 'table', tableLayout: 'fixed', width: 'calc(100%)' }, selected: function (item) {
                 if (item.EventID == _this.props.eventid)
                     return true;
                 else
@@ -24823,6 +24986,169 @@ var EventSearchList = (function (_super) {
     return EventSearchList;
 }(React.Component));
 exports.default = EventSearchList;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchListedEventsNoteWindow.tsx":
+/*!**************************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchListedEventsNoteWindow.tsx ***!
+  \**************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var OpenSEE_1 = __webpack_require__(/*! ./../../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+var PQDashboard_1 = __webpack_require__(/*! ./../../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
+var EventSearchListedEventsNoteWindow = (function (_super) {
+    __extends(EventSearchListedEventsNoteWindow, _super);
+    function EventSearchListedEventsNoteWindow(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.pqDashboardService = new PQDashboard_1.default();
+        _this.openSEEService = new OpenSEE_1.default();
+        _this.state = {
+            show: false,
+            note: '',
+            ids: _this.props.searchList.map(function (a) { return a.EventID; }).sort(),
+            notesMade: []
+        };
+        _this.handleAdd.bind(_this);
+        return _this;
+    }
+    EventSearchListedEventsNoteWindow.prototype.componentDidMount = function () {
+    };
+    EventSearchListedEventsNoteWindow.prototype.componentWillUnmount = function () {
+    };
+    EventSearchListedEventsNoteWindow.prototype.componentWillReceiveProps = function (nextProps) {
+        if (this.state.ids != nextProps.searchList.map(function (a) { return a.EventID; }).sort())
+            this.setState({ ids: nextProps.searchList.map(function (a) { return a.EventID; }).sort() });
+    };
+    EventSearchListedEventsNoteWindow.prototype.getData = function (props) {
+    };
+    EventSearchListedEventsNoteWindow.prototype.render = function () {
+        var _this = this;
+        var tableRows = this.props.searchList.map(function (evt, index) {
+            return (React.createElement("tr", { key: index, style: { display: 'table', tableLayout: 'fixed', width: 'calc(100%)' } },
+                React.createElement("td", null,
+                    React.createElement("input", { type: 'checkbox', checked: _this.state.ids.indexOf(evt.EventID) >= 0, value: evt.EventID, onChange: function (e) {
+                            var selected = $(e.target).prop('checked');
+                            var eventId = parseInt(e.target.value);
+                            var list = lodash_1.clone(_this.state.ids);
+                            if (selected && !(list.indexOf(eventId) >= 0)) {
+                                list.push(eventId);
+                                _this.setState({ ids: list.sort() });
+                            }
+                            else if (!selected && (list.indexOf(eventId) >= 0)) {
+                                list = list.filter(function (a) { return a != eventId; });
+                                _this.setState({ ids: list.sort() });
+                            }
+                        } })),
+                React.createElement("td", null,
+                    React.createElement("span", null,
+                        moment(evt.FileStartTime).format('MM/DD/YYYY'),
+                        React.createElement("br", null),
+                        moment(evt.FileStartTime).format('HH:mm:ss.SSSSSSS'))),
+                React.createElement("td", null, evt.AssetName),
+                React.createElement("td", null, evt.EventType)));
+        });
+        var madeNotes = this.state.notesMade.map(function (noteMade, index) {
+            return (React.createElement("tr", { key: index, style: { display: 'table', tableLayout: 'fixed', width: 'calc(100%)' } },
+                React.createElement("td", null, noteMade.Note),
+                React.createElement("td", null,
+                    React.createElement("span", null,
+                        moment(noteMade.Timestamp).format('MM/DD/YYYY'),
+                        React.createElement("br", null),
+                        moment(noteMade.Timestamp).format('HH:mm:ss.SSSSSSS'))),
+                React.createElement("td", null, noteMade.UserAccount),
+                React.createElement("td", null,
+                    React.createElement("button", { className: "btn btn-sm", onClick: function (e) { return _this.handleDelete(noteMade); } },
+                        React.createElement("span", null,
+                            React.createElement("i", { className: "fa fa-times" }))))));
+        });
+        return (React.createElement("div", null,
+            React.createElement("button", { className: "btn btn-primary form-control", onClick: function () { _this.setState({ show: true }); }, title: "Click here to add a note to all events listed below ..." }, "Add Notes"),
+            React.createElement("div", { className: "modal fade show", style: { display: (this.state.show ? 'block' : 'none') }, role: "dialog" },
+                React.createElement("div", { className: "modal-dialog", style: { maxWidth: '75%' }, role: "document" },
+                    React.createElement("div", { className: "modal-content" },
+                        React.createElement("div", { className: "modal-header" },
+                            React.createElement("h3", { className: "modal-title" }, "Add notes for the following events."),
+                            React.createElement("button", { type: "button", className: "close", onClick: function () { return _this.setState({ show: false }); } },
+                                React.createElement("span", { "aria-hidden": "true" }, "\u00D7"))),
+                        React.createElement("div", { className: "modal-body", style: { maxHeight: 650, height: 650 } },
+                            React.createElement("div", { style: { width: '50%', float: 'left', padding: 10 } },
+                                React.createElement("table", { className: "table" },
+                                    React.createElement("thead", { style: { fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' } },
+                                        React.createElement("tr", null,
+                                            React.createElement("td", null,
+                                                React.createElement("input", { type: 'checkbox', checked: this.props.searchList.length == this.state.ids.length, onChange: function (e) {
+                                                        var selected = $(e.target).prop('checked');
+                                                        if (selected) {
+                                                            _this.setState({ ids: _this.props.searchList.map(function (a) { return a.EventID; }).sort() });
+                                                        }
+                                                        else if (!selected) {
+                                                            _this.setState({ ids: [] });
+                                                        }
+                                                    } })),
+                                            React.createElement("td", null, "Time"),
+                                            React.createElement("td", null, "Asset"),
+                                            React.createElement("td", null, "Type"))),
+                                    React.createElement("tbody", { style: { display: 'block', overflowY: 'scroll', height: 580, maxHeight: 580 } }, tableRows))),
+                            React.createElement("div", { style: { width: '50%', float: 'right', padding: 10 } },
+                                React.createElement("table", { className: "table" },
+                                    React.createElement("thead", { style: { fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' } },
+                                        React.createElement("tr", null,
+                                            React.createElement("td", null, "Note"),
+                                            React.createElement("td", null, "Time"),
+                                            React.createElement("td", null, "User"),
+                                            React.createElement("td", null))),
+                                    React.createElement("tbody", { style: { display: 'block', overflowY: 'scroll', height: 437, maxHeight: 437 } }, madeNotes)),
+                                React.createElement("textarea", { className: "form-control", value: this.state.note, rows: 4, onChange: function (e) { return _this.setState({ note: e.target.value }); } }))),
+                        React.createElement("div", { className: "modal-footer" },
+                            React.createElement("button", { className: "btn btn-primary", onClick: function () { return _this.handleAdd(); }, disabled: this.state.note.length == 0 }, "Add Note"),
+                            React.createElement("button", { className: "btn btn-secondary", onClick: function () { return _this.setState({ show: false }); } }, "Close")))))));
+    };
+    EventSearchListedEventsNoteWindow.prototype.createTableRows = function () {
+    };
+    EventSearchListedEventsNoteWindow.prototype.handleAdd = function () {
+        var _this = this;
+        this.openSEEService.addMultiNote(this.state.note, this.state.ids).done(function (notesMade) {
+            var list = lodash_1.clone(_this.state.notesMade);
+            list.push({ Note: notesMade[0].Note, Timestamp: notesMade[0].Timestamp, UserAccount: notesMade[0].UserAccount, EventIds: notesMade.map(function (a) { return a.EventID; }) });
+            _this.setState({ note: '', notesMade: list });
+        });
+    };
+    EventSearchListedEventsNoteWindow.prototype.handleDelete = function (noteMade) {
+        this.openSEEService.deleteMultiNote(noteMade.Note, noteMade.UserAccount, noteMade.Timestamp);
+        var list = lodash_1.clone(this.state.notesMade);
+        list = list.filter(function (note) { return note != noteMade; });
+        this.setState({ notesMade: list });
+    };
+    EventSearchListedEventsNoteWindow.prototype.handleEdit = function (d) {
+        var _this = this;
+        this.setState({ note: d.Note });
+        this.openSEEService.deleteNote(d).done(function () { return _this.createTableRows(); });
+    };
+    return EventSearchListedEventsNoteWindow;
+}(React.Component));
+exports.default = EventSearchListedEventsNoteWindow;
 
 
 /***/ }),
@@ -25083,10 +25409,10 @@ function EventSearchNoteWindow(props) {
             React.createElement("table", { className: "table" },
                 React.createElement("thead", null,
                     React.createElement("tr", null,
-                        React.createElement("td", { style: { width: '50%' } }, "Note"),
-                        React.createElement("td", null, "Time"),
-                        React.createElement("td", null, "User"),
-                        React.createElement("td", null))),
+                        React.createElement("th", { style: { width: '50%' } }, "Note"),
+                        React.createElement("th", null, "Time"),
+                        React.createElement("th", null, "User"),
+                        React.createElement("th", null))),
                 React.createElement("tbody", null, tableRows)),
             React.createElement("textarea", { className: "form-control", rows: 4, value: note, onChange: function (e) { return setNote(e.target.value); } })),
         React.createElement("div", { className: "card-footer" },
@@ -25127,6 +25453,7 @@ var EventSearchNoteWindow_1 = __webpack_require__(/*! ./EventSearchNoteWindow */
 var EventSearchAssetVoltageDisturbances_1 = __webpack_require__(/*! ./EventSearchAssetVoltageDisturbances */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetVoltageDisturbances.tsx");
 var EventSearchAssetFaultSegments_1 = __webpack_require__(/*! ./EventSearchAssetFaultSegments */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetFaultSegments.tsx");
 var EventSearchAssetHistory_1 = __webpack_require__(/*! ./EventSearchAssetHistory */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetHistory.tsx");
+var EventSearchCorrelatedSags_1 = __webpack_require__(/*! ./EventSearchCorrelatedSags */ "./TSX/PQDashboard/Components/EventSearch/EventSearchCorrelatedSags.tsx");
 var EventPreviewPane = (function (_super) {
     __extends(EventPreviewPane, _super);
     function EventPreviewPane(props, context) {
@@ -25250,16 +25577,16 @@ var EventPreviewPane = (function (_super) {
         });
     };
     EventPreviewPane.prototype.render = function () {
-        var pixels = (window.innerWidth - 300 - 40) / 2;
         return (React.createElement("div", null,
             React.createElement("div", { className: "card" },
                 React.createElement("div", { className: "card-header" },
                     React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + this.props.eventid, target: "_blank" }, "View in OpenSEE")),
                 React.createElement("div", { className: "card-body" },
-                    React.createElement("div", { ref: "voltWindow", style: { height: 200, width: pixels - 40 } }),
-                    React.createElement("div", { ref: "curWindow", style: { height: 200, width: pixels - 40 } }))),
+                    React.createElement("div", { ref: "voltWindow", style: { height: 200, width: 'calc(100%)' } }),
+                    React.createElement("div", { ref: "curWindow", style: { height: 200, width: 'calc(100%)' } }))),
             React.createElement(EventSearchAssetFaultSegments_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchAssetVoltageDisturbances_1.default, { eventId: this.props.eventid }),
+            React.createElement(EventSearchCorrelatedSags_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchAssetHistory_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchNoteWindow_1.default, { eventId: this.props.eventid })));
     };
@@ -25388,10 +25715,9 @@ var Table = function (props) {
                 var style = lodash_1.clone(colData.rowStyle);
                 return React.createElement("td", { key: index.toString() + item[colData.key] + colData.key, style: style, onClick: function () { return handleClick({ col: colData.key, row: item, data: item[colData.key] }); } }, colData.content != undefined ? colData.content(item, colData.key, style) : item[colData.key]);
             });
-            var style = {
-                cursor: 'pointer',
-                backgroundColor: (props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit')
-            };
+            var style = lodash_1.clone(props.rowStyle);
+            style.cursor = 'pointer';
+            style.backgroundColor = (props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit');
             return React.createElement("tr", { style: style, key: index.toString() }, cells);
         });
     }

@@ -31,15 +31,21 @@ import { History } from 'history';
 import EventSearchList from './EventSearchList';
 import EventSearchNavbar, { EventSearchNavbarProps } from './EventSearchNavbar';
 import EventPreviewPane from './EventSearchPreviewPane';
+import EventSearchListedEventsNoteWindow from './EventSearchListedEventsNoteWindow';
 
 const momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
 const momentDateFormat = "MM/DD/YYYY";
 const momentTimeFormat = "HH:mm:ss.SSS";
 
+export interface OpenXDAEvent {
+    EventID: number, FileStartTime: string, AssetName: string, AssetType: string, VoltageClass: string, EventType: string, BreakerOperation: boolean
+}
 interface IProps { }
 interface IState {
     searchBarProps: EventSearchNavbarProps,
-    eventid: number
+    eventid: number,
+    searchText: string,
+    searchList: Array<OpenXDAEvent>
 }
 
 export default class EventSearch extends React.Component<IProps, IState>{
@@ -71,11 +77,12 @@ export default class EventSearch extends React.Component<IProps, IState>{
                 time: (query['time'] != undefined ? query['time'] : moment.utc().format(momentTimeFormat)),
                 windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
                 timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
-                stateSetter: this.stateSetter.bind(this)
+                stateSetter: this.stateSetter.bind(this),
 
             },
             eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
-
+            searchText: (query['searchText'] != undefined ? query['searchText'] : ''),
+            searchList: []
         };
     }
 
@@ -93,8 +100,14 @@ export default class EventSearch extends React.Component<IProps, IState>{
             <div style={{ width: '100%', height: '100%' }}>
                 <EventSearchNavbar {...this.state.searchBarProps}/>
                 <div style={{ width: '100%', height: 'calc( 100% - 210px)' }}>
-                    <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'scroll' }}>
-                        <EventSearchList eventid={this.state.eventid} stateSetter={this.state.searchBarProps.stateSetter} />
+                    <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'hidden' }}>
+                        <div style={{width: 'calc(100% - 120px)', padding: 10, float: 'left'}}>
+                            <input className='form-control' type='text' placeholder='Search...' value={this.state.searchText} onChange={(evt) => this.setState({searchText: evt.target.value})}/>
+                        </div>
+                        <div style={{ width: 120, float: 'right', padding: 10 }}>
+                            <EventSearchListedEventsNoteWindow searchList={this.state.searchList}/>
+                        </div>
+                        <EventSearchList eventid={this.state.eventid} searchText={this.state.searchText} stateSetter={this.state.searchBarProps.stateSetter} />
                     </div>
                     <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' }}>
                         <EventPreviewPane eventid={this.state.eventid} />
@@ -110,6 +123,8 @@ export default class EventSearch extends React.Component<IProps, IState>{
             var dataTypes = ["boolean", "number", "string"]
             var stateObject: IState = clone(state.searchBarProps);
             stateObject.eventid = state.eventid;
+            stateObject.searchText = state.searchText;
+            delete stateObject.searchList;
             $.each(Object.keys(stateObject), (index, key) => {
                 if (dataTypes.indexOf(typeof (stateObject[key])) < 0)
                     delete stateObject[key];
@@ -118,11 +133,9 @@ export default class EventSearch extends React.Component<IProps, IState>{
         }
 
         var oldQueryString = toQueryString(this.state);
-        var oldQuery = queryString.parse(oldQueryString);
 
         this.setState(obj, () => {
             var newQueryString = toQueryString(this.state);
-            var newQuery = queryString.parse(newQueryString);
 
             if (!isEqual(oldQueryString, newQueryString)) {
                 clearTimeout(this.historyHandle);

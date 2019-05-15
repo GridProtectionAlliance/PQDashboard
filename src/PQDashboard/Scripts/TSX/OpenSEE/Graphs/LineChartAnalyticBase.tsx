@@ -527,7 +527,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
     render() {
         return (
             <div>
-                <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: this.props.pixels - 220 /*, margin: '0x', padding: '0px'*/}}></div>
+                <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'/*this.props.pixels - 222 margn: '0x', padding: '0px'*/}}></div>
                 <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic}/>
             </div>
         );

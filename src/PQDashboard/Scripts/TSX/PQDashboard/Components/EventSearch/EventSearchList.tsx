@@ -26,10 +26,10 @@ import * as ReactDOM from 'react-dom';
 
 import Table from './../Table';
 import PQDashboardService from './../../../../TS/Services/PQDashboard';
-import { orderBy } from 'lodash';
+import { orderBy, filter } from 'lodash';
 import * as moment from 'moment';
 
-export default class EventSearchList extends React.Component<{ eventid: number, stateSetter(obj): void }, { sortField: string, ascending: boolean, data: Array<any> }> {
+export default class EventSearchList extends React.Component<{ eventid: number, searchText: string, stateSetter(obj): void }, { sortField: string, ascending: boolean, data: Array<any> }> {
     pqDashboardService: PQDashboardService;
     constructor(props, context) {
         super(props, context);
@@ -46,11 +46,16 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
     }
 
     componentDidMount() {
-        this.getData();
+        this.getData(this.props);
         document.addEventListener("keydown", this.handleKeyPress, false);
     }
     componentWillUnmount() {
         document.removeEventListener("keydown", this.handleKeyPress, false);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if(this.props.searchText != nextProps.searchText)
+            this.getData(nextProps);
     }
 
     handleKeyPress(event) {
@@ -60,6 +65,8 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
 
         if (event.keyCode == 40) // arrow down key
         {
+            event.preventDefault();
+
             if (this.props.eventid == -1)
                 this.props.stateSetter({ eventid: this.state.data[0].EventID });
             else if (index == this.state.data.length - 1)
@@ -70,6 +77,8 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
         }
         else if (event.keyCode == 38)  // arrow up key
         {
+            event.preventDefault();
+
             if (this.props.eventid == -1)
                 this.props.stateSetter({ eventid: this.state.data[this.state.data.length - 1].EventID });
             else if (index == 0)
@@ -82,15 +91,43 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
     }
 
     setScrollBar() {
-        var tableHeight = $(ReactDOM.findDOMNode(this).parentElement).children()[0].clientHeight - 45;
+        //var rowHeight = $(ReactDOM.findDOMNode(this)).find('tbody').children()[0].clientHeight;
+        //var index = this.state.data.map(a => a.EventID.toString()).indexOf(this.props.eventid.toString());
+        ////var rowHeight = tableHeight / this.state.data.length;
+        //if (index == 0)
+        //    $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop(0);
+        //else
+        //    $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop(index * rowHeight - 20);
+
+        var rowHeight = $(ReactDOM.findDOMNode(this)).find('tbody').children()[0].clientHeight;
         var index = this.state.data.map(a => a.EventID.toString()).indexOf(this.props.eventid.toString());
-        $(ReactDOM.findDOMNode(this).parentElement).scrollTop(index * tableHeight / this.state.data.length - 50);
+        var tableHeight = this.state.data.length * rowHeight;
+        var windowHeight = window.innerHeight - 314;
+        var tableSectionCount = Math.ceil(tableHeight / windowHeight);
+        var tableSectionHeight = Math.ceil(tableHeight / tableSectionCount);
+        var rowsPerSection = tableSectionHeight / rowHeight;
+        var sectionIndex = Math.floor(index / rowsPerSection);
+        var scrollTop = $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop();
+
+        if(scrollTop <= sectionIndex * tableSectionHeight || scrollTop >= (sectionIndex + 1) * tableSectionHeight - tableSectionHeight/2)
+            $(ReactDOM.findDOMNode(this)).find('tbody').scrollTop(sectionIndex * tableSectionHeight);
+
     }
 
-    getData() {
+    getData(props) {
         this.pqDashboardService.getEventSearchData().done(results => {
-            var ordered = orderBy(results, ["FileStartTime"], ["desc"]);
+            var filtered = filter(results, obj => {
+                return obj.AssetName.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.AssetType.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.EventType.toLowerCase().indexOf(props.searchText) >= 0 ||
+                    moment(obj.FileStartTime).format('MM/DD/YYYY').toLowerCase().indexOf(props.searchText) >= 0 ||
+                    moment(obj.FileStartTime).format('HH:mm:ss.SSSSSSS').toLowerCase().indexOf(props.searchText) >= 0 ||
+                    obj.VoltageClass.toString().toLowerCase().indexOf(props.searchText) >= 0 
+
+            });
+            var ordered = orderBy(filtered, ["FileStartTime"], ["desc"]);
             this.setState({ data: ordered });
+            this.props.stateSetter({ searchList: ordered });
             this.setScrollBar();
         });
     }
@@ -99,12 +136,12 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
         return (
             <Table
                 cols={[
-                    { key: 'FileStartTime', label: 'Time', headerStyle: { width: '20%' }, content: (item, key, style) => <span>{moment(item.FileStartTime).format('MM/DD/YYYY')}<br />{moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')}</span> },
-                    { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' } },
-                    { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' } },
-                    { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' } },
-                    { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' } },
-                    { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, content: (item, key, style) => <span><i className={(item.BreakerOperation > 0 ? "fa fa-check" : '')}></i></span> },
+                    { key: 'FileStartTime', label: 'Time', headerStyle: { width: 'calc(20%)' }, rowStyle: { width: 'calc(20%)' }, content: (item, key, style) => <span>{moment(item.FileStartTime).format('MM/DD/YYYY')}<br />{moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')}</span> },
+                    { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' }, rowStyle: { width: '20%' } },
+                    { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                    { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                    { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                    { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, rowStyle: { width: '15%' }, content: (item, key, style) => <span><i className={(item.BreakerOperation > 0 ? "fa fa-check" : '')}></i></span> },
 
                 ]}
                 tableClass="table table-hover"
@@ -122,7 +159,9 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
                     }
                 }}
                 onClick={(item) => this.props.stateSetter({ eventid: item.row.EventID })}
-                theadStyle={{ fontSize: 'smaller' }}
+                theadStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
+                tbodyStyle={{ display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight - 314 }}
+                rowStyle={{ display: 'table', tableLayout: 'fixed', width: 'calc(100%)'}}
                 selected={(item) => {
                     if (item.EventID == this.props.eventid) return true;
                     else return false;

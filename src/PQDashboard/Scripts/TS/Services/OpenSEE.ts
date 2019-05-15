@@ -282,12 +282,42 @@ export default class OpenSEEService{
         });
     }
 
+    addMultiNote(note:string, eventIDs: Array<number>): JQuery.jqXHR {
+        return $.ajax({
+            type: "POST",
+            url: `${homePath}api/OpenSEE/AddMultiNote`,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ note: note, eventIDs: eventIDs }),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    }
+
     deleteNote(note): any {
         return $.ajax({
             type: "DELETE",
             url: `${homePath}api/OpenSEE/DeleteNote`,
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    }
+
+    deleteMultiNote( Note:string, UserAccount: string, Timestamp: string): any {
+        return $.ajax({
+            type: "DELETE",
+            url: `${homePath}api/OpenSEE/DeleteMultiNote`,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({Note: Note, UserAccount: UserAccount, Timestamp: Timestamp}),
             cache: false,
             async: true,
             processData: false,

@@ -23,14 +23,14 @@
 
 import * as React from 'react';
 import * as moment from 'moment';
-import PQDashboardService from './../../../../TS/Services/PQDashboard';
+import OpenSEEService from './../../../../TS/Services/OpenSEE';
 
-export default class EventSearchAssetVoltageDisturbances extends React.Component<{ eventId: number }, {tableRows: Array<JSX.Element> }>{
-    pqDashboardService: PQDashboardService;
+export default class EventSearchHistory extends React.Component<{ eventId: number }, {tableRows: Array<JSX.Element> }>{
+    openSEEService: OpenSEEService;
     constructor(props, context) {
         super(props, context);
 
-        this.pqDashboardService = new PQDashboardService();
+        this.openSEEService = new OpenSEEService();
 
         this.state = {
             tableRows: []
@@ -50,29 +50,32 @@ export default class EventSearchAssetVoltageDisturbances extends React.Component
 
 
     createTableRows(eventID: number) {
-        this.pqDashboardService.getEventSearchAsssetVoltageDisturbancesData(eventID).done(data => {
-            var rows = data.map((d,i) =>
-                <tr key={i}>
-                    <td>{d.EventType}</td>
-                    <td>{d.Phase}</td>
-                    <td>{d.PerUnitMagnitude.toFixed(3)}</td>
-                    <td>{d.DurationSeconds.toFixed(3)}</td>
-                    <td>{moment(d.StartTime).format('mm:ss.SSS')}</td>
-                </tr>)
+        this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(data => {
+            var rows = [];
 
-            this.setState({ tableRows: rows});
+            for (var index = 0; index < data.length; ++index) {
+                var row = data[index];
+                var background = 'default';
+
+                if (row.EventID == this.props.eventId)
+                    background = 'lightyellow';
+
+                rows.push(Row(row, background));
+            }
+
+            this.setState({ tableRows: rows });
         });
     }
 
     render() {
         return (
             <div className="card">
-                <div className="card-header">Voltage Disturbance in Waveform:</div>
+                <div className="card-header">Correlated Sags:</div>
 
                 <div className="card-body">
                     <table className="table">
                         <thead>
-                            <tr><th>Distrubance Type</th><th>Phase</th><th>Magnitude</th><th>Duration</th><th>Start Time</th></tr>
+                            <HeaderRow />
                         </thead>
                         <tbody>
                             {this.state.tableRows}
@@ -85,3 +88,34 @@ export default class EventSearchAssetVoltageDisturbances extends React.Component
         );
     }
 }
+
+const Row = (row, background) => {
+
+    return (
+        <tr style={{ background: background }} key={row.EventID}>
+            <td key={'EventID' + row.EventID}><a id="eventLink" href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
+            <td key={'EventType' + row.EventID}>{row.EventType}</td>
+            <td key={'SagMagnitude' + row.EventID}>{row.SagMagnitudePercent}%</td>
+            <td key={'SagDuration' + row.EventID}>{row.SagDurationMilliseconds} ms ({row.SagDurationCycles} cycles)</td>
+            <td key={'StartTime' + row.EventID}>{moment(row.StartTime).format('mm:ss.SSS')}</td>
+            <td key={'MeterName' + row.EventID}>{row.MeterName}</td>
+            <td key={'LineName' + row.EventID}>{row.LineName}</td>
+        </tr>
+    );
+}
+
+const HeaderRow = () => {
+    return (
+        <tr key='Header'>
+            <th key='EventID'>Event ID</th>
+            <th key='EventType'>Event Type</th>
+            <th key='SagMagnitude'>Magnitude</th>
+            <th key='SagDuration'>Duration</th>
+            <th key='StartTime'>Start Time</th>
+            <th key='MeterName'>Meter Name</th>
+            <th key='LineName'>Line Name</th>
+        </tr>
+    );
+}
+
+

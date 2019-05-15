@@ -70,7 +70,7 @@ export default class EventSearchHistory extends React.Component<{ eventId: numbe
                 <div className="card-body">
                     <table className="table">
                         <thead>
-                            <tr><td>Event Type</td><td>Date</td><td></td></tr>
+                            <tr><th>Event Type</th><th>Date</th><th></th></tr>
                         </thead>
                         <tbody>
                             {this.state.tableRows}

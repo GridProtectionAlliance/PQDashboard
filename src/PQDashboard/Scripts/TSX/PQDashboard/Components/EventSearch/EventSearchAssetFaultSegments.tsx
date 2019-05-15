@@ -71,7 +71,7 @@ export default class EventSearchFaultSegments extends React.Component<{ eventId:
                 <div className="card-body">
                     <table className="table">
                         <thead>
-                            <tr><td>Evolution</td><td>Inception</td><td>End</td></tr>
+                            <tr><th>Evolution</th><th>Inception</th><th>End</th></tr>
                         </thead>
                         <tbody>
                             {this.state.tableRows}

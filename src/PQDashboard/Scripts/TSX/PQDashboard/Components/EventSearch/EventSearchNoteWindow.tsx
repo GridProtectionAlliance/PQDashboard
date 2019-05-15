@@ -71,7 +71,7 @@ function EventSearchNoteWindow(props: { eventId: number }): JSX.Element {
             <div className="card-body">
                 <table className="table">
                     <thead>
-                        <tr><td style={{ width: '50%' }}>Note</td><td>Time</td><td>User</td><td></td></tr>
+                        <tr><th style={{ width: '50%' }}>Note</th><th>Time</th><th>User</th><th></th></tr>
                     </thead>
                     <tbody>
                         {tableRows}
