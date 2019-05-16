@@ -3222,6 +3222,7 @@ namespace OpenSEE.Controller
             Dictionary<string, string> query = Request.QueryParameters();
             int eventID = int.Parse(query["eventId"]);
 
+            if (eventID <= 0) return new DataTable();
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 double timeTolerance = connection.ExecuteScalar<double>("SELECT Value FROM Setting WHERE Name = 'TimeTolerance'");

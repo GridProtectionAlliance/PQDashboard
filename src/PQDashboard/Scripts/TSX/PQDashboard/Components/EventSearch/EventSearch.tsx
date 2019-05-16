@@ -73,8 +73,8 @@ export default class EventSearch extends React.Component<IProps, IState>{
                 breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
                 transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
                 others: (query['others'] != undefined ? query['others'] == 'true' : true),
-                date: (query['date'] != undefined ? query['date'] : moment.utc().format(momentDateFormat)),
-                time: (query['time'] != undefined ? query['time'] : moment.utc().format(momentTimeFormat)),
+                date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
+                time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
                 windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
                 timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
                 stateSetter: this.stateSetter.bind(this),
@@ -107,7 +107,7 @@ export default class EventSearch extends React.Component<IProps, IState>{
                         <div style={{ width: 120, float: 'right', padding: 10 }}>
                             <EventSearchListedEventsNoteWindow searchList={this.state.searchList}/>
                         </div>
-                        <EventSearchList eventid={this.state.eventid} searchText={this.state.searchText} stateSetter={this.state.searchBarProps.stateSetter} />
+                        <EventSearchList eventid={this.state.eventid} searchText={this.state.searchText} searchBarProps={this.state.searchBarProps} stateSetter={this.state.searchBarProps.stateSetter} />
                     </div>
                     <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' }}>
                         <EventPreviewPane eventid={this.state.eventid} />

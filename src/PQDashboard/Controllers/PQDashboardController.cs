@@ -123,17 +123,94 @@ namespace PQDashboard.Controllers
         #endregion
 
         #region [ Event Search Page ]
-        [HttpGet]
-        public DataTable GetEventSearchData()
+
+        public class EventSearchPostData {
+            public bool dfr { get; set; }
+            public bool pqMeter { get; set; }
+            public bool g500 { get; set; }
+            public bool one62to500 { get; set; }
+            public bool seventyTo161 { get; set; }
+            public bool l70 { get; set; }
+            public bool faults { get; set; }
+            public bool sags { get; set; }
+            public bool swells { get; set; }
+            public bool interruptions { get; set; }
+            public bool breakerOps { get; set; }
+            public bool transients { get; set; }
+            public bool others { get; set; }
+            public string date { get; set; }
+            public string time { get; set; }
+            public int windowSize { get; set; }
+            public int timeWindowUnits { get; set; }
+
+        }
+
+        enum TimeWindowUnits {
+            Millisecond,
+            Second,
+            Minute,
+            Hour,
+            Day,
+            Week,
+            Month,
+            Year
+        }
+
+        [HttpPost]
+        public DataTable GetEventSearchData(EventSearchPostData postData)
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                Dictionary<string, string> query = Request.QueryParameters();
-                //int numberOfResults = int.Parse(query["numresults"]);
-                //string column = query["column"];
+                DateTime dateTime = DateTime.ParseExact(postData.date + " " + postData.time, "MM/dd/yyyy HH:mm:ss.fff", new CultureInfo("en-US"));
+                string timeWindowUnits = ((TimeWindowUnits)postData.timeWindowUnits).GetDescription();
+                List<string> eventTypes = new List<string>();
 
-                DataTable table = connection.RetrieveData( @" 
-                    DECLARE @startTime DateTime2 = GetDate();
+                if (postData.faults)
+                    eventTypes.Add(" (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) = 0) ");
+                if (postData.breakerOps)
+                    eventTypes.Add(" (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) > 0) ");
+                if (postData.sags)
+                    eventTypes.Add("EventType.Name  = 'Sag'");
+                if (postData.swells)
+                    eventTypes.Add("EventType.Name  = 'Swell'");
+                if (postData.interruptions)
+                    eventTypes.Add("EventType.Name  = 'Interruption'");
+                if (postData.transients)
+                    eventTypes.Add("EventType.Name  = 'Transient'");
+                if (postData.others)
+                    eventTypes.Add("EventType.Name  = 'Other'");
+                if (!eventTypes.Any())
+                    eventTypes.Add("EventType.Name  = ''");
+
+                string eventTypeRestriction = $"({string.Join(" OR ", eventTypes)})";
+
+                List<string> voltageClasses = new List<string>();
+
+                if (postData.g500)
+                    voltageClasses.Add(" Line.VoltageKV > 500 ");
+                if (postData.one62to500)
+                    voltageClasses.Add(" (Line.VoltageKV > 161 AND Line.VoltageKV <= 500) ");
+                if (postData.seventyTo161)
+                    voltageClasses.Add(" (Line.VoltageKV >= 70 AND Line.VoltageKV <= 161) ");
+                if (postData.l70)
+                    voltageClasses.Add(" Line.VoltageKV < 70 ");
+                if (!voltageClasses.Any())
+                    voltageClasses.Add(" Line.VoltageKV = -1234567 ");
+
+                string voltageClassRestriction = $"({string.Join(" OR ", voltageClasses)})";
+
+                List<string> meterType = new List<string>();
+
+                if (postData.dfr)
+                    meterType.Add(" (SELECT COUNT(LineID) FROM MeterLine as ml WHERE event.MeterID = ml.MeterID) > 1 ");
+                if (postData.pqMeter)
+                    meterType.Add(" (SELECT COUNT(LineID) FROM MeterLine as ml WHERE event.MeterID = ml.MeterID) = 1 ");
+                if (!meterType.Any())
+                    meterType.Add(" (SELECT COUNT(LineID) FROM MeterLine as ml WHERE event.MeterID = ml.MeterID) < 1 ");
+
+                string meterTypeRestriction = $"({string.Join(" OR ", meterType)})";
+
+                string query = @" 
 
                     SELECT
                         Event.ID as EventID,
@@ -147,10 +224,18 @@ namespace PQDashboard.Controllers
 	                    Event JOIN
 	                    MeterLine ON Event.MeterID = MeterLine.MeterID AND Event.LineID = MeterLine.LineID JOIN
 	                    EventType ON Event.EventTypeID = EventType.ID JOIN
-	                    Line ON Event.LineID = Line.ID ", ""
-                    ) ;
+	                    Line ON Event.LineID = Line.ID
+                    WHERE
+                        Event.StartTime BETWEEN DATEADD(" + timeWindowUnits + @", " + (-1*postData.windowSize).ToString() + @", {0}) AND
+                                                DATEADD(" + timeWindowUnits + @", " + (postData.windowSize).ToString() + @", {0}) AND
+                    " + eventTypeRestriction + @" AND
+                    " + voltageClassRestriction + @" AND
+                    " + meterTypeRestriction + @"
+                ";
 
-                    return table;               
+                DataTable table = connection.RetrieveData(query, dateTime) ;
+
+                return table;               
             }
 
         }

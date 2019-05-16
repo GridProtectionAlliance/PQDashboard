@@ -54,14 +54,15 @@ export default class PQDashboardService {
         return this.mostActiveMeterHandle;
     }
 
-    getEventSearchData(): JQuery.jqXHR {
+    getEventSearchData(params): JQuery.jqXHR {
         if (this.eventSearchHandle !== undefined)
             this.eventSearchHandle.abort();
 
         this.eventSearchHandle = $.ajax({
-            type: "GET",
+            type: "POST",
             url: `${homePath}api/PQDashboard/GetEventSearchData`,
             contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(params),
             dataType: 'json',
             cache: true,
             async: true

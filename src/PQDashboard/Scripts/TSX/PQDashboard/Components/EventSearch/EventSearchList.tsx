@@ -26,10 +26,12 @@ import * as ReactDOM from 'react-dom';
 
 import Table from './../Table';
 import PQDashboardService from './../../../../TS/Services/PQDashboard';
-import { orderBy, filter } from 'lodash';
+import { orderBy, filter, clone, isEqual } from 'lodash';
 import * as moment from 'moment';
+import { EventSearchNavbarProps } from './EventSearchNavbar';
 
-export default class EventSearchList extends React.Component<{ eventid: number, searchText: string, stateSetter(obj): void }, { sortField: string, ascending: boolean, data: Array<any> }> {
+interface IProps { eventid: number, searchText: string, stateSetter(obj): void, searchBarProps: EventSearchNavbarProps }
+export default class EventSearchList extends React.Component<IProps, { sortField: string, ascending: boolean, data: Array<any> }> {
     pqDashboardService: PQDashboardService;
     constructor(props, context) {
         super(props, context);
@@ -53,8 +55,14 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
         document.removeEventListener("keydown", this.handleKeyPress, false);
     }
 
-    componentWillReceiveProps(nextProps) {
-        if(this.props.searchText != nextProps.searchText)
+    componentWillReceiveProps(nextProps: IProps) {
+        var props = clone(this.props.searchBarProps);
+        var nextPropsClone = clone(nextProps.searchBarProps);
+
+        delete props.stateSetter;
+        delete nextPropsClone.stateSetter;
+
+        if(this.props.searchText != nextProps.searchText || !isEqual(props, nextPropsClone))
             this.getData(nextProps);
     }
 
@@ -115,7 +123,7 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
     }
 
     getData(props) {
-        this.pqDashboardService.getEventSearchData().done(results => {
+        this.pqDashboardService.getEventSearchData(props.searchBarProps).done(results => {
             var filtered = filter(results, obj => {
                 return obj.AssetName.toLowerCase().indexOf(props.searchText) >= 0 ||
                     obj.AssetType.toLowerCase().indexOf(props.searchText) >= 0 ||
@@ -128,7 +136,9 @@ export default class EventSearchList extends React.Component<{ eventid: number, 
             var ordered = orderBy(filtered, ["FileStartTime"], ["desc"]);
             this.setState({ data: ordered });
             this.props.stateSetter({ searchList: ordered });
-            this.setScrollBar();
+
+            if (results.length !== 0)
+                this.setScrollBar();
         });
     }
 

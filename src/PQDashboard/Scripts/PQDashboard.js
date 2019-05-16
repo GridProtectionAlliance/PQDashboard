@@ -24257,13 +24257,14 @@ var PQDashboardService = (function () {
         });
         return this.mostActiveMeterHandle;
     };
-    PQDashboardService.prototype.getEventSearchData = function () {
+    PQDashboardService.prototype.getEventSearchData = function (params) {
         if (this.eventSearchHandle !== undefined)
             this.eventSearchHandle.abort();
         this.eventSearchHandle = $.ajax({
-            type: "GET",
+            type: "POST",
             url: homePath + "api/PQDashboard/GetEventSearchData",
             contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(params),
             dataType: 'json',
             cache: true,
             async: true
@@ -24444,8 +24445,8 @@ var EventSearch = (function (_super) {
                 breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
                 transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
                 others: (query['others'] != undefined ? query['others'] == 'true' : true),
-                date: (query['date'] != undefined ? query['date'] : moment.utc().format(momentDateFormat)),
-                time: (query['time'] != undefined ? query['time'] : moment.utc().format(momentTimeFormat)),
+                date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
+                time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
                 windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
                 timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
                 stateSetter: _this.stateSetter.bind(_this),
@@ -24472,7 +24473,7 @@ var EventSearch = (function (_super) {
                         React.createElement("input", { className: 'form-control', type: 'text', placeholder: 'Search...', value: this.state.searchText, onChange: function (evt) { return _this.setState({ searchText: evt.target.value }); } })),
                     React.createElement("div", { style: { width: 120, float: 'right', padding: 10 } },
                         React.createElement(EventSearchListedEventsNoteWindow_1.default, { searchList: this.state.searchList })),
-                    React.createElement(EventSearchList_1.default, { eventid: this.state.eventid, searchText: this.state.searchText, stateSetter: this.state.searchBarProps.stateSetter })),
+                    React.createElement(EventSearchList_1.default, { eventid: this.state.eventid, searchText: this.state.searchText, searchBarProps: this.state.searchBarProps, stateSetter: this.state.searchBarProps.stateSetter })),
                 React.createElement("div", { style: { width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' } },
                     React.createElement(EventSearchPreviewPane_1.default, { eventid: this.state.eventid })))));
     };
@@ -24897,7 +24898,11 @@ var EventSearchList = (function (_super) {
         document.removeEventListener("keydown", this.handleKeyPress, false);
     };
     EventSearchList.prototype.componentWillReceiveProps = function (nextProps) {
-        if (this.props.searchText != nextProps.searchText)
+        var props = lodash_1.clone(this.props.searchBarProps);
+        var nextPropsClone = lodash_1.clone(nextProps.searchBarProps);
+        delete props.stateSetter;
+        delete nextPropsClone.stateSetter;
+        if (this.props.searchText != nextProps.searchText || !lodash_1.isEqual(props, nextPropsClone))
             this.getData(nextProps);
     };
     EventSearchList.prototype.handleKeyPress = function (event) {
@@ -24939,7 +24944,7 @@ var EventSearchList = (function (_super) {
     };
     EventSearchList.prototype.getData = function (props) {
         var _this = this;
-        this.pqDashboardService.getEventSearchData().done(function (results) {
+        this.pqDashboardService.getEventSearchData(props.searchBarProps).done(function (results) {
             var filtered = lodash_1.filter(results, function (obj) {
                 return obj.AssetName.toLowerCase().indexOf(props.searchText) >= 0 ||
                     obj.AssetType.toLowerCase().indexOf(props.searchText) >= 0 ||
@@ -24951,7 +24956,8 @@ var EventSearchList = (function (_super) {
             var ordered = lodash_1.orderBy(filtered, ["FileStartTime"], ["desc"]);
             _this.setState({ data: ordered });
             _this.props.stateSetter({ searchList: ordered });
-            _this.setScrollBar();
+            if (results.length !== 0)
+                _this.setScrollBar();
         });
     };
     EventSearchList.prototype.render = function () {
@@ -25577,6 +25583,8 @@ var EventPreviewPane = (function (_super) {
         });
     };
     EventPreviewPane.prototype.render = function () {
+        if (this.props.eventid == -1)
+            return React.createElement("div", null);
         return (React.createElement("div", null,
             React.createElement("div", { className: "card" },
                 React.createElement("div", { className: "card-header" },

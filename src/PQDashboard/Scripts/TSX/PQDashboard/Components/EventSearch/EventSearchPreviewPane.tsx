@@ -192,6 +192,8 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
 
     }
     render() {
+        if (this.props.eventid == -1) return <div></div>;
+
         return (
             <div>
                 <div className="card">
