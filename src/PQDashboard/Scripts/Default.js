@@ -146,6 +146,13 @@ var cache_Last_Date = null;
 var cache_Meter_Filter = null;
 var cache_MagDur_Data = null;
 
+var urlParams = new URLSearchParams(window.location.search);
+
+function updateUrlParams(param, value) {
+    urlParams.set(param, value.toLowerCase());
+    history.pushState(null, null, "?" + urlParams.toString());
+}
+
 var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
 var markerGroup = null;
 var contourLayer = null;
@@ -293,6 +300,8 @@ function setGlobalContext(leftToRight) {
         if (contexts.indexOf(globalContext) > 0)
             globalContext = contexts[contexts.indexOf(globalContext) - 1];
     }
+
+    updateUrlParams('context', globalContext);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1343,6 +1352,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                     .attr("y1", y)
                     .attr("y2", y);
 
+        // Step out and next and back buttons within bar chart
         if (context != "custom" && tabsForDigIn.indexOf(currentTab) >= 0) {
             var btnBar = d3.select("#" + thediv).append("div")
                 .attr("id", "btnBar")
@@ -1474,6 +1484,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             
             manageTabsByDateForClicks(currentTab, thedate, thedate, filter);
             cache_Last_Date = thedate;
+            updateUrlParams('contextDate', thedate);
         });
 
         buildLegend();
@@ -1758,6 +1769,7 @@ function moveGraphBackward() {
     cache_Map_Matrix_Data_Date_From = contextfromdate;
     cache_Map_Matrix_Data_Date_To = contexttodate;
 
+
     if (contextfromdate === contexttodate) {
         cache_Last_Date = contexttodate;
     }
@@ -1767,6 +1779,7 @@ function moveGraphBackward() {
         cache_Sparkline_Data = null;
     }
 
+    updateUrlParams('contextDate', contextfromdate);
     setMapHeaderDate(contextfromdate, contexttodate);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
 }
@@ -1802,6 +1815,7 @@ function moveGraphForward() {
         cache_Sparkline_Data = null;
     }
 
+    updateUrlParams('contextDate', contextfromdate);
     setMapHeaderDate(contextfromdate, contexttodate);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
 }
@@ -3257,6 +3271,9 @@ function initializeDatePickers(datafromdate , datatodate) {
     dateRangeOptions.endDate = moment(datatodate).utc();
 
     $('#dateRange').daterangepicker(dateRangeOptions, function (start, end, label) {
+        updateUrlParams('startDate', start.format('MM/DD/YYYY'));
+        updateUrlParams('endDate', end.format('MM/DD/YYYY'));
+
         $('#dateRangeSpan').html(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
         
         // Move global context back to custom range
@@ -3281,6 +3298,8 @@ function moveDateBackward() {
 
     $('#dateRange').data('daterangepicker').setEndDate(startDate);
     $('#dateRange').data('daterangepicker').setStartDate(startDate.subtract(duration.asDays() - 1, 'days'));
+    updateUrlParams('startDate', $('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY'));
+    updateUrlParams('endDate', $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
 
     $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
     $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
@@ -3299,6 +3318,8 @@ function moveDateForward() {
     $('#dateRange').data('daterangepicker').setStartDate(endDate);
     $('#dateRange').data('daterangepicker').setEndDate(endDate.add(duration.asDays() - 1, 'days'));
     $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
+    updateUrlParams('startDate', $('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY'));
+    updateUrlParams('endDate', $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
 
     $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
     loadDataForDate();
@@ -3601,6 +3622,9 @@ function buildPage() {
 
         activate: function (event, ui) {
             var newTab = currentTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
+
+            updateUrlParams('tab', newTab);
+
             if (newTab.indexOf("Overview") > -1) {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
@@ -3633,23 +3657,54 @@ function buildPage() {
 
     loadsitedropdown();
 
-    currentTab = defaultView.Tab;
+    currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
+    globalContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
 
-
-    if (defaultView.DateRange < 0) {
+    if (urlParams.get('startDate') != null) {
+        datafromdate = urlParams.get('startDate');
+        datatodate = urlParams.get('endDate');
+    }
+    else if (defaultView.DateRange < 0) {
         datafromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
         datatodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
-        contextfromdate = moment(defaultView.FromDate).utc().format('MM/DD/YYYY');
-        contexttodate = moment(defaultView.ToDate).utc().format('MM/DD/YYYY');
-
     }
     else {
         datafromdate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][0]).utc().format('MM/DD/YYYY');
         datatodate = moment(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[defaultView.DateRange]][1]).utc().format('MM/DD/YYYY');
+    }
+
+    var contextDate = urlParams.get('contextDate');
+    if (globalContext == "custom") {
+        contextfromdate = datafromdate;
+        contexttodate = datatodate;
+    }
+    else if (contextDate == null) {
+        globalContext = "custom"
         contextfromdate = datafromdate;
         contexttodate = datatodate;
 
     }
+    else if (globalContext == "day") {
+        contextfromdate = moment(contextDate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        contexttodate = moment(contextDate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else if (globalContext == "hour") {
+        contextfromdate = moment(contextDate).utc().startOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        contexttodate = moment(contextDate).utc().endOf('hour').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else if (globalContext == "minute") {
+        contextfromdate = moment(contextDate).utc().startOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        contexttodate = moment(contextDate).utc().endOf('minute').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else if (globalContext == "second") {
+        contextfromdate = moment(contextDate).utc().startOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        contexttodate = moment(contextDate).utc().endOf('second').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+    }
+    else {
+        contextfromdate = moment(contextDate).utc();
+        contexttodate = moment(contextDate).utc();
+    }
+
 
 
     initializeDatePickers(datafromdate, datatodate);
@@ -3679,7 +3734,7 @@ function buildPage() {
         $('#headerStrip').show();
 
         $(window).one("meterSelectUpdated", function () {
-            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text(); }).get()).indexOf(currentTab));
+            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
             selectmapgrid($("#map" + currentTab + "Grid")[0]);
             resizeMapAndMatrix(currentTab);
         });

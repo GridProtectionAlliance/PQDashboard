@@ -105,6 +105,9 @@
         var defaultView = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(defaultView))');
         var userName = '@ViewBag.username';
     </script>
+    @if (Request.Browser.Browser == "InternetExplorer") {
+        <script src="~/Scripts/default.polyfill.min.js"></script>
+    }
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")
     @Scripts.Render("~/Scripts/random")
