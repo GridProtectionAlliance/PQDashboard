@@ -412,9 +412,8 @@ function selectsitesincharts() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(thedatasource, thediv, siteID, theDate) {
-    dataHub.getDetailsForSites(siteID, theDate, userId, currentTab, $('#contourColorScaleSelect').val(), globalContext).done(function (data) {
-        var json = $.parseJSON(data)
-        cache_Table_Data = json;
+    $.post(homePath + 'api/PQDashboard/GetDetailsForSites', { siteId: siteID, targetDate: theDate, userName: userId, tab: currentTab, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
+        cache_Table_Data = data;
 
         var filterString = [];
         var leg = d3.selectAll('.legend');
@@ -489,18 +488,15 @@ function populateFaultsDivWithGrid(data) {
     }
 }
 
-function openResultsModal(row){
-
-}
-
 function openNoteModal(eventId) {
     $('#previousNotes').remove();
-    dataHub.getNotesForEvent(eventId).done(function (data) {
+
+    $.get(homePath + 'api/PQDashboard/GetNotesForEvent?id=' + eventId, function (data) {
         $('#faultId').text(eventId);
         if (data.length > 0)
             $('#previousNotesDiv').append('<table id="previousNotes" class="table" ><tr><th style="width: 70%">Note</th><th style="width: 20%">Time</th><th style="width: 10%"></th></tr></table>')
         $.each(data, function (i, d) {
-            $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note'+d.ID+'">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td><button onclick="editNote(' + d.ID +')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
+            $('#previousNotes').append('<tr id="row' + d.ID + '"><td id="note' + d.ID + '">' + d.Note + '</td><td>' + moment(d.TimeStamp).format("MM/DD/YYYY HH:mm:ss") + '</td><td><button onclick="editNote(' + d.ID + ')"><span class="glyphicon glyphicon-pencil" title="Edit this note.  Ensure you save after pushing this button or you will lose your note."></span></button><button onclick="removeNote(' + d.ID + ')"><span class="glyphicon glyphicon-remove" title="Remove this note"></span></button></td></tr>');
         });
 
         $('#note').val('');
@@ -509,17 +505,19 @@ function openNoteModal(eventId) {
 }
 
 function saveNote() {
-    dataHub.saveNoteForEvent($('#faultId').text(), $('#note').val(), userName);
+    $.post(homePath + 'api/PQDashboard/SaveNoteForEvent', { id: $('#faultId').text(), note: $('#note').val(), userId: userName }, function () {
+        openNoteModal($('#faultId').text())
+    });
 }
 
 function removeNote(id) {
-    dataHub.removeEventNote(id);
+    $.post(homePath + 'api/PQDashboard/RemoveEventNote', { id: id, note: '', userId: userName });
     $('#row' +id).remove()
 }
 
 function editNote(id) {
     $('#note').val($('#note' + id).text());
-    dataHub.removeEventNote(id);
+    $.post(homePath + 'api/PQDashboard/RemoveEventNote', { id: id, note: '', userId: userName });
 }
 
 function populateCorrectnessDivWithGrid(data) {
@@ -962,21 +960,20 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
 
-    
-    window.dataHub['getDataForPeriod'](siteID, thedatefrom, thedateto, postedUserName, currentTab, context).done(function (data) {
+    $.post(homePath + "api/PQDashboard/GetDataForPeriod", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: postedUserName, tab: currentTab, context: context}, function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
 
-            var dates = $.map(data.Types[0].Data, function (d) { return d.Item1 });
+            var dates = $.map(data.Types[0].Data, function (d) { return d.m_Item1 });
 
             $.each(dates, function (i, date) {
                 var obj = {};
                 var total = 0;
                 obj["Date"] = Date.parse(date);
                 $.each(data.Types, function (j, type) {
-                    obj[type.Name] = type.Data[i].Item2;
-                    total += type.Data[i].Item2;
+                    obj[type.Name] = type.Data[i].m_Item2;
+                    total += type.Data[i].m_Item2;
                 });
                 obj["Total"] = total;
                 graphData.graphData.push(obj);
@@ -998,13 +995,15 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
             } else
                 buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate, context);
         }
+
     });
+    
 
     if (currentTab == "Disturbances") {
-        dataHub.getVoltageMagnitudeData(siteID, thedatefrom, thedateto, context).done(function (data) {
+        $.post(homePath + "api/PQDashboard/GetVoltageMagnitudeData", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
             cache_MagDur_Data = data;
             buildMagDurChart(data, thediv + "MagDur")
-        })
+        });
     }
     
 }
@@ -1832,8 +1831,8 @@ function deepCopy(o) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-function populateDivWithErrorBarChart(thedatasource, thediv,  siteID, thedatefrom, thedateto) {
-    dataHub.getTrendingDataForPeriod(siteID, $('#contourColorScaleSelect').val(), thedatefrom, thedateto, postedUserName).done(function (data) {
+function populateDivWithErrorBarChart(thedatasource, thediv, siteID, thedatefrom, thedateto) {
+    $.post(homePath + 'api/PQDashboard/GetTrendingDataForPeriod', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: postedUserName }, function (data) {
         cache_ErrorBar_Data = data;
         buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
     }).fail(function (msg) {
@@ -2044,7 +2043,7 @@ function buildMagDurChart(data, thediv) {
         yaxis: { side: 'left', overlaying: 'y', anchor: 'x', title: 'Voltage Magnitude(% of Nominal)'/*, range: [0, 150]*/ },
     };
 
-    dataHub.getCurves().done(function (curves) {
+    $.get(homePath + 'api/PQDashboard/GetCurves',function (curves) {
 
         var curveIds = [];
         $.each(curves, function (index, points) {
@@ -2101,27 +2100,24 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     }
 
     if (currentTab != 'TrendingData') {
-        dataHub.getMeterLocations(datefrom, dateto, meterList.selectedIdsString(), currentTab, userId, globalContext).done(function (data) {
-            data.JSON = JSON.parse(data.Data);
+        $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext}, function (data) {
+            data.JSON = data.Data;
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
             plotMapLocations(data, currentTab, datefrom, dateto);
             plotGridLocations(data, currentTab, datefrom, dateto, string);
-        }).fail(function (msg) {
-            alert(msg);
+
         });
     }
     else {
-        dataHub.getLocationsTrendingData(thedatasent.contourQuery).done(function (data) {
+        $.post(homePath + 'api/PQDashboard/GetLocationsTrendingData', thedatasent.contourQuery, function (data) {
             cache_Map_Matrix_Data_Date_From = data.DateFrom;
             cache_Map_Matrix_Data_Date_To = data.DateTo;
             cache_Map_Matrix_Data = data;
             data.JSON = data.Locations;
             plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
             plotGridLocations(data, currentTab, data.DateFrom, data.DateTo, string);
-        }).fail(function (msg) {
-            alert(msg);
         });
     }
 }
@@ -2927,8 +2923,8 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 
 function showHeatmap(thecontrol) {
     if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        dataHub.getLocationsHeatmap(contextfromdate, contexttodate, meterList.selectedIdsString(), $(thecontrol).val()).done(function (data) {
-            data.JSON = JSON.parse(data.Data);
+        $.post(homePath + 'api/PQDashboard/GetLocationHeatmap', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), type: $(thecontrol).val() }, function (data) {
+            data.JSON = data.Data;
             LoadHeatmapLeaflet(data);
         });
     }
@@ -2937,8 +2933,8 @@ function showHeatmap(thecontrol) {
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
             if (currentTab != "TrendingData") {
-                dataHub.getMeterLocations(contextfromdate, contexttodate, meterList.selectedIdsString(), currentTab, userId).done(function (data) {
-                    data.JSON = JSON.parse(data.Data);
+                $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext }, function (data) {
+                    data.JSON = data.Data;
                     LoadHeatmapLeaflet(data);
                 });
             }
@@ -3348,12 +3344,14 @@ function showContent() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getMeters(meterGroup) {
-    if (meterGroup == "ClickEvent") {
-        $(window).trigger("meterSelectUpdated");
-        return;
-    }
+    //if (meterGroup == "ClickEvent") {
+    //    $(window).trigger("meterSelectUpdated");
+    //    return;
+    //}
 
-    dataHub.getMeters(meterGroup, postedUserName).done(function (data) {
+    updateUrlParams('assetGroup', meterGroup);
+
+    $.post(homePath + 'api/PQDashboard/GetMeters', { deviceFilter: meterGroup, userName: postedUserName }, function (data) {
 
         data.sort(function (a, b) {
             if (a.Name.toLowerCase() < b.Name.toLowerCase()) return -1;
@@ -3394,7 +3392,7 @@ function getMeters(meterGroup) {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectMeterGroup(thecontrol) {
-    mg = $('#deviceFilterList').val();
+    mg = $('#meterGroupSelect').val();
 
     getMeters(mg);
 
@@ -3456,9 +3454,7 @@ $(document).ready(function () {
         }
     });
 
-    $(window).on('hubConnected', function () {
-        showContent();
-    })
+    showContent();
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3504,7 +3500,7 @@ function buildPage() {
 
     $(document).ajaxStart(function () {
         timeout = setTimeout(function () {
-            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="' + homePath + '/Images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
+            $.blockUI({ message: '<div unselectable="on" class="wait_container"><img alt="" src="' + homePath + 'Images/ajax-loader.gif" /><br><div unselectable="on" class="wait">Please Wait. Loading...</div></div>' });
         }, 1000);
     });
 
@@ -3659,6 +3655,7 @@ function buildPage() {
 
     currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
     globalContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
+    var assetGroup = (urlParams.get('assetGroup') != null ? urlParams.get('assetGroup') : mg.toString());
 
     if (urlParams.get('startDate') != null) {
         datafromdate = urlParams.get('startDate');
@@ -3710,7 +3707,7 @@ function buildPage() {
     initializeDatePickers(datafromdate, datatodate);
     initiateTimeRangeSlider();
     initiateColorScale();
-    getMeters(defaultView.DeviceFilterID);
+    getMeters(assetGroup);
 
     if (currentTab.indexOf("Overview") > -1) {
         $('#headerStrip').hide();
@@ -4340,202 +4337,4 @@ function showMagDur(theControl) {
         $(window).trigger('resize');
     }
 }
-
-function showDeviceFilter(word) {
-    if (word == 'new') {
-        $('#deviceFilterId').text('');
-        $('#deviceFilterName').val('');
-        $('#filterExpression').val('');
-        $('#deviceFilterMeterGroup').val(0);
-
-        $('#deviceFilterModal').modal().show();
-        $('#showDeviceFilterSaveBtn').show();
-        $('#showDeviceFilterEditBtn').hide();
-        $('#showDeviceFilterDeleteBtn').hide();
-    }
-    else if (word == 'edit' && $('#deviceFilterList').val() != 0) {
-        dataHub.queryDeviceFilterRecord($('#deviceFilterList').val()).done(function (data) {
-            $('#deviceFilterId').text(data.ID);
-            $('#deviceFilterName').val(data.Name);
-            $('#filterExpression').val(data.FilterExpression);
-            $('#deviceFilterMeterGroup').val(data.MeterGroupID);
-
-            $('#deviceFilterModal').modal().show();
-            $('#showDeviceFilterSaveBtn').hide();
-            $('#showDeviceFilterEditBtn').show();
-            $('#showDeviceFilterDeleteBtn').show();
-        });
-    }
-}
-
-function saveDeviceFilter(word) {
-    if (word == 'new') {
-        var record = {
-            Name: $('#deviceFilterName').val(),
-            UserAccount: postedUserName,
-            FilterExpression: $('#filterExpression').val(),
-            MeterGroupID: $('#deviceFilterMeterGroup').val()
-        }
-
-        dataHub.addDeviceFilter(record).done(function (data) {
-            $('#deviceFilterList').append(new Option(record.Name, data));
-        });
-
-    }
-    else if (word == 'edit') {
-        var record = {
-            ID: $('#deviceFilterId').text(),
-            Name: $('#deviceFilterName').val(),
-            UserAccount: postedUserName,
-            FilterExpression: $('#filterExpression').val(),
-            MeterGroupID: $('#deviceFilterMeterGroup').val()
-        }
-
-        dataHub.editDeviceFilter(record).done(function (data) {
-            $('#deviceFilterList').children().filter('option[value=' + record.ID + ']').remove();
-            $('#deviceFilterList').append(new Option(record.Name, record.ID));
-        });
-
-
-    }
-    else if (word == 'delete') {
-        dataHub.deleteDeviceFilter($('#deviceFilterId').text()).done(function () {
-            $('#deviceFilterList').children().filter('option[value=' + $('#deviceFilterId').text() + ']').remove();
-        });
-    }
-}
-
-function previewDeviceFilter() {
-    dataHub.deviceFilterPreview($('#deviceFilterMeterGroup').val(), $('#filterExpression').val(), postedUserName).done(function (data) {
-        var html = "<div>Total: "+ data.length +"<ul style='height: 300px; overflow-y:scroll'>";
-        $.each(data, function (i, d) {
-            html += "<li>"+ d.Name +"</li>";
-        });
-        html += "</ul></div>"
-        var myPanel = $.jsPanel({
-            headerTitle: "Preview Meter List",
-            content: html,
-            contentSize: {
-                width: 300,
-                height: 300
-            },
-            callback: function (panel) {
-                panel.css('z-index', '2000')
-            }
-        });
-    });
-}
-
-function useSelectedMeters() {
-    $('#deviceFilterMeterGroup').val(0)
-    $('#filterExpression').val('ID IN (' + meterList.selectedIdsString() + ')');
-}
-
-function saveView() {
-    $.jsPanel({
-        paneltype: 'modal',
-        headerTitle: 'Save View',
-        theme: 'success',
-        show: 'animated fadeInDownBig',
-        content: '<label>View Name:</label><input type="text" id="viewName" class="form-control" maxlength="10" /><input id="isDefault" type="checkbox"/>Default<button class="btn btn-primary pull-right">Submit</button>',
-        callback: function (panel) {
-            $("input:first", this).focus();
-            $("button", this.content).click(function () {
-                if ($('#deviceFilterList').val() == 'ClickEvent') {
-                    var record = {
-                        Name: $('#viewName').val(),
-                        UserAccount: postedUserName,
-                        FilterExpression: 'ID IN (' + meterList.selectedIdsString() + ')',
-                        MeterGroupID: $('#deviceFilterMeterGroup').val()
-                    }
-
-                    r = {
-                        Name: $('#viewName').val(),
-                        UserAccount: postedUserName,
-                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
-                        FromDate: contextfromdate,
-                        ToDate: contexttodate,
-                        Tab: currentTab,
-                        DeviceFilterID: $('#deviceFilterList').val(),
-                        MapGrid: $('#map' + currentTab + 'Grid').val(),
-                        IsDefault: $('#isDefault').prop('checked')
-                    }
-
-
-                    dataHub.addDeviceFilter(record).done(function (data) {
-                        $('#deviceFilterList').append(new Option(record.Name, data));
-                        r.DeviceFilterID = data;
-                        dataHub.addSavedViews(r).done(function (d) {
-                            $('#viewSelect').append(new Option(r.Name, d));
-                            panel.close()
-                        });
-
-                    });
-
-
-                }
-                else {
-                    record = {
-                        Name: $('#viewName').val(),
-                        UserAccount: postedUserName,
-                        DateRange: Object.keys(dateRangeOptions.ranges).indexOf($('#dateRange').data('daterangepicker').chosenLabel),
-                        FromDate: contextfromdate,
-                        ToDate: contexttodate,
-                        Tab: currentTab,
-                        DeviceFilterID: $('#deviceFilterList').val(),
-                        MapGrid: $('#map' + currentTab + 'Grid').val(),
-                        IsDefault: $('#isDefault').prop('checked')
-                    }
-
-                    dataHub.addSavedViews(record).done(function (data) {
-                        $('#viewSelect').append(new Option(record.Name, data));
-                        panel.close()
-                    });
-                }
-
-            });
-        }
-    });
-}
-
-function deleteView() {
-    if ($('#viewSelect').val() != 0) {
-        dataHub.deleteSavedViews($('#viewSelect').val()).done(function () {
-            $('#viewSelect :selected').remove();
-        });
-    }
-
-}
-
-function selectView(theControl) {
-    if($(theControl).val() != 0){
-        dataHub.querySavedViewsRecord($(theControl).val()).done(function (record) {
-            $('#deviceFilterList').val(record.DeviceFilterID);
-            //selectMeterGroup(null);
-            //$($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
-            $('#map' + record.Tab + 'Grid').val(record.MapGrid);
-            selectmapgrid($('#map' + record.Tab + 'Grid')[0]);
-            contextfromdate = moment(record.FromDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
-            contexttodate = moment(record.ToDate).utc().startOf('day').format('YYYY-MM-DD') + "T00:00:00Z";
-            if (record.DateRange < 0) {
-                $('#dateRange').data('daterangepicker').setStartDate(moment(record.FromDate).utc().format('MM/DD/YYYY'));
-                $('#dateRange').data('daterangepicker').setEndDate(moment(record.ToDate).utc().format('MM/DD/YYYY'));
-                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-            }
-            else {
-                $('#dateRange').data('daterangepicker').setStartDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][0]);
-                $('#dateRange').data('daterangepicker').setEndDate(dateRangeOptions.ranges[Object.keys(dateRangeOptions.ranges)[record.DateRange]][1]);
-                $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-
-            }
-
-
-            if(record.Tab != currentTab)
-                $($('a.ui-tabs-anchor:contains("' + record.Tab + '")')).click();
-            else
-                loadDataForDate();
-        });
-    }
-}
-
 /// EOF

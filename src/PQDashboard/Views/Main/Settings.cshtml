@@ -338,7 +338,8 @@
         </div>
     </div>
 </div>
-
+<script src="~/Scripts/jquery.signalR.js"></script>
+<script src="~/signalr/hubs"></script>
 <script>
     var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
     var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));

@@ -25529,7 +25529,7 @@ var EventPreviewPane = (function (_super) {
             this.getData(this.props);
     };
     EventPreviewPane.prototype.componentWillReceiveProps = function (nextProps) {
-        if (this.props.eventid >= 0)
+        if (nextProps.eventid >= 0)
             this.getData(nextProps);
     };
     EventPreviewPane.prototype.getColor = function (label) {

@@ -33,7 +33,6 @@ namespace PQDashboard
             bundles.Add(new ScriptBundle("~/Scripts/jquery").Include(
                 "~/Scripts/jquery-3.3.1.js",
                 "~/Scripts/jquery-ui.js",
-                "~/Scripts/jquery.signalR.js",
                 "~/Scripts/jquery.blockUI.js",
                 "~/Scripts/jquery.sparkline.js",
                 "~/Scripts/jstorage.js",

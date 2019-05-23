@@ -129,7 +129,7 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
             this.getData(this.props);
     }
     componentWillReceiveProps(nextProps) {
-        if (this.props.eventid >= 0)
+        if (nextProps.eventid >= 0)
             this.getData(nextProps);
     }
 
