@@ -2170,8 +2170,12 @@ function populateGridMatrix(data, siteID, siteName, colors) {
                     }
                 }
             } else if (i == thisselectedindex) {
-                item.Selected = true;
-                return (false);
+                if (e.ctrlKey)
+                    item.Selected = !item.Selected;
+                else {
+                    item.Selected = true;
+                    return (false);
+                }
             }
         });
 
@@ -3344,10 +3348,6 @@ function showContent() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function getMeters(meterGroup) {
-    //if (meterGroup == "ClickEvent") {
-    //    $(window).trigger("meterSelectUpdated");
-    //    return;
-    //}
 
     updateUrlParams('assetGroup', meterGroup);
 
@@ -3656,6 +3656,7 @@ function buildPage() {
     currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
     globalContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
     var assetGroup = (urlParams.get('assetGroup') != null ? urlParams.get('assetGroup') : mg.toString());
+    $("#meterGroupSelect").val(assetGroup);
 
     if (urlParams.get('startDate') != null) {
         datafromdate = urlParams.get('startDate');
