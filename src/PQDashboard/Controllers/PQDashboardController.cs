@@ -1120,50 +1120,102 @@ namespace PQDashboard.Controllers
             public string userName { get; set; }
         }
 
-        [HttpPost]
-        public DataTable GetMeters(MetersForm form)
+
+        public class AssetGroupWithSubIDs: AssetGroup {
+            public List<int> SubID { get; set; }
+        }
+        public class GetMetersReturn
         {
+            public IEnumerable<Meter> Meters { get; set; }
+            public List<AssetGroupWithSubIDs> AssetGroups { get; set; }
+            public int? ParentAssetGroupID { get; set; }
+        }
+
+        [HttpPost]
+        public GetMetersReturn GetMeters(MetersForm form)
+        {
+            GetMetersReturn data = new GetMetersReturn();
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
-                return connection.RetrieveData("SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {0})", form.deviceFilter);
-                //AssetGroup df = new TableOperations<AssetGroup>(connection).QueryRecordWhere("ID = {0}", form.deviceFilter);
-                //DataTable table;
+                data.ParentAssetGroupID = connection.ExecuteScalar<int?>("SELECT TOP 1 ParentAssetGroupID FROM AssetGroupAssetGroup where ChildAssetGroupID = {0}", form.deviceFilter);
+                data.Meters = new TableOperations<Meter>(connection).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {0})", form.deviceFilter);
+                var assetGroups = new TableOperations<AssetGroup>(connection).QueryRecordsWhere("ID IN (SELECT ChildAssetGroupID FROM AssetGroupAssetGroup WHERE ParentAssetGroupID = {0})", form.deviceFilter);
 
-                //try
-                //{
-                //    string filterExpression = null;
-                //    if (df == null)
-                //    {
-                //        table = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = '{form.userName}')))");
-                //        return table;
-                //    }
+                data.AssetGroups = new List<AssetGroupWithSubIDs>();
+                foreach(var assetGroup in assetGroups)
+                {
+                    AssetGroupWithSubIDs record = new AssetGroupWithSubIDs() {
+                        ID = assetGroup.ID, Name = assetGroup.Name, SubID = new List<int>()
+                    };
 
-                //    if (df.AssetGroupID == 0)
-                //        table = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID = (SELECT ID FROM UserAccount WHERE Name = '{df.UserAccount}')))");
-                //    else
-                //        table = connection.Connection.RetrieveData(typeof(SqlDataAdapter), $"SELECT * FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {df.AssetGroupID})");
+                    DataTable tbl = connection.RetrieveData("SELECT ID FROM RecursiveMeterSearch({0})", assetGroup.ID);
 
-                //    if (df.FilterExpression != "")
-                //    {
-                //        DataRow[] rows = table.Select(df.FilterExpression);
-
-                //        if (rows.Length == 0)
-                //            return new DataTable();
-
-                //        return rows.CopyToDataTable();
-                //    }
-                //}
-                //catch (Exception)
-                //{
-                //    return new DataTable();
-                //}
-
-                //return table;
-
+                    record.SubID = tbl.Select().Select(x => int.Parse(x["ID"].ToString())).ToList();
+                    data.AssetGroups.Add(record);
+                }
+                return data;
             }
         }
 
 
+        #region [ Settings View ]
+        [HttpGet]
+        public void ResetDefaultSettings()
+        {
+            string user = UserInfo.UserNameToSID(User.Identity.Name);
+            using(DataContext dataContext = new DataContext("systemSettings"))
+            {
+                dataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", user));
+            }
+        }
 
+        public class UpdateDashSettingsForm {
+            public int ID { get; set; }
+            public string Name { get; set; }
+            public string Value { get; set; }
+            public bool Enabled { get; set; }
+            public string UserId { get; set; }
+        }
+        [HttpPost]
+        public void UpdateDashSettings(UpdateDashSettingsForm form)
+        {
+            using (DataContext dataContext = new DataContext("systemSettings")) {
+                TableOperations<DashSettings> dashSettingsTable = dataContext.Table<DashSettings>();
+                TableOperations<UserDashSettings> userDashSettingsTable = dataContext.Table<UserDashSettings>();
+
+                Guid userAccountID = dataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", form.UserId);
+                DashSettings globalSetting = dashSettingsTable.QueryRecordWhere("ID = {0}", form.ID);
+                UserDashSettings userSetting;
+
+                if (form.Name.StartsWith("System."))
+                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1}", userAccountID, form.Name);
+                else if (form.Name.EndsWith("Colors"))
+                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value LIKE {2}", userAccountID, form.Name, form.Value.Split(',')[0] + "%");
+                else
+                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value = {2}", userAccountID, form.Name, form.Value);
+
+                if (userSetting == null)
+                {
+                    userSetting = new UserDashSettings();
+                    userSetting.UserAccountID = userAccountID;
+                    userSetting.Name = form.Name;
+                }
+
+                userSetting.Value = form.Value;
+                userSetting.Enabled = form.Enabled;
+
+                if ((userSetting.Enabled != globalSetting.Enabled) || (userSetting.Value != globalSetting.Value))
+                    dataContext.Table<UserDashSettings>().AddNewOrUpdateRecord(userSetting);
+                else
+                    dataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", userSetting.ID));
+
+            }
+        }
+
+        #endregion
+
+        #region [ Meter Activity View ]
+        
+        #endregion
 
         #endregion
 

@@ -242,10 +242,6 @@ td.highlight a {
     font-size: 12px;
 }
 
-#ApplicationContent {
-    visibility: hidden;
-}
-
 #loginContent {
     border: 1px solid black;
     display: inline-block;

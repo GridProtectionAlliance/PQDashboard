@@ -1242,9 +1242,6 @@
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Main\Contact.cshtml" />
-    <Content Include="Views\Main\DisplayPDF.cshtml" />
-    <Content Include="Views\Main\Help.cshtml" />
     <Content Include="Views\Main\Home.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\SecurityError.cshtml" />
