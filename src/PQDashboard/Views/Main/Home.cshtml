@@ -396,6 +396,21 @@
 </div>
 
 <script>
+    if (!Array.prototype.flat) {
+          Array.prototype.flat = function(depth) {
+            var flattened = [];
+            (function flat(array, depth) {
+                for (var index = 0; index < array.length; index++) {
+                if (Array.isArray(array[index]) && depth > 0) {
+                  flat(array[index], depth - 1); 
+                } else {
+                  flattened.push(array[index]);
+                }
+              }
+            })(this, Math.floor(depth) || 1);
+            return flattened;
+          };
+        }
     const DateTimeFormat = '@Model.Global.DateTimeFormat'
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The following function are for making button links to another page and opening another page
