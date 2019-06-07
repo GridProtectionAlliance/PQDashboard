@@ -2142,7 +2142,8 @@ function populateGridMatrix(data, siteID, siteName, colors) {
         var gridList = meterList.getListOfGrids();
         var thisselectedindex = gridList.findIndex(function (a) { return a.ID == siteID && a.Name == siteName });
         var selectedGrid = gridList[thisselectedindex];
-        if (selectedGrid.Type == 'AssetGroup') {
+
+        if (!e.shiftKey && !e.ctrlKey && selectedGrid.Type == 'AssetGroup') {
             $('#meterGroupSelect').val(selectedGrid.ID);
             $('#meterGroupSelect').trigger('change');
             return;
@@ -3579,10 +3580,7 @@ function buildPage() {
             if(newTab === "Event Search") {
                 window.open(homePath + "Main/Home2/EventSearch");
 
-                $('#tabs-MeterActivity').hide();
-                $('#tabsMeterActivity').removeClass('ui-tabs-active ui-state-active');
-                $('#tabs' + currentTab).addClass('ui-tabs-active ui-state-active');
-                $('#tabs-' + currentTab).show();
+                $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
                 return;
             }
 
