@@ -24238,6 +24238,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var PQDashboardService = (function () {
     function PQDashboardService() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
+        this.getLeastActiveMeterActivityData = this.getLeastActiveMeterActivityData.bind(this);
         this.getEventSearchData = this.getEventSearchData.bind(this);
         this.getEventSearchAsssetVoltageDisturbancesData = this.getEventSearchAsssetVoltageDisturbancesData.bind(this);
         this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
@@ -24256,6 +24257,46 @@ var PQDashboardService = (function () {
             async: true
         });
         return this.mostActiveMeterHandle;
+    };
+    PQDashboardService.prototype.getLeastActiveMeterActivityData = function (numresults, column) {
+        if (this.leastActiveMeterHandle !== undefined)
+            this.leastActiveMeterHandle.abort();
+        this.leastActiveMeterHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/GetLeastActiveMeterActivityData?numresults=" + numresults +
+                ("&column=" + column),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.leastActiveMeterHandle;
+    };
+    PQDashboardService.prototype.getFilesProcessedMeterActivityData = function (column) {
+        if (this.filesProcessedMeterHandle !== undefined)
+            this.filesProcessedMeterHandle.abort();
+        this.filesProcessedMeterHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/GetFilesProcessedLast24Hrs?column=" + column,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.filesProcessedMeterHandle;
+    };
+    PQDashboardService.prototype.getFileGroupEvents = function (fileGroupID) {
+        if (this.fileGroupEventsHandle !== undefined)
+            this.fileGroupEventsHandle.abort();
+        this.fileGroupEventsHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/PQDashboard/QueryFileGroupEvents?FileGroupID=" + fileGroupID,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.fileGroupEventsHandle;
     };
     PQDashboardService.prototype.getEventSearchData = function (params) {
         if (this.eventSearchHandle !== undefined)
@@ -25614,14 +25655,26 @@ exports.default = EventPreviewPane;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(/*! react */ "react");
 var Table_1 = __webpack_require__(/*! ./Table */ "./TSX/PQDashboard/Components/Table.tsx");
 var PQDashboard_1 = __webpack_require__(/*! ./../../../TS/Services/PQDashboard */ "./TS/Services/PQDashboard.ts");
+var moment = __webpack_require__(/*! moment */ "moment");
 var updateInterval = 300000;
 var rowsPerPage = 7;
-var autoUpdate = setInterval(function () {
-}, updateInterval);
 var momentFormat = "YYYY/MM/DD HH:mm:ss";
 var dateTimeFormat = "yyyy/MM/dd HH:mm:ss";
 var MeterActivity = function (props) {
@@ -25635,55 +25688,256 @@ var MeterActivity = function (props) {
             React.createElement(FilesProcessed, null))));
 };
 exports.default = MeterActivity;
-var MostActiveMeters = function (props) {
-    var _a = React.useState([]), activeMeterTable = _a[0], setActiveMeterTable = _a[1];
-    var _b = React.useState('24Hours'), sortField = _b[0], setSortField = _b[1];
-    var pQDashboardService = new PQDashboard_1.default();
-    React.useEffect(function () {
-        createTableRows();
-    }, []);
-    function createTableRows() {
-        pQDashboardService.getMostActiveMeterActivityData(rowsPerPage, sortField).done(function (data) {
-            setActiveMeterTable(data);
-        });
+var MostActiveMeters = (function (_super) {
+    __extends(MostActiveMeters, _super);
+    function MostActiveMeters(props) {
+        var _this = _super.call(this, props) || this;
+        _this.pQDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            meterTable: [],
+            sortField: '24Hours',
+            rowsPerPage: 7
+        };
+        return _this;
     }
-    return (React.createElement("div", { style: { height: '100%' } },
-        React.createElement("h3", { style: { display: 'inline' } }, "Most Active Meters"),
-        React.createElement("span", { style: { float: 'right', color: 'silver' } }, "Click on event count to view events"),
-        React.createElement("div", { style: { height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
-        React.createElement("div", { style: { backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' } },
-            React.createElement(Table_1.default, { cols: [
-                    { key: 'AssetKey', label: 'Asset Key', headerStyle: { width: '40%' } },
-                    { key: '24Hours', label: 'Files(Evts) 24H', headerStyle: { width: '20%' } },
-                    { key: '7Days', label: 'Files(Evts) 7D', headerStyle: { width: '20%' } },
-                    { key: '30Days', label: 'Files(Evts) 30D', headerStyle: { width: '20%' } },
-                ], tableClass: "table table-responsive", data: activeMeterTable, sortField: sortField, ascending: true, onSort: function (data) { setSortField(data.col); }, onClick: function () { }, theadStyle: { fontSize: 'smaller' } }))));
-};
-var LeastActiveMeters = function (props) {
-    var _a = React.useState([]), leastActiveMeterTable = _a[0], setLeastActiveMeterTable = _a[1];
-    return (React.createElement("div", { style: { height: '100%' } },
-        React.createElement("h3", { style: { display: 'inline' } }, "Most Active Meters"),
-        React.createElement("span", { style: { float: 'right', color: 'silver' } }, "Click on event count to view events"),
-        React.createElement("div", { style: { height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
-        React.createElement("div", { style: { backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' } },
-            React.createElement(Table_1.default, { cols: [
-                    { key: 'Name', label: 'Asset Key', headerStyle: { width: '40%' } },
-                    { key: '30D', label: 'Files(Events) 30D', headerStyle: { width: '20%' } },
-                    { key: '90D', label: 'Files(Events) 90D', headerStyle: { width: '20%' } },
-                    { key: '180D', label: 'Files(Events) 180D', headerStyle: { width: '20%' } },
-                ], tableClass: "table table-responsive", data: leastActiveMeterTable, sortField: "30D", ascending: false, onSort: function () { }, onClick: function () { }, theadStyle: { fontSize: 'smaller' } }))));
-};
-var FilesProcessed = function (props) {
-    var _a = React.useState([]), filesProcessedTable = _a[0], setFilesProcessedTable = _a[1];
-    return (React.createElement("div", { style: { height: '100%' } },
-        React.createElement("h3", { style: { display: 'inline' } }, "FILES PROCESSED LAST 24 HOURS"),
-        React.createElement("span", { style: { float: 'right', color: 'silver' }, id: "files-hint" }, "Expand row to view events"),
-        React.createElement("div", { style: { height: 2, width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
-        React.createElement("div", { id: "meter-activity-files", style: { backgroundColor: 'white', borderColor: 'black' } }),
-        React.createElement(Table_1.default, { cols: [
-                { key: 'Time', label: 'Time Processed', headerStyle: { width: '30%' } },
-                { key: 'FileName', label: 'File Name', headerStyle: { width: '70%' } },
-            ], tableClass: "table table-responsive", data: filesProcessedTable, sortField: "Time", ascending: false, onSort: function () { }, onClick: function () { }, theadStyle: { fontSize: 'smaller' } })));
+    MostActiveMeters.prototype.componentDidMount = function () {
+        var _this = this;
+        $(window).on('resize', function () { return _this.resize(); });
+        this.resize();
+    };
+    MostActiveMeters.prototype.componentWillUnmount = function () {
+        $(window).off('resize');
+    };
+    MostActiveMeters.prototype.createTableRows = function () {
+        var _this = this;
+        this.pQDashboardService.getMostActiveMeterActivityData(this.state.rowsPerPage, this.state.sortField).done(function (data) {
+            _this.setState({ meterTable: data });
+        });
+    };
+    MostActiveMeters.prototype.resize = function () {
+        var _this = this;
+        var headerHeight = $(this.refs.divElement).find('th').innerHeight();
+        if (headerHeight == headerHeight)
+            rowHeight = 43;
+        var height = $(this.refs.divElement).height() - headerHeight;
+        var rowHeight = $(this.refs.divElement).find('td').innerHeight();
+        if (rowHeight == undefined)
+            rowHeight = 48;
+        this.setState({ rowsPerPage: Math.floor(height / rowHeight) }, function () { return _this.createTableRows(); });
+    };
+    MostActiveMeters.prototype.createContent = function (item, key) {
+        var _this = this;
+        var context = '';
+        if (key == '24Hours') {
+            context = '24h';
+        }
+        else if (key == '7Days') {
+            context = '7d';
+        }
+        else if (key == '30Days') {
+            context = '30d';
+        }
+        else {
+            context = '24h';
+        }
+        if (item[key] != '0 ( 0 )') {
+            return React.createElement("a", { onClick: function () { return _this.openWindowToMeterEventsByLine(item.FirstEventID, context, moment().format(momentFormat)); }, style: { color: 'blue' } }, item[key]);
+        }
+        else {
+            return React.createElement("span", null, item[key]);
+        }
+    };
+    MostActiveMeters.prototype.openWindowToMeterEventsByLine = function (id, context, sourcedate) {
+        window.open(homePath + "Main/MeterEventsByLine?eventid=" + id + "&context=" + context + "&posteddate=" + sourcedate, id + "MeterEventsByLine");
+        return false;
+    };
+    MostActiveMeters.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", { style: { height: '100%' } },
+            React.createElement("h3", { style: { display: 'inline' } }, "Most Active Meters"),
+            React.createElement("span", { style: { float: 'right', color: 'silver' } }),
+            React.createElement("div", { style: { height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
+            React.createElement("div", { style: { backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }, ref: 'divElement' },
+                React.createElement(Table_1.default, { cols: [
+                        { key: 'AssetKey', label: 'Asset Key', headerStyle: { width: 'calc(40%)' } },
+                        { key: '24Hours', label: 'Files(Evts) 24H', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                        { key: '7Days', label: 'Files(Evts) 7D', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                        { key: '30Days', label: 'Files(Evts) 30D', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                    ], tableClass: "table", data: this.state.meterTable, sortField: this.state.sortField, ascending: true, onSort: function (data) { _this.setState({ sortField: data.col }, function () { return _this.createTableRows(); }); }, onClick: function () { }, theadStyle: { fontSize: 'smaller' } }))));
+    };
+    return MostActiveMeters;
+}(React.Component));
+var LeastActiveMeters = (function (_super) {
+    __extends(LeastActiveMeters, _super);
+    function LeastActiveMeters(props) {
+        var _this = _super.call(this, props) || this;
+        _this.pQDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            meterTable: [],
+            sortField: '30Days',
+            rowsPerPage: 7
+        };
+        return _this;
+    }
+    LeastActiveMeters.prototype.componentDidMount = function () {
+        var _this = this;
+        $(window).on('resize', function () { return _this.resize(); });
+        this.resize();
+    };
+    LeastActiveMeters.prototype.componentWillUnmount = function () {
+        $(window).off('resize');
+    };
+    LeastActiveMeters.prototype.resize = function () {
+        var _this = this;
+        var headerHeight = $(this.refs.divElement).find('th').innerHeight();
+        if (headerHeight == headerHeight)
+            rowHeight = 43;
+        var height = $(this.refs.divElement).height() - headerHeight;
+        var rowHeight = $(this.refs.divElement).find('td').innerHeight();
+        if (rowHeight == undefined)
+            rowHeight = 48;
+        this.setState({ rowsPerPage: Math.floor(height / rowHeight) }, function () { return _this.createTableRows(); });
+    };
+    LeastActiveMeters.prototype.createTableRows = function () {
+        var _this = this;
+        this.pQDashboardService.getLeastActiveMeterActivityData(this.state.rowsPerPage, this.state.sortField).done(function (data) {
+            _this.setState({ meterTable: data });
+        });
+    };
+    LeastActiveMeters.prototype.createContent = function (item, key) {
+        var _this = this;
+        var context = '';
+        if (key == '180Days') {
+            context = '180d';
+        }
+        else if (key == '90Days') {
+            context = '90d';
+        }
+        else {
+            context = '30d';
+        }
+        if (item[key] != '0 ( 0 )') {
+            return React.createElement("a", { onClick: function () { return _this.openWindowToMeterEventsByLine(item.FirstEventID, context, moment().format(momentFormat)); }, style: { color: 'blue' } }, item[key]);
+        }
+        else {
+            return React.createElement("span", null, item[key]);
+        }
+    };
+    LeastActiveMeters.prototype.openWindowToMeterEventsByLine = function (id, context, sourcedate) {
+        window.open(homePath + "Main/MeterEventsByLine?eventid=" + id + "&context=" + context + "&posteddate=" + sourcedate, id + "MeterEventsByLine");
+        return false;
+    };
+    LeastActiveMeters.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", { style: { height: '100%' } },
+            React.createElement("h3", { style: { display: 'inline' } }, "Most Active Meters"),
+            React.createElement("span", { style: { float: 'right', color: 'silver' } }),
+            React.createElement("div", { style: { height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
+            React.createElement("div", { style: { backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }, ref: 'divElement' },
+                React.createElement(Table_1.default, { cols: [
+                        { key: 'AssetKey', label: 'Asset Key', headerStyle: { width: 'calc(40%)' } },
+                        { key: '30Days', label: 'Files(Events) 30D', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                        { key: '90Days', label: 'Files(Events) 90D', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                        { key: '180Days', label: 'Files(Events) 180D', headerStyle: { width: '20%' }, content: function (item, key, style) { return _this.createContent(item, key); } },
+                    ], tableClass: "table", data: this.state.meterTable, sortField: this.state.sortField, ascending: true, onSort: function (data) { _this.setState({ sortField: data.col }, function () { return _this.createTableRows(); }); }, onClick: function () { }, theadStyle: { fontSize: 'smaller' } }))));
+    };
+    return LeastActiveMeters;
+}(React.Component));
+var FilesProcessed = (function (_super) {
+    __extends(FilesProcessed, _super);
+    function FilesProcessed(props) {
+        var _this = _super.call(this, props) || this;
+        _this.pQDashboardService = new PQDashboard_1.default();
+        _this.state = {
+            meterTable: [],
+            sortField: 'CreationTime',
+        };
+        return _this;
+    }
+    FilesProcessed.prototype.componentDidMount = function () {
+        this.createTableRows();
+    };
+    FilesProcessed.prototype.createTableRows = function () {
+        var _this = this;
+        this.pQDashboardService.getFilesProcessedMeterActivityData(this.state.sortField).done(function (data) {
+            _this.setState({
+                meterTable: data.map(function (x, i) { return React.createElement(ListItem, { key: x.FilePath, CreationTime: x.CreationTime, FilePath: x.FilePath, FileGroupID: x.FileGroupID }); })
+            });
+        });
+    };
+    FilesProcessed.prototype.render = function () {
+        return (React.createElement("div", { style: { height: '100%', maxHeight: 'calc(100%)', overflowY: 'auto', overflowX: 'hidden' } },
+            React.createElement("h3", { style: { display: 'inline' } }, "FILES PROCESSED LAST 24 HOURS"),
+            React.createElement("span", { style: { float: 'right', color: 'silver' }, id: "files-hint" }, "Expand row to view events"),
+            React.createElement("div", { style: { height: 2, width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
+            React.createElement("div", { id: "meter-activity-files", style: { backgroundColor: 'white', borderColor: 'black' } }),
+            React.createElement("ul", { style: { listStyleType: 'none', padding: 0 } },
+                React.createElement("li", { key: 'header', style: { width: '100%', borderTop: '1px solid #dee2e6' } },
+                    React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', fontWeight: 'bold', textAlign: 'inherit', padding: '.75em', width: 50, fontSize: 'smaller' } }),
+                    React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', fontWeight: 'bold', textAlign: 'inherit', padding: '.75em', width: 'calc(30% - 50px)', fontSize: 'smaller' } }, "Time Processed"),
+                    React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', fontWeight: 'bold', textAlign: 'inherit', padding: '.75em', width: 'calc(70%)', fontSize: 'smaller' } }, "File")),
+                this.state.meterTable)));
+    };
+    return FilesProcessed;
+}(React.Component));
+var ListItem = function (props) {
+    var _a = React.useState(false), isOpen = _a[0], setOpen = _a[1];
+    var _b = React.useState([]), eventTable = _b[0], setEventTable = _b[1];
+    var pqDashboardService = new PQDashboard_1.default();
+    React.useEffect(function () {
+        pqDashboardService.getFileGroupEvents(props.FileGroupID).done(function (data) {
+            var arr = data.map(function (x) { return React.createElement("tr", { key: x.ID },
+                React.createElement("td", null,
+                    React.createElement("a", { style: { color: 'blue' }, href: homePath + 'Main/OpenSEE?eventid=' + x.ID, target: "_blank" }, x.LineName)),
+                React.createElement("td", null, moment.utc(x.StartTime).format('MM/DD/YY HH:mm:ss')),
+                React.createElement("td", null, x.EventTypeName)); });
+            setEventTable(arr);
+        });
+    }, []);
+    function buildFileGroupContent(row) {
+        var filepathParts = row.FilePath.split('\\');
+        var fullFilename = filepathParts[filepathParts.length - 1];
+        var filenameParts = fullFilename.split('.');
+        var filenameWithoutExtension = filenameParts.splice(0, filenameParts.length - 1).join('.');
+        var filenameParts = filenameWithoutExtension.split(',');
+        var shortFilename = "";
+        var inTimestamp = true;
+        for (var i = 0; i < filenameParts.length; i++) {
+            if (inTimestamp) {
+                if (!(/^-?\d/.test(filenameParts[i]))) {
+                    inTimestamp = false;
+                    shortFilename += filenameParts[i];
+                }
+            }
+            else {
+                shortFilename += ',' + filenameParts[i];
+            }
+        }
+        if (shortFilename == "") {
+            shortFilename = filenameWithoutExtension;
+        }
+        var html = React.createElement("a", { href: xdaInstance + '/Workbench/DataFiles.cshtml', title: fullFilename, style: { color: 'blue' }, target: "_blank" }, shortFilename);
+        return html;
+    }
+    return (React.createElement("li", { style: { width: '100%', borderTop: '1px solid #dee2e6' } },
+        React.createElement("div", { className: "row" },
+            React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', textAlign: 'inherit', padding: '.75em', width: 50 } },
+                React.createElement("button", { className: "btn", onClick: function () { return setOpen(!isOpen); } },
+                    React.createElement("span", { className: 'fa fa-arrow-circle-' + (isOpen ? 'down' : 'right') }))),
+            React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', fontWeight: 'bold', textAlign: 'inherit', padding: '.75em', width: 'calc(30% - 50px)', fontSize: 'smaller' } },
+                React.createElement("span", null,
+                    moment(props.CreationTime).format('MM/DD/YYYY'),
+                    React.createElement("br", null),
+                    moment(props.CreationTime).format('HH:mm:ss.SSSSSSS'))),
+            React.createElement("div", { style: { display: 'table-cell', verticalAlign: 'inherit', textAlign: 'inherit', padding: '.75em', width: 'calc(70%)' } }, buildFileGroupContent(props))),
+        React.createElement("div", { className: "row", style: { display: (isOpen ? 'block' : 'none'), padding: '5px 20px' } },
+            React.createElement("table", { className: 'table' },
+                React.createElement("thead", null,
+                    React.createElement("tr", null,
+                        React.createElement("th", null, "Line"),
+                        React.createElement("th", null, "Start Time"),
+                        React.createElement("th", null, "Type"))),
+                React.createElement("tbody", null, eventTable)))));
 };
 
 
@@ -25706,7 +25960,12 @@ var Table = function (props) {
         if (props.cols.length == 0)
             return null;
         var cells = props.cols.map(function (colData) {
-            var style = colData.headerStyle;
+            var style;
+            if (colData.headerStyle != undefined) {
+                style = colData.headerStyle;
+            }
+            else
+                style = {};
             if (style.cursor == undefined)
                 style.cursor = 'pointer';
             return React.createElement("th", { key: colData.key, style: style, onClick: function () { return handleSort({ col: colData.key, ascending: props.ascending }); } },
@@ -25723,7 +25982,12 @@ var Table = function (props) {
                 var style = lodash_1.clone(colData.rowStyle);
                 return React.createElement("td", { key: index.toString() + item[colData.key] + colData.key, style: style, onClick: function () { return handleClick({ col: colData.key, row: item, data: item[colData.key] }); } }, colData.content != undefined ? colData.content(item, colData.key, style) : item[colData.key]);
             });
-            var style = lodash_1.clone(props.rowStyle);
+            var style;
+            if (item.rowStyle != undefined) {
+                style = item.rowStyle;
+            }
+            else
+                style = {};
             style.cursor = 'pointer';
             style.backgroundColor = (props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit');
             return React.createElement("tr", { style: style, key: index.toString() }, cells);
@@ -25737,7 +26001,7 @@ var Table = function (props) {
     }
     var rowComponents = generateRows();
     var headerComponents = generateHeaders();
-    return (React.createElement("table", { className: (props.tableClass != undefined ? props.tableClass : '') },
+    return (React.createElement("table", { className: (props.tableClass != undefined ? props.tableClass : ''), style: props.tableStyle },
         React.createElement("thead", { style: props.theadStyle }, headerComponents),
         React.createElement("tbody", { style: props.tbodyStyle }, rowComponents)));
 };

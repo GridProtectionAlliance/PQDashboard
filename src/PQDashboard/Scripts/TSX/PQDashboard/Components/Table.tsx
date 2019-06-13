@@ -32,6 +32,7 @@ export interface TableProps {
     ascending: boolean,
     onSort(data: any): void,
     tableClass?: string,
+    tableStyle?: React.CSSProperties,
     theadStyle?: React.CSSProperties,
     theadClass?: string,
     tbodyStyle?: React.CSSProperties,
@@ -46,7 +47,13 @@ const Table: React.FunctionComponent <TableProps> = (props) => {
         if (props.cols.length == 0) return null;
 
         var cells = props.cols.map(colData => {
-            var style = colData.headerStyle;
+            var style: React.CSSProperties;
+            if (colData.headerStyle != undefined) {
+                style = colData.headerStyle;
+            }
+            else
+                style = {};
+
             if (style.cursor == undefined)
                 style.cursor = 'pointer';
 
@@ -71,7 +78,13 @@ const Table: React.FunctionComponent <TableProps> = (props) => {
                 </td>
             });
 
-            var style: React.CSSProperties = clone(props.rowStyle);
+            var style: React.CSSProperties;
+            if (item.rowStyle != undefined) {
+                style = item.rowStyle;
+            }
+            else
+                style = {};
+
 
             style.cursor = 'pointer';
             style.backgroundColor = (props.selected != undefined && props.selected(item) ? 'yellow' : 'inherit');
@@ -91,7 +104,7 @@ const Table: React.FunctionComponent <TableProps> = (props) => {
     var rowComponents = generateRows();
     var headerComponents = generateHeaders();
     return (
-        <table className={(props.tableClass != undefined ? props.tableClass : '')} >
+        <table className={(props.tableClass != undefined ? props.tableClass : '')} style={props.tableStyle}>
             <thead style={props.theadStyle}>{headerComponents}</thead>
             <tbody style={props.tbodyStyle}>{rowComponents}</tbody>
         </table>

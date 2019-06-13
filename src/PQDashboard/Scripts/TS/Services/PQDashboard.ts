@@ -23,6 +23,9 @@
 
 export default class PQDashboardService {
     mostActiveMeterHandle: JQuery.jqXHR;
+    leastActiveMeterHandle: JQuery.jqXHR;
+    filesProcessedMeterHandle: JQuery.jqXHR;
+    fileGroupEventsHandle: JQuery.jqXHR;
     eventSearchHandle: JQuery.jqXHR;
     eventSearchAssetVoltageDisturbancesHandle: JQuery.jqXHR;
     eventSearchAssetFaultSegmentsHandle: JQuery.jqXHR;
@@ -30,6 +33,8 @@ export default class PQDashboardService {
 
     constructor() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
+        this.getLeastActiveMeterActivityData = this.getLeastActiveMeterActivityData.bind(this);
+
         this.getEventSearchData = this.getEventSearchData.bind(this);
         this.getEventSearchAsssetVoltageDisturbancesData = this.getEventSearchAsssetVoltageDisturbancesData.bind(this);
         this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
@@ -53,6 +58,56 @@ export default class PQDashboardService {
 
         return this.mostActiveMeterHandle;
     }
+
+    getLeastActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
+        if (this.leastActiveMeterHandle !== undefined)
+            this.leastActiveMeterHandle.abort();
+
+        this.leastActiveMeterHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetLeastActiveMeterActivityData?numresults=${numresults}` +
+                `&column=${column}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.leastActiveMeterHandle;
+    }
+
+    getFilesProcessedMeterActivityData(column: string): JQuery.jqXHR {
+        if (this.filesProcessedMeterHandle !== undefined)
+            this.filesProcessedMeterHandle.abort();
+
+        this.filesProcessedMeterHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/GetFilesProcessedLast24Hrs?column=${column}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.filesProcessedMeterHandle;
+    }
+
+    getFileGroupEvents(fileGroupID: number): JQuery.jqXHR {
+        if (this.fileGroupEventsHandle !== undefined)
+            this.fileGroupEventsHandle.abort();
+
+        this.fileGroupEventsHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/QueryFileGroupEvents?FileGroupID=${fileGroupID}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.fileGroupEventsHandle;
+    }
+
 
     getEventSearchData(params): JQuery.jqXHR {
         if (this.eventSearchHandle !== undefined)

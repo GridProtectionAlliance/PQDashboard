@@ -553,7 +553,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
     }
 
     highlightCycle(series) {
-        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+        if (series != null && series.CalculationTime > 0 && series.CalculationEnd > 0)
             return {
                 color: "#FFA",
                 xaxis: {

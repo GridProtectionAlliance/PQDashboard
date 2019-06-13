@@ -78,10 +78,10 @@ namespace PQDashboard.Controllers
                 string column = query["column"];
                 switch (column)
                 {
-                    case "24Hours": column = "24Hours"; break;
-                    case "7Days": column = "7Days"; break;
-                    case "30Days": column = "30Days"; break;
-                    default: column = "AssetKey"; break;
+                    case "24Hours": column = "[24Hours]"; break;
+                    case "7Days": column = "[7Days]"; break;
+                    case "30Days": column = "[30Days]"; break;
+                    default: column = "[AssetKey]"; break;
                 }
 
                 DataTable table = new DataTable();
@@ -107,9 +107,10 @@ namespace PQDashboard.Controllers
 	                    AssetKey, 
 	                    Cast(FileGroups24Hours as varchar(max)) + ' ( ' +Cast(Events24Hours as varchar(max)) + ' )' as [24Hours],
 	                    Cast(FileGroups7Days as varchar(max)) + ' ( ' +Cast(Events7Days as varchar(max)) + ' )' as [7Days],
-	                    Cast(FileGroups30Days as varchar(max)) + ' ( ' +Cast(FileGroups7Days as varchar(max)) + ' )' as [30Days]
+	                    Cast(FileGroups30Days as varchar(max)) + ' ( ' +Cast(FileGroups7Days as varchar(max)) + ' )' as [30Days],
+                        FirstEventID
                     FROM cte
-                    ORDER BY FileGroups" + column + " DESC";
+                    ORDER BY " + column + " DESC";
 
                     sc.CommandType = CommandType.Text;
 
@@ -121,6 +122,130 @@ namespace PQDashboard.Controllers
             }
 
         }
+
+        [HttpGet]
+        public DataTable GetLeastActiveMeterActivityData()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int numberOfResults = int.Parse(query["numresults"]);
+                string column = query["column"];
+                switch (column)
+                {
+                    case "90Days": column = "[90Days]"; break;
+                    case "180Days": column = "[180Days]"; break;
+                    case "30Days": column = "[30Days]"; break;
+                    default: column = "AssetKey"; break;
+                }
+
+                DataTable table = new DataTable();
+
+                using (IDbCommand sc = connection.Connection.CreateCommand())
+                {
+                    sc.CommandText = @" 
+                    DECLARE @startTime DateTime2 = GetDate();
+
+                    with cte as (
+                    SELECT	Meter.AssetKey, 
+		                    (SELECT COUNT(ID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-1,@StartTime)) AS Events24Hours,
+		                    (SELECT COUNT(DISTINCT FileGroupID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-1,@StartTime)) AS FileGroups24Hours,
+		                    (SELECT COUNT(ID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-7,@StartTime))  AS Events7Days,
+		                    (SELECT COUNT(DISTINCT FileGroupID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-7,@StartTime)) AS FileGroups7Days,                                                       
+		                    (SELECT COUNT(ID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-30,@StartTime)) AS Events30Days,
+		                    (SELECT COUNT(DISTINCT FileGroupID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-30,@StartTime))AS FileGroups30Days,       
+		                    (SELECT COUNT(ID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-90,@StartTime)) AS Events90Days,
+		                    (SELECT COUNT(DISTINCT FileGroupID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-90,@StartTime))AS FileGroups90Days,                                                     
+		                    (SELECT COUNT(ID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-180,@StartTime)) AS Events180Days,
+		                    (SELECT COUNT(DISTINCT FileGroupID) FROM Event WHERE Event.MeterID = Meter.ID AND StartTime <= @StartTime AND StartTime >= DATEADD(DAY,-180,@StartTime))AS FileGroups180Days,                                                     
+                            (SELECT TOP 1 ID FROM Event WHERE MeterID = Meter.ID AND StartTime <= @StartTime ORDER BY StartTime, ID) AS FirstEventID
+                    FROM	
+	                    Meter
+                    )
+                    SELECT TOP " + numberOfResults + @"
+	                    AssetKey, 
+	                    Cast(FileGroups30Days as varchar(max)) + ' ( ' +Cast(Events30Days as varchar(max)) + ' )' as [30Days],
+	                    Cast(FileGroups7Days as varchar(max)) + ' ( ' +Cast(Events7Days as varchar(max)) + ' )' as [90Days],
+	                    Cast(FileGroups30Days as varchar(max)) + ' ( ' +Cast(FileGroups7Days as varchar(max)) + ' )' as [180Days],
+                        FirstEventID
+                    FROM cte
+                    ORDER BY " + column + " ASC";
+
+                    sc.CommandType = CommandType.Text;
+
+                    IDataReader rdr = sc.ExecuteReader();
+                    table.Load(rdr);
+
+                    return table;
+                }
+            }
+
+        }
+
+        [HttpGet]
+        public DataTable GetFilesProcessedLast24Hrs()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                string column = query["column"];
+                switch (column)
+                {
+                    case "FilePath": column = "FilePath"; break;
+                    default: column = "CreationTime"; break;
+                }
+
+                DataTable table = new DataTable();
+
+                DateTime now = DateTime.Now;
+                DateTime dateTime = now.AddHours(-24);
+                using (IDbCommand sc = connection.Connection.CreateCommand())
+                {
+                    sc.CommandText = @" 
+                        SELECT
+                            DataFile.FilePath,
+                            DataFile.CreationTime,
+                            DataFile.FileGroupID
+                        FROM FileGroup CROSS APPLY
+                        (
+                            SELECT TOP 1 * 
+                            FROM DataFile 
+                            WHERE DataFile.FileGroupID = FileGroup.ID 
+                            ORDER BY FileSize DESC, FilePath 
+		                ) DataFile
+                        WHERE CreationTime BETWEEN @StartDate AND @EndDate
+                        ORDER BY " + column + " ASC";
+
+                    sc.CommandType = CommandType.Text;
+                    IDbDataParameter eventDateStart = sc.CreateParameter();
+                    eventDateStart.ParameterName = "@StartDate";
+                    eventDateStart.Value = dateTime;
+                    sc.Parameters.Add(eventDateStart);
+                    IDbDataParameter eventDateEnd = sc.CreateParameter();
+                    eventDateEnd.ParameterName = "@EndDate";
+                    eventDateEnd.Value = now;
+                    sc.Parameters.Add(eventDateEnd);
+
+                    IDataReader rdr = sc.ExecuteReader();
+                    table.Load(rdr);
+
+                    return table;
+                }
+            }
+
+        }
+
+        [HttpGet]
+        public DataTable QueryFileGroupEvents() {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int fileGroupID = int.Parse(query["FileGroupID"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+                return connection.RetrieveData("SELECT * FROM EventView WHERE FileGroupID = {0}", fileGroupID);
+            }
+
+        }
+
         #endregion
 
         #region [ Event Search Page ]
@@ -331,7 +456,6 @@ namespace PQDashboard.Controllers
         #endregion
 
         #region [ Old Main Dashboard ]
-        #endregion
 
         public class DetailtsForSitesForm {
             public string siteId { get; set; }
@@ -1155,6 +1279,7 @@ namespace PQDashboard.Controllers
                 return data;
             }
         }
+        #endregion
 
 
         #region [ Settings View ]
@@ -1212,11 +1337,6 @@ namespace PQDashboard.Controllers
         }
 
         #endregion
-
-        #region [ Meter Activity View ]
-        
-        #endregion
-
         #endregion
 
     }

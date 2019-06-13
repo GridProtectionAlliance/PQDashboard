@@ -23189,7 +23189,7 @@ var LineChartAnalyticBase = (function (_super) {
             };
     };
     LineChartAnalyticBase.prototype.highlightCycle = function (series) {
-        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+        if (series != null && series.CalculationTime > 0 && series.CalculationEnd > 0)
             return {
                 color: "#FFA",
                 xaxis: {
