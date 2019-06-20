@@ -234,7 +234,7 @@ class LeastActiveMeters extends React.Component<{}, { meterTable: Array<any>, so
     render() {
         return (
             <div style={{ height: '100%' }}>
-                <h3 style={{ display: 'inline' }}>Most Active Meters</h3>
+                <h3 style={{ display: 'inline' }}>Least Active Meters</h3>
                 <span style={{ float: 'right', color: 'silver' }}>{/*Click on event count to view events*/}</span>
                 <div style={{ height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' }}></div>
                 <div style={{ backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }} ref='divElement'>

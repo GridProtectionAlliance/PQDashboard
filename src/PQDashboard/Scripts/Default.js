@@ -2989,12 +2989,16 @@ function LoadHeatmapLeaflet(thedata) {
         valueField: 'status'
     };
 
+    
     $(leafletMap[currentTab].getPanes().overlayPane).children().remove();
-    var testData = { data: thedata.Data.filter(function (currentValue, index, array) { return currentValue.Count > 0; }), min: 1, max: 100 };
-    var heatmapLayer = new HeatmapOverlay(cfg);
-    var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
-    heatmapLayer.setData(testData);
-    L.control.layers().addOverlay(heatmap, "Heatmap layer");
+    try {
+        var testData = { data: thedata.Data.filter(function (currentValue, index, array) { return currentValue.Count > 0; }), min: 1, max: 100 };
+        var heatmapLayer = new HeatmapOverlay(cfg);
+        var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
+        heatmapLayer.setData(testData);
+        L.control.layers().addOverlay(heatmap, "Heatmap layer");
+    }
+    catch (ex) { }
 }
 
 function ManageLocationClick(siteID) {
@@ -3143,25 +3147,6 @@ function resizeDocklet(theparent, chartheight) {
         barDateTo = thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
     }
 
-
-    var siteName = meterList.selectedCount() + " of " + meterList.count() + " selected";
-
-    var siteID = "";
-
-    if (meterList.selectedCount() > 0) {
-
-        var thedetails = meterList.selected()[0].split('|');
-
-        if (meterList.selectedCount() == 1) {
-            siteName = thedetails[0];
-        }
-
-        $.each(meterList.selected(), function (key, value) {
-            thedetails = value.split('|');
-            siteID += thedetails[1] + ",";
-        });
-    }
-
     theparent.css("height", chartheight);
 
     var firstChild = $("#" + theparent[0].firstElementChild.id);
@@ -3169,11 +3154,11 @@ function resizeDocklet(theparent, chartheight) {
     firstChild.css("height", chartheight - 100);
     if (currentTab === "TrendingData") {
         if ($('#Overview' + currentTab).children().length > 0 && cache_ErrorBar_Data !== null)
-            buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+            buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     }
     else {
         if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null)
-            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, siteID, barDateFrom, barDateTo);
+            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, meterList.selectedIdsString(), barDateFrom, barDateTo);
     }
 
     if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
@@ -3363,9 +3348,9 @@ function getMeters(meterGroup) {
         meterList = new MeterListClass(data.Meters, data.AssetGroups, data.ParentAssetGroupID);
 
         if (meterList.ParentID != null)
-            $('#gridStepOut').show();
+            $('.gridStepOut').show();
         else
-            $('#gridStepOut').hide();
+            $('.gridStepOut').hide();
 
         $('#meterSelected').text(meterList.selectedCount());
         $('#meterCount').text(meterList.count());
@@ -4259,11 +4244,7 @@ function showHistorianData() {
 }
 
 function getBase64MeterSelection() {
-    var meterSelections = deepCopy(meterList.list).sort(function (a, b) {
-        return a.ID - b.ID;
-    }).map(function (a) {
-        return a.Selected;
-    });
+    var meterSelections = meterList.selectedIds().sort(function (a, b) { return a - b })
 
     var base64Selections = '';
 

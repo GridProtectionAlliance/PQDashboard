@@ -25830,7 +25830,7 @@ var LeastActiveMeters = (function (_super) {
     LeastActiveMeters.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", { style: { height: '100%' } },
-            React.createElement("h3", { style: { display: 'inline' } }, "Most Active Meters"),
+            React.createElement("h3", { style: { display: 'inline' } }, "Least Active Meters"),
             React.createElement("span", { style: { float: 'right', color: 'silver' } }),
             React.createElement("div", { style: { height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' } }),
             React.createElement("div", { style: { backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }, ref: 'divElement' },
