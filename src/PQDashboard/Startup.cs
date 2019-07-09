@@ -48,27 +48,31 @@ namespace PQDashboard
             // Configure Web API for self-host. 
             HttpConfiguration config = new HttpConfiguration();
 
-            //  Enable attribute based routing
-            //Map custom API controllers
-            config.Routes.MapHttpRoute(
-                name: "OpenSEE",
-                routeTemplate: "api/OpenSEE/{action}",
-                defaults: new
-                {
-                    controller = "OpenSEE"
-                }
-            );
+            ////  Enable attribute based routing
+            ////Map custom API controllers
+            //config.Routes.MapHttpRoute(
+            //    name: "OpenSEE",
+            //    routeTemplate: "api/OpenSEE/{action}",
+            //    defaults: new
+            //    {
+            //        controller = "OpenSEE"
+            //    }
+            //);
 
-            //  Enable attribute based routing
-            //Map custom API controllers
-            config.Routes.MapHttpRoute(
-                name: "PQDashboard",
-                routeTemplate: "api/PQDashboard/{action}",
-                defaults: new
-                {
-                    controller = "PQDashboard"
-                }
-            );
+            ////  Enable attribute based routing
+            ////Map custom API controllers
+            //config.Routes.MapHttpRoute(
+            //    name: "PQDashboard",
+            //    routeTemplate: "api/PQDashboard/{action}",
+            //    defaults: new
+            //    {
+            //        controller = "PQDashboard"
+            //    }
+            //);
+
+
+            // Set configuration to use reflection to setup routes
+            config.MapHttpAttributeRoutes();
 
 
             app.UseWebApi(config);

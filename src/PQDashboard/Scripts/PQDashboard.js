@@ -24358,6 +24358,40 @@ exports.default = PQDashboardService;
 
 /***/ }),
 
+/***/ "./TS/Services/SEDashboard/BreakerReport.ts":
+/*!**************************************************!*\
+  !*** ./TS/Services/SEDashboard/BreakerReport.ts ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var BreakerReportService = (function () {
+    function BreakerReportService() {
+        this.getMaximoBreakers = this.getMaximoBreakers.bind(this);
+    }
+    BreakerReportService.prototype.getMaximoBreakers = function () {
+        if (this.getMaximoBreakersHandle !== undefined)
+            this.getMaximoBreakersHandle.abort();
+        this.getMaximoBreakersHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/BreakerReport/MaximoBreakers",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.getMaximoBreakersHandle;
+    };
+    return BreakerReportService;
+}());
+exports.default = BreakerReportService;
+
+
+/***/ }),
+
 /***/ "./TSX/PQDashboard/Components/About.tsx":
 /*!**********************************************!*\
   !*** ./TSX/PQDashboard/Components/About.tsx ***!
@@ -24415,6 +24449,172 @@ function About() {
                         React.createElement("button", { type: "button", className: "btn btn-secondary", onClick: function () { setShow(false); } }, "Close")))))));
 }
 exports.default = About;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/BreakerReport/BreakerReport.tsx":
+/*!********************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/BreakerReport/BreakerReport.tsx ***!
+  \********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var BreakerReportNavbar_1 = __webpack_require__(/*! ./BreakerReportNavbar */ "./TSX/PQDashboard/Components/BreakerReport/BreakerReportNavbar.tsx");
+var createBrowserHistory_1 = __webpack_require__(/*! history/createBrowserHistory */ "../node_modules/history/createBrowserHistory.js");
+var queryString = __webpack_require__(/*! query-string */ "../node_modules/query-string/index.js");
+var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
+var momentDateFormat = "MM/DD/YYYY";
+var BreakerReport = (function (_super) {
+    __extends(BreakerReport, _super);
+    function BreakerReport(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.history = createBrowserHistory_1.default();
+        var query = queryString.parse(_this.history['location'].search);
+        _this.state = {
+            fromDate: (query['fromDate'] != undefined ? query['fromDate'] : moment().subtract(30, 'days').format(momentDateFormat)),
+            toDate: (query['toDate'] != undefined ? query['toDate'] : moment().format(momentDateFormat)),
+            breaker: (query['breaker'] != undefined ? query['breaker'] : '0'),
+        };
+        _this.stateSetter = _this.stateSetter.bind(_this);
+        return _this;
+    }
+    BreakerReport.prototype.render = function () {
+        var link = homePath + "api/BreakerReport/" + (this.state.breaker == '0' ? "AllBreakersReport?" : "IndividualBreakerReport?breakerId=" + this.state.breaker + "&") + "startDate=" + this.state.fromDate + "&endDate=" + this.state.toDate;
+        return (React.createElement("div", { style: { width: '100%', height: '100%' } },
+            React.createElement(BreakerReportNavbar_1.default, { toDate: this.state.toDate, fromDate: this.state.fromDate, breaker: this.state.breaker, stateSetter: this.stateSetter }),
+            React.createElement("div", { style: { width: '100%', height: 'calc( 100% - 163px)' } },
+                React.createElement("embed", { style: { width: 'inherit', height: 'inherit', position: 'absolute' }, id: "pdfContent", src: link, key: link }))));
+    };
+    BreakerReport.prototype.stateSetter = function (obj) {
+        var _this = this;
+        function toQueryString(state) {
+            var dataTypes = ["boolean", "number", "string"];
+            var stateObject = lodash_1.clone(state);
+            $.each(Object.keys(stateObject), function (index, key) {
+                if (dataTypes.indexOf(typeof (stateObject[key])) < 0)
+                    delete stateObject[key];
+            });
+            return queryString.stringify(stateObject, { encode: false });
+        }
+        var oldQueryString = toQueryString(this.state);
+        this.setState(obj, function () {
+            var newQueryString = toQueryString(_this.state);
+            if (!lodash_1.isEqual(oldQueryString, newQueryString)) {
+                clearTimeout(_this.historyHandle);
+                _this.historyHandle = setTimeout(function () { return _this.history['push'](_this.history['location'].pathname + '?' + newQueryString); }, 500);
+            }
+        });
+    };
+    return BreakerReport;
+}(React.Component));
+exports.default = BreakerReport;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/BreakerReport/BreakerReportNavbar.tsx":
+/*!**************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/BreakerReport/BreakerReportNavbar.tsx ***!
+  \**************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var BreakerReport_1 = __webpack_require__(/*! ./../../../../TS/Services/SEDashboard/BreakerReport */ "./TS/Services/SEDashboard/BreakerReport.ts");
+var momentDateFormat = "MM/DD/YYYY";
+var BreakerReportNavbar = (function (_super) {
+    __extends(BreakerReportNavbar, _super);
+    function BreakerReportNavbar(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.state = {
+            breakers: []
+        };
+        _this.breakerReportService = new BreakerReport_1.default();
+        return _this;
+    }
+    BreakerReportNavbar.prototype.componentDidMount = function () {
+        var _this = this;
+        $('#toDatePicker').datetimepicker({ format: momentDateFormat });
+        $('#toDatePicker').on('dp.change', function (e) { return _this.props.stateSetter({ toDate: e.target.value }); });
+        $('#fromDatePicker').datetimepicker({ format: momentDateFormat });
+        $('#fromDatePicker').on('dp.change', function (e) { return _this.props.stateSetter({ fromDate: e.target.value }); });
+        this.breakerReportService.getMaximoBreakers().done(function (data) {
+            _this.setState({ breakers: data.map(function (d, i) { return React.createElement("option", { key: i, value: d.AssetKey }, d.BreakerName); }) });
+        });
+    };
+    BreakerReportNavbar.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("nav", { className: "navbar navbar-expand-lg navbar-light bg-light" },
+            React.createElement("div", { className: "collapse navbar-collapse", id: "navbarSupportedContent", style: { width: '100%' } },
+                React.createElement("ul", { className: "navbar-nav mr-auto", style: { width: '100%' } },
+                    React.createElement("li", { className: "nav-item", style: { width: '40%', paddingRight: 10 } },
+                        React.createElement("fieldset", { className: "border", style: { padding: '10px', height: '100%' } },
+                            React.createElement("legend", { className: "w-auto", style: { fontSize: 'large' } }, "Time Window:"),
+                            React.createElement("form", null,
+                                React.createElement("div", { className: "form-group", style: { height: 30 } },
+                                    React.createElement("label", { style: { width: 200, position: 'relative', float: "left" } }, "Date Range: "),
+                                    React.createElement("div", { className: 'input-group', style: { width: 'calc(50% - 100px)', position: 'relative', float: "right" } },
+                                        React.createElement("input", { id: "toDatePicker", className: 'form-control', defaultValue: this.props.toDate }),
+                                        React.createElement("div", { className: "input-group-append" },
+                                            React.createElement("span", { className: "input-group-text" },
+                                                " ",
+                                                React.createElement("i", { className: "fa fa-calendar" })))),
+                                    React.createElement("div", { className: 'input-group date', style: { width: 'calc(50% - 100px)', position: 'relative', float: "right" } },
+                                        React.createElement("input", { className: 'form-control', id: 'fromDatePicker', defaultValue: this.props.fromDate }),
+                                        React.createElement("div", { className: "input-group-append" },
+                                            React.createElement("span", { className: "input-group-text" },
+                                                " ",
+                                                React.createElement("i", { className: "fa fa-calendar" }))))),
+                                React.createElement("div", { className: "form-group", style: { height: 30 } },
+                                    React.createElement("label", { style: { width: 200, position: 'relative', float: "left" } }, "Breaker: "),
+                                    React.createElement("select", { style: { width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }, value: this.props.breaker, onChange: function (e) { return _this.props.stateSetter({ breaker: e.target.value }); } },
+                                        React.createElement("option", { key: 0, value: "0" }, "All"),
+                                        this.state.breakers))))),
+                    React.createElement("li", { className: "nav-item", style: { width: '10%', paddingRight: 10 } },
+                        React.createElement("fieldset", { className: "border", style: { padding: '10px', height: '100%' } },
+                            React.createElement("legend", { className: "w-auto", style: { fontSize: 'large' } }, "Export:"),
+                            React.createElement("form", null,
+                                React.createElement("div", { className: "form-group", style: { height: 30 } },
+                                    React.createElement("a", { className: "btn btn-primary", style: { width: 'calc(100%)', position: 'relative', float: "right" }, href: homePath + "BreakerReportCSVDownload.ashx?breaker=" + this.props.breaker + "&fromDate=" + this.props.fromDate + "&toDate=" + this.props.toDate }, "CSV")))))))));
+    };
+    return BreakerReportNavbar;
+}(React.Component));
+exports.default = BreakerReportNavbar;
 
 
 /***/ }),
@@ -25218,7 +25418,17 @@ var momentTimeFormat = "HH:mm:ss.SSS";
 var EventSearchNavbar = function (props) {
     React.useEffect(function () {
         $('#datePicker').datetimepicker({ format: momentDateFormat });
+        $('#datePicker').on('dp.change', function (e) {
+            var object = lodash_1.clone(props);
+            object.date = e.target.value;
+            props.stateSetter({ searchBarProps: object });
+        });
         $('#timePicker').datetimepicker({ format: momentTimeFormat });
+        $('#timePicker').on('dp.change', function (e) {
+            var object = lodash_1.clone(props);
+            object.time = e.target.value;
+            props.stateSetter({ searchBarProps: object });
+        });
     }, []);
     return (React.createElement("nav", { className: "navbar navbar-expand-lg navbar-light bg-light" },
         React.createElement("div", { className: "collapse navbar-collapse", id: "navbarSupportedContent", style: { width: '100%' } },
@@ -26042,6 +26252,7 @@ var queryString = __webpack_require__(/*! query-string */ "../node_modules/query
 var About_1 = __webpack_require__(/*! ./Components/About */ "./TSX/PQDashboard/Components/About.tsx");
 var MeterActivity_1 = __webpack_require__(/*! ./Components/MeterActivity */ "./TSX/PQDashboard/Components/MeterActivity.tsx");
 var EventSearch_1 = __webpack_require__(/*! ./Components/EventSearch/EventSearch */ "./TSX/PQDashboard/Components/EventSearch/EventSearch.tsx");
+var BreakerReport_1 = __webpack_require__(/*! ./Components/BreakerReport/BreakerReport */ "./TSX/PQDashboard/Components/BreakerReport/BreakerReport.tsx");
 var PQDashboard = (function (_super) {
     __extends(PQDashboard, _super);
     function PQDashboard(props, context) {
@@ -26061,15 +26272,17 @@ var PQDashboard = (function (_super) {
                         React.createElement("div", { className: "nav flex-column nav-pills", id: "v-pills-tab", role: "tablist", "aria-orientation": "vertical", style: { height: 'calc(100% - 240px)' } },
                             React.createElement(react_router_dom_1.NavLink, { activeClassName: 'nav-link active', className: "nav-link", exact: true, to: controllerViewPath + "/" }, "Home"),
                             React.createElement(react_router_dom_1.NavLink, { activeClassName: 'nav-link active', className: "nav-link", to: controllerViewPath + "/eventsearch" }, "Event Search"),
-                            React.createElement(react_router_dom_1.NavLink, { activeClassName: 'nav-link active', className: "nav-link", to: controllerViewPath + "/meteractivity" }, "Meter Activity")),
+                            React.createElement(react_router_dom_1.NavLink, { activeClassName: 'nav-link active', className: "nav-link", to: controllerViewPath + "/meteractivity" }, "Meter Activity"),
+                            React.createElement(react_router_dom_1.NavLink, { activeClassName: 'nav-link active', className: "nav-link", to: controllerViewPath + "/breakerreport" }, "Breaker Report")),
                         React.createElement("div", { style: { width: '100%', textAlign: 'center' } },
-                            React.createElement("span", null, "Version 3.0"),
+                            React.createElement("span", null, "Version 1.0"),
                             React.createElement("br", null),
                             React.createElement("span", null,
                                 React.createElement(About_1.default, null))))),
                 React.createElement("div", { style: { width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' } },
                     React.createElement(react_router_dom_1.Route, { path: controllerViewPath + "/eventsearch", component: EventSearch_1.default }),
-                    React.createElement(react_router_dom_1.Route, { path: controllerViewPath + "/meteractivity", component: MeterActivity_1.default })))));
+                    React.createElement(react_router_dom_1.Route, { path: controllerViewPath + "/meteractivity", component: MeterActivity_1.default }),
+                    React.createElement(react_router_dom_1.Route, { path: controllerViewPath + "/breakerreport", component: BreakerReport_1.default })))));
     };
     return PQDashboard;
 }(React.Component));

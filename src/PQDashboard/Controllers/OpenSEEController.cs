@@ -46,6 +46,7 @@ using System.Web.Http;
 
 namespace OpenSEE.Controller
 {
+    [RoutePrefix("api/OpenSEE")]
     public class OpenSEEController : ApiController
     {
         #region [ Members ]
@@ -139,6 +140,10 @@ namespace OpenSEE.Controller
 
         #endregion
 
+        #region [ Constructors ]
+        public OpenSEEController() : base() { }
+        #endregion
+
         #region [ Static ]
         private static MemoryCache s_memoryCache;
 
@@ -151,7 +156,7 @@ namespace OpenSEE.Controller
         #region [ Methods ]
 
         #region [ Waveform Data ]
-        [HttpGet]
+        [Route("GetData"),HttpGet]
         public JsonReturn GetData()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -316,7 +321,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Digitals Data ]
-        [HttpGet]
+        [Route("GetBreakerData"),HttpGet]
         public JsonReturn GetBreakerData()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -397,7 +402,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Fault Location Data ]
-        [HttpGet]
+        [Route("GetFaultDistanceData"),HttpGet]
         public JsonReturn GetFaultDistanceData()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -593,7 +598,7 @@ namespace OpenSEE.Controller
 
         #region [ Info ]
 
-        [HttpGet]
+        [Route("GetHeaderData"),HttpGet]
         public Dictionary<string, dynamic> GetHeaderData()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -760,7 +765,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Compare ]
-        [HttpGet]
+        [Route("GetOverlappingEvents"),HttpGet]
         public DataTable GetOverlappingEvents()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -800,7 +805,7 @@ namespace OpenSEE.Controller
         #region [ Analysis ]
 
         #region [ FFT ]
-        [HttpGet]
+        [Route("GetFFTData"),HttpGet]
         public Task<FFTReturn> GetFFTData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -904,7 +909,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ First Derivative ]
-        [HttpGet]
+        [Route("GetFirstDerivativeData"),HttpGet]
         public Task<JsonReturn> GetFirstDerivativeData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1043,7 +1048,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Impedance ]
-        [HttpGet]
+        [Route("GetImpedanceData"),HttpGet]
         public Task<JsonReturn> GetImpedanceData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1164,7 +1169,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Remove Current ]
-        [HttpGet]
+        [Route("GetRemoveCurrentData"),HttpGet]
         public Task<JsonReturn> GetRemoveCurrentData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1294,7 +1299,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Power ]
-        [HttpGet]
+        [Route("GetPowerData"),HttpGet]
         public Task<JsonReturn> GetPowerData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1434,7 +1439,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Missing Voltage ]
-        [HttpGet]
+        [Route("GetMissingVoltageData"),HttpGet]
         public Task<JsonReturn> GetMissingVoltageData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1562,7 +1567,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Clipped Waveforms ]
-        [HttpGet]
+        [Route("GetClippedWaveformsData"),HttpGet]
         public Task<JsonReturn> GetClippedWaveformsData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1683,7 +1688,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Harmonic Spectrum ]
-        [HttpGet]
+        [Route("GetHarmonicSpectrumData"),HttpGet]
         public Task<FFTReturn> GetHarmonicSpectrumData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1782,7 +1787,7 @@ namespace OpenSEE.Controller
 
 
         #region [ LowPassFilter ]
-        [HttpGet]
+        [Route("GetLowPassFilterData"),HttpGet]
         public Task<JsonReturn> GetLowPassFilterData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -1955,7 +1960,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ High Pass Filter ]
-        [HttpGet]
+        [Route("GetHighPassFilterData"),HttpGet]
         public Task<JsonReturn> GetHighPassFilterData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2129,7 +2134,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Overlapping Waveform ]
-        [HttpGet]
+        [Route("GetOverlappingWaveformData"),HttpGet]
         public Task<OverlapReturn> GetOverlappingWaveformData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2252,7 +2257,7 @@ namespace OpenSEE.Controller
 
 
         #region [ Rapid Voltage Change ]
-        [HttpGet]
+        [Route("GetRapidVoltageChangeData"),HttpGet]
         public Task<JsonReturn> GetRapidVoltageChangeData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2359,7 +2364,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Frequency ]
-        [HttpGet]
+        [Route("GetFrequencyData"),HttpGet]
         public Task<JsonReturn> GetFrequencyData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2479,7 +2484,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Symmetrical Components  ]
-        [HttpGet]
+        [Route("GetSymmetricalComponentsData"),HttpGet]
         public Task<JsonReturn> GetSymmetricalComponentsData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2648,7 +2653,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Unbalance ]
-        [HttpGet]
+        [Route("GetUnbalanceData"),HttpGet]
         public Task<JsonReturn> GetUnbalanceData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2790,7 +2795,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Rectifier ]
-        [HttpGet]
+        [Route("GetRectifierData"),HttpGet]
         public Task<JsonReturn> GetRectifierData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -2902,7 +2907,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ THD ]
-        [HttpGet]
+        [Route("GetTHDData"),HttpGet]
         public Task<JsonReturn> GetTHDData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -3037,7 +3042,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Specified Harmonic ]
-        [HttpGet]
+        [Route("GetSpecifiedHarmonicData"),HttpGet]
         public Task<JsonReturn> GetSpecifiedHarmonicData(CancellationToken cancellationToken)
         {
             return Task.Run(() => {
@@ -3176,7 +3181,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ UI Widgets ]
-        [HttpGet]
+        [Route("GetScalarStats"),HttpGet]
         public Dictionary<string, string> GetScalarStats()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3193,7 +3198,7 @@ namespace OpenSEE.Controller
             }
         }
 
-        [HttpGet]
+        [Route("GetHarmonics"),HttpGet]
         public DataTable GetHarmonics()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3217,6 +3222,7 @@ namespace OpenSEE.Controller
             }
         }
 
+        [Route("GetTimeCorrelatedSags"), HttpGet]
         public DataTable GetTimeCorrelatedSags()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3235,6 +3241,7 @@ namespace OpenSEE.Controller
             }
         }
 
+        [Route("GetLightningParameters"), HttpGet]
         public object GetLightningParameters()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3283,7 +3290,7 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Note Management ]
-        [HttpGet]
+        [Route("GetNotes"),HttpGet]
         public DataTable GetNotes()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -3316,7 +3323,7 @@ namespace OpenSEE.Controller
         }
 
 
-        [HttpPost]
+        [Route("AddNote"),HttpPost]
         public IHttpActionResult AddNote(FormData note)
         {
             IHttpActionResult result = ValidateAdminRequest();
@@ -3348,7 +3355,7 @@ namespace OpenSEE.Controller
             return result;
         }
 
-        [HttpPost]
+        [Route("AddMultiNote"),HttpPost]
         public IHttpActionResult AddMultiNote(FormDataMultiNote note)
         {
             IHttpActionResult result = ValidateAdminRequest();
@@ -3387,7 +3394,7 @@ namespace OpenSEE.Controller
         }
 
 
-        [HttpDelete]
+        [Route("DeleteNote"),HttpDelete]
         public IHttpActionResult DeleteNote(FormData note)
         {
             try
@@ -3414,7 +3421,7 @@ namespace OpenSEE.Controller
 
         }
 
-        [HttpDelete]
+        [Route("DeleteMultiNote"),HttpDelete]
         public IHttpActionResult DeleteMultiNote(FormDataMultiNote note)
         {
             try
@@ -3442,7 +3449,7 @@ namespace OpenSEE.Controller
         }
 
 
-        [HttpPatch]
+        [Route("UpdateNote"),HttpPatch]
         public IHttpActionResult UpdateNote(FormData note)
         {
             IHttpActionResult result = ValidateAdminRequest();

@@ -47,6 +47,7 @@ using System.Web.Http;
 
 namespace PQDashboard.Controllers
 {
+    [RoutePrefix("api/PQDashboard")]
     public class PQDashboardController : ApiController
     {
         #region [ Members ]
@@ -54,6 +55,10 @@ namespace PQDashboard.Controllers
         // Fields
         private DateTime m_epoch = new DateTime(1970, 1, 1);
 
+        #endregion
+
+        #region [ Constructors ]
+        public PQDashboardController() : base() { }
         #endregion
 
         #region [ Static ]
@@ -68,7 +73,7 @@ namespace PQDashboard.Controllers
         #region [ Methods ]
 
         #region [ Meter Activity Page ]
-        [HttpGet]
+        [Route("GetMostActiveMeterActivityData"), HttpGet]
         public DataTable GetMostActiveMeterActivityData()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -123,7 +128,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("GetLeastActiveMeterActivityData"), HttpGet]
         public DataTable GetLeastActiveMeterActivityData()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -182,7 +187,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("GetFilesProcessedLast24Hrs"), HttpGet]
         public DataTable GetFilesProcessedLast24Hrs()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -235,7 +240,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("QueryFileGroupEvents"), HttpGet]
         public DataTable QueryFileGroupEvents() {
             Dictionary<string, string> query = Request.QueryParameters();
             int fileGroupID = int.Parse(query["FileGroupID"]);
@@ -282,7 +287,7 @@ namespace PQDashboard.Controllers
             Year
         }
 
-        [HttpPost]
+        [Route("GetEventSearchData"),HttpPost]
         public DataTable GetEventSearchData(EventSearchPostData postData)
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -366,7 +371,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("GetEventSearchAssetVoltageDisturbances"),HttpGet]
         public DataTable GetEventSearchAssetVoltageDisturbances()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -396,7 +401,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("GetEventSearchFaultSegments"),HttpGet]
         public DataTable GetEventSearchFaultSegments()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -423,7 +428,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpGet]
+        [Route("GetEventSearchHistory"),HttpGet]
         public DataTable GetEventSearchHistory()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -466,7 +471,7 @@ namespace PQDashboard.Controllers
             public string context { get; set; }
         }
 
-        [HttpPost]
+        [Route("GetDetailsForSites"),HttpPost]
         public DataTable GetDetailsForSites(DetailtsForSitesForm form)
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -594,7 +599,7 @@ namespace PQDashboard.Controllers
             public string context { get; set; }
         }
 
-        [HttpPost]
+        [Route("GetDataForPeriod"),HttpPost]
         public EventSet GetDataForPeriod(DataForPeriodForm form)
         {
             EventSet eventSet = new EventSet();
@@ -784,7 +789,7 @@ namespace PQDashboard.Controllers
             public string context { get; set; }
         }
 
-        [HttpPost]
+        [Route("GetVoltageMagnitudeData"),HttpPost]
         public IEnumerable<MagDurData> GetVoltageMagnitudeData(VoltageMagnitudeDataForm form)
         {
 
@@ -835,7 +840,7 @@ namespace PQDashboard.Controllers
             }
         }
 
-        [HttpGet]
+        [Route("GetNotesForEvent"),HttpGet]
         public IEnumerable<EventNote> GetNotesForEvent()
         {
             Dictionary<string, string> query = Request.QueryParameters();
@@ -854,7 +859,7 @@ namespace PQDashboard.Controllers
 
         }
 
-        [HttpPost]
+        [Route("SaveNoteForEvent"),HttpPost]
         public void SaveNoteForEvent(NoteForEventForm form)
         {
             if (form.note.Trim().Length > 0)
@@ -872,7 +877,7 @@ namespace PQDashboard.Controllers
             }
         }
 
-        [HttpPost]
+        [Route("RemoveEventNote"),HttpPost]
         public void RemoveEventNote(NoteForEventForm form)
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -897,7 +902,7 @@ namespace PQDashboard.Controllers
             public string targetDateTo { get; set; }
             public string userName { get; set; }
         }
-        [HttpPost]
+        [Route("GetTrendingDataForPeriod"),HttpPost]
         public List<TrendingData> GetTrendingDataForPeriod(TrendingDataForPeriodForm form)
         {
             List<TrendingData> eventSet = new List<TrendingData>();
@@ -959,7 +964,7 @@ namespace PQDashboard.Controllers
             return (eventSet);
         }
 
-        [HttpGet]
+        [Route("GetCurves"),HttpGet]
         public IEnumerable<WorkbenchVoltageCurveView> GetCurves()
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
@@ -983,7 +988,7 @@ namespace PQDashboard.Controllers
             public string context { get; set; }
         }
 
-        [HttpPost]
+        [Route("GetMeterLocations"),HttpPost]
         public MeterLocations GetMeterLocations(MeterLocationsForm form)
         {
             MeterLocations meters = new MeterLocations();
@@ -1127,7 +1132,7 @@ namespace PQDashboard.Controllers
             }
         }
 
-        [HttpPost]
+        [Route("GetLocationsTrendingData"),HttpPost]
         public ContourInfo GetLocationsTrendingData(ContourQuery contourQuery)
         {
             List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
@@ -1206,7 +1211,7 @@ namespace PQDashboard.Controllers
         }
 
 
-        [HttpPost]
+        [Route("GetLocationsHeatmap"),HttpPost]
         public MeterLocations GetLocationsHeatmap(MeterLocationsHeatmapForm form)
         {
             MeterLocations meters = new MeterLocations();
@@ -1255,7 +1260,7 @@ namespace PQDashboard.Controllers
             public int? ParentAssetGroupID { get; set; }
         }
 
-        [HttpPost]
+        [Route("GetMeters"), HttpPost]
         public GetMetersReturn GetMeters(MetersForm form)
         {
             GetMetersReturn data = new GetMetersReturn();
@@ -1283,7 +1288,7 @@ namespace PQDashboard.Controllers
 
 
         #region [ Settings View ]
-        [HttpGet]
+        [Route("ResetDefaultSettings"),HttpGet]
         public void ResetDefaultSettings()
         {
             string user = UserInfo.UserNameToSID(User.Identity.Name);
@@ -1300,7 +1305,7 @@ namespace PQDashboard.Controllers
             public bool Enabled { get; set; }
             public string UserId { get; set; }
         }
-        [HttpPost]
+        [Route("UpdateDashSettings"),HttpPost]
         public void UpdateDashSettings(UpdateDashSettingsForm form)
         {
             using (DataContext dataContext = new DataContext("systemSettings")) {

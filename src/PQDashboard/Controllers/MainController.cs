@@ -63,7 +63,7 @@ namespace PQDashboard.Controllers
         /// <summary>
         /// Creates a new <see cref="MainController"/>.
         /// </summary>
-        public MainController()
+        public MainController() : base()
         {
             // Set default model for pages used by layout
             m_appModel = new AppModel();

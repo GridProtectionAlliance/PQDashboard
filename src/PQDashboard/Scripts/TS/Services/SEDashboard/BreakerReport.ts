@@ -1,7 +1,7 @@
 ﻿//******************************************************************************************************
-//  ErrorController.cs - Gbtc
+//  BreakerReport.ts - Gbtc
 //
-//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
@@ -16,34 +16,29 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  02/23/2016 - J. Ritchie Carroll
+//  07/02/2019 - Billy Ernest
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+export default class BreakerReportService {
+    getMaximoBreakersHandle: JQuery.jqXHR;
+    constructor() {
+        this.getMaximoBreakers = this.getMaximoBreakers.bind(this);
+    }
 
-using System.Web.Mvc;
+    getMaximoBreakers(): JQuery.jqXHR {
+        if (this.getMaximoBreakersHandle !== undefined)
+            this.getMaximoBreakersHandle.abort();
 
-namespace PQDashboard.Controllers
-{
-    /// <summary>
-    /// Represents a MVC controller for the site's error pages.
-    /// </summary>
-    public class ErrorController : Controller
-    {
-        public ErrorController() : base() { }
+        this.getMaximoBreakersHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/BreakerReport/MaximoBreakers`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
 
-        [AllowAnonymous]
-        public ActionResult Error()
-        {
-            Response.TrySkipIisCustomErrors = true;
-            return View();
-        }
-
-        [AllowAnonymous]
-        public ActionResult SecurityError()
-        {
-            Response.TrySkipIisCustomErrors = true;
-            return View();
-        }
+        return this.getMaximoBreakersHandle;
     }
 }

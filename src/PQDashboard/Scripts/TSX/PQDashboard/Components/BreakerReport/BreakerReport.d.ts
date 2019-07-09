@@ -1,7 +1,7 @@
 ﻿//******************************************************************************************************
-//  ErrorController.cs - Gbtc
+//  BreakerReport.d.ts - Gbtc
 //
-//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
@@ -16,34 +16,13 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  02/23/2016 - J. Ritchie Carroll
+//  07/02/2019 - Billy Ernest
 //       Generated original version of source code.
 //
 //******************************************************************************************************
 
-using System.Web.Mvc;
-
-namespace PQDashboard.Controllers
-{
-    /// <summary>
-    /// Represents a MVC controller for the site's error pages.
-    /// </summary>
-    public class ErrorController : Controller
-    {
-        public ErrorController() : base() { }
-
-        [AllowAnonymous]
-        public ActionResult Error()
-        {
-            Response.TrySkipIisCustomErrors = true;
-            return View();
-        }
-
-        [AllowAnonymous]
-        public ActionResult SecurityError()
-        {
-            Response.TrySkipIisCustomErrors = true;
-            return View();
-        }
-    }
+interface State {
+    fromDate: string,
+    toDate: string,
+    breaker: string
 }

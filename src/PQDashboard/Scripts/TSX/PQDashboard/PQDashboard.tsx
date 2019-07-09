@@ -31,6 +31,7 @@ import * as queryString from "query-string";
 import About from './Components/About';
 import MeterActivity from './Components/MeterActivity';
 import EventSearch from './Components/EventSearch/EventSearch';
+import BreakerReport from './Components/BreakerReport/BreakerReport';
 
 class PQDashboard extends React.Component<{}, PQDashboardState>{
     history: object;
@@ -55,10 +56,12 @@ class PQDashboard extends React.Component<{}, PQDashboardState>{
                                 <NavLink activeClassName='nav-link active' className="nav-link" exact={true} to={controllerViewPath + "/"}>Home</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/eventsearch"}>Event Search</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/meteractivity"}>Meter Activity</NavLink>
+                                <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/breakerreport"}>Breaker Report</NavLink>
+
                             </div>
                             <div style={{ width: '100%', textAlign: 'center' }}>
 
-                                <span>Version 3.0</span>
+                                <span>Version 1.0</span>
                                 <br />
                                 <span><About /></span>
                             </div>
@@ -67,6 +70,8 @@ class PQDashboard extends React.Component<{}, PQDashboardState>{
                     <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' }}>
                         <Route path={controllerViewPath + "/eventsearch"} component={EventSearch} />
                         <Route path={controllerViewPath + "/meteractivity"} component={MeterActivity} />
+                        <Route path={controllerViewPath + "/breakerreport"} component={BreakerReport} />
+
                     </div>
                 </div>
         </Router>

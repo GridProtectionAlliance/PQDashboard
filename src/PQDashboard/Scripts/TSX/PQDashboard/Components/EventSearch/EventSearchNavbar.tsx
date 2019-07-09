@@ -53,7 +53,20 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
 
     React.useEffect(() => {
         $('#datePicker').datetimepicker({ format: momentDateFormat });
+        $('#datePicker').on('dp.change', (e) => {
+            var object = clone(props);
+            object.date = (e.target as any).value;
+            props.stateSetter({ searchBarProps: object });
+
+        });
+
         $('#timePicker').datetimepicker({ format: momentTimeFormat });
+        $('#timePicker').on('dp.change', (e) => {
+            var object = clone(props);
+            object.time = (e.target as any).value;
+            props.stateSetter({ searchBarProps: object });
+
+        });
 
     }, []);
 
