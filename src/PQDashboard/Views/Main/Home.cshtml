@@ -96,7 +96,7 @@
         var defaultView = { DateRange: @Html.Raw(ViewBag.DateRange), Tab: '@Html.Raw(ViewBag.Tab)', MapGrid: '@Html.Raw(ViewBag.MapGrid)', AssetGroup: @Html.Raw(ViewBag.AssetGroup)};
         var userName = '@ViewBag.username';
     </script>
-    @if (Request.Browser.Browser == "InternetExplorer") {
+    @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         <script src="~/Scripts/default.polyfill.min.js"></script>
     }
     @Scripts.Render("~/Scripts/jquery")

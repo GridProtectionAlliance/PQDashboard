@@ -59,7 +59,7 @@
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var controllerViewPath = homePath + '@Html.Raw(this.ViewContext.RouteData.GetRequiredString("controller"))/@Html.Raw(this.ViewContext.RouteData.GetRequiredString("action"))';
     </script>
-    @if (Request.Browser.Browser == "InternetExplorer") {
+    @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         <script src="~/Scripts/default.polyfill.min.js"></script>
     }
 
