@@ -24494,6 +24494,14 @@ var BreakerReport = (function (_super) {
             toDate: (query['toDate'] != undefined ? query['toDate'] : moment().format(momentDateFormat)),
             breaker: (query['breaker'] != undefined ? query['breaker'] : '0'),
         };
+        _this.history['listen'](function (location, action) {
+            var query = queryString.parse(_this.history['location'].search);
+            _this.setState({
+                fromDate: (query['fromDate'] != undefined ? query['fromDate'] : moment().subtract(30, 'days').format(momentDateFormat)),
+                toDate: (query['toDate'] != undefined ? query['toDate'] : moment().format(momentDateFormat)),
+                breaker: (query['breaker'] != undefined ? query['breaker'] : '0'),
+            });
+        });
         _this.stateSetter = _this.stateSetter.bind(_this);
         return _this;
     }
@@ -24502,7 +24510,7 @@ var BreakerReport = (function (_super) {
         return (React.createElement("div", { style: { width: '100%', height: '100%' } },
             React.createElement(BreakerReportNavbar_1.default, { toDate: this.state.toDate, fromDate: this.state.fromDate, breaker: this.state.breaker, stateSetter: this.stateSetter }),
             React.createElement("div", { style: { width: '100%', height: 'calc( 100% - 163px)' } },
-                React.createElement("embed", { style: { width: 'inherit', height: 'inherit', position: 'absolute' }, id: "pdfContent", src: link, key: link }))));
+                React.createElement("embed", { style: { width: 'inherit', height: 'inherit', position: 'absolute' }, id: "pdfContent", src: link, key: link, type: "application/pdf" }))));
     };
     BreakerReport.prototype.stateSetter = function (obj) {
         var _this = this;

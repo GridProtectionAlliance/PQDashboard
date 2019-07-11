@@ -49,6 +49,15 @@ export default class BreakerReport extends React.Component<{}, State>{
             breaker: (query['breaker'] != undefined ? query['breaker'] : '0'),
         }
 
+        this.history['listen']((location, action) => {
+            var query = queryString.parse(this.history['location'].search);
+            this.setState({
+                fromDate: (query['fromDate'] != undefined ? query['fromDate'] : moment().subtract(30, 'days').format(momentDateFormat)),
+                toDate: (query['toDate'] != undefined ? query['toDate'] : moment().format(momentDateFormat)),
+                breaker: (query['breaker'] != undefined ? query['breaker'] : '0'),
+            });
+        });
+
         this.stateSetter = this.stateSetter.bind(this);
     }
 
@@ -58,7 +67,7 @@ export default class BreakerReport extends React.Component<{}, State>{
             <div style={{ width: '100%', height: '100%' }}>
                 <BreakerReportNavbar toDate={this.state.toDate} fromDate={this.state.fromDate} breaker={this.state.breaker} stateSetter={this.stateSetter}/>
                 <div style={{ width: '100%', height: 'calc( 100% - 163px)' }}>
-                    <embed style={{ width: 'inherit', height: 'inherit', position: 'absolute' }} id="pdfContent" src={link} key={link}/>
+                    <embed style={{ width: 'inherit', height: 'inherit', position: 'absolute' }} id="pdfContent" src={link} key={link} type="application/pdf"/>
                 </div>
             </div>
         );
