@@ -31,6 +31,7 @@ using GSF.Threading;
 using Newtonsoft.Json;
 using OpenSEE.Controller;
 using openXDA.Model;
+using openXDA.Reports;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -372,26 +373,14 @@ namespace PQDashboard
 
         public DataTable QueryAllData(DateTime fromDate, DateTime toDate)
         {
-            using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-#if DEBUG
-                return connection.RetrieveData(testAllQuery, fromDate, toDate);
-#else
-                return connection.RetrieveData(allQuery, fromDate, toDate);
-#endif
-            }
+            AllBreakersReport report = new AllBreakersReport(fromDate, toDate);
+            return report.DataTable;
         }
 
         public DataTable QueryIndividualData(string breaker, DateTime fromDate, DateTime toDate)
         {
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-#if DEBUG
-                return connection.RetrieveData(testIndividualQuery, breaker, fromDate, toDate);
-#else
-                return connection.RetrieveData(individualQuery, breaker, fromDate, toDate);
-#endif
-            }
+            IndividualBreakerReport report = new IndividualBreakerReport(breaker, fromDate, toDate);
+            return report.TimingDataTable;
         }
 #endregion
 
