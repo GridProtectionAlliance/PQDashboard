@@ -89,7 +89,7 @@ export default class LightningData extends React.Component<any, any>{
     }
 
     componentDidMount() {
-        ($("#lightningquery") as any).draggable({ scroll: false, handle: '#lightninghandle' });
+        ($("#lightningquery") as any).draggable({ scroll: false, handle: '#lightninghandle', containment: 'document' });
 
         var lightningQuery = window.LightningQuery;
 

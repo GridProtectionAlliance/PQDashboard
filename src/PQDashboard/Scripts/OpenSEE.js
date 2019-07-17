@@ -23425,7 +23425,7 @@ var Points = (function (_super) {
         return _this;
     }
     Points.prototype.componentDidMount = function () {
-        $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle' });
+        $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle', containment: 'document' });
     };
     Points.prototype.render = function () {
         var _this = this;
@@ -23606,7 +23606,7 @@ var HarmonicStats = (function (_super) {
     }
     HarmonicStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#harmonicstats").draggable({ scroll: false, handle: '#harmonichandle' });
+        $("#harmonicstats").draggable({ scroll: false, handle: '#harmonichandle', containment: 'document' });
         this.openSEEService.getHarmonicStats(this.props.eventId).done(function (data) {
             var headers = HeaderRow(data.map(function (x) { return x.Channel; }), _this.props.exportCallback);
             var secondaryHeader = SecondaryHeaderRow(data.map(function (x) { return x.Channel; }));
@@ -23757,7 +23757,7 @@ var LightningData = (function (_super) {
     }
     LightningData.prototype.componentDidMount = function () {
         var _this = this;
-        $("#lightningquery").draggable({ scroll: false, handle: '#lightninghandle' });
+        $("#lightningquery").draggable({ scroll: false, handle: '#lightninghandle', containment: 'document' });
         var lightningQuery = window.LightningQuery;
         if (lightningQuery === undefined)
             return;
@@ -23897,7 +23897,7 @@ var PolarChart = (function (_super) {
         this.updatePhasorChart();
     };
     PolarChart.prototype.componentDidMount = function () {
-        $("#phasor").draggable({ scroll: false, handle: '#phasorhandle' });
+        $("#phasor").draggable({ scroll: false, handle: '#phasorhandle', containment: 'document' });
         this.updatePhasorChart();
     };
     PolarChart.prototype.updatePhasorChart = function () {
@@ -24114,7 +24114,7 @@ var ScalarStats = (function (_super) {
     }
     ScalarStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#scalarstats").draggable({ scroll: false, handle: '#statshandle' });
+        $("#scalarstats").draggable({ scroll: false, handle: '#statshandle', containment: 'document' });
         this.openSEEService.getScalarStats(this.props.eventId).done(function (data) {
             var rows = Object.keys(data).map(function (key) { return Row({ label: key, data: data[key] }); });
             _this.setState({ rows: rows });
@@ -24231,7 +24231,7 @@ var HarmonicStats = (function (_super) {
     }
     HarmonicStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle' });
+        $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle', containment: 'document' });
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(function (data) {
             var header = HeaderRow(_this.props.exportCallback);
             var rows = [];
@@ -24369,7 +24369,7 @@ var Tooltip = (function (_super) {
     }
     Tooltip.prototype.componentDidMount = function () {
         var ctrl = this;
-        $('#unifiedtooltip').draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
+        $('#unifiedtooltip').draggable({ scroll: false, handle: '#unifiedtooltiphandle', containment: 'document' });
     };
     Tooltip.prototype.render = function () {
         var _this = this;
@@ -24491,7 +24491,7 @@ var TooltipWithDelta = (function (_super) {
     }
     TooltipWithDelta.prototype.componentDidMount = function () {
         var ctrl = this;
-        $('#tooltipwithdelta').draggable({ scroll: false, handle: '#tooltipwithdeltahandle' });
+        $('#tooltipwithdelta').draggable({ scroll: false, handle: '#tooltipwithdeltahandle', containment: 'document' });
     };
     TooltipWithDelta.prototype.getMillisecondTime = function (date) {
         var milliseconds = moment_1.utc(date).valueOf();
