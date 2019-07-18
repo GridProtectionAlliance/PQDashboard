@@ -338,7 +338,6 @@
         </div>
     </div>
 </div>
-
 <script>
     var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
     var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
@@ -353,7 +352,9 @@
     }
 
     function resetDefaults() {
-        dataHub.resetDefaultSettings().done(function () { refresh(); });
+        $.get(homePath + 'api/PQDashboard/ResetDefaultSettings', function () {
+             refresh();
+        });
     }
 
     function updateDashSettings(key, setting) {
@@ -362,7 +363,14 @@
         pendingUpdates[key] = deferred;
 
         function callUpdateDashSettings() {
-            dataHub.updateDashSettings(setting.ID, setting.Name, setting.Value, setting.Enabled, userId).always(deferred.resolve);
+            var form = {
+                ID: setting.ID,
+                Name: setting.Name,
+                Value: setting.Value,
+                Enabled: setting.Enabled,
+                UserId: userId
+            };
+            $.post(homePath + 'api/PQDashboard/UpdateDashSettings', form, function () { }).always(deferred.resolve);
         }
 
         if (pendingUpdate)

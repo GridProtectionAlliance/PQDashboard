@@ -33,30 +33,21 @@
     Layout = "";
     string historianConnection;
     IEnumerable<AssetGroup> assetGroups;
-    List<DeviceFilter> deviceFilters;
-    List<SavedViews> savedViews;
     int meterCount;
-    SavedViews defaultView;
     string xdaInstance;
     string yearBegin;
 
     using(DataContext dataContext = new DataContext("systemSettings")) {
         historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
-        assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("ID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0}))", ViewBag.usersid);
-        deviceFilters = dataContext.Table<DeviceFilter>().QueryRecords(restriction: new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-        savedViews = dataContext.Table<SavedViews>().QueryRecords("IsDefault DESC", new RecordRestriction("UserAccount = {0}", ViewBag.usersid)).ToList();
-            
-        if (!savedViews.FirstOrDefault()?.IsDefault ?? true)
-        {
-            savedViews.Insert(0, dataContext.Table<SavedViews>().QueryRecordWhere("UserAccount = 'Default' AND IsDefault = 'true'"));
-        }
-
+        assetGroups = dataContext.Table<AssetGroup>().QueryRecords();
         meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
-
-        defaultView = savedViews.First();
-
         xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
         yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
+
+        ViewBag.DateRange = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.DateRange'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.DateRange'") ?? "2";
+        ViewBag.Tab = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.Tab'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.Tab'") ?? "Events";
+        ViewBag.MapGrid =  dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.MapGrid'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.MapGrid'") ?? "Grid";
+        ViewBag.AssetGroup = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.AssetGroup'") ??  dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.AssetGroup'") ?? "1";
 
     }
 
@@ -102,9 +93,12 @@
         var xdaInstance = '@xdaInstance';
         var yearBegin = '@yearBegin';
         var userId = '@ViewBag.usersid';
-        var defaultView = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(defaultView))');
+        var defaultView = { DateRange: @Html.Raw(ViewBag.DateRange), Tab: '@Html.Raw(ViewBag.Tab)', MapGrid: '@Html.Raw(ViewBag.MapGrid)', AssetGroup: @Html.Raw(ViewBag.AssetGroup)};
         var userName = '@ViewBag.username';
     </script>
+    @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
+        <script src="~/Scripts/default.polyfill.min.js"></script>
+    }
     @Scripts.Render("~/Scripts/jquery")
     @Scripts.Render("~/Scripts/bootstrap")
     @Scripts.Render("~/Scripts/random")
@@ -116,13 +110,10 @@
     @Scripts.Render("~/Scripts/flot/flot")
 
     <script src="~/Scripts/ie11-compatibility-functions.js"></script>
-    <script src="~/signalr/hubs"></script>
 
 </head>
 
 <body>
-
-<div style="visibility: hidden; width: 0px; height: 0px;" id="postedUserName">@ViewBag.usersid</div>
 
 <div id="draggable" class="ui-widget-content"></div>
 <div style="width: 100%; height: 36px;">
@@ -141,18 +132,13 @@
         <table style="width: 100%;">
             <tr>
                 <td width="250px" align="left" style="z-index: 999; padding-left: 5px;" nowrap>
-                    Filter:
-                    <select class="smallbutton" id="deviceFilterList" onchange="selectMeterGroup()">
-                        <option value="0">All (no filter)</option>
-                        @foreach (DeviceFilter df in deviceFilters)
+                    Asset Group:
+                    <select id="meterGroupSelect" class="smallbutton" style="height: 20px" onchange="selectMeterGroup(this);" >
+                        @foreach (AssetGroup mg in assetGroups)
                         {
-                            <option value="@df.ID">@df.Name</option>
+                            <option value="@mg.ID">@mg.Name</option>
                         }
                     </select>
-                    <button class="smallbutton" id="newDeviceFilterBtn" onclick="showDeviceFilter('new')">New</button>
-                    <button class="smallbutton" id="editDeviceFilterBtn" onclick="showDeviceFilter('edit')">Edit</button>
-
-                    <select class="smallbutton" id="Configurations" hidden="hidden"></select>
                 </td>
                 <td width="150px" align="left" nowrap>
                     <span id="meterSelected"></span> of <span id="meterCount">@meterCount</span> devices
@@ -161,7 +147,7 @@
                 <td width="auto" align="center" nowrap>
                     <div class="row" style="width:350px">
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-default" onclick="moveDateBackward()" title="Move 1 step back in time"><span class="glyphicon glyphicon-backward"></span></button>
+                            <button type="button" class="btn btn-sm btn-default" onclick="moveDateBackward()" title="Move 1 step back in time"><span class="glyphicon glyphicon-backward"></span></button>
                         </div>
                         <div class="col-md-8">
                         
@@ -173,39 +159,18 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-default" onclick="moveDateForward()" title="Move 1 step forward in time"><span class="glyphicon glyphicon-forward"></span></button>
+                            <button type="button" class="btn btn-sm btn-default" onclick="moveDateForward()" title="Move 1 step forward in time"><span class="glyphicon glyphicon-forward"></span></button>
                         </div>
 
                     </div>
 
 
                 </td>
-                <td width="150px" align="center" style="z-index: 999; padding-right: 0px;" nowrap>
-                    <a class="btn btn-default" href="@Url.Action("QuickSearch")" target="_blank">Quick Search</a>
-                </td>
-
                 <td width="100px" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
                     <span>@ViewBag.username</span>
                 </td>
-                <td width="250px" align="right" style="z-index: 999; padding-right: 5px;" nowrap>
-                    @*Monitor Group:*@
-                    <select id="meterGroupSelect" class="smallbutton" onchange="selectMeterGroup(this);" hidden="hidden">
-                        @foreach (AssetGroup mg in assetGroups)
-                        {
-                            <option value="@mg.ID">@mg.Name</option>
-                        }
-                    </select>
-                    Views:
-                    <select id="viewSelect" class="smallbutton" onchange="selectView(this)">
-                        @foreach (SavedViews sv in savedViews)
-                        {
-                            <option value="@sv.ID">@sv.Name</option>
-                        }
-
-                    </select>
-                    <button class="smallbutton" id="saveNewView" onclick="saveView()">Save</button>
-                    <button class="smallbutton" id="deleteView" onclick="deleteView()">Delete</button>
-
+                <td width="150px" align="right" style="z-index: 999; padding-right: 5px;" nowrap>
+                    <a class="btn btn-sm btn-default" href="@Url.Action("QuickSearch")" target="_blank">Quick Search</a>
                 </td>
                 @if (ViewBag.username != "External")
                 {
@@ -220,9 +185,7 @@
 
     <div id="application-tabs" class="noselect">
         <ul>
-            <li id="tabsMeterActivity"><a href="#tabs-MeterActivity">MeterActivity</a></li>
-            <li id="tabsOverviewToday"><a href="#tabs-Overview-Today">Overview-Today</a></li>
-            <li id="tabsOverviewYesterday"><a href="#tabs-Overview-Yesterday">Overview-Yesterday</a></li>
+            <li id="tabsMeterActivity"><a href="#tabs-MeterActivity">Event Search</a></li>
             <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
             <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
             <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
@@ -237,124 +200,6 @@
         </ul>
 
         <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
-            @Html.Partial("MeterActivity")
-        </div>
-
-        <div id="tabs-Overview-Today" style="background-color: #064e1b; width: 100%; height: 100%">
-            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-                <div class="grid2" id="grid2Today">
-                    <div class="grid2-sizer"></div>
-                    <div class="grid2-item" id="grid2-item-Today-1" style="left: 0px; top: 0px" hidden="hidden">
-                        <div style="background-color:#f2f3fc; border-color: black; color: darkblue; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3>DOWNLOADS</h3>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: darkblue"></div>
-                            <div id="today-downloads" style="background-color: #f2f3fc; border-color: black"></div>
-                        </div>
-                    </div>
-                    <div class="grid2-item" id="grid2-item-Today-2" style="top: 0px" hidden="hidden">
-                        <div style="background-color: #ffeae9; border-color: black; color:#640701; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3>FAULTS</h3>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #640701"></div>
-                            <div id="today-faults" style="background-color: #ffeae9; border-color: black"></div>
-                        </div>
-                    </div>
-                    <div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;">
-                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">METER ACTIVITY</h3>
-                            <span style="float: right; color: silver">Click on event count to view events</span>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
-                            <div id="today-meter-activity" style="background-color: white; border-color: black"></div>
-                        </div>
-                    </div>
-                    @*<div class="grid2-item-wide" id="grid2-item-Today-3" style="top: 0;" hidden="hidden">
-                        <div style="background-color: white; border-color: black; color: black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">EVENT LOG</h3>
-                            <span style="float: right; color: silver">Click on time to display waveform</span>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: black"></div>
-                            <div id="today-log" style="background-color: white; border-color: black"></div>
-                        </div>
-                    </div>*@
-                    <div class="grid2-item-wide" id="grid2-item-today-5" style="top: 0;">
-                        <div style="background-color: white; border-color: black; color:black; text-align: left; margin-bottom: 0px" class="well well-sm">
-                            <h3 style="display:inline">FILES PROCESSED LAST 24 HOURS</h3>
-                            <span style="float: right; color: silver" id="files-hint">Expand row to view events</span>
-                            <div style="height: 2px; width:100%; display: inline-block; background-color: black"></div>
-                            <div id="today-files" style="background-color: white; border-color: black"></div>
-                        </div>
-                    </div>
-                    <div class="grid2-item-large" id="grid2-item-Today-4" style="left: 0px; top:50%;" hidden="hidden">
-                        <div style="background-color: #feeedb; border-color: black; color: #834a05; text-align: left; margin-bottom: 0px; height:100%; width: 100%" class="well well-sm">
-                            <h3>VOLTAGE DISTURBANCES</h3>
-                            <div style="height: 2px; width: 100%; display: inline-block; background-color: #834a05"></div>
-                            <div id="today-voltages" style="background-color: #f1e5da; border-color: black"></div>
-                            <div id="today-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabs-Overview-Yesterday" style="background-color: #d6dedb; width: 100%; height: 100%">
-            <div id="overviewContainer" class="container" style="width: 100%; height: 100%; text-align: center">
-                <div style="text-align: center; color: white">
-                    <h3>PQ Overview for <span id="overviewYesterdayDate"></span> - YESTERDAY </h3>
-                </div>
-                <div style="height: 1px; width: 80%; display: inline-block; background-color: black"></div>
-
-                <div class="grid2" id="grid2Yesterday">
-                    <div class="grid2-sizer"></div>
-                    <div class="grid2-item" id="grid2-item-Yesterday-1" style="left: 0px; top: 0px">
-                        <h5> DOWNLOADS </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black">
-                            <div id="downloadsChart" style="width: 50%; height: 100%"></div>
-
-                            <div id="history-downloads" style="width: 50%; height: 100%">
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid2-item" id="grid2-item-Yesterday-2" style="top: 0px">
-                        <h5> ALARMS </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black">
-                            <div id="history-alarms"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid2-item" id="grid2-item-Yesterday-3" style="top: 0px">
-                        <h5> OFF-NORMAL </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black">
-                            <div id="history-offnormal"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid2-item grid2-item-tall" id="grid2-item-Yesterday-4" style="height: 625px; top: 0">
-                        <h5> PREVIOUS 30 DAYS </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black; overflow-y: scroll; height:90%; width: 100%">
-                            <div id="history-thirtyday-a" style="height:25%"></div>
-                            <div id="history-thirtyday-offnormal" style="background-color: white; height:25%"></div>
-                            <div id="history-thirtyday-disturbances" style="background-color: white; height:25%"></div>
-                            <div id="history-thirtyday-faults" style="background-color: white; height:25%"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid2-item-wide" id="grid2-item-Yesterday-5" style="left: 0px; top:70%">
-                        <h5> VOLTAGE DISTURBANCES </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black">
-                            <div id="history-voltages"></div>
-                            <div id="history-voltages-chart" style="background-color: #f1e5da; border-color: black; height: 300px"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid2-item" id="grid2-item-Yesterday-6" style="top:70%">
-                        <h5> FAULTS </h5>
-                        <div class="well well-sm" style="background-color: white; border-color: black">
-                            <div id="history-faults"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div id="tabs-ModbusData">
@@ -414,6 +259,8 @@
                                 </select>
                                 <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
                                 </select>
+                                <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
+
                             </div>
                             <div class="overlaydate pull-right">
                                 <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
@@ -498,6 +345,7 @@
                                         <option value="MaximumSwell">Swell Maximum</option>
                                     </select>
                                     }
+                                    <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
                                 </div>
 
                                 <div class="overlaydate pull-right">
@@ -549,43 +397,22 @@
     </div>
 </div>
 
-<div id="deviceFilterModal" class="modal fade" role="dialog">
-    <div class="modal-dialog" style="width: 50%">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Add/Edit a device filter.</h4>
-            </div>
-            <div class="modal-body">
-                <div id="deviceFilterId" hidden="hidden"></div>
-                <label for="deviceFilterName">Name:</label>
-                <input type="text" class="form-control" id="deviceFilterName"/>
-                <label for="deviceFilterMeterGroup">Asset Group:</label>
-                <select class="form-control" id="deviceFilterMeterGroup">
-                    <option value="0">Union of All Groups</option>
-                    @foreach (AssetGroup mg in assetGroups)
-                    {
-                        <option value="@mg.ID">@mg.Name</option>
-                    }
-
-                </select>
-                <label for="filterExpression">Filter Expression:</label><button class="btn btn-xs btn-default" id="filterExpressionHelp"><span class="glyphicon glyphicon-asterisk"></span></button>
-                <textarea id="filterExpression" class="form-control"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="previewDeviceFilter()">Preview</button>
-                <button id="showDeviceFilterPreviewBtn" type="button" class="btn btn-default pull-left" onclick="useSelectedMeters()">Use Selected Meters</button>
-                <button id="showDeviceFilterSaveBtn" type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveDeviceFilter('new')">Save</button>
-                <button id="showDeviceFilterEditBtn" type="button" class="btn btn-primary" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('edit')">Save</button>
-                <button id="showDeviceFilterDeleteBtn" type="button" class="btn btn-danger" data-dismiss="modal" styple="display: none" onclick="saveDeviceFilter('delete')">Delete</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
+    if (!Array.prototype.flat) {
+          Array.prototype.flat = function(depth) {
+            var flattened = [];
+            (function flat(array, depth) {
+                for (var index = 0; index < array.length; index++) {
+                if (Array.isArray(array[index]) && depth > 0) {
+                  flat(array[index], depth - 1); 
+                } else {
+                  flattened.push(array[index]);
+                }
+              }
+            })(this, Math.floor(depth) || 1);
+            return flattened;
+          };
+        }
     const DateTimeFormat = '@Model.Global.DateTimeFormat'
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The following function are for making button links to another page and opening another page
@@ -712,6 +539,11 @@
         }
     }
 
+    function stepOutGrid() {
+        $('#meterGroupSelect').val(meterList.ParentID);
+        $('#meterGroupSelect').trigger('change');
+        return;
+    }
     </script>
 
 </body>

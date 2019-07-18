@@ -440,9 +440,9 @@
     <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
-    <Content Include="webpack.development.config.js" />
-    <Content Include="webpack.production.config.js" />
-    <Content Include="webpack.config.js" />
+    <None Include="webpack.development.config.js" />
+    <None Include="webpack.production.config.js" />
+    <None Include="webpack.config.js" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
     <Content Include="Views\Email\Message.cshtml" />
@@ -544,7 +544,7 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff2" />
-    <Content Include="package.json" />
+    <None Include="package.json" />
     <None Include="Properties\PublishProfiles\desktop.pubxml" />
     <None Include="Properties\PublishProfiles\dev.pubxml" />
     <Content Include="Scripts\D3\LICENSE" />
@@ -1268,7 +1268,7 @@
     <Content Include="Views\Main\MeterExtensionsByLine.cshtml" />
     <Content Include="Views\Main\Settings.cshtml" />
     <Content Include="Views\Main\QuickSearch.cshtml" />
-    <Content Include="tsconfig.json" />
+    <None Include="tsconfig.json" />
     <Content Include="Views\Main\OpenSEE.cshtml" />
   </ItemGroup>
   <ItemGroup>

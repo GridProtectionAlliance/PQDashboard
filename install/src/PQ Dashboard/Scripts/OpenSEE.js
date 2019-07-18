@@ -20012,12 +20012,40 @@ var OpenSEEService = (function () {
             }
         });
     };
+    OpenSEEService.prototype.addMultiNote = function (note, eventIDs) {
+        return $.ajax({
+            type: "POST",
+            url: homePath + "api/OpenSEE/AddMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ note: note, eventIDs: eventIDs }),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
     OpenSEEService.prototype.deleteNote = function (note) {
         return $.ajax({
             type: "DELETE",
             url: homePath + "api/OpenSEE/DeleteNote",
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(note),
+            cache: false,
+            async: true,
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
+    OpenSEEService.prototype.deleteMultiNote = function (Note, UserAccount, Timestamp) {
+        return $.ajax({
+            type: "DELETE",
+            url: homePath + "api/OpenSEE/DeleteMultiNote",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Note: Note, UserAccount: UserAccount, Timestamp: Timestamp }),
             cache: false,
             async: true,
             processData: false,
@@ -22078,7 +22106,7 @@ var BarChartAnalyticBase = (function (_super) {
     BarChartAnalyticBase.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
-            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: 'calc(100% - 220px)' } }),
             React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     return BarChartAnalyticBase;
@@ -23142,7 +23170,7 @@ var LineChartAnalyticBase = (function (_super) {
     LineChartAnalyticBase.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
-            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: this.props.pixels - 220 } }),
+            React.createElement("div", { ref: "graphWindow", style: { height: this.props.height, float: 'left', width: 'calc(100% - 220px)' } }),
             React.createElement(Legend_1.default, { data: this.state.legendRows, callback: this.handleSeriesLegendClick.bind(this), type: this.props.legendKey, height: this.props.height, harmonicSetter: function (harmonic) { return _this.setState({ harmonic: harmonic }, function () { return _this.getData(_this.props); }); }, harmonic: this.state.harmonic })));
     };
     LineChartAnalyticBase.prototype.getMillisecondTime = function (date) {
@@ -23161,7 +23189,7 @@ var LineChartAnalyticBase = (function (_super) {
             };
     };
     LineChartAnalyticBase.prototype.highlightCycle = function (series) {
-        if (series.CalculationTime > 0 && series.CalculationEnd > 0)
+        if (series != null && series.CalculationTime > 0 && series.CalculationEnd > 0)
             return {
                 color: "#FFA",
                 xaxis: {
@@ -23397,7 +23425,7 @@ var Points = (function (_super) {
         return _this;
     }
     Points.prototype.componentDidMount = function () {
-        $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle' });
+        $("#accumulatedpoints").draggable({ scroll: false, handle: '#accumulatedpointshandle', containment: 'document' });
     };
     Points.prototype.render = function () {
         var _this = this;
@@ -23578,7 +23606,7 @@ var HarmonicStats = (function (_super) {
     }
     HarmonicStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#harmonicstats").draggable({ scroll: false, handle: '#harmonichandle' });
+        $("#harmonicstats").draggable({ scroll: false, handle: '#harmonichandle', containment: 'document' });
         this.openSEEService.getHarmonicStats(this.props.eventId).done(function (data) {
             var headers = HeaderRow(data.map(function (x) { return x.Channel; }), _this.props.exportCallback);
             var secondaryHeader = SecondaryHeaderRow(data.map(function (x) { return x.Channel; }));
@@ -23729,7 +23757,7 @@ var LightningData = (function (_super) {
     }
     LightningData.prototype.componentDidMount = function () {
         var _this = this;
-        $("#lightningquery").draggable({ scroll: false, handle: '#lightninghandle' });
+        $("#lightningquery").draggable({ scroll: false, handle: '#lightninghandle', containment: 'document' });
         var lightningQuery = window.LightningQuery;
         if (lightningQuery === undefined)
             return;
@@ -23869,7 +23897,7 @@ var PolarChart = (function (_super) {
         this.updatePhasorChart();
     };
     PolarChart.prototype.componentDidMount = function () {
-        $("#phasor").draggable({ scroll: false, handle: '#phasorhandle' });
+        $("#phasor").draggable({ scroll: false, handle: '#phasorhandle', containment: 'document' });
         this.updatePhasorChart();
     };
     PolarChart.prototype.updatePhasorChart = function () {
@@ -24086,7 +24114,7 @@ var ScalarStats = (function (_super) {
     }
     ScalarStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#scalarstats").draggable({ scroll: false, handle: '#statshandle' });
+        $("#scalarstats").draggable({ scroll: false, handle: '#statshandle', containment: 'document' });
         this.openSEEService.getScalarStats(this.props.eventId).done(function (data) {
             var rows = Object.keys(data).map(function (key) { return Row({ label: key, data: data[key] }); });
             _this.setState({ rows: rows });
@@ -24203,7 +24231,7 @@ var HarmonicStats = (function (_super) {
     }
     HarmonicStats.prototype.componentDidMount = function () {
         var _this = this;
-        $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle' });
+        $("#correlatedsags").draggable({ scroll: false, handle: '#correlatedsagshandle', containment: 'document' });
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(function (data) {
             var header = HeaderRow(_this.props.exportCallback);
             var rows = [];
@@ -24341,7 +24369,7 @@ var Tooltip = (function (_super) {
     }
     Tooltip.prototype.componentDidMount = function () {
         var ctrl = this;
-        $('#unifiedtooltip').draggable({ scroll: false, handle: '#unifiedtooltiphandle' });
+        $('#unifiedtooltip').draggable({ scroll: false, handle: '#unifiedtooltiphandle', containment: 'document' });
     };
     Tooltip.prototype.render = function () {
         var _this = this;
@@ -24463,7 +24491,7 @@ var TooltipWithDelta = (function (_super) {
     }
     TooltipWithDelta.prototype.componentDidMount = function () {
         var ctrl = this;
-        $('#tooltipwithdelta').draggable({ scroll: false, handle: '#tooltipwithdeltahandle' });
+        $('#tooltipwithdelta').draggable({ scroll: false, handle: '#tooltipwithdeltahandle', containment: 'document' });
     };
     TooltipWithDelta.prototype.getMillisecondTime = function (date) {
         var milliseconds = moment_1.utc(date).valueOf();

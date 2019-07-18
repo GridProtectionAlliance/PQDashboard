@@ -229,64 +229,67 @@ $(function () {
     // Set initial state of hub dependent controls
     updateHubDependentControlState(false);
 
-    // Initialize proxy references to the SignalR hubs
-    dataHub = $.connection.dataHub.server;
-    dataHubClient = $.connection.dataHub.client;
-    //securityHub = $.connection.securityHub.server;
-    //securityHubClient = $.connection.securityHub.client;
+    if ($.connection != null) {
+        // Initialize proxy references to the SignalR hubs
+        dataHub = $.connection.dataHub.server;
+        dataHubClient = $.connection.dataHub.client;
+        //securityHub = $.connection.securityHub.server;
+        //securityHubClient = $.connection.securityHub.client;
 
-    $.connection.hub.reconnecting(function () {
-        hubIsConnecting = true;
-        //showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
+        $.connection.hub.reconnecting(function () {
+            hubIsConnecting = true;
+            //showInfoMessage("Attempting to reconnect to service&nbsp;&nbsp;<span class='glyphicon glyphicon-refresh glyphicon-spin'></span>", -1);
 
-        // Disable hub dependent controls
-        updateHubDependentControlState(false);
+            // Disable hub dependent controls
+            updateHubDependentControlState(false);
 
-        // Raise "hubDisconnected" event
-        $(window).trigger("hubDisconnected");
-    });
+            // Raise "hubDisconnected" event
+            $(window).trigger("hubDisconnected");
+        });
 
-    $.connection.hub.reconnected(function () {
-        hubConnected();
-    });
+        $.connection.hub.reconnected(function () {
+            hubConnected();
+        });
 
-    $.connection.hub.disconnected(function () {
-        hubIsConnected = false;
+        $.connection.hub.disconnected(function () {
+            hubIsConnected = false;
 
-        //if (hubIsConnecting)
-        //    showErrorMessage("Disconnected from server");
+            //if (hubIsConnecting)
+            //    showErrorMessage("Disconnected from server");
 
-        // Disable hub dependent controls
-        updateHubDependentControlState(false);
+            // Disable hub dependent controls
+            updateHubDependentControlState(false);
 
-        // Raise "hubDisconnected" event
-        $(window).trigger("hubDisconnected");
+            // Raise "hubDisconnected" event
+            $(window).trigger("hubDisconnected");
 
-        if (reconnectHub) {
-            setTimeout(function () {
-                $.connection.hub.start().done(function () {
-                    hubConnected();
-                });
-            }, 5000); // Restart connection after 5 seconds
+            if (reconnectHub) {
+                setTimeout(function () {
+                    $.connection.hub.start().done(function () {
+                        hubConnected();
+                    });
+                }, 5000); // Restart connection after 5 seconds
+            }
+        });
+
+        // Start the connection
+        $.connection.hub.start().done(function () {
+            hubConnected();
+        });
+
+        // Create hub client functions for message control
+        dataHubClient.sendInfoMessage = function (message, timeout) {
+            // Html encode message
+            const encodedMessage = $("<div />").text(message).html();
+            showInfoMessage(encodedMessage, timeout);
         }
-    });
 
-    // Start the connection
-    $.connection.hub.start().done(function () {
-        hubConnected();
-    });
+        dataHubClient.sendErrorMessage = function (message, timeout) {
+            // Html encode message
+            const encodedMessage = $("<div />").text(message).html();
+            showErrorMessage(encodedMessage, timeout);
+        }
 
-    // Create hub client functions for message control
-    dataHubClient.sendInfoMessage = function (message, timeout) {
-        // Html encode message
-        const encodedMessage = $("<div />").text(message).html();
-        showInfoMessage(encodedMessage, timeout);
-    }
-
-    dataHubClient.sendErrorMessage = function (message, timeout) {
-        // Html encode message
-        const encodedMessage = $("<div />").text(message).html();
-        showErrorMessage(encodedMessage, timeout);
     }
 
      //Enable tool-tips on the page
