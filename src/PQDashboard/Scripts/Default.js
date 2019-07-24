@@ -965,7 +965,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
             $.each(dates, function (i, date) {
                 var obj = {};
                 var total = 0;
-                obj["Date"] = Date.parse(date);
+                obj["Date"] = moment.utc(date)._d.getTime();
                 $.each(data.Types, function (j, type) {
                     obj[type.Name] = type.Data[i].m_Item2;
                     total += type.Data[i].m_Item2;
@@ -2127,7 +2127,7 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
     $(matrixItemID)[0].title = siteName + " ";
 
-    $(matrixItemID).append("<div style='font-size: 2em'><div class='faultgridtitle'>" + siteName + "</div>");
+    $(matrixItemID).append("<div style='font-size: 2em'><div class='faultgridtitle'>" + fitTextToWidth(siteName, $('.faultgridtitle').css('font'), $(matrixItemID).width() - 20) + "</div>");
 
     var theGridColor = getColorsForTab(data, colors);
 
@@ -4273,5 +4273,26 @@ function showMagDur(theControl) {
         $('#OverviewDisturbancesMagDur').show()
         $(window).trigger('resize');
     }
+}
+
+function displayTextWidth(text, font) {
+    var myCanvas = displayTextWidth.canvas || (displayTextWidth.canvas = document.createElement("canvas"));
+    var context = myCanvas.getContext("2d");
+    context.font = font;
+
+    var metrics = context.measureText(text);
+    return metrics.width;
+};
+
+function fitTextToWidth(text, font, width) {
+    var tempText = text;
+    var newString = '';
+
+    while (displayTextWidth(newString, font) < width && tempText.length > 0 ) {
+        newString += tempText[0];
+        tempText = tempText.slice(1, tempText.length);
+    }
+
+    return newString;
 }
 /// EOF
