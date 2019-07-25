@@ -22887,7 +22887,9 @@ var LineChartAnalyticBase = (function (_super) {
             }
             var hightlightFunction = _this.props.highlightCycle == undefined || _this.props.highlightCycle ? _this.highlightCycle : _this.highlightSample;
             _this.options['grid'].markings = [];
-            _this.options['grid'].markings.push(hightlightFunction(data));
+            var highlight = hightlightFunction(data);
+            if (highlight != undefined)
+                _this.options['grid'].markings.push(highlight);
             var legend = _this.createLegendRows(data.Data);
             var dataSet = _this.state.dataSet;
             if (dataSet.Data != undefined)
@@ -24395,7 +24397,7 @@ var Tooltip = (function (_super) {
                     React.createElement("b", null, format),
                     React.createElement("br", null),
                     React.createElement("table", { className: "table" },
-                        React.createElement("tbody", null, rows)))),
+                        React.createElement("tbody", { style: { display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight * 0.9 } }, rows)))),
             React.createElement("button", { className: closeButton, onClick: function () {
                     _this.props.callback({ tooltipButtonText: "Show Tooltip" });
                     $('#unifiedtooltip').hide();
@@ -24515,10 +24517,10 @@ var TooltipWithDelta = (function (_super) {
             React.createElement("div", { id: "tooltipwithdeltahandle", className: handle }),
             React.createElement("div", null,
                 React.createElement("div", { style: { textAlign: 'center' } },
-                    React.createElement("table", { className: "table" },
+                    React.createElement("table", { className: "table", style: { display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight * 0.9 } },
                         React.createElement("thead", null,
                             React.createElement("tr", null,
-                                React.createElement("td", null),
+                                React.createElement("td", { style: { width: 34 } }),
                                 React.createElement("td", null),
                                 React.createElement("td", null,
                                     React.createElement("b", null, firstDate)),
@@ -24688,9 +24690,9 @@ var OpenSEE = (function (_super) {
     OpenSEE.prototype.render = function () {
         var _this = this;
         var height = this.calculateHeights(this.state);
-        var list = [{ value: 'One', selected: true }, { value: 'Two' }, { value: 'Three' }, { value: 'Four', label: 'Four Label' }];
-        return (React.createElement("div", { style: { position: 'absolute', width: '100%', height: '100%', overflow: 'hidden' } },
-            React.createElement("div", { style: { width: 300, height: 'inherit', backgroundColor: '#eeeeee', position: 'relative', float: 'left' } },
+        var windowHeight = window.innerHeight;
+        return (React.createElement("div", { style: { position: 'absolute', width: '100%', height: windowHeight, overflow: 'hidden' } },
+            React.createElement("div", { style: { width: 300, height: windowHeight, backgroundColor: '#eeeeee', position: 'relative', float: 'left' } },
                 React.createElement("a", { href: "https://www.gridprotectionalliance.org" },
                     React.createElement("img", { style: { width: 280, margin: 10 }, src: "../Images/2-Line - 500.png" })),
                 React.createElement("fieldset", { className: "border", style: { padding: '10px' } },
@@ -24713,10 +24715,10 @@ var OpenSEE = (function (_super) {
                         React.createElement("a", { className: "nav-link" + (this.state.tab == "Compare" ? " active" : ''), id: "profile-tab", "data-toggle": "tab", href: "#compare", role: "tab", "aria-controls": "compare", "aria-selected": "false", onClick: function (obj) { return _this.stateSetter({ tab: obj.target.text }); } }, "Compare")),
                     React.createElement("li", { className: "nav-item" },
                         React.createElement("a", { className: "nav-link" + (this.state.tab == "Analytics" ? " active" : ''), id: "contact-tab", "data-toggle": "tab", href: "#analysis", role: "tab", "aria-controls": "analysis", "aria-selected": "false", onClick: function (obj) { return _this.stateSetter({ tab: obj.target.text }); } }, "Analytics"))),
-                React.createElement("div", { className: "tab-content", id: "myTabContent", style: { height: 'calc(100% - 325px)' } },
+                React.createElement("div", { className: "tab-content", id: "myTabContent", style: { maxHeight: windowHeight - 325, display: 'block', overflowY: 'auto' } },
                     React.createElement("div", { className: "tab-pane fade" + (this.state.tab == "Info" ? " show active" : ''), id: "info", role: "tabpanel", "aria-labelledby": "home-tab" },
                         React.createElement("table", { className: "table" },
-                            React.createElement("tbody", null,
+                            React.createElement("tbody", { style: { display: 'block' } },
                                 React.createElement("tr", null,
                                     React.createElement("td", null, "Meter:"),
                                     React.createElement("td", null, this.state.PostedData.postedMeterName)),
@@ -24767,7 +24769,7 @@ var OpenSEE = (function (_super) {
                         React.createElement(MultiselectWindow_1.default, { comparedEvents: this.state.comparedEvents, stateSetter: this.stateSetter.bind(this), data: this.state.overlappingEvents })),
                     React.createElement("div", { className: "tab-pane fade" + (this.state.tab == "Analytics" ? " show active" : ''), id: "analysis", role: "tabpanel", "aria-labelledby": "contact-tab" },
                         React.createElement(RadioselectWindow_1.default, { stateSetter: this.stateSetter.bind(this), analytic: this.state.analytic }))),
-                React.createElement("div", { style: { width: '100%', textAlign: 'center' } },
+                React.createElement("div", { style: { width: '100%', textAlign: 'center', position: 'absolute', bottom: 20 } },
                     React.createElement("span", null, "Version 3.0"),
                     React.createElement("br", null),
                     React.createElement("span", null,

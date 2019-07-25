@@ -20386,7 +20386,7 @@ if (false) {} else {
 /*!****************************************************************!*\
   !*** ../node_modules/react-router-dom/esm/react-router-dom.js ***!
   \****************************************************************/
-/*! exports provided: BrowserRouter, HashRouter, Link, NavLink, MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext */
+/*! exports provided: MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext, BrowserRouter, HashRouter, Link, NavLink */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -24249,7 +24249,7 @@ var PQDashboardService = (function () {
             this.mostActiveMeterHandle.abort();
         this.mostActiveMeterHandle = $.ajax({
             type: "GET",
-            url: homePath + "api/PQDashboard/GetMostActiveMeterActivityData?numresults=" + numresults +
+            url: homePath + "api/PQDashboard/MeterActivity/GetMostActiveMeterActivityData?numresults=" + numresults +
                 ("&column=" + column),
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
@@ -24263,7 +24263,7 @@ var PQDashboardService = (function () {
             this.leastActiveMeterHandle.abort();
         this.leastActiveMeterHandle = $.ajax({
             type: "GET",
-            url: homePath + "api/PQDashboard/GetLeastActiveMeterActivityData?numresults=" + numresults +
+            url: homePath + "api/PQDashboard/MeterActivity/GetLeastActiveMeterActivityData?numresults=" + numresults +
                 ("&column=" + column),
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
@@ -24277,7 +24277,7 @@ var PQDashboardService = (function () {
             this.filesProcessedMeterHandle.abort();
         this.filesProcessedMeterHandle = $.ajax({
             type: "GET",
-            url: homePath + "api/PQDashboard/GetFilesProcessedLast24Hrs?column=" + column,
+            url: homePath + "api/PQDashboard/MeterActivity/GetFilesProcessedLast24Hrs?column=" + column,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
@@ -24290,7 +24290,7 @@ var PQDashboardService = (function () {
             this.fileGroupEventsHandle.abort();
         this.fileGroupEventsHandle = $.ajax({
             type: "GET",
-            url: homePath + "api/PQDashboard/QueryFileGroupEvents?FileGroupID=" + fileGroupID,
+            url: homePath + "api/PQDashboard/MeterActivity/QueryFileGroupEvents?FileGroupID=" + fileGroupID,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
