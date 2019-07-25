@@ -153,11 +153,12 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
 
     render() {
         var height = this.calculateHeights(this.state);
-        var list = [{ value: 'One', selected: true }, { value: 'Two' }, { value: 'Three' }, { value: 'Four', label: 'Four Label' }]
+        var windowHeight = window.innerHeight;
+
         return (
-            <div style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', width: '100%', height: windowHeight, overflow: 'hidden' }}>
                 {/* the navigation side bar*/}
-                <div style={{ width: 300, height: 'inherit', backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
+                <div style={{ width: 300, height: windowHeight, backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
                     <a href="https://www.gridprotectionalliance.org"><img style={{width: 280, margin: 10}} src="../Images/2-Line - 500.png"/></a>
                     <fieldset className="border" style={{ padding: '10px' }}>
                         <legend className="w-auto" style={{ fontSize: 'large' }}>Waveform Views:</legend>
@@ -181,10 +182,10 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
                             <a className={"nav-link" + (this.state.tab == "Analytics" ? " active" : '')} id="contact-tab" data-toggle="tab" href="#analysis" role="tab" aria-controls="analysis" aria-selected="false" onClick={(obj: any) => this.stateSetter({ tab: obj.target.text })} >Analytics</a>
                         </li>
                     </ul>
-                    <div className="tab-content" id="myTabContent" style={{ height: 'calc(100% - 325px)' }}>
+                    <div className="tab-content" id="myTabContent" style={{ maxHeight: windowHeight - 325, display: 'block', overflowY: 'auto' }}>
                         <div className={"tab-pane fade" + (this.state.tab == "Info" ? " show active" : '') } id="info" role="tabpanel" aria-labelledby="home-tab">
                             <table className="table">
-                                <tbody>
+                                <tbody style={{ display: 'block'}}>
                                     <tr><td>Meter:</td><td>{this.state.PostedData.postedMeterName}</td></tr>
                                     <tr><td>Station:</td><td>{this.state.PostedData.postedStationName}</td></tr>
                                     <tr><td>Line:</td><td>{this.state.PostedData.postedLineName}</td></tr>
@@ -210,7 +211,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
                             <RadioselectWindow stateSetter={this.stateSetter.bind(this)} analytic={this.state.analytic} />
                         </div>
                     </div>
-                    <div style={{width: '100%', textAlign: 'center'}}>
+                    <div style={{width: '100%', textAlign: 'center', position: 'absolute', bottom: 20}}>
                         <span>Version 3.0</span>
                         <br/>
                         <span><About/></span>

@@ -112,9 +112,9 @@ export default class TooltipWithDelta extends React.Component<any, any>{
                 <div id="tooltipwithdeltahandle" className={handle}></div>
                 <div>
                     <div style={{textAlign: 'center'}}>
-                        <table className="table">
+                        <table className="table" style={{ display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight * 0.9}}>
                             <thead>
-                                <tr><td></td><td></td><td><b>{firstDate}</b></td><td><b>{secondDate}</b></td><td><b>{(firstDate != undefined && secondDate != undefined ? (this.getMillisecondTime(secondDate) - this.getMillisecondTime(firstDate)) / 1000 + ' (s)' : '')}</b></td></tr>
+                                <tr><td style={{width: 34}}></td><td></td><td><b>{firstDate}</b></td><td><b>{secondDate}</b></td><td><b>{(firstDate != undefined && secondDate != undefined ? (this.getMillisecondTime(secondDate) - this.getMillisecondTime(firstDate)) / 1000 + ' (s)' : '')}</b></td></tr>
                             </thead>
                             <tbody>
                                 {rows}

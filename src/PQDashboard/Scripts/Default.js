@@ -164,7 +164,7 @@ function updateUrlParams(param, value) {
     history.pushState(null, null, "?" + urlParams.toString());
 }
 
-var leafletMap = {'MeterActivity': null, 'Overview-Today': null, 'Overview-Yesterday': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null, ModbusData: null};
+var leafletMap = {'MeterActivity': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
 var markerGroup = null;
 var contourLayer = null;
 var contourOverlay = null;
@@ -3170,9 +3170,6 @@ function resizeDocklet(theparent, chartheight) {
 function resizeMapAndMatrix(newTab) {
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
-    $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
-    $('#tabs-HistorianData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
-
     $("#theMap" + newTab).css("height", columnheight);
 
     $("#theMatrix" + newTab).css("height", columnheight);
@@ -3383,10 +3380,6 @@ function selectMeterGroup(thecontrol) {
     }
     else if (newTab === "MeterActivity") {
     }
-    else if (newTab === "ModbusData") {
-    }
-    else if (newTab === "HistorianData") {
-    }
     else {
         cache_Graph_Data = null;
         cache_ErrorBar_Data = null;
@@ -3575,13 +3568,6 @@ function buildPage() {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
             }
-            else if (newTab === "ModbusData") {
-                $('#headerStrip').hide();
-                showModbusData();
-            }
-            else if (newTab === "HistorianData") {
-                showHistorianData();
-            }
             else {             
                 cache_Graph_Data = null;
                 cache_ErrorBar_Data = null;
@@ -3662,14 +3648,6 @@ function buildPage() {
     }
     else if (currentTab === "Event Search") {
 
-    }
-    else if (currentTab === "ModbusData") {
-        $('#headerStrip').hide();
-        showModbusData();
-    }
-    else if (currentTab === "HistorianData") {
-        $('#headerStrip').hide();
-        showHistorianData();
     }
     else {
         $(".mapGrid").val(defaultView.MapGrid);
@@ -4207,39 +4185,6 @@ function cancelCall(animationID) {
         },
         global: false,
         async: true
-    });
-}
-
-function showModbusData() {
-    $('#tabs-ModbusData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
-    $('#modbusFrame').attr({
-        //"src": "Main/GraphMeasurements",
-        "src": historianConnection + '/GraphMeasurements.cshtml?ShowMenu=false',
-        'width': '100%',
-        'height': $(window).height() - $('#tabs-' + currentTab).offset().top
-    });
-
-    $(window).resize(function () {
-        $('#modbusFrame').attr({
-            'height': $(window).height() - $('#tabs-' + currentTab).offset().top
-        });
-    });
-
-
-}
-
-function showHistorianData() {
-    $('#tabs-HistorianData').css('height', $(window).height() - $('#tabs-' + currentTab).offset().top);
-    $('#historianFrame').attr({
-        "src": historianConnection + '/TrendMeasurements.cshtml?ShowMenu=false',
-        'width': '100%',
-        'height': $(window).height() - $('#tabs-' + currentTab).offset().top
-    });
-
-    $(window).resize(function () {
-        $('#historianFrame').attr({
-            'height': $(window).height() - $('#tabs-' + currentTab).offset().top
-        });
     });
 }
 

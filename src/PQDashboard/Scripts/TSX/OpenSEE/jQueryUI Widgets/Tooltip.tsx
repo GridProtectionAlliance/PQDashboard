@@ -76,6 +76,8 @@ export interface TooltipProps {
     callback: Function
 }
 
+declare var window: Window;
+
 export default class Tooltip extends React.Component<any, any>{
     props: TooltipProps;
     constructor(props) {
@@ -110,12 +112,12 @@ export default class Tooltip extends React.Component<any, any>{
         return (
             <div id="unifiedtooltip" className="ui-widget-content" style={outerDiv}>
                 <div id="unifiedtooltiphandle" className={handle}></div>
-                <div id="unifiedtooltipcontent">
-                    <div style={{textAlign: 'center'}}>
+                <div id="unifiedtooltipcontent" >
+                    <div style={{ textAlign: 'center' }} >
                         <b>{format}</b>
                         <br />
                         <table className="table">
-                            <tbody>
+                            <tbody style={{ display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight * 0.9 }}>
                                 {rows}
                             </tbody>
                         </table>

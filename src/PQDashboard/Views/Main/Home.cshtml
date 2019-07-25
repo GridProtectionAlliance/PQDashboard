@@ -133,7 +133,7 @@
             <tr>
                 <td width="250px" align="left" style="z-index: 999; padding-left: 5px;" nowrap>
                     Asset Group:
-                    <select id="meterGroupSelect" class="smallbutton" style="height: 20px" onchange="selectMeterGroup(this);" >
+                    <select id="meterGroupSelect" class="smallbutton" style="height: 20px; width: 140px" onchange="selectMeterGroup(this);" >
                         @foreach (AssetGroup mg in assetGroups)
                         {
                             <option value="@mg.ID">@mg.Name</option>
@@ -195,19 +195,9 @@
             <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
             <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
             <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
-            <li id="tabsModbusData"><a href="#tabs-ModbusData">ModbusData</a></li>
-            <li id="tabsHistorianData"><a href="#tabs-HistorianData">HistorianData</a></li>
         </ul>
 
         <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
-        </div>
-
-        <div id="tabs-ModbusData">
-            <iframe id="modbusFrame"></iframe>
-        </div>
-
-        <div id="tabs-HistorianData">
-            <iframe id="historianFrame"></iframe>
         </div>
 
         <div id="tabs-TrendingData">

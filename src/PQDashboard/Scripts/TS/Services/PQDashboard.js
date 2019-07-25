@@ -1,4 +1,5 @@
-﻿//******************************************************************************************************
+"use strict";
+//******************************************************************************************************
 //  PQDashboard.ts - Gbtc
 //
 //  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
@@ -20,159 +21,124 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-
-export default class PQDashboardService {
-    mostActiveMeterHandle: JQuery.jqXHR;
-    leastActiveMeterHandle: JQuery.jqXHR;
-    filesProcessedMeterHandle: JQuery.jqXHR;
-    fileGroupEventsHandle: JQuery.jqXHR;
-    eventSearchHandle: JQuery.jqXHR;
-    eventSearchAssetVoltageDisturbancesHandle: JQuery.jqXHR;
-    eventSearchAssetFaultSegmentsHandle: JQuery.jqXHR;
-    eventSearchAssetHistoryHandle: JQuery.jqXHR;
-
-    constructor() {
+Object.defineProperty(exports, "__esModule", { value: true });
+var PQDashboardService = /** @class */ (function () {
+    function PQDashboardService() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
         this.getLeastActiveMeterActivityData = this.getLeastActiveMeterActivityData.bind(this);
-
         this.getEventSearchData = this.getEventSearchData.bind(this);
         this.getEventSearchAsssetVoltageDisturbancesData = this.getEventSearchAsssetVoltageDisturbancesData.bind(this);
         this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
         this.getEventSearchAsssetHistoryData = this.getEventSearchAsssetHistoryData.bind(this);
-
     }
-
-    getMostActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
+    PQDashboardService.prototype.getMostActiveMeterActivityData = function (numresults, column) {
         if (this.mostActiveMeterHandle !== undefined)
             this.mostActiveMeterHandle.abort();
-
         this.mostActiveMeterHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/MeterActivity/GetMostActiveMeterActivityData?numresults=${numresults}` +
-                `&column=${column}`,
+            url: homePath + "api/PQDashboard/MeterActivity/GetMostActiveMeterActivityData?numresults=" + numresults +
+                ("&column=" + column),
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.mostActiveMeterHandle;
-    }
-
-    getLeastActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getLeastActiveMeterActivityData = function (numresults, column) {
         if (this.leastActiveMeterHandle !== undefined)
             this.leastActiveMeterHandle.abort();
-
         this.leastActiveMeterHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/MeterActivity/GetLeastActiveMeterActivityData?numresults=${numresults}` +
-                `&column=${column}`,
+            url: homePath + "api/PQDashboard/MeterActivity/GetLeastActiveMeterActivityData?numresults=" + numresults +
+                ("&column=" + column),
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.leastActiveMeterHandle;
-    }
-
-    getFilesProcessedMeterActivityData(column: string): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getFilesProcessedMeterActivityData = function (column) {
         if (this.filesProcessedMeterHandle !== undefined)
             this.filesProcessedMeterHandle.abort();
-
         this.filesProcessedMeterHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/MeterActivity/GetFilesProcessedLast24Hrs?column=${column}`,
+            url: homePath + "api/PQDashboard/MeterActivity/GetFilesProcessedLast24Hrs?column=" + column,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.filesProcessedMeterHandle;
-    }
-
-    getFileGroupEvents(fileGroupID: number): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getFileGroupEvents = function (fileGroupID) {
         if (this.fileGroupEventsHandle !== undefined)
             this.fileGroupEventsHandle.abort();
-
         this.fileGroupEventsHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/MeterActivity/QueryFileGroupEvents?FileGroupID=${fileGroupID}`,
+            url: homePath + "api/PQDashboard/MeterActivity/QueryFileGroupEvents?FileGroupID=" + fileGroupID,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.fileGroupEventsHandle;
-    }
-
-
-    getEventSearchData(params): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getEventSearchData = function (params) {
         if (this.eventSearchHandle !== undefined)
             this.eventSearchHandle.abort();
-
         this.eventSearchHandle = $.ajax({
             type: "POST",
-            url: `${homePath}api/PQDashboard/GetEventSearchData`,
+            url: homePath + "api/PQDashboard/GetEventSearchData",
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(params),
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.eventSearchHandle;
-    }
-
-    getEventSearchAsssetVoltageDisturbancesData(eventID: number): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getEventSearchAsssetVoltageDisturbancesData = function (eventID) {
         if (this.eventSearchAssetVoltageDisturbancesHandle !== undefined)
             this.eventSearchAssetVoltageDisturbancesHandle.abort();
-
         this.eventSearchAssetVoltageDisturbancesHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/GetEventSearchAssetVoltageDisturbances?EventID=${eventID}`,
+            url: homePath + "api/PQDashboard/GetEventSearchAssetVoltageDisturbances?EventID=" + eventID,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.eventSearchAssetVoltageDisturbancesHandle;
-    }
-
-    getEventSearchAsssetFaultSegmentsData(eventID: number): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getEventSearchAsssetFaultSegmentsData = function (eventID) {
         if (this.eventSearchAssetFaultSegmentsHandle !== undefined)
             this.eventSearchAssetFaultSegmentsHandle.abort();
-
         this.eventSearchAssetFaultSegmentsHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/GetEventSearchFaultSegments?EventID=${eventID}`,
+            url: homePath + "api/PQDashboard/GetEventSearchFaultSegments?EventID=" + eventID,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.eventSearchAssetFaultSegmentsHandle;
-    }
-
-    getEventSearchAsssetHistoryData(eventID: number): JQuery.jqXHR {
+    };
+    PQDashboardService.prototype.getEventSearchAsssetHistoryData = function (eventID) {
         if (this.eventSearchAssetHistoryHandle !== undefined)
             this.eventSearchAssetHistoryHandle.abort();
-
         this.eventSearchAssetHistoryHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/GetEventSearchHistory?EventID=${eventID}`,
+            url: homePath + "api/PQDashboard/GetEventSearchHistory?EventID=" + eventID,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
             async: true
         });
-
         return this.eventSearchAssetHistoryHandle;
-    }
-
-
-}
+    };
+    return PQDashboardService;
+}());
+exports.default = PQDashboardService;
+//# sourceMappingURL=PQDashboard.js.map
