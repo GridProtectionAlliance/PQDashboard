@@ -66,11 +66,6 @@
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
         var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
-    @if (enableLightningQuery)
-    {
-        <script src="http://js.arcgis.com/3.15/"></script>
-        <script src="~/Scripts/openSEE-lightning-query.js"></script>
-    }
     @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="~/Scripts/default.polyfill.min.js"></script>
@@ -99,7 +94,14 @@ else
     <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
 }
-    <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
+
+    @if (enableLightningQuery)
+    {
+        <script src="http://js.arcgis.com/3.15/"></script>
+        <script src="~/Scripts/openSEE-lightning-query.js"></script>
+    }
+
+   @Scripts.Render("~/Scripts/OpenSEE")
 
 </body>
 </html>
