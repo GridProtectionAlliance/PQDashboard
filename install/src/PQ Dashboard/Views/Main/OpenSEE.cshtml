@@ -20,12 +20,21 @@
 //       Generated original version of source code.
 //
 //*****************************************************************************************************@
+@using GSF.IO;
+@using GSF.IO.Checksums;
 
 @{
     Layout = "";
     bool enableLightningQuery = (ViewBag.EnableLightningQuery ?? false);
 }
 
+@helper ReferenceScript(string path)
+{
+    string fullPath = FilePath.GetAbsolutePath(path.Substring(2));
+    byte[] bytes = File.ReadAllBytes(fullPath);
+    uint checksum = Crc32.Compute(bytes, 0, bytes.Length);
+    <script src="@Url.Content(path)?v=@checksum"></script>
+}
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -66,11 +75,6 @@
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
         var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
-    @if (enableLightningQuery)
-    {
-        <script src="http://js.arcgis.com/3.15/"></script>
-        <script src="~/Scripts/openSEE-lightning-query.js"></script>
-    }
     @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="~/Scripts/default.polyfill.min.js"></script>
@@ -99,7 +103,14 @@ else
     <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
 }
-   @Scripts.Render("~/Scripts/OpenSEE")
 
+    @if (enableLightningQuery)
+    {
+        <script src="http://js.arcgis.com/3.15/"></script>
+        <script src="~/Scripts/openSEE-lightning-query.js"></script>
+    }
+
+   @*@Scripts.Render("~/Scripts/OpenSEE")*@
+    <script src="@Url.Content("~/Scripts/OpenSEE.js")"></script>
 </body>
 </html>

@@ -2801,8 +2801,12 @@ function getColorsForTab(dataPoint, colors) {
             color = '#0E892C';
         else if (dataPoint.Fault > 0)
             color = colors["Fault"];
+        else if (dataPoint.RecloseIntoFault > 0)
+            color = colors["Fault"];
         else if (dataPoint.Interruption > 0)
             color = colors["Interruption"];
+        else if (dataPoint.BreakerTrip > 0)
+            color = colors["BreakerTrip"];
         else if (dataPoint.Sag > 0)
             color = colors["Sag"];
         else if (dataPoint.Swell > 0)

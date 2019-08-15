@@ -53,7 +53,10 @@ export default class Current extends React.Component<any, any>{
             baseCtrl.options['rangeselection'] = undefined;
             baseCtrl.options['selection'] = { mode: 'x' };
 
-            baseCtrl.options['grid'].markings.push(baseCtrl.highlightCycle(data));
+            var highlight = baseCtrl.highlightCycle(data);
+            if (highlight != undefined)
+                baseCtrl.options['grid'].markings.push(highlight);
+
             if (props.fftStartTime != undefined) {
                 baseCtrl.options['selection'] = undefined;
                 baseCtrl.options['rangeselection'] = {

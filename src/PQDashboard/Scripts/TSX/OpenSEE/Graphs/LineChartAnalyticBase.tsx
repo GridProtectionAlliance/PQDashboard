@@ -298,7 +298,12 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);
 
         if ($('#tooltipwithdelta').css('display') != 'none') {
-            this.props.tooltipWithDeltaTable.forEach((value, key, map) => this.options['grid'].markings.push(this.highlightCycleForDelta(this.getMillisecondTime(key))));
+            this.props.tooltipWithDeltaTable.forEach((value, key, map) => {
+                var marking = this.highlightCycleForDelta(this.getMillisecondTime(key));
+
+                if(marking != undefined)
+                    this.options['grid'].markings.push(marking);
+            });
             
         }
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);

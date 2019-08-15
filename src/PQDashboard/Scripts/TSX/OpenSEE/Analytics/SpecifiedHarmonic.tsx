@@ -46,7 +46,9 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
             }
 
             var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample
-            ctrl.options['grid'].markings.push(hightlightFunction(data));
+            var highlight = hightlightFunction(data);
+            if (highlight != undefined)
+                ctrl.options['grid'].markings.push(highlight);
 
             var legend = ctrl.createLegendRows(data.Data);
 

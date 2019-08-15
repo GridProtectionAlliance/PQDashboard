@@ -158,7 +158,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
         return (
             <div style={{ position: 'absolute', width: '100%', height: windowHeight, overflow: 'hidden' }}>
                 {/* the navigation side bar*/}
-                <div style={{ width: 300, height: windowHeight, backgroundColor: '#eeeeee', position: 'relative', float: 'left' }}>
+                <div style={{ width: 300, height: windowHeight, backgroundColor: '#eeeeee', position: 'relative', float: 'left', overflow: 'hidden' }}>
                     <a href="https://www.gridprotectionalliance.org"><img style={{width: 280, margin: 10}} src="../Images/2-Line - 500.png"/></a>
                     <fieldset className="border" style={{ padding: '10px' }}>
                         <legend className="w-auto" style={{ fontSize: 'large' }}>Waveform Views:</legend>
@@ -217,7 +217,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
                         <span><About/></span>
                     </div>
                 </div> 
-                <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right' }}>
+                <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right', overflow: 'hidden' }}>
                     <OpenSEENavbar
                         eventid={this.state.eventid}
                         endDate={this.state.EndDate}
