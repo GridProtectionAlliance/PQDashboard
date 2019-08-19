@@ -207,7 +207,8 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
                 <EventSearchAssetVoltageDisturbances eventId={this.props.eventid} />
                 <EventSearchCorrelatedSags eventId={this.props.eventid} />
                 <EventSearchHistory eventId={this.props.eventid} />
-                <EventSearchNoteWindow eventId={this.props.eventid}/>
+                <EventSearchNoteWindow eventId={this.props.eventid} />
+                <EventSearchNoteWindow eventId={this.props.eventid} />
             </div>
         );
     }

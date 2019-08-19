@@ -300,8 +300,9 @@ namespace OpenSEE.Controller
 
         private string GetChartLabel(openXDA.Model.Channel channel, string type = null)
         {
-
-            if (channel.MeasurementType.Name == "Voltage" && type == null)
+            if (channel.MeasurementType.Name == "Current" && channel.MeasurementCharacteristic.Name == "TCE")
+                return "I Trip Coil";
+            else if (channel.MeasurementType.Name == "Voltage" && type == null)
                 return "V" + channel.Phase.Name;
             else if (channel.MeasurementType.Name == "Current" && type == null)
                 return "I" + channel.Phase.Name;
