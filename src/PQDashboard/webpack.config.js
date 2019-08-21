@@ -1,14 +1,15 @@
-/// <binding />
+/// <binding ProjectOpened='Watch - Development' />
 "use strict";
 const webpack = require("webpack");
 const path = require("path");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
     mode: 'development',
+    context: path.resolve(__dirname, 'Scripts'),
+    cache: true,
     entry: {
-        OpenSEE: "./Scripts/TSX/OpenSEE/openSEE.tsx",
-        PQDashboard: "./Scripts/TSX/PQDashboard/PQDashboard.tsx",
+        OpenSEE: "./TSX/OpenSEE/openSEE.tsx",
+        PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
 
     },
     output: {
@@ -16,7 +17,7 @@ module.exports = {
         filename: "[name].js"
     },
     // Enable sourcemaps for debugging webpack's output.
-    devtool: "source-map",
+    devtool: "inline-source-map",
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
@@ -38,18 +39,22 @@ module.exports = {
             { test: /\.(woff|woff2|ttf|eot|svg|png|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=100000" }
         ]
     },
+    externals: {
+        jquery: 'jQuery',
+        react: 'React',
+        'react-dom': 'ReactDOM',
+        moment: 'moment'
+
+    },
     plugins: [
         new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery',
-            'window.jQuery':'jquery',
-            Map: 'core-js/es6/map',
-            Set: 'core-js/es6/set',
-            requestAnimationFrame: 'raf',
-            cancelAnimationFrame: ['raf', 'cancel'],
-        }),
-        new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify('production')
+            //$: 'jquery',
+            //jQuery: 'jquery',
+            //'window.jQuery':'jquery',
+            //Map: 'core-js/es/map',
+            //Set: 'core-js/es/set',
+            //requestAnimationFrame: 'raf',
+            //cancelAnimationFrame: ['raf', 'cancel'],
         }),
     ]
 };
