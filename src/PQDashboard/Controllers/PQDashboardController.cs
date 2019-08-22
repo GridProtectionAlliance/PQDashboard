@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/17/2018 - Billy Ernest
 //       Generated original version of source code.
+//  08/22/2019 - Christoph Lackner
+//       Added TCE Filter.
 //
 //******************************************************************************************************
 using FaultData.DataAnalysis;
@@ -263,6 +265,7 @@ namespace PQDashboard.Controllers
             public bool interruptions { get; set; }
             public bool breakerOps { get; set; }
             public bool transients { get; set; }
+            public bool relayTCE { get; set; }
             public bool others { get; set; }
             public string date { get; set; }
             public string time { get; set; }
@@ -305,6 +308,8 @@ namespace PQDashboard.Controllers
                     eventTypes.Add("EventType.Name  = 'Transient'");
                 if (postData.others)
                     eventTypes.Add("EventType.Name  = 'Other'");
+                if(postData.relayTCE)
+                    eventTypes.Add("(SELECT COUNT(Channel.ID) FROM Channel LEFT JOIN MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID WHERE MeasurementType.Name = 'TripCoilCurrent' AND Channel.LineID = Line.ID) > 0");
                 if (!eventTypes.Any())
                     eventTypes.Add("EventType.Name  = ''");
 
@@ -345,7 +350,8 @@ namespace PQDashboard.Controllers
 	                    Line.VoltageKV as VoltageClass,
 	                    EventType.Name as EventType,
 	                    Event.StartTime as FileStartTime,
-	                    (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) as BreakerOperation
+	                    (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) as BreakerOperation,
+                        (SELECT COUNT(Channel.ID) FROM Channel LEFT JOIN MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID WHERE MeasurementType.Name = 'TripCoilCurrent' AND Channel.LineID = Line.ID ) as TripCoilCount
                     FROM
 	                    Event JOIN
 	                    MeterLine ON Event.MeterID = MeterLine.MeterID AND Event.LineID = MeterLine.LineID JOIN

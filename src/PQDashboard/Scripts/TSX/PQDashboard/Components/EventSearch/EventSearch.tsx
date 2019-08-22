@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  MeterActivity.tsx - Gbtc
+//  EventSearch.tsx - Gbtc
 //
 //  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
 //
@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/08/2019 - Billy Ernest
 //       Generated original version of source code.
+//  08/22/2019 - Christoph Lackner
+//       Added Cards for Relay Performance.
 //
 //******************************************************************************************************
 
@@ -72,6 +74,7 @@ export default class EventSearch extends React.Component<IProps, IState>{
                 interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
                 breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
                 transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
+                relayTCE: (query['relayTCE'] != undefined ? query['realyTCE'] == 'true' : true),
                 others: (query['others'] != undefined ? query['others'] == 'true' : true),
                 date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
                 time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),

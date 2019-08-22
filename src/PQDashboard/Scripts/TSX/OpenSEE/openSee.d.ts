@@ -20,6 +20,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  03/15/2019 - Billy Ernest
 //       Generated original version of source code.
+//  08/22/2019 - Billy Ernest
+//       Added TCE Plot.
 //
 //******************************************************************************************************
 
@@ -99,6 +101,7 @@ declare interface OpenSEEState {
     EndDate: string,
     displayVolt: boolean,
     displayCur: boolean,
+    displayTCE: boolean,
     breakerdigitals: boolean,
     Width: number,
     Hover: number,

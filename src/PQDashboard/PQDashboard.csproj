@@ -415,6 +415,7 @@
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
     <Content Include="Scripts\default.polyfill.min.js" />
+    <Content Include="Scripts\flot\jquery.flot.dashes.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\openSEE-lightning-query.js" />
@@ -1284,6 +1285,7 @@
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Components\About.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
@@ -1313,6 +1315,7 @@
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\About.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchCorrelatedSags.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />

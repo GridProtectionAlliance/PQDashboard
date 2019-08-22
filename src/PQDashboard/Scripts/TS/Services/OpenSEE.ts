@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/17/2018 - Billy Ernest
 //       Generated original version of source code.
+//  08/20/2019 - Christoph Lackner
+//       Added Relay Performance.
 //
 //******************************************************************************************************
 declare var homePath: string;
@@ -28,6 +30,8 @@ export type BarChartAnalyticServiceFunction = (eventid: number, startDate?: stri
 export default class OpenSEEService{
     waveformVoltageDataHandle: JQuery.jqXHR;
     waveformCurrentDataHandle: JQuery.jqXHR;
+    waveformTCEDataHandle: JQuery.jqXHR;
+    relaystatisticsDataHandle: JQuery.jqXHR;
     frequencyDataHandle: JQuery.jqXHR ;
     faultDistanceDataHandle: JQuery.jqXHR ;
     breakerDigitalsDataHandle: JQuery.jqXHR ;
@@ -56,6 +60,7 @@ export default class OpenSEEService{
     overlappingWaveformDataHandle: JQuery.jqXHR;
     harmonicSpectrumDataHandle: JQuery.jqXHR;
     lighteningDataHandle: JQuery.jqXHR;
+    RelayPerformanceHandle: JQuery.jqXHR;
 
     constructor() {
         this.getWaveformVoltageData = this.getWaveformVoltageData.bind(this);
@@ -81,7 +86,7 @@ export default class OpenSEEService{
         this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
         this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
         this.getHarmonicSpectrumData = this.getHarmonicSpectrumData.bind(this);
-
+        this.getStatisticData = this.getStatisticData.bind(this);
     }
 
     getWaveformVoltageData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR{
@@ -125,6 +130,49 @@ export default class OpenSEEService{
 
         return this.waveformCurrentDataHandle;
     }
+
+    getWaveformTCEData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.waveformTCEDataHandle !== undefined)
+            this.waveformTCEDataHandle.abort();
+
+        this.waveformTCEDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetData?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&type=TripCoilCurrent` +
+                `&dataType=Time`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.waveformTCEDataHandle;
+    }
+
+    getStatisticData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.relaystatisticsDataHandle !== undefined)
+            this.relaystatisticsDataHandle.abort();
+
+        this.relaystatisticsDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetData?eventid=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}` +
+                `&type=${type}` +
+                `&dataType=Statistics`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.relaystatisticsDataHandle;
+    }
+
 
     getFrequencyData(eventid: number, pixels: number, type: string, startDate?: string, endDate?: string): JQuery.jqXHR{
         if (this.frequencyDataHandle !== undefined)
@@ -232,6 +280,22 @@ export default class OpenSEEService{
         });
 
         return this.harmonicStatHandle;
+    }
+
+    getRelayPerformance(eventid): JQuery.jqXHR {
+        if (this.RelayPerformanceHandle !== undefined)
+            this.RelayPerformanceHandle.abort();
+
+        this.RelayPerformanceHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/getRelayPerformance?eventId=${eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.RelayPerformanceHandle;
     }
 
     getTimeCorrelatedSags(eventid): JQuery.jqXHR{

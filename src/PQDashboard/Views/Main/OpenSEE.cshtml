@@ -1,25 +1,27 @@
 ﻿@*******************************************************************************************************
-//  OpenSEE.cshtml - Gbtc
-//
-//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
-//
-//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
-//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
-//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
-//  not use this file except in compliance with the License. You may obtain a copy of the License at:
-//
-//      http://opensource.org/licenses/MIT
-//
-//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
-//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
-//  License for the specific language governing permissions and limitations.
-//
-//  Code Modification History:
-//  ----------------------------------------------------------------------------------------------------
-//  04/21/2016 - Stephen Wills
-//       Generated original version of source code.
-//
-//*****************************************************************************************************@
+    //  OpenSEE.cshtml - Gbtc
+    //
+    //  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+    //
+    //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+    //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+    //  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
+    //  not use this file except in compliance with the License. You may obtain a copy of the License at:
+    //
+    //      http://opensource.org/licenses/MIT
+    //
+    //  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+    //  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+    //  License for the specific language governing permissions and limitations.
+    //
+    //  Code Modification History:
+    //  ----------------------------------------------------------------------------------------------------
+    //  04/21/2016 - Stephen Wills
+    //       Generated original version of source code.
+    //  08/21/2019 - Christoph Lackner
+    //       Added Jquery dependoencies for Relay Characteristic plotting
+    //
+    //*****************************************************************************************************@
 
 @{
     Layout = "";
@@ -50,9 +52,9 @@
             color: #007bff;
         }
 
-        #eventLink:hover {
-            color: #0056b3;
-        }
+            #eventLink:hover {
+                color: #0056b3;
+            }
     </style>
 </head>
 <body>
@@ -71,7 +73,8 @@
         <script src="http://js.arcgis.com/3.15/"></script>
         <script src="~/Scripts/openSEE-lightning-query.js"></script>
     }
-    @if (Request.Browser.Browser == "InternetExplorer") {
+    @if (Request.Browser.Browser == "InternetExplorer")
+    {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="~/Scripts/default.polyfill.min.js"></script>
     }
@@ -85,20 +88,23 @@
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.selection.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.time.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.rangeselection.min.js")"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.axislabels.js")"></script>
+
+    <script src="@("~/Scripts/flot/jquery.flot.dashes.js")"></script>
 
     <script src="@("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
 
-@if (Model.IsDebug())
-{
-    <script src="@("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
-    <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script> 
-}
-else
-{
-    <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
-    <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
-}
+    @if (Model.IsDebug())
+    {
+        <script src="@("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
+        <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script>
+    }
+    else
+    {
+        <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
+        <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
+    }
     <script type="text/javascript" src="~/Scripts/OpenSEE.js"></script>
 
 </body>

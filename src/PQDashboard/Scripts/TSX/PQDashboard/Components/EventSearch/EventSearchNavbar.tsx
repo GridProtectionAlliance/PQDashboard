@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/24/2019 - Billy Ernest
 //       Generated original version of source code.
+//  08/22/2019 - Christoph Lackner
+//       Added Filter for Events with TCE.
 //
 //******************************************************************************************************
 import * as React from 'react';
@@ -36,6 +38,7 @@ export interface EventSearchNavbarProps {
     interruptions: boolean,
     breakerOps: boolean,
     transients: boolean,
+    relayTCE: boolean,
     others: boolean,
     date: string,
     time: string,
@@ -159,6 +162,11 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                                         object.transients = !props.transients;
                                         props.stateSetter({ searchBarProps: object });
                                     }} checked={props.transients} />  Transients</label></li>
+                                    <li><label><input type="checkbox" onChange={() => {
+                                        var object = clone(props);
+                                        object.relayTCE = !props.relayTCE;
+                                        props.stateSetter({ searchBarProps: object });
+                                    }} checked={props.relayTCE} />  Relay TCE</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
                                         var object = clone(props);
                                         object.others = !props.others;
