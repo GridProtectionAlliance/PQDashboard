@@ -118,7 +118,7 @@ namespace PQDashboard.Controllers
                 if (postData.faults)
                     eventTypes.Add(" (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) = 0) ");
                 if (postData.breakerOps)
-                    eventTypes.Add(" (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) > 0) ");
+                    eventTypes.Add(" ( (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) > 0) OR (EventType.Name  = 'BreakerOpen') OR (EventType.Name  = 'RecloseIntoFault')) ");
                 if (postData.sags)
                     eventTypes.Add("EventType.Name  = 'Sag'");
                 if (postData.swells)
