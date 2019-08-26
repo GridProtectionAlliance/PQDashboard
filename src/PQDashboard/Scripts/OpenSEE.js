@@ -19845,6 +19845,7 @@ var OpenSEEService = (function () {
         this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
         this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
         this.getHarmonicSpectrumData = this.getHarmonicSpectrumData.bind(this);
+        this.getStatisticData = this.getStatisticData.bind(this);
     }
     OpenSEEService.prototype.getWaveformVoltageData = function (eventid, pixels, startDate, endDate) {
         if (this.waveformVoltageDataHandle !== undefined)
@@ -19881,6 +19882,42 @@ var OpenSEEService = (function () {
             async: true
         });
         return this.waveformCurrentDataHandle;
+    };
+    OpenSEEService.prototype.getWaveformTCEData = function (eventid, pixels, startDate, endDate) {
+        if (this.waveformTCEDataHandle !== undefined)
+            this.waveformTCEDataHandle.abort();
+        this.waveformTCEDataHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventId=" + eventid +
+                ("" + (startDate != undefined ? "&startDate=" + startDate : "")) +
+                ("" + (endDate != undefined ? "&endDate=" + endDate : "")) +
+                ("&pixels=" + pixels) +
+                "&type=TripCoilCurrent" +
+                "&dataType=Time",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.waveformTCEDataHandle;
+    };
+    OpenSEEService.prototype.getStatisticData = function (eventid, pixels, type, startDate, endDate) {
+        if (this.relaystatisticsDataHandle !== undefined)
+            this.relaystatisticsDataHandle.abort();
+        this.relaystatisticsDataHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventid=" + eventid +
+                ("" + (startDate != undefined ? "&startDate=" + startDate : "")) +
+                ("" + (endDate != undefined ? "&endDate=" + endDate : "")) +
+                ("&pixels=" + pixels) +
+                ("&type=" + type) +
+                "&dataType=Statistics",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.relaystatisticsDataHandle;
     };
     OpenSEEService.prototype.getFrequencyData = function (eventid, pixels, type, startDate, endDate) {
         if (this.frequencyDataHandle !== undefined)
@@ -19971,6 +20008,19 @@ var OpenSEEService = (function () {
             async: true
         });
         return this.harmonicStatHandle;
+    };
+    OpenSEEService.prototype.getRelayPerformance = function (eventid) {
+        if (this.RelayPerformanceHandle !== undefined)
+            this.RelayPerformanceHandle.abort();
+        this.RelayPerformanceHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/getRelayPerformance?eventId=" + eventid,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.RelayPerformanceHandle;
     };
     OpenSEEService.prototype.getTimeCorrelatedSags = function (eventid) {
         if (this.correlatedSagsHandle !== undefined)
@@ -23238,6 +23288,122 @@ exports.default = LineChartAnalyticBase;
 
 /***/ }),
 
+/***/ "./TSX/OpenSEE/Graphs/TCE.tsx":
+/*!************************************!*\
+  !*** ./TSX/OpenSEE/Graphs/TCE.tsx ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var OpenSEE_1 = __webpack_require__(/*! ../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+var LineChartAnalyticBase_1 = __webpack_require__(/*! ./LineChartAnalyticBase */ "./TSX/OpenSEE/Graphs/LineChartAnalyticBase.tsx");
+var TCE = (function (_super) {
+    __extends(TCE, _super);
+    function TCE(props) {
+        var _this = _super.call(this, props) || this;
+        _this.openSEEService = new OpenSEE_1.default();
+        return _this;
+    }
+    TCE.prototype.componentWillUnmount = function () {
+        if (this.state.eventDataHandle !== undefined && this.state.eventDataHandle.abort !== undefined) {
+            this.state.eventDataHandle.abort();
+            this.setState({ eventDataHandle: undefined });
+        }
+        if (this.state.frequencyDataHandle !== undefined && this.state.frequencyDataHandle.abort !== undefined) {
+            this.state.frequencyDataHandle.abort();
+            this.setState({ frequencyDataHandle: undefined });
+        }
+    };
+    TCE.prototype.getData = function (props, baseCtrl, ctrl) {
+        var _this = this;
+        var eventDataHandle = ctrl.openSEEService.getWaveformTCEData(props.eventId, props.pixels, props.startDate, props.endDate).then(function (data) {
+            baseCtrl.options['grid'].markings = [];
+            baseCtrl.options['rangeselection'] = undefined;
+            baseCtrl.options['selection'] = { mode: 'x' };
+            baseCtrl.options['grid'].markings.push(baseCtrl.highlightCycle(data));
+            if (props.fftStartTime != undefined) {
+                baseCtrl.options['selection'] = undefined;
+                baseCtrl.options['rangeselection'] = {
+                    color: "#ADD8E6",
+                    start: _this.props.fftStartTime,
+                    end: _this.props.fftEndTime,
+                    enabled: true,
+                    fixedWidth: true,
+                    movex: 100,
+                    noOffset: true,
+                    callback: function (o) { return _this.props.stateSetter({ fftStartTime: o.start, fftEndTime: o.end }); }
+                };
+            }
+            var legend = baseCtrl.createLegendRows(data.Data);
+            var dataSet = baseCtrl.state.dataSet;
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
+            baseCtrl.createDataRows(data, legend);
+            baseCtrl.setState({ dataSet: data });
+        });
+        this.setState({ eventDataHandle: eventDataHandle });
+        var frequencyDataHandle = this.openSEEService.getFrequencyData(props.eventId, props.pixels, "TripCoilCurrent", props.startDate, props.endDate).then(function (data) {
+            if (data == null)
+                return;
+            var legend = baseCtrl.createLegendRows(data.Data);
+            var dataSet = baseCtrl.state.dataSet;
+            if (dataSet.Data != undefined)
+                dataSet.Data = dataSet.Data.concat(data.Data);
+            else
+                dataSet = data;
+            baseCtrl.createDataRows(dataSet, legend);
+            baseCtrl.setState({ dataSet: dataSet });
+        });
+        this.setState({ frequencyDataHandle: frequencyDataHandle });
+    };
+    TCE.prototype.getColor = function (key, index) {
+        if (key.ChartLabel.indexOf('IAN') >= 0)
+            return '#FF0000';
+        if (key.ChartLabel.indexOf('IBN') >= 0)
+            return '#0066CC';
+        if (key.ChartLabel.indexOf('ICN') >= 0)
+            return '#33CC33';
+        if (key.ChartLabel.indexOf('ING') >= 0)
+            return '#ffd900';
+        if (key.ChartLabel.indexOf('IRES') >= 0)
+            return '#D3D3D3';
+        else {
+            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
+            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
+            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
+            return "#" + (ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne) + (ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo) + (ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree);
+        }
+    };
+    TCE.prototype.render = function () {
+        var _this = this;
+        return React.createElement(LineChartAnalyticBase_1.default, { legendDisplay: function (key) { return true; }, legendEnable: function (key) { return key.length == 3; }, legendKey: "Trip Coil Current", openSEEServiceFunction: this.openSEEService.getWaveformTCEData, getData: function (props, ctrl) { return _this.getData(props, ctrl, _this); }, getColor: this.getColor, fftStartTime: this.props.fftStartTime, fftEndTime: this.props.fftEndTime, analytic: this.props.analytic, endDate: this.props.endDate, eventId: this.props.eventId, height: this.props.height, hover: this.props.hover, pixels: this.props.pixels, pointsTable: this.props.pointsTable, postedData: this.props.postedData, startDate: this.props.startDate, stateSetter: this.props.stateSetter, tableData: this.props.tableData, tableSetter: this.props.tableSetter, tooltipWithDeltaTable: this.props.tooltipWithDeltaTable });
+    };
+    return TCE;
+}(React.Component));
+exports.default = TCE;
+
+
+/***/ }),
+
 /***/ "./TSX/OpenSEE/Graphs/Voltage.tsx":
 /*!****************************************!*\
   !*** ./TSX/OpenSEE/Graphs/Voltage.tsx ***!
@@ -24594,6 +24760,7 @@ var createBrowserHistory_1 = __webpack_require__(/*! history/createBrowserHistor
 var queryString = __webpack_require__(/*! query-string */ "../node_modules/query-string/index.js");
 var lodash_1 = __webpack_require__(/*! lodash */ "../node_modules/lodash/lodash.js");
 var Current_1 = __webpack_require__(/*! ./Graphs/Current */ "./TSX/OpenSEE/Graphs/Current.tsx");
+var TCE_1 = __webpack_require__(/*! ./Graphs/TCE */ "./TSX/OpenSEE/Graphs/TCE.tsx");
 var Digital_1 = __webpack_require__(/*! ./Graphs/Digital */ "./TSX/OpenSEE/Graphs/Digital.tsx");
 var Voltage_1 = __webpack_require__(/*! ./Graphs/Voltage */ "./TSX/OpenSEE/Graphs/Voltage.tsx");
 var OpenSEENoteModal_1 = __webpack_require__(/*! ./Components/OpenSEENoteModal */ "./TSX/OpenSEE/Components/OpenSEENoteModal.tsx");
@@ -24634,6 +24801,7 @@ var OpenSEE = (function (_super) {
             EndDate: (query['EndDate'] != undefined ? query['EndDate'] : eventEndTime),
             displayVolt: true,
             displayCur: true,
+            displayTCE: true,
             breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
             Width: window.innerWidth - 300,
             Hover: 0,
@@ -24641,8 +24809,8 @@ var OpenSEE = (function (_super) {
             TableData: new Map(),
             PostedData: {},
             nextBackLookup: {
-                System: {},
                 Meter: {},
+                System: {},
                 Station: {},
                 Line: {}
             },
@@ -24716,7 +24884,10 @@ var OpenSEE = (function (_super) {
                             "Current"),
                         React.createElement("label", { style: { marginLeft: '15px' } },
                             React.createElement("input", { type: "checkbox", onChange: function () { return _this.stateSetter({ breakerdigitals: !_this.state.breakerdigitals }); }, checked: this.state.breakerdigitals }),
-                            "Digitals"))),
+                            "Digitals"),
+                        React.createElement("label", { style: { marginLeft: '10px' } },
+                            React.createElement("input", { type: "checkbox", onChange: function () { return _this.stateSetter({ displayTCE: !_this.state.displayTCE }); }, checked: this.state.displayTCE }),
+                            "TCE"))),
                 React.createElement("br", null),
                 React.createElement("ul", { className: "nav nav-tabs", id: "myTab", role: "tablist" },
                     React.createElement("li", { className: "nav-item" },
@@ -24787,8 +24958,8 @@ var OpenSEE = (function (_super) {
             React.createElement("div", { style: { width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right', overflow: 'hidden' } },
                 React.createElement(OpenSEENavbar_1.default, { eventid: this.state.eventid, endDate: this.state.EndDate, Hover: this.state.Hover, key: "navbar", nextBackLookup: this.state.nextBackLookup, PointsTable: this.state.PointsTable, PostedData: this.state.PostedData, ref: "navbar", resetZoom: this.resetZoom.bind(this), selected: this.state.navigation, startDate: this.state.StartDate, stateSetter: this.stateSetter.bind(this), TableData: this.state.TableData, TooltipWithDeltaTable: this.state.TooltipWithDeltaTable }),
                 React.createElement("div", { style: { padding: '0', height: "calc(100% - 62px)", overflowY: 'auto' } },
-                    React.createElement(ViewerWindow, { key: this.state.eventid, eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, displayVolt: this.state.displayVolt, displayCur: this.state.displayCur, displayDigitals: this.state.breakerdigitals, postedData: this.state.PostedData, isCompare: (this.state.tab == "Compare"), label: this.state.PostedData.postedLineName, tableSetter: this.tableUpdater.bind(this), fftStartTime: this.state.fftStartTime, fftEndTime: this.state.fftEndTime, analytic: this.state.analytic, tooltipWithDeltaTable: this.state.TooltipWithDeltaTable }),
-                    (this.state.tab == "Compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(function (a) { return React.createElement(ViewerWindow, { key: a, eventId: a, startDate: _this.state.StartDate, endDate: _this.state.EndDate, pixels: _this.state.Width, stateSetter: _this.stateSetter.bind(_this), height: height, hover: _this.state.Hover, tableData: _this.TableData, pointsTable: _this.state.PointsTable, displayVolt: _this.state.displayVolt, displayCur: _this.state.displayCur, displayDigitals: _this.state.breakerdigitals, postedData: _this.state.PostedData, isCompare: true, label: React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + a }, _this.state.overlappingEvents.find(function (x) { return x.value == a; }).label), tableSetter: _this.tableUpdater.bind(_this), tooltipWithDeltaTable: _this.state.TooltipWithDeltaTable }); }) : null),
+                    React.createElement(ViewerWindow, { key: this.state.eventid, eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, displayVolt: this.state.displayVolt, displayCur: this.state.displayCur, displayTCE: this.state.displayTCE, displayDigitals: this.state.breakerdigitals, postedData: this.state.PostedData, isCompare: (this.state.tab == "Compare"), label: this.state.PostedData.postedLineName, tableSetter: this.tableUpdater.bind(this), fftStartTime: this.state.fftStartTime, fftEndTime: this.state.fftEndTime, analytic: this.state.analytic, tooltipWithDeltaTable: this.state.TooltipWithDeltaTable }),
+                    (this.state.tab == "Compare" && this.state.overlappingEvents.length > 0 ? this.state.comparedEvents.map(function (a) { return React.createElement(ViewerWindow, { key: a, eventId: a, startDate: _this.state.StartDate, endDate: _this.state.EndDate, pixels: _this.state.Width, stateSetter: _this.stateSetter.bind(_this), height: height, hover: _this.state.Hover, tableData: _this.TableData, pointsTable: _this.state.PointsTable, displayVolt: _this.state.displayVolt, displayCur: _this.state.displayCur, displayTCE: _this.state.displayTCE, displayDigitals: _this.state.breakerdigitals, postedData: _this.state.PostedData, isCompare: true, label: React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + a }, _this.state.overlappingEvents.find(function (x) { return x.value == a; }).label), tableSetter: _this.tableUpdater.bind(_this), tooltipWithDeltaTable: _this.state.TooltipWithDeltaTable }); }) : null),
                     (this.state.tab == "Analytics" && this.state.analytic == "Impedance" ? React.createElement(Impedance_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, postedData: this.state.PostedData, tableSetter: this.tableUpdater.bind(this), tooltipWithDeltaTable: this.state.TooltipWithDeltaTable }) : null),
                     (this.state.tab == "Analytics" && this.state.analytic == "Power" ? React.createElement(Power_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, postedData: this.state.PostedData, tableSetter: this.tableUpdater.bind(this), tooltipWithDeltaTable: this.state.TooltipWithDeltaTable }) : null),
                     (this.state.tab == "Analytics" && this.state.analytic == "FirstDerivative" ? React.createElement(FirstDerivative_1.default, { eventId: this.state.eventid, startDate: this.state.StartDate, endDate: this.state.EndDate, pixels: this.state.Width, stateSetter: this.stateSetter.bind(this), height: height, hover: this.state.Hover, tableData: this.TableData, pointsTable: this.state.PointsTable, postedData: this.state.PostedData, tableSetter: this.tableUpdater.bind(this), tooltipWithDeltaTable: this.state.TooltipWithDeltaTable }) : null),
@@ -24825,6 +24996,7 @@ var OpenSEE = (function (_super) {
             delete prop.PointsTable;
             delete prop.displayCur;
             delete prop.displayVolt;
+            delete prop.displaTCE;
             delete prop.PostedData;
             delete prop.nextBackLookup;
             delete prop.overlappingEvents;
@@ -24853,7 +25025,7 @@ var OpenSEE = (function (_super) {
     OpenSEE.prototype.calculateHeights = function (obj) {
         if (obj.tab == "Compare")
             return 300;
-        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.breakerdigitals) + Number(obj.tab == "Analytics"));
+        return (window.innerHeight - 100 - 30) / (Number(obj.displayVolt) + Number(obj.displayCur) + Number(obj.breakerdigitals) + Number(obj.displayTCE) + Number(obj.tab == "Analytics"));
     };
     return OpenSEE;
 }(React.Component));
@@ -24865,12 +25037,14 @@ var ViewerWindow = function (props) {
             React.createElement("div", { className: "card-body", style: { padding: 0 } },
                 (props.displayVolt ? React.createElement(Voltage_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
                 (props.displayCur ? React.createElement(Current_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
-                (props.displayDigitals ? React.createElement(Digital_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, postedData: props.postedData, tableSetter: props.tableSetter, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null)))
+                (props.displayDigitals ? React.createElement(Digital_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, postedData: props.postedData, tableSetter: props.tableSetter, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
+                (props.displayTCE ? React.createElement(TCE_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null)))
         :
             React.createElement("div", null,
                 (props.displayVolt ? React.createElement(Voltage_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, fftStartTime: props.fftStartTime, fftEndTime: props.fftEndTime, analytic: props.analytic, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
                 (props.displayCur ? React.createElement(Current_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, fftStartTime: props.fftStartTime, fftEndTime: props.fftEndTime, analytic: props.analytic, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
-                (props.displayDigitals ? React.createElement(Digital_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, postedData: props.postedData, tableSetter: props.tableSetter, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null)));
+                (props.displayDigitals ? React.createElement(Digital_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, postedData: props.postedData, tableSetter: props.tableSetter, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null),
+                (props.displayTCE ? React.createElement(TCE_1.default, { eventId: props.eventId, startDate: props.startDate, endDate: props.endDate, pixels: props.pixels, stateSetter: props.stateSetter, height: props.height, hover: props.hover, tableData: props.tableData, pointsTable: props.pointsTable, tableSetter: props.tableSetter, postedData: props.postedData, fftStartTime: props.fftStartTime, fftEndTime: props.fftEndTime, analytic: props.analytic, tooltipWithDeltaTable: props.tooltipWithDeltaTable }) : null)));
 };
 ReactDOM.render(React.createElement(OpenSEE, null), document.getElementById('DockCharts'));
 

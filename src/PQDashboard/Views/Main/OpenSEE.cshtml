@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/21/2016 - Stephen Wills
 //       Generated original version of source code.
+//  08/21/2019 - Christoph Lackner
+//       Added Jquery dependoencies for Relay Characteristic plotting
 //
 //*****************************************************************************************************@
 @using GSF.IO;
@@ -83,6 +85,7 @@
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
         var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
+<<<<<<< HEAD
     @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="@Url.Content("~/Scripts/default.polyfill.min.js")"></script>
@@ -97,10 +100,14 @@
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.selection.min.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.time.min.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.rangeselection.min.js")"></script>
+	<script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.axislabels.js")"></script>
+
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.dashes.js")"></script>
 
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
 
+<<<<<<< HEAD
 @if (Model.IsDebug())
 {
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
@@ -111,6 +118,7 @@ else
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
 }
+
 
     @if (enableLightningQuery)
     {

@@ -20386,7 +20386,7 @@ if (false) {} else {
 /*!****************************************************************!*\
   !*** ../node_modules/react-router-dom/esm/react-router-dom.js ***!
   \****************************************************************/
-/*! exports provided: MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext, BrowserRouter, HashRouter, Link, NavLink */
+/*! exports provided: BrowserRouter, HashRouter, Link, NavLink, MemoryRouter, Prompt, Redirect, Route, Router, StaticRouter, Switch, generatePath, matchPath, withRouter, __RouterContext */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -23680,6 +23680,7 @@ var OpenSEEService = (function () {
         this.getSpecifiedHarmonicData = this.getSpecifiedHarmonicData.bind(this);
         this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
         this.getHarmonicSpectrumData = this.getHarmonicSpectrumData.bind(this);
+        this.getStatisticData = this.getStatisticData.bind(this);
     }
     OpenSEEService.prototype.getWaveformVoltageData = function (eventid, pixels, startDate, endDate) {
         if (this.waveformVoltageDataHandle !== undefined)
@@ -23716,6 +23717,42 @@ var OpenSEEService = (function () {
             async: true
         });
         return this.waveformCurrentDataHandle;
+    };
+    OpenSEEService.prototype.getWaveformTCEData = function (eventid, pixels, startDate, endDate) {
+        if (this.waveformTCEDataHandle !== undefined)
+            this.waveformTCEDataHandle.abort();
+        this.waveformTCEDataHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventId=" + eventid +
+                ("" + (startDate != undefined ? "&startDate=" + startDate : "")) +
+                ("" + (endDate != undefined ? "&endDate=" + endDate : "")) +
+                ("&pixels=" + pixels) +
+                "&type=TripCoilCurrent" +
+                "&dataType=Time",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.waveformTCEDataHandle;
+    };
+    OpenSEEService.prototype.getStatisticData = function (eventid, pixels, type, startDate, endDate) {
+        if (this.relaystatisticsDataHandle !== undefined)
+            this.relaystatisticsDataHandle.abort();
+        this.relaystatisticsDataHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/GetData?eventid=" + eventid +
+                ("" + (startDate != undefined ? "&startDate=" + startDate : "")) +
+                ("" + (endDate != undefined ? "&endDate=" + endDate : "")) +
+                ("&pixels=" + pixels) +
+                ("&type=" + type) +
+                "&dataType=Statistics",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.relaystatisticsDataHandle;
     };
     OpenSEEService.prototype.getFrequencyData = function (eventid, pixels, type, startDate, endDate) {
         if (this.frequencyDataHandle !== undefined)
@@ -23806,6 +23843,19 @@ var OpenSEEService = (function () {
             async: true
         });
         return this.harmonicStatHandle;
+    };
+    OpenSEEService.prototype.getRelayPerformance = function (eventid) {
+        if (this.RelayPerformanceHandle !== undefined)
+            this.RelayPerformanceHandle.abort();
+        this.RelayPerformanceHandle = $.ajax({
+            type: "GET",
+            url: homePath + "api/OpenSEE/getRelayPerformance?eventId=" + eventid,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.RelayPerformanceHandle;
     };
     OpenSEEService.prototype.getTimeCorrelatedSags = function (eventid) {
         if (this.correlatedSagsHandle !== undefined)
@@ -24693,6 +24743,7 @@ var EventSearch = (function (_super) {
                 interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
                 breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
                 transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
+                relayTCE: (query['relayTCE'] != undefined ? query['realyTCE'] == 'true' : true),
                 others: (query['others'] != undefined ? query['others'] == 'true' : true),
                 date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
                 time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
@@ -25549,6 +25600,14 @@ var EventSearchNavbar = function (props) {
                                     React.createElement("label", null,
                                         React.createElement("input", { type: "checkbox", onChange: function () {
                                                 var object = lodash_1.clone(props);
+                                                object.relayTCE = !props.relayTCE;
+                                                props.stateSetter({ searchBarProps: object });
+                                            }, checked: props.relayTCE }),
+                                        "  Relay TCE")),
+                                React.createElement("li", null,
+                                    React.createElement("label", null,
+                                        React.createElement("input", { type: "checkbox", onChange: function () {
+                                                var object = lodash_1.clone(props);
                                                 object.others = !props.others;
                                                 props.stateSetter({ searchBarProps: object });
                                             }, checked: props.others }),
@@ -25719,18 +25778,24 @@ var EventSearchAssetVoltageDisturbances_1 = __webpack_require__(/*! ./EventSearc
 var EventSearchAssetFaultSegments_1 = __webpack_require__(/*! ./EventSearchAssetFaultSegments */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetFaultSegments.tsx");
 var EventSearchAssetHistory_1 = __webpack_require__(/*! ./EventSearchAssetHistory */ "./TSX/PQDashboard/Components/EventSearch/EventSearchAssetHistory.tsx");
 var EventSearchCorrelatedSags_1 = __webpack_require__(/*! ./EventSearchCorrelatedSags */ "./TSX/PQDashboard/Components/EventSearch/EventSearchCorrelatedSags.tsx");
+var EventSearchRelayPerformance_1 = __webpack_require__(/*! ./EventSearchRelayPerformance */ "./TSX/PQDashboard/Components/EventSearch/EventSearchRelayPerformance.tsx");
 var EventPreviewPane = (function (_super) {
     __extends(EventPreviewPane, _super);
     function EventPreviewPane(props, context) {
         var _this = _super.call(this, props, context) || this;
+        _this.state = {
+            showI: false,
+            showTCE: false,
+            showRelayHistory: false
+        };
         _this.openSEEService = new OpenSEE_1.default();
-        _this.optionsV = {
+        _this.optionsUpper = {
             canvas: true,
             legend: { show: false },
             xaxis: { show: false },
             yaxis: { show: false }
         };
-        _this.optionsI = {
+        _this.optionsLower = {
             canvas: true,
             legend: { show: false },
             grid: {
@@ -25764,6 +25829,172 @@ var EventPreviewPane = (function (_super) {
                 }
             },
             yaxis: { show: false }
+        };
+        _this.optionsTripTime = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Trip (micros)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            },
+            series: {
+                dashes: {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        };
+        _this.optionsPickupTime = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Pickup (micros)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            },
+            series: {
+                dashes: {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        };
+        _this.optionsTripCoilCondition = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'TCC (A/s)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            },
+            series: {
+                dashes: {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        };
+        _this.optionsImax1 = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Imax 1 (A)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            }
+        };
+        _this.optionsImax2 = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: {
+                mode: "time",
+                reserveSpace: false,
+                ticks: function (axis) {
+                    var ticks = [], delta = (axis.max - axis.min) / 11, start = _this.floorInBase(axis.min, axis.delta), i = 0, v = Number.NaN, prev;
+                    for (var i = 1; i < 11; ++i) {
+                        ticks.push(axis.min + i * delta);
+                    }
+                    return ticks;
+                },
+                tickFormatter: function (value, axis) {
+                    if (axis.delta < 1) {
+                        return (moment(value).format("mm:ss.SS") + "<br>" + "Test");
+                    }
+                    if (axis.delta < 1000) {
+                        return (moment(value).format("mm:ss.SS") + "<br>" + "Test");
+                    }
+                    else {
+                        return moment(value).format("MM/DD/YY");
+                    }
+                },
+                tickLength: 5
+            },
+            yaxis: {
+                show: true,
+                axisLabel: 'Imax 2 (A)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: { show: true }
         };
         return _this;
     }
@@ -25819,6 +26050,13 @@ var EventPreviewPane = (function (_super) {
         var _this = this;
         $(this.refs.voltWindow).children().remove();
         $(this.refs.curWindow).children().remove();
+        $(this.refs.curWindowTime).children().remove();
+        $(this.refs.TCEWindowTime).children().remove();
+        $(this.refs.TTwindow).children().remove();
+        $(this.refs.PTwindow).children().remove();
+        $(this.refs.TCCwindow).children().remove();
+        $(this.refs.L1window).children().remove();
+        $(this.refs.L2window).children().remove();
         var pixels = (window.innerWidth - 300 - 40) / 2;
         this.openSEEService.getWaveformVoltageData(props.eventid, pixels).then(function (data) {
             if (data == null) {
@@ -25828,38 +26066,219 @@ var EventPreviewPane = (function (_super) {
             $.each(data.Data, function (index, value) {
                 newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
             });
-            $.plot($(_this.refs.voltWindow), newVessel, _this.optionsV);
+            $.plot($(_this.refs.voltWindow), newVessel, _this.optionsUpper);
         });
         this.openSEEService.getWaveformCurrentData(props.eventid, pixels).then(function (data) {
             if (data == null) {
+                _this.setState(function (state, props) { return { showI: false }; });
                 return;
             }
+            _this.setState(function (state, props) { return { showI: true }; });
             var newVessel = [];
             $.each(data.Data, function (index, value) {
                 newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
             });
-            $.plot($(_this.refs.curWindow), newVessel, _this.optionsI);
+            $.plot($(_this.refs.curWindow), newVessel, _this.optionsUpper);
+            $.plot($(_this.refs.curWindowTime), newVessel, _this.optionsLower);
+        });
+        this.openSEEService.getWaveformTCEData(props.eventid, pixels).then(function (data) {
+            if (data == null) {
+                _this.setState(function (state, props) { return { showTCE: false }; });
+                return;
+            }
+            _this.setState(function (state, props) { return { showTCE: true }; });
+            var newVessel = [];
+            $.each(data.Data, function (index, value) {
+                newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+            });
+            $.plot($(_this.refs.TCEWindowTime), newVessel, _this.optionsLower);
+        });
+        this.openSEEService.getStatisticData(props.eventid, pixels, "History").then(function (data) {
+            if (data == null) {
+                _this.setState(function (state, props) { return { showRelayHistory: false }; });
+                return;
+            }
+            _this.setState(function (state, props) { return { showRelayHistory: true }; });
+            var tripTimeVessel = [];
+            var pickupTimeVessel = [];
+            var tripCoilConditionVessel = [];
+            var l1Vessel = [];
+            var l2Vessel = [];
+            $.each(data.Data, function (index, value) {
+                if (value.MeasurementType == "TripTime") {
+                    tripTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+                }
+                else if (value.MeasurementType == "PickupTime") {
+                    pickupTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+                }
+                else if (value.MeasurementType == "TripCoilCondition") {
+                    tripCoilConditionVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+                }
+                else if (value.MeasurementType == "Imax1") {
+                    l1Vessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+                }
+                else if (value.MeasurementType == "Imax2") {
+                    l2Vessel.push({ label: value.ChartLabel, data: value.DataPoints, color: _this.getColor(value.ChartLabel) });
+                }
+                else if (value.MeasurementType == "TripTimeAlert") {
+                    tripTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false } });
+                }
+                else if (value.MeasurementType == "PickupTimeAlert") {
+                    pickupTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false } });
+                }
+                else if (value.MeasurementType == "TripCoilConditionAlert") {
+                    tripCoilConditionVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false } });
+                }
+            });
+            $.plot($(_this.refs.TTwindow), tripTimeVessel, _this.optionsTripTime);
+            $.plot($(_this.refs.PTwindow), pickupTimeVessel, _this.optionsPickupTime);
+            $.plot($(_this.refs.TCCwindow), tripCoilConditionVessel, _this.optionsTripCoilCondition);
+            $.plot($(_this.refs.L1window), l1Vessel, _this.optionsImax1);
+            $.plot($(_this.refs.L2window), l2Vessel, _this.optionsImax2);
         });
     };
     EventPreviewPane.prototype.render = function () {
         if (this.props.eventid == -1)
             return React.createElement("div", null);
+        var showTCE = this.state.showTCE;
+        var showIUpper = this.state.showI && this.state.showTCE;
+        var showILower = this.state.showI && !this.state.showTCE;
+        var showRelayHistory = this.state.showRelayHistory;
         return (React.createElement("div", null,
             React.createElement("div", { className: "card" },
                 React.createElement("div", { className: "card-header" },
                     React.createElement("a", { href: homePath + 'Main/OpenSEE?eventid=' + this.props.eventid, target: "_blank" }, "View in OpenSEE")),
                 React.createElement("div", { className: "card-body" },
                     React.createElement("div", { ref: "voltWindow", style: { height: 200, width: 'calc(100%)' } }),
-                    React.createElement("div", { ref: "curWindow", style: { height: 200, width: 'calc(100%)' } }))),
+                    React.createElement("div", { ref: "curWindow", style: { height: 200, width: 'calc(100%)', display: showIUpper ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "curWindowTime", style: { height: 200, width: 'calc(100%)', display: showILower ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "TCEWindowTime", style: { height: 200, width: 'calc(100%)', display: showTCE ? 'block' : 'none' } }))),
             React.createElement(EventSearchAssetFaultSegments_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchAssetVoltageDisturbances_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchCorrelatedSags_1.default, { eventId: this.props.eventid }),
             React.createElement(EventSearchAssetHistory_1.default, { eventId: this.props.eventid }),
+            React.createElement(EventSearchRelayPerformance_1.default, { eventId: this.props.eventid }),
+            React.createElement("div", { className: "card" },
+                React.createElement("div", { className: "card-header" }, "Historic Relay Performance"),
+                React.createElement("div", { className: "card-body" },
+                    React.createElement("div", { ref: "TTwindow", style: { height: 150, width: 'calc(100%)', display: showRelayHistory ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "PTwindow", style: { height: 150, width: 'calc(100%)', display: showRelayHistory ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "TCCwindow", style: { height: 150, width: 'calc(100%)', display: showRelayHistory ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "L1window", style: { height: 150, width: 'calc(100%)', display: showRelayHistory ? 'block' : 'none' } }),
+                    React.createElement("div", { ref: "L2window", style: { height: 150, width: 'calc(100%)', display: showRelayHistory ? 'block' : 'none' } }))),
             React.createElement(EventSearchNoteWindow_1.default, { eventId: this.props.eventid })));
     };
     return EventPreviewPane;
 }(React.Component));
 exports.default = EventPreviewPane;
+
+
+/***/ }),
+
+/***/ "./TSX/PQDashboard/Components/EventSearch/EventSearchRelayPerformance.tsx":
+/*!********************************************************************************!*\
+  !*** ./TSX/PQDashboard/Components/EventSearch/EventSearchRelayPerformance.tsx ***!
+  \********************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(/*! react */ "react");
+var moment = __webpack_require__(/*! moment */ "moment");
+var OpenSEE_1 = __webpack_require__(/*! ../../../../TS/Services/OpenSEE */ "./TS/Services/OpenSEE.ts");
+var EventSearchRrelayPerformance = (function (_super) {
+    __extends(EventSearchRrelayPerformance, _super);
+    function EventSearchRrelayPerformance(props, context) {
+        var _this = _super.call(this, props, context) || this;
+        _this.openSEEService = new OpenSEE_1.default();
+        _this.state = {
+            tableRows: []
+        };
+        return _this;
+    }
+    EventSearchRrelayPerformance.prototype.componentDidMount = function () {
+        if (this.props.eventId >= 0)
+            this.createTableRows(this.props.eventId);
+    };
+    EventSearchRrelayPerformance.prototype.componentWillUnmount = function () {
+    };
+    EventSearchRrelayPerformance.prototype.componentWillReceiveProps = function (nextProps) {
+        if (nextProps.eventId >= 0)
+            this.createTableRows(nextProps.eventId);
+    };
+    EventSearchRrelayPerformance.prototype.createTableRows = function (eventID) {
+        var _this = this;
+        this.openSEEService.getRelayPerformance(this.props.eventId).done(function (data) {
+            var rows = [];
+            for (var index = 0; index < data.length; ++index) {
+                var row = data[index];
+                var background = 'default';
+                if (row.EventID == _this.props.eventId)
+                    background = 'lightyellow';
+                rows.push(Row(row, background));
+            }
+            _this.setState({ tableRows: rows });
+        });
+    };
+    EventSearchRrelayPerformance.prototype.render = function () {
+        return (React.createElement("div", { className: "card" },
+            React.createElement("div", { className: "card-header" }, "Relay Performance:"),
+            React.createElement("div", { className: "card-body" },
+                React.createElement("table", { className: "table" },
+                    React.createElement("thead", null,
+                        React.createElement(HeaderRow, null)),
+                    React.createElement("tbody", null, this.state.tableRows)))));
+    };
+    return EventSearchRrelayPerformance;
+}(React.Component));
+exports.default = EventSearchRrelayPerformance;
+var Row = function (row, background) {
+    return (React.createElement("tr", { style: { background: background }, key: row.EventID },
+        React.createElement("td", { key: 'EventID' + row.EventID },
+            React.createElement("a", { id: "eventLink", href: './OpenSEE?eventid=' + row.EventID },
+                React.createElement("div", { style: { width: '100%', height: '100%' } }, row.EventID))),
+        React.createElement("td", { key: 'InitiateTime' + row.EventID }, moment(row.TripInitiate).format('DD/MM/YY HH:MM:ss.SSSS')),
+        React.createElement("td", { key: 'TripTime' + row.EventID },
+            row.TripTime,
+            " micros"),
+        React.createElement("td", { key: 'PickupTime' + row.EventID },
+            row.PickupTime,
+            " micros"),
+        React.createElement("td", { key: 'TripCoilCondition' + row.EventID },
+            row.TripCoilCondition.toFixed(2),
+            " A/s"),
+        React.createElement("td", { key: 'L1' + row.EventID },
+            row.Imax1.toFixed(3),
+            " A"),
+        React.createElement("td", { key: 'L2' + row.EventID },
+            row.Imax2.toFixed(3),
+            " A")));
+};
+var HeaderRow = function () {
+    return (React.createElement("tr", { key: 'Header' },
+        React.createElement("th", { key: 'EventID' }, "Event ID"),
+        React.createElement("th", { key: 'InitiateTime' }, "Trip Initiation Time"),
+        React.createElement("th", { key: 'TripTime' }, "Trip Time"),
+        React.createElement("th", { key: 'PickupTime' }, "Pickup Time"),
+        React.createElement("th", { key: 'TripCoilCondition' }, "Trip Coil Condition"),
+        React.createElement("th", { key: 'L1' }, "L1"),
+        React.createElement("th", { key: 'L2' }, "L2")));
+};
 
 
 /***/ }),

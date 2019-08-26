@@ -80,41 +80,41 @@
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Communication, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Communication.2.3.185-beta\lib\net46\GSF.Communication.dll</HintPath>
+    <Reference Include="GSF.Communication, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Communication.2.3.199-beta\lib\net46\GSF.Communication.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.COMTRADE">
-      <HintPath>..\Dependencies\GSF.COMTRADE.dll</HintPath>
+    <Reference Include="GSF.COMTRADE, Version=2.3.173.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.COMTRADE.2.3.173\lib\net46\GSF.COMTRADE.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.3.185-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="GSF.Core, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.3.199-beta\lib\net46\GSF.Core.dll</HintPath>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PhasorProtocols">
-      <HintPath>..\Dependencies\GSF.PhasorProtocols.dll</HintPath>
+    <Reference Include="GSF.PhasorProtocols, Version=2.3.173.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PhasorProtocols.2.3.173\lib\net46\GSF.PhasorProtocols.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PQDIF, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.185-beta\lib\net46\GSF.PQDIF.dll</HintPath>
+    <Reference Include="GSF.PQDIF, Version=2.3.173.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PQDIF.2.3.173\lib\net46\GSF.PQDIF.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Security, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Security.2.3.185-beta\lib\net46\GSF.Security.dll</HintPath>
+    <Reference Include="GSF.Security, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Security.2.3.199-beta\lib\net46\GSF.Security.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceModel, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceModel.2.3.185-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+    <Reference Include="GSF.ServiceModel, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceModel.2.3.199-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceProcess, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceProcess.2.3.185-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+    <Reference Include="GSF.ServiceProcess, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceProcess.2.3.199-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.TimeSeries, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.TimeSeries.2.3.185-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+    <Reference Include="GSF.TimeSeries, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.TimeSeries.2.3.199-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Web, Version=2.3.185.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Web.2.3.185-beta\lib\net46\GSF.Web.dll</HintPath>
+    <Reference Include="GSF.Web, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Web.2.3.199-beta\lib\net46\GSF.Web.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zlib, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.185-beta\lib\net46\Ionic.Zlib.dll</HintPath>
+      <HintPath>..\packages\GSF.PQDIF.2.3.173\lib\net46\Ionic.Zlib.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\Dependencies\log4net.dll</HintPath>
@@ -125,8 +125,8 @@
     <Reference Include="MathNet.Numerics, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.6.0\lib\net40\MathNet.Numerics.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.2\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.4.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.4.1\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.2.0\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
@@ -218,6 +218,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web.Cors, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.4\lib\net45\System.Web.Cors.dll</HintPath>
@@ -439,6 +440,7 @@
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
+    <Content Include="Readme.txt" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
     <Content Include="Scripts\default.polyfill.min.js" />
@@ -457,6 +459,8 @@
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
+    <Content Include="Shared\Content\Readme.txt" />
+    <Content Include="Shared\Readme.txt" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
@@ -1344,6 +1348,7 @@
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchCorrelatedSags.tsx" />
+	<None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchList.tsx" />

@@ -71,11 +71,13 @@
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.selection.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.time.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.rangeselection.min.js")"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.axislabels.min.js")"></script>
+
+    <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.dashes.js")"></script>
 
     <script src="@("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
     <script src="~/Scripts/bootstrap4-datetimepicker.min.js"></script>
-
 @if (Model.IsDebug())
 {
     <script src="@("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
@@ -85,7 +87,7 @@ else
 {
     <script src="@("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
     <script src="@("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
-}
+
 
     <script src="@Url.Content("~/Scripts/PQDashboard.js")"></script>
 </body>

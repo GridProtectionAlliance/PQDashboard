@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/24/2019 - Billy Ernest
 //       Generated original version of source code.
+//  08/22/2019 - Christoph Lackner
+//       Added Carde for Relay Performance and plot of TCE.
 //
 //******************************************************************************************************
 import * as React from 'react';
@@ -28,24 +30,38 @@ import EventSearchAssetVoltageDisturbances from './EventSearchAssetVoltageDistur
 import EventSearchFaultSegments from './EventSearchAssetFaultSegments';
 import EventSearchHistory from './EventSearchAssetHistory';
 import EventSearchCorrelatedSags from './EventSearchCorrelatedSags';
+import EventSearchRelayPerformance from './EventSearchRelayPerformance';
 
-export default class EventPreviewPane extends React.Component<{ eventid: number }, {}> {
+export default class EventPreviewPane extends React.Component<{ eventid: number }, {showI: boolean, showTCE: boolean, showRelayHistory: boolean}> {
     openSEEService: OpenSEEService;
-    optionsV: object;
-    optionsI: object;
+    optionsUpper: object;
+    optionsLower: object;
+
+    optionsTripTime: object;
+    optionsPickupTime: object;
+    optionsTripCoilCondition: object;
+    optionsImax1: object;
+    optionsImax2: object;
 
     constructor(props, context) {
         super(props, context);
 
+        this.state = {
+            showI: false,
+            showTCE: false,
+            showRelayHistory: false
+        };
+
         this.openSEEService = new OpenSEEService();
-        this.optionsV = {
+
+        this.optionsUpper = {
             canvas: true,
             legend: { show: false },
             xaxis: { show: false },
             yaxis: { show: false }
         };
 
-        this.optionsI = {
+        this.optionsLower = {
             canvas: true,
             legend: { show: false },
             grid: {
@@ -66,12 +82,6 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
                         v = Number.NaN,
                         prev;
 
-                    //do {
-                    //    prev = v;
-                    //    v = start + i * axis.delta;
-                    //    ticks.push(v);
-                    //    ++i;
-                    //} while (v < axis.max && v != prev);
                     for (var i = 1; i < 11; ++i) {
                         ticks.push(axis.min + i * delta);
                     }
@@ -95,9 +105,190 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
             yaxis: { show: false }
         }
 
+        this.optionsTripTime = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true } ,
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Trip (micros)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+                },
+            lines: {
+                show: true,
+            },
+            series:
+            {
+                dashes:
+                {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        }
+                
+        this.optionsPickupTime = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Pickup (micros)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            },
+            series:
+            {
+                dashes: {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        }
 
+        this.optionsTripCoilCondition = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'TCC (A/s)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            },
+            series:
+            {
+                dashes: {
+                    show: true,
+                    dashLength: 5
+                },
+                shadowSize: 0
+            }
+        }
 
+        this.optionsImax1 = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: { show: false },
+            yaxis: {
+                show: true,
+                axisLabel: 'Imax 1 (A)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: {
+                show: true,
+            }
+        }
 
+        this.optionsImax2 = {
+            canvas: true,
+            legend: { show: false },
+            axisLabels: { show: true },
+            grid: {
+                autoHighlight: false,
+                clickable: true,
+                hoverable: true,
+                markings: [],
+            },
+            xaxis: {
+                mode: "time",
+                reserveSpace: false,
+                ticks: (axis) => {
+                    var ticks = [],
+                        delta = (axis.max - axis.min) / 11,
+                        start = this.floorInBase(axis.min, axis.delta),
+                        i = 0,
+                        v = Number.NaN,
+                        prev;
+
+                    for (var i = 1; i < 11; ++i) {
+                        ticks.push(axis.min + i * delta);
+                    }
+
+                    return ticks;
+                },
+                tickFormatter: (value, axis) => {
+                    if (axis.delta < 1) {
+                        return (moment(value).format("mm:ss.SS") + "<br>" + "Test");
+                        // var trunc = value - this.floorInBase(value, 1000);
+                        // return this.defaultTickFormatter(trunc, axis) + " ms";
+                    }
+
+                    if (axis.delta < 1000) {
+                        return (moment(value).format("mm:ss.SS") + "<br>" + "Test");
+                    }
+                    else {
+                        return moment(value).format("MM/DD/YY");
+                    }
+                },
+                tickLength: 5
+            },
+            yaxis: {
+                show: true,
+                axisLabel: 'Imax 2 (A)',
+                labelWidth: 50,
+            },
+            points: {
+                show: true,
+                fill: true,
+                fillColor: "#000000"
+            },
+            lines: { show: true }
+        }
     }
 
     defaultTickFormatter(value, axis) {
@@ -155,6 +346,15 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
     getData(props) {
         $(this.refs.voltWindow).children().remove();
         $(this.refs.curWindow).children().remove();
+        $(this.refs.curWindowTime).children().remove();
+        $(this.refs.TCEWindowTime).children().remove();
+
+        $(this.refs.TTwindow).children().remove();
+        $(this.refs.PTwindow).children().remove();
+        $(this.refs.TCCwindow).children().remove();
+        $(this.refs.L1window).children().remove();
+        $(this.refs.L2window).children().remove();
+
         var pixels = (window.innerWidth - 300 - 40) / 2;
 
         this.openSEEService.getWaveformVoltageData(props.eventid, pixels).then(data => {
@@ -168,31 +368,89 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
             });
 
 
-            $.plot($(this.refs.voltWindow), newVessel, this.optionsV);
+            $.plot($(this.refs.voltWindow), newVessel, this.optionsUpper);
 
 
         });
 
         this.openSEEService.getWaveformCurrentData(props.eventid, pixels).then(data => {
             if (data == null) {
+                this.setState((state, props) => { return { showI: false }; })
                 return;
             }
+
+            this.setState((state, props) => { return { showI: true }; })
 
             var newVessel = [];
             $.each(data.Data, (index, value) => {
                 newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) })
             });
 
-
-            $.plot($(this.refs.curWindow), newVessel, this.optionsI);
+            $.plot($(this.refs.curWindow), newVessel, this.optionsUpper);
+            $.plot($(this.refs.curWindowTime), newVessel, this.optionsLower);
 
 
         });
 
+        this.openSEEService.getWaveformTCEData(props.eventid, pixels).then(data => {
+            if (data == null) {
+                this.setState((state, props) => { return { showTCE: false }; })
+                return;
+            }
+
+            this.setState((state, props) => { return { showTCE: true }; })
+            var newVessel = [];
+            $.each(data.Data, (index, value) => {
+                newVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) })
+            });
+
+            $.plot($(this.refs.TCEWindowTime), newVessel, this.optionsLower);
+
+        });
+
+        this.openSEEService.getStatisticData(props.eventid, pixels, "History").then(data => {
+            
+            if (data == null) {
+                this.setState((state, props) => { return { showRelayHistory: false }; })
+                return;
+            }
+            this.setState((state, props) => { return { showRelayHistory: true }; })
+
+            var tripTimeVessel = [];
+            var pickupTimeVessel = [];
+            var tripCoilConditionVessel = [];
+            var l1Vessel = [];
+            var l2Vessel = [];
+
+            $.each(data.Data, (index, value) => {
+                if (value.MeasurementType == "TripTime") { tripTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) }) }
+                else if (value.MeasurementType == "PickupTime") { pickupTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) }) }
+                else if (value.MeasurementType == "TripCoilCondition") { tripCoilConditionVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) }) }
+                else if (value.MeasurementType == "Imax1") { l1Vessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) }) }
+                else if (value.MeasurementType == "Imax2") { l2Vessel.push({ label: value.ChartLabel, data: value.DataPoints, color: this.getColor(value.ChartLabel) }) }
+
+                else if (value.MeasurementType == "TripTimeAlert") { tripTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false }}) }
+                else if (value.MeasurementType == "PickupTimeAlert") { pickupTimeVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false } }) }
+                else if (value.MeasurementType == "TripCoilConditionAlert") { tripCoilConditionVessel.push({ label: value.ChartLabel, data: value.DataPoints, color: '#FF0000', lines: { show: false }, points: { show: false } }) }
+            });
+
+            $.plot($(this.refs.TTwindow), tripTimeVessel, this.optionsTripTime);
+            $.plot($(this.refs.PTwindow), pickupTimeVessel, this.optionsPickupTime);
+            $.plot($(this.refs.TCCwindow), tripCoilConditionVessel, this.optionsTripCoilCondition);
+            $.plot($(this.refs.L1window), l1Vessel, this.optionsImax1);
+            $.plot($(this.refs.L2window), l2Vessel, this.optionsImax2);
+        });
+
 
     }
+
     render() {
         if (this.props.eventid == -1) return <div></div>;
+
+        const showTCE = this.state.showTCE;
+        const showIUpper = this.state.showI && this.state.showTCE;
+        const showILower = this.state.showI && !this.state.showTCE;
+        const showRelayHistory = this.state.showRelayHistory;
 
         return (
             <div>
@@ -200,14 +458,28 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
                     <div className="card-header"><a href={homePath + 'Main/OpenSEE?eventid=' + this.props.eventid} target="_blank">View in OpenSEE</a></div>
                     <div className="card-body">
                         <div ref="voltWindow" style={{ height: 200, width: 'calc(100%)' /*, margin: '0x', padding: '0px'*/ }}></div>
-                        <div ref="curWindow" style={{ height: 200, width: 'calc(100%)' /*, margin: '0x', padding: '0px'*/ }}></div>
+                        <div ref="curWindow" style={{ height: 200, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/ display: showIUpper ? 'block' : 'none' }}></div>
+                        <div ref="curWindowTime" style={{ height: 200, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/ display: showILower ? 'block' : 'none' }}></div>
+                        <div ref="TCEWindowTime" style={{ height: 200, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/ display: showTCE ? 'block' : 'none' }}></div>
                     </div>
                 </div>
                 <EventSearchFaultSegments eventId={this.props.eventid} />
                 <EventSearchAssetVoltageDisturbances eventId={this.props.eventid} />
                 <EventSearchCorrelatedSags eventId={this.props.eventid} />
                 <EventSearchHistory eventId={this.props.eventid} />
-                <EventSearchNoteWindow eventId={this.props.eventid}/>
+                <EventSearchRelayPerformance eventId={this.props.eventid} />
+
+                <div className="card">
+                    <div className="card-header">Historic Relay Performance</div>
+                    <div className="card-body">
+                        <div ref="TTwindow" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
+                        <div ref="PTwindow" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
+                        <div ref="TCCwindow" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
+                        <div ref="L1window" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
+                        <div ref="L2window" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
+                    </div>
+                </div>
+                <EventSearchNoteWindow eventId={this.props.eventid} />
             </div>
         );
     }

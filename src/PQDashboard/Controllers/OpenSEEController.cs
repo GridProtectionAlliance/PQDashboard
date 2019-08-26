@@ -18,6 +18,8 @@
 //  ----------------------------------------------------------------------------------------------------
 //  04/17/2018 - Billy Ernest
 //       Generated original version of source code.
+//  08/21/2019 - Christoph Lackner
+//       Added Trip Coil Energization Functions
 //
 //******************************************************************************************************
 using FaultData.DataAnalysis;
@@ -188,6 +190,10 @@ namespace OpenSEE.Controller
                         DataGroup dataGroup = QueryDataGroup(eventId, meter);
                         temp = GetDataLookup(dataGroup, type);
                     }
+                    else if (dataType == "Statistics")
+                    {
+                        temp = GetStatisticsLookup(evt.LineID, type);
+                    }
                     else
                     {
                         VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
@@ -196,7 +202,7 @@ namespace OpenSEE.Controller
 
                     foreach (string key in temp.Keys)
                     {
-                        if (temp[key].MeasurementType == type)
+                        if (temp[key].DataPoints.Count()>0)
                         {
                             if (dict.ContainsKey(key))
                                 dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
@@ -207,17 +213,43 @@ namespace OpenSEE.Controller
                 }
                 if (dict.Count == 0) return null;
 
+                JsonReturn returnDict = new JsonReturn();
+                List<FlotSeries> returnList = new List<FlotSeries>();
+
+                if (dataType == "Statistics")
+                {
+                    foreach (string key in dict.Keys)
+                    {
+                        FlotSeries series = new FlotSeries();
+                        series = dict[key];
+                            
+                        series.DataPoints = dict[key].DataPoints.OrderBy(x => x[0]).ToList();
+
+                        returnList.Add(series);
+                    }
+
+                    returnDict.StartDate = evt.StartTime;
+                    returnDict.EndDate = evt.EndTime;
+                    returnDict.Data = returnList;
+                    returnDict.CalculationTime = 0;
+                    returnDict.CalculationEnd = 0;
+
+                    return returnDict;
+
+                }
+
                 double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
-                List<FlotSeries> returnList = new List<FlotSeries>();
                 foreach (string key in dict.Keys)
                 {
                     FlotSeries series = new FlotSeries();
                     series = dict[key];
+                    
                     series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                        
                     returnList.Add(series);
                 }
-                JsonReturn returnDict = new JsonReturn();
+                
                 returnDict.StartDate = evt.StartTime;
                 returnDict.EndDate = evt.EndTime;
                 returnDict.Data = returnList;
@@ -247,6 +279,64 @@ namespace OpenSEE.Controller
             });
 
             return dataLookup;
+        }
+
+        private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, string type)
+        {
+            Dictionary<string, FlotSeries> result = new Dictionary<string, FlotSeries>();
+
+            DataTable relayHistory = RelayHistoryTable(LineID, -1);
+
+            DataRow[] dr = relayHistory.Select();
+
+            if (type == "History")
+            {
+                List<String> RelayParamters = new List<string>()
+                {
+                    "TripTime",
+                    "PickupTime",
+                    "TripCoilCondition",
+                    "Imax1",
+                    "Imax2",
+                    "TripTimeAlert",
+                    "PickupTimeAlert",
+                    "TripCoilConditionAlert",
+                };
+
+                foreach (String param in RelayParamters)
+                {
+                    List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param) }).ToList();
+                    result.Add(param, new FlotSeries()
+                    {
+                        ChannelID = 0,
+                        ChannelName = param,
+                        ChannelDescription = "Relay " + param,
+                        MeasurementCharacteristic = param,
+                        MeasurementType = param,
+                        Phase = "",
+                        SeriesType = "",
+                        DataPoints = dataPoints,
+                        ChartLabel = param
+                    });
+
+                }
+                    
+                
+            }
+            return result;
+            
+        }
+
+        private DataTable RelayHistoryTable(int relayID, int eventID)
+        {
+            DataTable dataTable;
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                if (eventID > 0) { dataTable = connection.RetrieveData("SELECT * FROM BreakerHistory WHERE LineID = {0} AND EventID = {1}", relayID, eventID); }
+                else { dataTable = connection.RetrieveData("SELECT * FROM BreakerHistory WHERE LineID = {0}", relayID); }
+            }
+            return dataTable;
         }
 
         private Dictionary<string, FlotSeries> GetFrequencyDataLookup(VICycleDataGroup vICycleDataGroup, string type)
@@ -305,17 +395,36 @@ namespace OpenSEE.Controller
 
         private string GetChartLabel(openXDA.Model.Channel channel, string type = null)
         {
-
             if (channel.MeasurementType.Name == "Voltage" && type == null)
-                return "V" + channel.Phase.Name;
+                return "V" + DisplayPhaseName(channel.Phase.Name);
             else if (channel.MeasurementType.Name == "Current" && type == null)
-                return "I" + channel.Phase.Name;
+                return "I" + DisplayPhaseName(channel.Phase.Name);
+            else if (channel.MeasurementType.Name == "TripCoilCurrent" && type == null)
+                return "TCE" + DisplayPhaseName(channel.Phase.Name);
+            else if (channel.MeasurementType.Name == "TripCoilCurrent")
+                return "TCE" + DisplayPhaseName(channel.Phase.Name) + " " + type;
             else if (channel.MeasurementType.Name == "Voltage")
-                return "V" + channel.Phase.Name + " " + type;
+                return "V" + DisplayPhaseName(channel.Phase.Name) + " " + type;
             else if (channel.MeasurementType.Name == "Current")
-                return "I" + channel.Phase.Name + " " + type;
+                return "I" + DisplayPhaseName(channel.Phase.Name) + " " + type;
 
             return null;
+        }
+
+        private string DisplayPhaseName(string phaseName)
+        {
+            Dictionary<string, string> diplayNames = new Dictionary<string, string>()
+            {
+                { "None", ""}
+            };
+
+            string DisplayName;
+
+            if (!diplayNames.TryGetValue(phaseName, out DisplayName))
+                DisplayName = phaseName;
+
+            return DisplayName;
+
         }
 
         #endregion
@@ -3241,6 +3350,21 @@ namespace OpenSEE.Controller
             }
         }
 
+
+        [Route("GetRelayPerformance"), HttpGet]
+        public DataTable GetRelayPerformance()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int eventID = int.Parse(query["eventId"]);
+            if (eventID <= 0) return new DataTable();
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventID);
+                return RelayHistoryTable(evt.LineID,-1);
+            }
+
+        }
+
         [Route("GetLightningParameters"), HttpGet]
         public object GetLightningParameters()
         {
@@ -3517,6 +3641,7 @@ namespace OpenSEE.Controller
 
         }
         #endregion
+        
 
         #endregion
 
