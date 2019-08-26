@@ -353,7 +353,7 @@ function loadDataForDate() {
         else {
             cache_Last_Date = null;
             cache_Table_Data = null;
-            cache_Sparkline_Data = null;
+            //cache_Sparkline_Data = null;
         }
 
         setMapHeaderDate(contextfromdate, contexttodate);
@@ -1770,7 +1770,7 @@ function moveGraphBackward() {
     else {
         cache_Last_Date = null;
         cache_Table_Data = null;
-        cache_Sparkline_Data = null;
+        //cache_Sparkline_Data = null;
     }
 
     updateUrlParams('contextDate', contextfromdate);
@@ -1806,7 +1806,7 @@ function moveGraphForward() {
     else {
         cache_Last_Date = null;
         cache_Table_Data = null;
-        cache_Sparkline_Data = null;
+        //cache_Sparkline_Data = null;
     }
 
     updateUrlParams('contextDate', contextfromdate);
@@ -2573,9 +2573,13 @@ function plotGridLocations(locationdata, newTab) {
             data.Data.push(record);
         }
         else {
-            var record = locationdata.Data.find(function (a) { return a.ID == value.ID });
+            var record = locationdata.Data.find(function (a) { return a.ID == value.ID});
+            if (record == null) {
+                record = cache_Sparkline_Data.Data.find(function (a) { return a.ID == value.ID && a.Name == value.Name});
+            }
             record.item = item;
             data.Data.push(record);
+
         }
 
         item.data('gridstatus', value.Event_Count);
@@ -3387,7 +3391,7 @@ function selectMeterGroup(thecontrol) {
     else {
         cache_Graph_Data = null;
         cache_ErrorBar_Data = null;
-        cache_Sparkline_Data = null;
+        //cache_Sparkline_Data = null;
         var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
         $(window).one("meterSelectUpdated", function () {
             manageTabsByDate(newTab, contextfromdate, contexttodate);
@@ -3575,7 +3579,7 @@ function buildPage() {
             else {             
                 cache_Graph_Data = null;
                 cache_ErrorBar_Data = null;
-                cache_Sparkline_Data = null;
+                //cache_Sparkline_Data = null;
                 var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
                 $('#headerStrip').show();
                 $(".mapGrid").val(mapormatrix);
