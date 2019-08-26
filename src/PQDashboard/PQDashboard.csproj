@@ -1348,7 +1348,7 @@
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchCorrelatedSags.tsx" />
-	<None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
+    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />
     <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchList.tsx" />
@@ -1367,6 +1367,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
