@@ -3,7 +3,7 @@
   "name": "pqdashboard",
   "private": true,
   "devDependencies": {
-    "css-loader": "0.28.11",
+    "css-loader": "^3.2.0",
     "path": "0.12.7",
     "source-map-loader": "0.2.3",
     "style-loader": "0.21.0",
