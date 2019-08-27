@@ -83,13 +83,8 @@
     <Reference Include="GSF.Communication, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Communication.2.3.199-beta\lib\net46\GSF.Communication.dll</HintPath>
     </Reference>
-<<<<<<< Updated upstream
     <Reference Include="GSF.COMTRADE, Version=2.3.195.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.COMTRADE.2.3.195-beta\lib\net46\GSF.COMTRADE.dll</HintPath>
-=======
-    <Reference Include="GSF.COMTRADE">
-      <HintPath>..\Dependencies\GSF.COMTRADE.dll</HintPath>
->>>>>>> Stashed changes
     </Reference>
     <Reference Include="GSF.Core, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Core.2.3.199-beta\lib\net46\GSF.Core.dll</HintPath>
@@ -97,13 +92,8 @@
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-<<<<<<< Updated upstream
     <Reference Include="GSF.PhasorProtocols, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.PhasorProtocols.2.3.199-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
-=======
-    <Reference Include="GSF.PhasorProtocols">
-      <HintPath>..\Dependencies\GSF.PhasorProtocols.dll</HintPath>
->>>>>>> Stashed changes
     </Reference>
     <Reference Include="GSF.PQDIF">
       <HintPath>..\Dependencies\GSF.PQDIF.dll</HintPath>
@@ -1416,15 +1406,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-<<<<<<< Updated upstream
-    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.173\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.173\build\GSF.PQDIF.targets'))" />
-  </Target>
-  <Import Project="..\packages\GSF.PQDIF.2.3.173\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.173\build\GSF.PQDIF.targets')" />
-=======
     <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets'))" />
   </Target>
   <Import Project="..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" />
->>>>>>> Stashed changes
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
