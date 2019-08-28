@@ -437,6 +437,7 @@
     <Content Include="OpenSEECSVDownload.ashx" />
     <Content Include="OpenSEEComtradeDownload.ashx" />
     <Content Include="BreakerReportCSVDownload.ashx" />
+    <Content Include="libman.json" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
