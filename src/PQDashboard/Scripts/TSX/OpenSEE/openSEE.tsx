@@ -86,7 +86,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
             EndDate: (query['EndDate'] != undefined ? query['EndDate'] : eventEndTime),
             displayVolt: true,
             displayCur: true,
-            displayTCE: true,
+            displayTCE: query['displayTCE'] == 'true',
             breakerdigitals: query['breakerdigitals'] == '1' || query['breakerdigitals'] == 'true',
             Width: window.innerWidth - 300,
             Hover: 0,
