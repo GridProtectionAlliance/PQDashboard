@@ -95,8 +95,8 @@
     <Reference Include="GSF.PhasorProtocols, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.PhasorProtocols.2.3.199-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PQDIF">
-      <HintPath>..\Dependencies\GSF.PQDIF.dll</HintPath>
+    <Reference Include="GSF.PQDIF, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PQDIF.2.3.199-beta\lib\net46\GSF.PQDIF.dll</HintPath>
     </Reference>
     <Reference Include="GSF.Security, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GSF.Security.2.3.199-beta\lib\net46\GSF.Security.dll</HintPath>
@@ -545,7 +545,9 @@
     <Content Include="PQIByEvent.aspx" />
     <Content Include="Scripts\bootstrap-3.3.2.min.js" />
     <Content Include="Scripts\bootstrap-multiselect.js" />
-    <Content Include="packages.config" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="fonts\fontawesome-webfont.eot" />
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.woff" />

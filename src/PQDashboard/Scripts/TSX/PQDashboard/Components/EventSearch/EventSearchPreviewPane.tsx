@@ -470,7 +470,7 @@ export default class EventPreviewPane extends React.Component<{ eventid: number 
                 <EventSearchRelayPerformance eventId={this.props.eventid} />
 
                 <div className="card">
-                    <div className="card-header">Historic Relay Performance</div>
+                    <div className="card-header">Historic Breaker Performance</div>
                     <div className="card-body">
                         <div ref="TTwindow" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>
                         <div ref="PTwindow" style={{ height: 150, width: 'calc(100%)', /*, margin: '0x', padding: '0px'*/  display: showRelayHistory ? 'block' : 'none' }}></div>

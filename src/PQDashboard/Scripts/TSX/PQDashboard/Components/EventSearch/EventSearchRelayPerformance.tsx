@@ -70,7 +70,7 @@ export default class EventSearchRrelayPerformance extends React.Component<{ even
     render() {
         return (
             <div className="card">
-                <div className="card-header">Relay Performance:</div>
+                <div className="card-header">Breaker Performance:</div>
 
                 <div className="card-body">
                     <table className="table">
