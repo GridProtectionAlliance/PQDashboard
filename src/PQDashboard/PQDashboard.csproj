@@ -437,11 +437,9 @@
     <Content Include="OpenSEECSVDownload.ashx" />
     <Content Include="OpenSEEComtradeDownload.ashx" />
     <Content Include="BreakerReportCSVDownload.ashx" />
-    <Content Include="libman.json" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
-    <Content Include="Readme.txt" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
     <Content Include="Scripts\default.polyfill.min.js" />
@@ -451,7 +449,6 @@
     <Content Include="Scripts\OpenSEE.js" />
     <Content Include="Scripts\OpenSEE2.js" />
     <Content Include="Scripts\PQDashboard.js" />
-    <Content Include="Scripts\PQDashboard.js.map" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
@@ -460,8 +457,6 @@
     <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
     <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
-    <Content Include="Shared\Content\Readme.txt" />
-    <Content Include="Shared\Readme.txt" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
