@@ -179,7 +179,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                                         var object = clone(props);
                                         object.relayTCE = !props.relayTCE;
                                         props.stateSetter({ searchBarProps: object });
-                                    }} checked={props.relayTCE} />  Relay TCE</label></li>
+                                    }} checked={props.relayTCE} />  Breaker TCE</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
                                         var object = clone(props);
                                         object.others = !props.others;
