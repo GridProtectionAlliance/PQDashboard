@@ -85,7 +85,6 @@
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
         var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
-<<<<<<< HEAD
     @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="@Url.Content("~/Scripts/default.polyfill.min.js")"></script>
@@ -107,7 +106,6 @@
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
 
-<<<<<<< HEAD
 @if (Model.IsDebug())
 {
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
