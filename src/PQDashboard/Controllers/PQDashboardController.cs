@@ -133,7 +133,7 @@ namespace PQDashboard.Controllers
                 if (postData.others)
                     eventTypes.Add("EventType.Name  = 'Other'");
                 if(postData.relayTCE)
-                    eventTypes.Add("(SELECT COUNT(Channel.ID) FROM Channel LEFT JOIN MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID WHERE MeasurementType.Name = 'TripCoilCurrent' AND Channel.LineID = Line.ID) > 0");
+                    eventTypes.Add("(SELECT COUNT(RelayPerformance.ID) FROM RelayPerformance WHERE RelayPerformance.EventID = Event.ID) > 0");
                 if (!eventTypes.Any())
                     eventTypes.Add("EventType.Name  = ''");
 
