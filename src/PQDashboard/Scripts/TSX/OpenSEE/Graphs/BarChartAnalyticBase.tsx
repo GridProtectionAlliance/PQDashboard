@@ -25,6 +25,7 @@ import * as React  from 'react';
 import { clone, isEqual } from "lodash";
 import Legend, { iLegendData } from './../Graphs/Legend';
 import { BarChartAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
+import FFTTable from '../jQueryUI Widgets/FFTTable';
 
 export type GetDataFunction = (props: BarChartAnaltyicalBaseProps, ctrl: BarChartAnalyticBase) => void;
 
@@ -247,12 +248,71 @@ export default class BarChartAnalyticBase extends React.Component<BarChartAnalyt
 
     }
 
+    showTable() {
+        $('#ffttable').show()
+    }
+
+    exportToCsv() {
+        if (this.state.dataSet.Data.length < 1) return;
+
+        var filename = "fftresults.csv";
+
+        var cols = ['Harmonics'].concat(this.state.dataSet.Data.map(x => x.ChartLabel));
+        var rows = [cols];
+        $.each(Object.keys(this.state.dataSet.Data[0].DataPoints).sort((a,b) => parseFloat(a) - parseFloat(b)), (index, value) => {
+            var row = [value];
+            $.each(this.state.dataSet.Data, (_, data:any) => {
+                row.push(data.DataPoints[value]);
+            });
+            rows.push(row);
+        });
+
+        var processRow = function (row) {
+            var finalVal = '';
+            for (var j = 0; j < row.length; j++) {
+                var innerValue = row[j] === null ? '' : row[j].toString();
+                if (row[j] instanceof Date) {
+                    innerValue = row[j].toLocaleString();
+                };
+                var result = innerValue.replace(/"/g, '""');
+                if (result.search(/("|,|\n)/g) >= 0)
+                    result = '"' + result + '"';
+                if (j > 0)
+                    finalVal += ',';
+                finalVal += result;
+            }
+            return finalVal + '\n';
+        };
+
+        var csvFile = '';
+        for (var i = 0; i < rows.length; i++) {
+            csvFile += processRow(rows[i]);
+        }
+
+        var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    }
 
     render() {
         return (
             <div>
+                <FFTTable dataSet={this.state.dataSet}/>
                 <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'}}></div>
-                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic}/>
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic} showTable={() => this.showTable()} exportTable={() => this.exportToCsv()}/>
 
             </div>
         );
