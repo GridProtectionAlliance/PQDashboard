@@ -138,7 +138,7 @@ const Row = (row) => {
         <tr key={row.label}>
             <td className="dot" style={{ background: row.color, width: '12px' }}>&nbsp;&nbsp;&nbsp;</td>
             <td style={{ textAlign: 'left' }}><b>{row.label}</b></td>
-            <td style={{ textAlign: "right" }}><b>{row.data.toFixed(2)}</b></td>
+            <td style={{ textAlign: "right" }}><b>{parseFloat(row.data).toFixed(2)}</b></td>
         </tr>
     );
 }
