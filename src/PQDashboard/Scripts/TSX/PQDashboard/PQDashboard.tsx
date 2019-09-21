@@ -32,6 +32,7 @@ import About from './Components/About';
 import MeterActivity from './Components/MeterActivity';
 import EventSearch from './Components/EventSearch/EventSearch';
 import BreakerReport from './Components/BreakerReport/BreakerReport';
+import RelayReport from './Components/RelayReport/RelayReport';
 
 class PQDashboard extends React.Component<{}, PQDashboardState>{
     history: object;
@@ -57,6 +58,7 @@ class PQDashboard extends React.Component<{}, PQDashboardState>{
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/eventsearch"}>Event Search</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/meteractivity"}>Meter Activity</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/breakerreport"}>Breaker Report</NavLink>
+                                <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/relayreport"}>Relay Report</NavLink>
 
                             </div>
                             <div style={{ width: '100%', textAlign: 'center' }}>
@@ -71,7 +73,7 @@ class PQDashboard extends React.Component<{}, PQDashboardState>{
                         <Route path={controllerViewPath + "/eventsearch"} component={EventSearch} />
                         <Route path={controllerViewPath + "/meteractivity"} component={MeterActivity} />
                         <Route path={controllerViewPath + "/breakerreport"} component={BreakerReport} />
-
+                        <Route path={controllerViewPath + "/relayreport"} component={RelayReport} />
                     </div>
                 </div>
         </Router>

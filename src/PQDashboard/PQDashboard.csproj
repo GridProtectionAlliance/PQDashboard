@@ -1369,6 +1369,10 @@
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
     <Content Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\FFTTable.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayPerformanceTrend.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReport.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportNavBar.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportPane.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
