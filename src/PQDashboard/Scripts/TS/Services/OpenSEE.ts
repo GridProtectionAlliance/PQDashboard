@@ -61,6 +61,8 @@ export default class OpenSEEService{
     harmonicSpectrumDataHandle: JQuery.jqXHR;
     lighteningDataHandle: JQuery.jqXHR;
     RelayPerformanceHandle: JQuery.jqXHR;
+    relayTrendHandle: JQuery.jqXHR;
+    RelayTrendPerformanceHandle: JQuery.jqXHR;
 
     constructor() {
         this.getWaveformVoltageData = this.getWaveformVoltageData.bind(this);
@@ -87,7 +89,10 @@ export default class OpenSEEService{
         this.getOverlappingWaveformData = this.getOverlappingWaveformData.bind(this);
         this.getHarmonicSpectrumData = this.getHarmonicSpectrumData.bind(this);
         this.getStatisticData = this.getStatisticData.bind(this);
+        this.getRelayTrendData = this.getRelayTrendData.bind(this);
+        this.getRelayTrendPerformance = this.getRelayTrendPerformance.bind(this);
     }
+    
 
     getWaveformVoltageData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR{
         if (this.waveformVoltageDataHandle !== undefined)
@@ -171,6 +176,22 @@ export default class OpenSEEService{
         });
 
         return this.relaystatisticsDataHandle;
+    }
+
+    getRelayTrendData(lineID: number): JQuery.jqXHR {
+        if (this.relayTrendHandle !== undefined)
+            this.relayTrendHandle.abort();
+
+        this.relayTrendHandle = $.ajax({
+                type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/GetTrend?breakerid=${lineID}`,                
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                cache: true,
+                async: true
+            });
+
+        return this.relayTrendHandle;
     }
 
 
@@ -282,13 +303,13 @@ export default class OpenSEEService{
         return this.harmonicStatHandle;
     }
 
-    getRelayPerformance(eventid): JQuery.jqXHR {
+    getRelayPerformance(breakerid): JQuery.jqXHR {
         if (this.RelayPerformanceHandle !== undefined)
             this.RelayPerformanceHandle.abort();
 
         this.RelayPerformanceHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/OpenSEE/getRelayPerformance?eventId=${eventid}`,
+            url: `${homePath}api/OpenSEE/getRelayPerformance?eventId=${breakerid}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
@@ -296,6 +317,22 @@ export default class OpenSEEService{
         });
 
         return this.RelayPerformanceHandle;
+    }
+
+    getRelayTrendPerformance(breakerid): JQuery.jqXHR {
+        if (this.RelayTrendPerformanceHandle !== undefined)
+            this.RelayTrendPerformanceHandle.abort();
+
+        this.RelayTrendPerformanceHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/getRelayPerformance?lineID=${breakerid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.RelayTrendPerformanceHandle;
     }
 
     getTimeCorrelatedSags(eventid): JQuery.jqXHR{

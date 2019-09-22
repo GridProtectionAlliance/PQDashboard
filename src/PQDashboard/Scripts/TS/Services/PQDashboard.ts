@@ -30,6 +30,9 @@ export default class PQDashboardService {
     eventSearchAssetVoltageDisturbancesHandle: JQuery.jqXHR;
     eventSearchAssetFaultSegmentsHandle: JQuery.jqXHR;
     eventSearchAssetHistoryHandle: JQuery.jqXHR;
+    subStationRelayReportHandle: JQuery.jqXHR;
+    BreakerRelayReportHandle: JQuery.jqXHR;
+
 
     constructor() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
@@ -40,6 +43,8 @@ export default class PQDashboardService {
         this.getEventSearchAsssetFaultSegmentsData = this.getEventSearchAsssetFaultSegmentsData.bind(this);
         this.getEventSearchAsssetHistoryData = this.getEventSearchAsssetHistoryData.bind(this);
 
+        this.GetSubStationData = this.GetSubStationData.bind(this);
+        this.GetBreakerData = this.GetBreakerData.bind(this);
     }
 
     getMostActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
@@ -57,6 +62,36 @@ export default class PQDashboardService {
         });
 
         return this.mostActiveMeterHandle;
+    }
+
+    GetSubStationData(): JQuery.jqXHR {
+        if (this.subStationRelayReportHandle !== undefined)
+            this.subStationRelayReportHandle.abort();
+
+        this.subStationRelayReportHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/GetSubstationData`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.subStationRelayReportHandle;
+    }
+
+    GetBreakerData(substationID: number): JQuery.jqXHR {
+        if (this.BreakerRelayReportHandle !== undefined)
+            this.BreakerRelayReportHandle.abort();
+
+        this.BreakerRelayReportHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/GetLineData?locationID=${substationID}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.BreakerRelayReportHandle;
     }
 
     getLeastActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {

@@ -307,6 +307,7 @@
     <Compile Include="Controllers\SEDashboard\BreakerReport\IndividualBreakerReportController.cs" />
     <Compile Include="Controllers\SEDashboard\BreakerReport\MaximoBreakersController.cs" />
     <Compile Include="Controllers\SEDashboard\MeterActivity\MeterActivityController.cs" />
+    <Compile Include="Controllers\SEDashboard\RelayReport\RelayReportController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
     <Content Include="Content\bootstrap4-datetimepicker.css" />

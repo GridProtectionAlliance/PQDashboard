@@ -30,29 +30,17 @@ import { History } from 'history';
 import RelayReportNavBar, { RelayReportNavBarProps } from './RelayReportNavBar';
 import RelayReportPane from './RelayReportPane';
 
-const momentDateFormat = "MM/DD/YYYY";
-const momentTimeFormat = "HH:mm:ss.SSS";
 
-export interface OpenXDAEvent {
-    EventID: number, FileStartTime: string, AssetName: string, AssetType: string, VoltageClass: string, EventType: string, BreakerOperation: boolean
-}
-
-export interface Substation {
-    LocationID: number, AssetKey: string, AssetName: string
-}
 
 interface IProps { }
 interface IState {
     searchBarProps: RelayReportNavBarProps,
-    eventid: number,
-    searchText: string,
-    searchList: Array<OpenXDAEvent>,
-    stationList: Array<Substation>
 }
 
 export default class RelayReport extends React.Component<IProps, IState>{
     history: History<any>;
     historyHandle: any;
+
 
     constructor(props, context) {
         super(props, context);
@@ -62,35 +50,15 @@ export default class RelayReport extends React.Component<IProps, IState>{
 
         this.state = {
             searchBarProps: {
-                dfr: (query['dfr'] != undefined ? query['dfr'] == 'true' : true),
-                pqMeter: (query['pqMeter'] != undefined ? query['pqMeter'] == 'true': true),
-                g500: (query['g500'] != undefined ? query['g500'] == 'true' : true),
-                one62to500: (query['one62to500'] != undefined ? query['one62to500'] == 'true' : true),
-                seventyTo161: (query['seventyTo161'] != undefined ? query['seventyTo161'] == 'true' : true),
-                l70: (query['l70'] != undefined ? query['l70'] == 'true': true),
-                faults: (query['faults'] != undefined ? query['faults'] == 'true' : true),
-                sags: (query['sags'] != undefined ? query['sags'] == 'true' : true),
-                swells: (query['swells'] != undefined ? query['swells'] == 'true' : true),
-                interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
-                breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
-                transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
-                relayTCE: (query['relayTCE'] != undefined ? query['realyTCE'] == 'true' : true),
-                others: (query['others'] != undefined ? query['others'] == 'true' : true),
-                date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
-                time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
-                windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
-                timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
                 stateSetter: this.stateSetter.bind(this),
-
+                BreakerID: (query['breakerid'] != undefined ? query['breakerid'] : -1) 
             },
-            eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
-            searchText: (query['searchText'] != undefined ? query['searchText'] : ''),
-            searchList: [],
-            stationList: []
+            
         };
     }
 
     componentDidMount() {
+        
     }
 
     componentWillUnmount() {
@@ -99,13 +67,14 @@ export default class RelayReport extends React.Component<IProps, IState>{
     componentWillReceiveProps(nextProps: IProps) {
     }
 
+
     render() {
         return (
             <div style={{ width: '100%', height: '100%' }}>
                 <RelayReportNavBar {...this.state.searchBarProps}/>
                 <div style={{ width: '100%', height: 'calc( 100% - 118px)' }}>
                     <div style={{ width: '100%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' }}>
-                        <RelayReportPane eventid={1} />
+                        <RelayReportPane breakerid={this.state.searchBarProps.BreakerID} />
                     </div>
 
                 </div>
@@ -117,9 +86,6 @@ export default class RelayReport extends React.Component<IProps, IState>{
         function toQueryString(state: IState) {
             var dataTypes = ["boolean", "number", "string"]
             var stateObject: IState = clone(state.searchBarProps);
-            stateObject.eventid = state.eventid;
-            stateObject.searchText = state.searchText;
-            delete stateObject.searchList;
             $.each(Object.keys(stateObject), (index, key) => {
                 if (dataTypes.indexOf(typeof (stateObject[key])) < 0)
                     delete stateObject[key];

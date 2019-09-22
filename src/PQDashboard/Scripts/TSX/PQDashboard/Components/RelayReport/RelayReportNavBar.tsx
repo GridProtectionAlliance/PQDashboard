@@ -22,116 +22,113 @@
 //******************************************************************************************************
 import * as React from 'react';
 import { clone } from 'lodash';
+import PQDashboardService from './../../../../TS/Services/PQDashboard';
+
+export interface Substation {
+    LocationID: number, AssetKey: string, AssetName: string
+}
 
 export interface RelayReportNavBarProps {
-    dfr: boolean,
-    pqMeter: boolean,
-    g500: boolean,
-    one62to500: boolean,
-    seventyTo161: boolean,
-    l70: boolean,
-    faults: boolean,
-    sags: boolean,
-    swells: boolean,
-    interruptions: boolean,
-    breakerOps: boolean,
-    transients: boolean,
-    relayTCE: boolean,
-    others: boolean,
-    date: string,
-    time: string,
-    windowSize: number,
-    timeWindowUnits: number,
-    stateSetter(state): void
+    stateSetter(state): void,
+    BreakerID: number
 }
 
-const momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
-const momentDateFormat = "MM/DD/YYYY";
-const momentTimeFormat = "HH:mm:ss.SSS";
+export default class RelayReportNavBar extends React.Component<RelayReportNavBarProps, { LocationID: number }>{
+    pqDashboardService: PQDashboardService;
 
+    constructor(props, context) {
+        super(props, context);
 
-const RelayReportNavBar: React.FunctionComponent<RelayReportNavBarProps> = (props) => {
+        this.pqDashboardService = new PQDashboardService();
+        this.state = {LocationID: -1};
+    }
 
-    React.useEffect(() => {
-        $('#datePicker').datetimepicker({ format: momentDateFormat });
-        $('#datePicker').on('dp.change', (e) => {
-            var object = clone(props);
-            object.date = (e.target as any).value;
-            props.stateSetter({ searchBarProps: object });
+    componentDidMount() {
+        this.getSubstationData();
+        if ($(this.refs.SubStation).children("option:selected").val()) {
+            var selected = parseInt($(this.refs.SubStation).children("option:selected").val().toString());
+            this.getLineData(selected);
+        }
+    }
 
+    componentWillReceiveProps(nextProps: RelayReportNavBarProps) {
+    }
+
+    getLineData(LocationID) {
+        this.setState({ LocationID: LocationID });
+        this.pqDashboardService.GetBreakerData(LocationID).done(results => {
+
+            $(this.refs.Breaker).children().remove();
+            console.log(results);
+            for (var breaker of results) {
+                $(this.refs.Breaker).append(new Option(breaker.AssetKey, breaker.LineID.toString()));
+            };
+
+            if ($(this.refs.Breaker).children("option:selected").val()) {
+                var object = clone(this.props);
+                object.BreakerID = parseInt($(this.refs.Breaker).children("option:selected").val().toString());
+                this.props.stateSetter({ searchBarProps: object });
+            }
+            
         });
+       
+    }
 
-        $('#timePicker').datetimepicker({ format: momentTimeFormat });
-        $('#timePicker').on('dp.change', (e) => {
-            var object = clone(props);
-            object.time = (e.target as any).value;
-            props.stateSetter({ searchBarProps: object });
-
+    getSubstationData() {
+        this.pqDashboardService.GetSubStationData().done(results => {
+            $(this.refs.SubStation).children().remove();
+            for (var station of results) {
+                $(this.refs.SubStation).append(new Option(station.AssetName, station.LocationID.toString()));
+                console.log($(this.refs.SubStation).children("option:selected").val());
+                if ($(this.refs.SubStation).children("option:selected").val()) {
+                    this.setState({ LocationID: parseInt($(this.refs.SubStation).children("option:selected").val().toString()) });
+                }};
         });
+    }
 
-    }, []);
+    render() {
+        return (
+            <nav className="navbar navbar-expand-lg navbar-light bg-light">
 
-    return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+                <div className="collapse navbar-collapse" id="navbarSupportedContent" style={{ width: '100%' }}>
+                    <ul className="navbar-nav mr-auto" style={{ width: '100%' }}>
+                        <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
+                            <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
+                                <legend className="w-auto" style={{ fontSize: 'large' }}>Substation:</legend>
+                                <form>
+                                    <div className="form-group" style={{ height: 30 }}>
+                                        <label style={{ width: 200, position: 'relative', float: "left" }}>Substation: </label>
+                                        <select ref="SubStation" style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} onChange={(e) => {
+                                            this.getLineData((e.target as any).value);
+                                        }} >
+                                        </select>
+                                    </div>
 
-            <div className="collapse navbar-collapse" id="navbarSupportedContent" style={{ width: '100%' }}>
-                <ul className="navbar-nav mr-auto" style={{ width: '100%' }}>
-                    <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
-                        <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
-                            <legend className="w-auto" style={{ fontSize: 'large' }}>Substation:</legend>
-                            <form>
-                                <div className="form-group" style={{ height: 30 }}>
-                                    <label style={{ width: 200, position: 'relative', float: "left" }}>Substation: </label>
-                                    <select style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.timeWindowUnits} onChange={(e) => {
-                                        var object = clone(props);
-                                        object.timeWindowUnits = (e.target as any).value;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} >
-                                        <option value="7">Year</option>
-                                        <option value="6">Month</option>
-                                        <option value="5">Week</option>
-                                        <option value="4">Day</option>
-                                        <option value="3">Hour</option>
-                                        <option value="2">Minute</option>
-                                        <option value="1">Second</option>
-                                        <option value="0">Millisecond</option>
-                                    </select>
-                                </div>
+                                </form>
+                            </fieldset>
+                        </li>
+                        <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
+                            <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
+                                <legend className="w-auto" style={{ fontSize: 'large' }}>Breaker:</legend>
+                                <form>
+                                    <div className="form-group" style={{ height: 30 }}>
+                                        <label style={{ width: 200, position: 'relative', float: "left" }}>Breaker: </label>
+                                        <select ref="Breaker" style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }}  onChange={(e) => {
+                                            var object = clone(this.props);
+                                            object.BreakerID = (e.target as any).value;
+                                            this.props.stateSetter({ searchBarProps: object });
+                                        }} >
+                                        </select>
+                                    </div>
 
-                            </form>
-                        </fieldset>
-                    </li>
-                    <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
-                        <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
-                            <legend className="w-auto" style={{ fontSize: 'large' }}>Breaker:</legend>
-                            <form>
-                                <div className="form-group" style={{ height: 30 }}>
-                                    <label style={{ width: 200, position: 'relative', float: "left" }}>Breaker: </label>
-                                    <select style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.timeWindowUnits} onChange={(e) => {
-                                        var object = clone(props);
-                                        object.timeWindowUnits = (e.target as any).value;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} >
-                                        <option value="7">Year</option>
-                                        <option value="6">Month</option>
-                                        <option value="5">Week</option>
-                                        <option value="4">Day</option>
-                                        <option value="3">Hour</option>
-                                        <option value="2">Minute</option>
-                                        <option value="1">Second</option>
-                                        <option value="0">Millisecond</option>
-                                    </select>
-                                </div>
+                                </form>
+                            </fieldset>
+                        </li>
 
-                            </form>
-                        </fieldset>
-                    </li>
-                
 
-                </ul>
-            </div>
-        </nav>
-    );
+                    </ul>
+                </div>
+            </nav>
+        );
+    }
 }
-
-export default RelayReportNavBar;

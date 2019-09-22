@@ -25,7 +25,7 @@ import * as moment from 'moment';
 import OpenSEEService from './../../../../TS/Services/OpenSEE';
 import RelayPerformanceTrend from './RelayPerformanceTrend';
 
-export default class RelayReportPane extends React.Component<{ eventid: number }, {showRelayHistory: boolean}> {
+export default class RelayReportPane extends React.Component<{ breakerid: number }, {showRelayHistory: boolean}> {
     openSEEService: OpenSEEService;
     optionsUpper: object;
     optionsLower: object;
@@ -256,11 +256,12 @@ export default class RelayReportPane extends React.Component<{ eventid: number }
 
 
     componentDidMount() {
-        if (this.props.eventid >= 0)
+        if (this.props.breakerid >= 0)
             this.getData(this.props);
     }
     componentWillReceiveProps(nextProps) {
-        if (nextProps.eventid >= 0)
+
+        if (nextProps.breakerid >= 0)
             this.getData(nextProps);
     }
 
@@ -291,9 +292,8 @@ export default class RelayReportPane extends React.Component<{ eventid: number }
         $(this.refs.L1window).children().remove();
         $(this.refs.L2window).children().remove();
 
-        var pixels = (window.innerWidth - 300 - 40) / 2;
 
-        this.openSEEService.getStatisticData(props.eventid, pixels, "History").then(data => {
+        this.openSEEService.getRelayTrendData(props.breakerid).then(data => {
             
             if (data == null) {
                 this.setState((state, props) => { return { showRelayHistory: false }; })
@@ -330,13 +330,13 @@ export default class RelayReportPane extends React.Component<{ eventid: number }
     }
 
     render() {
-        if (this.props.eventid == -1) return <div></div>;
+        if (this.props.breakerid == -1) return <div></div>;
 
         const showRelayHistory = this.state.showRelayHistory;
 
         return (
             <div>
-                <RelayPerformanceTrend eventId={this.props.eventid} />
+                <RelayPerformanceTrend breakerid={this.props.breakerid} />
 
                 <div className="card">
                     <div className="card-header">Historic Breaker Performance</div>

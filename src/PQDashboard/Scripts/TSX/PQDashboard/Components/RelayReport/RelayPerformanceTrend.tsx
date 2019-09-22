@@ -25,7 +25,7 @@ import * as React from 'react';
 import * as moment from 'moment';
 import OpenSEEService from '../../../../TS/Services/OpenSEE';
 
-export default class RelayPerformanceTrend extends React.Component<{ eventId: number }, {tableRows: Array<JSX.Element> }>{
+export default class RelayPerformanceTrend extends React.Component<{ breakerid: number }, {tableRows: Array<JSX.Element> }>{
     openSEEService: OpenSEEService;
     constructor(props, context) {
         super(props, context);
@@ -38,27 +38,24 @@ export default class RelayPerformanceTrend extends React.Component<{ eventId: nu
     }
 
     componentDidMount() {
-        if (this.props.eventId >= 0)
-            this.createTableRows(this.props.eventId);
+        if (this.props.breakerid >= 0)
+            this.createTableRows(this.props.breakerid);
     }
     componentWillUnmount() {
     }
     componentWillReceiveProps(nextProps) {
-        if (nextProps.eventId >= 0)
-            this.createTableRows(nextProps.eventId);
+        if (nextProps.breakerid >= 0)
+            this.createTableRows(nextProps.breakerid);
     }
 
 
     createTableRows(eventID: number) {
-        this.openSEEService.getRelayPerformance(this.props.eventId).done(data => {
+        this.openSEEService.getRelayTrendPerformance(this.props.breakerid).done(data => {
             var rows = [];
 
             for (var index = 0; index < data.length; ++index) {
                 var row = data[index];
                 var background = 'default';
-
-                if (row.EventID == this.props.eventId)
-                    background = 'lightyellow';
 
                 rows.push(Row(row, background));
             }
