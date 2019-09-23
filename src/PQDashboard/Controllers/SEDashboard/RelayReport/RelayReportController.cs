@@ -85,11 +85,17 @@ namespace PQDashboard.Controllers.BreakerReport
                 using (IDbCommand sc = connection.Connection.CreateCommand())
                 {
                     sc.CommandText = @" 
-                    SELECT	ID AS LocationID,
+                     SELECT	ID AS LocationID,
                         AssetKey,
                         Name AS AssetName 
                     FROM	
 	                    MeterLocation
+                    WHERE
+	                    ( SELECT COUNT(RP.ID) FROM RelayPerformance RP LEFT JOIN
+			                    Channel ON RP.ChannelID = Channel.ID LEFT JOIN
+			                    Line ON Line.ID = Channel.LineID LEFT JOIN
+			                    MeterLocationLine ON MeterLocationLine.LineID = Line.ID
+		                    WHERE MeterLocationLine.MeterLocationID = MeterLocation.ID) > 0
                     ORDER BY AssetKey";
 
                     sc.CommandType = CommandType.Text;
@@ -115,12 +121,15 @@ namespace PQDashboard.Controllers.BreakerReport
                 using (IDbCommand sc = connection.Connection.CreateCommand())
                 {
                     sc.CommandText = @" 
-                    SELECT	Line.ID AS LineID,
+                   SELECT Line.ID AS LineID,
                         Line.AssetKey
                     FROM	
 	                    Line LEFT JOIN MeterLocationLine ON Line.ID = MeterLocationLine.LineID
                     WHERE
-                        MeterLocationLine.MeterLocationID = " + locationID + @"
+                        MeterLocationLine.MeterLocationID = 10
+						AND (SELECT COUNT(RP.ID) FROM RelayPerformance RP LEFT JOIN 
+								Channel ON Channel.ID = RP.ChannelID
+							WHERE Channel.LineID = Line.ID ) > 0
                     ORDER BY Line.AssetKey";
 
                     sc.CommandType = CommandType.Text;
