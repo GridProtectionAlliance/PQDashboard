@@ -45,10 +45,6 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
 
     componentDidMount() {
         this.getSubstationData();
-        if ($(this.refs.SubStation).children("option:selected").val()) {
-            var selected = parseInt($(this.refs.SubStation).children("option:selected").val().toString());
-            this.getLineData(selected);
-        }
     }
 
     componentWillReceiveProps(nextProps: RelayReportNavBarProps) {
@@ -59,7 +55,6 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
         this.pqDashboardService.GetBreakerData(LocationID).done(results => {
 
             $(this.refs.Breaker).children().remove();
-            console.log(results);
             for (var breaker of results) {
                 $(this.refs.Breaker).append(new Option(breaker.AssetKey, breaker.LineID.toString()));
             };
@@ -79,9 +74,11 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
             $(this.refs.SubStation).children().remove();
             for (var station of results) {
                 $(this.refs.SubStation).append(new Option(station.AssetName, station.LocationID.toString()));
-                console.log($(this.refs.SubStation).children("option:selected").val());
                 if ($(this.refs.SubStation).children("option:selected").val()) {
-                    this.setState({ LocationID: parseInt($(this.refs.SubStation).children("option:selected").val().toString()) });
+                    var selected = parseInt($(this.refs.SubStation).children("option:selected").val().toString());
+                    this.setState({ LocationID: selected });
+                    this.getLineData(selected);
+
                 }};
         });
     }
