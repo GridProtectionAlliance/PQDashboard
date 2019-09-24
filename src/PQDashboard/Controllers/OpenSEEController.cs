@@ -1493,7 +1493,7 @@ namespace OpenSEE.Controller
                 dataLookup.Add("Reactive Power AN", new FlotSeries() { ChartLabel = "AN Reactive Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Active Power AN", new FlotSeries() { ChartLabel = "AN Active Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Apparent Power AN", new FlotSeries() { ChartLabel = "AN Apparent Power", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
-                dataLookup.Add("Power Factor AN", new FlotSeries() { ChartLabel = "AN Power Factor", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude / iPoint.Real }).ToList() });
+                dataLookup.Add("Power Factor AN", new FlotSeries() { ChartLabel = "AN Power Factor", DataPoints = powerPointsAN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real / iPoint.Magnitude }).ToList() });
 
             }
 
@@ -1511,7 +1511,7 @@ namespace OpenSEE.Controller
                 dataLookup.Add("Reactive Power BN", new FlotSeries() { ChartLabel = "BN Reactive Power", DataPoints = powerPointsBN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Active Power BN", new FlotSeries() { ChartLabel = "BN Active Power", DataPoints = powerPointsBN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Apparent Power BN", new FlotSeries() { ChartLabel = "BN Apparent Power", DataPoints = powerPointsBN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
-                dataLookup.Add("Power Factor BN", new FlotSeries() { ChartLabel = "BN Power Factor", DataPoints = powerPointsBN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude / iPoint.Real }).ToList() });
+                dataLookup.Add("Power Factor BN", new FlotSeries() { ChartLabel = "BN Power Factor", DataPoints = powerPointsBN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real / iPoint.Magnitude }).ToList() });
 
             }
 
@@ -1529,7 +1529,7 @@ namespace OpenSEE.Controller
                 dataLookup.Add("Reactive Power CN", new FlotSeries() { ChartLabel = "CN Reactive Power", DataPoints = powerPointsCN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Active Power CN", new FlotSeries() { ChartLabel = "CN Active Power", DataPoints = powerPointsCN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Apparent Power CN", new FlotSeries() { ChartLabel = "CN Apparent Power", DataPoints = powerPointsCN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
-                dataLookup.Add("Power Factor CN", new FlotSeries() { ChartLabel = "CN Power Factor", DataPoints = powerPointsCN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude / iPoint.Real }).ToList() });
+                dataLookup.Add("Power Factor CN", new FlotSeries() { ChartLabel = "CN Power Factor", DataPoints = powerPointsCN.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real / iPoint.Magnitude }).ToList() });
 
             }
 
@@ -1539,7 +1539,7 @@ namespace OpenSEE.Controller
                 dataLookup.Add("Reactive Power Total", new FlotSeries() { ChartLabel = "Total Reactive Power", DataPoints = powerPoints.Select((iPoint, index) => new double[] { vICycleDataGroup.VC.RMS.DataPoints[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
                 dataLookup.Add("Active Power Total", new FlotSeries() { ChartLabel = "Total Active Power", DataPoints = powerPoints.Select((iPoint, index) => new double[] { vICycleDataGroup.VC.RMS.DataPoints[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
                 dataLookup.Add("Apparent Power Total", new FlotSeries() { ChartLabel = "Total Apparent Power", DataPoints = powerPoints.Select((iPoint, index) => new double[] { vICycleDataGroup.VC.RMS.DataPoints[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
-                dataLookup.Add("Power Factor Total", new FlotSeries() { ChartLabel = "Total Power Factor", DataPoints = powerPoints.Select((iPoint, index) => new double[] { vICycleDataGroup.VC.RMS.DataPoints[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude / iPoint.Real }).ToList() });
+                dataLookup.Add("Power Factor Total", new FlotSeries() { ChartLabel = "Total Power Factor", DataPoints = powerPoints.Select((iPoint, index) => new double[] { vICycleDataGroup.VC.RMS.DataPoints[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real / iPoint.Magnitude }).ToList() });
 
             }
 
