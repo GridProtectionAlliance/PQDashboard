@@ -1678,8 +1678,8 @@ namespace OpenSEE.Controller
                 List<DataPoint> firstCycle = vAN.DataPoints.Take(samplesPerCycle).ToList();
                 List<DataPoint> lastCycle = vAN.DataPoints.OrderByDescending(x => x.Time).Take(samplesPerCycle).ToList();
 
-                List<DataPoint> fullWaveFormPre = vAN.DataPoints.Select((dataPoint, index) => new DataPoint() { Time = dataPoint.Time, Value = dataPoint.Value - firstCycle[index % samplesPerCycle].Value }).ToList();
-                List<DataPoint> fullWaveFormPost = vAN.DataPoints.OrderByDescending(x => x.Time).Select((dataPoint, index) => new DataPoint() { Time = dataPoint.Time, Value = dataPoint.Value - lastCycle[index % samplesPerCycle].Value }).OrderBy(x => x.Time).ToList();
+                List<DataPoint> fullWaveFormPre = vAN.DataPoints.Select((dataPoint, index) => new DataPoint() { Time = dataPoint.Time, Value = firstCycle[index % samplesPerCycle].Value  - dataPoint.Value  }).ToList();
+                List<DataPoint> fullWaveFormPost = vAN.DataPoints.OrderByDescending(x => x.Time).Select((dataPoint, index) => new DataPoint() { Time = dataPoint.Time, Value = lastCycle[index % samplesPerCycle].Value - dataPoint.Value }).OrderBy(x => x.Time).ToList();
 
                 dataLookup.Add("Pre Fault VAN", new FlotSeries() { ChartLabel = "VAN Pre Fault", DataPoints = fullWaveFormPre.Select((point, index) => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList() });
                 dataLookup.Add("Post Fault VAN", new FlotSeries() { ChartLabel = "VAN Post Fault", DataPoints = fullWaveFormPost.Select((point, index) => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList() });
