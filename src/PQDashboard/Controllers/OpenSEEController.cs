@@ -2974,8 +2974,8 @@ namespace OpenSEE.Controller
                     return sequenceComponents;
                 });
 
-                dataLookup.Add("S0/S1 Voltage", new FlotSeries() { ChartLabel = "Voltage S0/S1", DataPoints = sequencComponents.Select((point, index) => new double[] { va[index].Time.Subtract(m_epoch).TotalMilliseconds, point.S0.Magnitude/point.S1.Magnitude }).ToList() });
-                dataLookup.Add("S2/S1 Voltage", new FlotSeries() { ChartLabel = "Voltage S2/S1", DataPoints = sequencComponents.Select((point, index) => new double[] { va[index].Time.Subtract(m_epoch).TotalMilliseconds, point.S2.Magnitude/point.S1.Magnitude }).ToList() });
+                dataLookup.Add("S0/S1 Voltage", new FlotSeries() { ChartLabel = "Voltage S0/S1", DataPoints = sequencComponents.Select((point, index) => new double[] { va[index].Time.Subtract(m_epoch).TotalMilliseconds, point.S0.Magnitude/point.S1.Magnitude * 100.0D }).ToList() });
+                dataLookup.Add("S2/S1 Voltage", new FlotSeries() { ChartLabel = "Voltage S2/S1", DataPoints = sequencComponents.Select((point, index) => new double[] { va[index].Time.Subtract(m_epoch).TotalMilliseconds, point.S2.Magnitude/point.S1.Magnitude * 100.0D }).ToList() });
 
             }
 
