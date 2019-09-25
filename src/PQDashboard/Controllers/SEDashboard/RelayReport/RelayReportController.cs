@@ -108,6 +108,7 @@ namespace PQDashboard.Controllers.BreakerReport
             }
 
         }
+
         [Route("GetLineData"), HttpGet]
         public DataTable GetLineData()
         {
@@ -126,11 +127,44 @@ namespace PQDashboard.Controllers.BreakerReport
                     FROM	
 	                    Line LEFT JOIN MeterLocationLine ON Line.ID = MeterLocationLine.LineID
                     WHERE
-                        MeterLocationLine.MeterLocationID = 10
+                        MeterLocationLine.MeterLocationID = " + locationID + @"
 						AND (SELECT COUNT(RP.ID) FROM RelayPerformance RP LEFT JOIN 
 								Channel ON Channel.ID = RP.ChannelID
 							WHERE Channel.LineID = Line.ID ) > 0
                     ORDER BY Line.AssetKey";
+
+                    sc.CommandType = CommandType.Text;
+
+                    IDataReader rdr = sc.ExecuteReader();
+                    table.Load(rdr);
+
+                    return table;
+                }
+            }
+
+        }
+
+        [Route("GetCoilData"), HttpGet]
+        public DataTable GetCoilData()
+        {
+            Dictionary<string, string> query = Request.QueryParameters();
+            int lineID = int.Parse(query["lineID"]);
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                DataTable table = new DataTable();
+
+                using (IDbCommand sc = connection.Connection.CreateCommand())
+                {
+                    sc.CommandText = @" 
+                   SELECT ID AS ChannelID,
+                        Name
+                    FROM Channel
+                    WHERE
+                        Channel.LineID = " + lineID + @"
+						AND (SELECT COUNT(RP.ID) FROM RelayPerformance RP 
+							WHERE RP.ChannelID = Channel.ID ) > 0
+                    ORDER BY Name";
 
                     sc.CommandType = CommandType.Text;
 
@@ -150,10 +184,18 @@ namespace PQDashboard.Controllers.BreakerReport
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 Dictionary<string, string> query = Request.QueryParameters();
-                int breakerID = int.Parse(query["breakerid"]);
+                int breakerID;
+                int channelID;
+                try { channelID = int.Parse(query["channelid"]); }
+                catch { channelID = -1; }
+
+                try { breakerID = int.Parse(query["breakerid"]); }
+                catch { breakerID = -1; }
+
+               
                 Line breaker = new TableOperations<Line>(connection).QueryRecordWhere("ID = {0}", breakerID);
 
-                temp = GetStatisticsLookup(breaker.ID);
+                temp = GetStatisticsLookup(breaker.ID,channelID);
 
             }
 
@@ -193,11 +235,11 @@ namespace PQDashboard.Controllers.BreakerReport
             return returnDict;
         }
 
-        private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID)
+        private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, int channelID = -1)
         {
             Dictionary<string, FlotSeries> result = new Dictionary<string, FlotSeries>();
 
-            DataTable relayHistory = RelayHistoryTable(LineID);
+            DataTable relayHistory = RelayHistoryTable(LineID, channelID);
 
             DataRow[] dr = relayHistory.Select();
 
@@ -235,14 +277,20 @@ namespace PQDashboard.Controllers.BreakerReport
 
         }
 
-        private DataTable RelayHistoryTable(int relayID)
+        private DataTable RelayHistoryTable(int relayID, int channelID=-1)
         {
             DataTable dataTable;
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                
-                dataTable = connection.RetrieveData("SELECT * FROM BreakerHistory WHERE LineID = {0}", relayID);
+                if (channelID > 0)
+                {
+                    dataTable = connection.RetrieveData("SELECT * FROM BreakerHistory WHERE LineID = {0} AND TripCoilChannelID = {1}", relayID, channelID);
+                }
+                else
+                {
+                    dataTable = connection.RetrieveData("SELECT * FROM BreakerHistory WHERE LineID = {0}", relayID);
+                }
             }
             return dataTable;
         }
@@ -251,10 +299,18 @@ namespace PQDashboard.Controllers.BreakerReport
         public DataTable GetRelayPerformance()
         {
             Dictionary<string, string> query = Request.QueryParameters();
-            int lineID = int.Parse(query["lineID"]);
+            int lineID;
+            int channelID;
+
+            try { channelID = int.Parse(query["channelID"]); }
+            catch { channelID = -1; }
+
+            try { lineID = int.Parse(query["lineID"]); }
+            catch { lineID = -1; }
+            
             if (lineID <= 0) return new DataTable();
             
-            return RelayHistoryTable(lineID);
+            return RelayHistoryTable(lineID, channelID);
             
         }
 

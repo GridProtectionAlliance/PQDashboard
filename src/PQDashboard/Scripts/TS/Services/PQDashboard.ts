@@ -32,7 +32,8 @@ export default class PQDashboardService {
     eventSearchAssetHistoryHandle: JQuery.jqXHR;
     subStationRelayReportHandle: JQuery.jqXHR;
     BreakerRelayReportHandle: JQuery.jqXHR;
-
+    channelRelayReportHandle: JQuery.jqXHR;
+    
 
     constructor() {
         this.getMostActiveMeterActivityData = this.getMostActiveMeterActivityData.bind(this);
@@ -45,6 +46,7 @@ export default class PQDashboardService {
 
         this.GetSubStationData = this.GetSubStationData.bind(this);
         this.GetBreakerData = this.GetBreakerData.bind(this);
+        this.GetCoilData = this.GetCoilData.bind(this);
     }
 
     getMostActiveMeterActivityData(numresults: number, column: string): JQuery.jqXHR {
@@ -64,6 +66,7 @@ export default class PQDashboardService {
         return this.mostActiveMeterHandle;
     }
 
+    
     GetSubStationData(): JQuery.jqXHR {
         if (this.subStationRelayReportHandle !== undefined)
             this.subStationRelayReportHandle.abort();
@@ -77,6 +80,22 @@ export default class PQDashboardService {
             async: true
         });
         return this.subStationRelayReportHandle;
+    }
+
+
+    GetCoilData(lineid: number): JQuery.jqXHR {
+        if (this.channelRelayReportHandle !== undefined)
+            this.channelRelayReportHandle.abort();
+
+        this.channelRelayReportHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/GetCoilData?lineID=${lineid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+        return this.channelRelayReportHandle;
     }
 
     GetBreakerData(substationID: number): JQuery.jqXHR {

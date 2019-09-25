@@ -178,13 +178,13 @@ export default class OpenSEEService{
         return this.relaystatisticsDataHandle;
     }
 
-    getRelayTrendData(lineID: number): JQuery.jqXHR {
+    getRelayTrendData(lineID: number, channelID: number): JQuery.jqXHR {
         if (this.relayTrendHandle !== undefined)
             this.relayTrendHandle.abort();
 
         this.relayTrendHandle = $.ajax({
-                type: "GET",
-            url: `${homePath}api/PQDashboard/RelayReport/GetTrend?breakerid=${lineID}`,                
+            type: "GET",
+            url: `${homePath}api/PQDashboard/RelayReport/GetTrend?breakerid=${lineID}&channelid=${channelID}`,                
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json',
                 cache: true,
@@ -319,13 +319,13 @@ export default class OpenSEEService{
         return this.RelayPerformanceHandle;
     }
 
-    getRelayTrendPerformance(breakerid): JQuery.jqXHR {
+    getRelayTrendPerformance(breakerid, channelId): JQuery.jqXHR {
         if (this.RelayTrendPerformanceHandle !== undefined)
             this.RelayTrendPerformanceHandle.abort();
 
         this.RelayTrendPerformanceHandle = $.ajax({
             type: "GET",
-            url: `${homePath}api/PQDashboard/RelayReport/getRelayPerformance?lineID=${breakerid}`,
+            url: `${homePath}api/PQDashboard/RelayReport/getRelayPerformance?lineID=${breakerid}&channelID=${channelId}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,

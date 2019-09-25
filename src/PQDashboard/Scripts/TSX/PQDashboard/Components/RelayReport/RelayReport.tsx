@@ -51,7 +51,8 @@ export default class RelayReport extends React.Component<IProps, IState>{
         this.state = {
             searchBarProps: {
                 stateSetter: this.stateSetter.bind(this),
-                BreakerID: (query['breakerid'] != undefined ? query['breakerid'] : -1) 
+                BreakerID: (query['breakerid'] != undefined ? query['breakerid'] : -1),
+                ChannelID: (query['channelid'] != undefined ? query['channelid'] : -1),
             },
             
         };
@@ -74,7 +75,7 @@ export default class RelayReport extends React.Component<IProps, IState>{
                 <RelayReportNavBar {...this.state.searchBarProps}/>
                 <div style={{ width: '100%', height: 'calc( 100% - 118px)' }}>
                     <div style={{ width: '100%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' }}>
-                        <RelayReportPane breakerid={this.state.searchBarProps.BreakerID} />
+                        <RelayReportPane breakerid={this.state.searchBarProps.BreakerID} channelid={this.state.searchBarProps.ChannelID} />
                     </div>
 
                 </div>

@@ -25,7 +25,7 @@ import * as moment from 'moment';
 import OpenSEEService from './../../../../TS/Services/OpenSEE';
 import RelayPerformanceTrend from './RelayPerformanceTrend';
 
-export default class RelayReportPane extends React.Component<{ breakerid: number }, {showRelayHistory: boolean}> {
+export default class RelayReportPane extends React.Component<{ breakerid: number, channelid: number }, {showRelayHistory: boolean}> {
     openSEEService: OpenSEEService;
     optionsUpper: object;
     optionsLower: object;
@@ -293,7 +293,7 @@ export default class RelayReportPane extends React.Component<{ breakerid: number
         $(this.refs.L2window).children().remove();
 
 
-        this.openSEEService.getRelayTrendData(props.breakerid).then(data => {
+        this.openSEEService.getRelayTrendData(props.breakerid,props.channelid).then(data => {
             
             if (data == null) {
                 this.setState((state, props) => { return { showRelayHistory: false }; })
@@ -336,7 +336,7 @@ export default class RelayReportPane extends React.Component<{ breakerid: number
 
         return (
             <div>
-                <RelayPerformanceTrend breakerid={this.props.breakerid} />
+                <RelayPerformanceTrend {...this.props} />
 
                 <div className="card">
                     <div className="card-header">Historic Breaker Performance</div>

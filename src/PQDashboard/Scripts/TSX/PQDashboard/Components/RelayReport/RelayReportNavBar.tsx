@@ -30,17 +30,22 @@ export interface Substation {
 
 export interface RelayReportNavBarProps {
     stateSetter(state): void,
-    BreakerID: number
+    BreakerID: number,
+    ChannelID: number
 }
 
-export default class RelayReportNavBar extends React.Component<RelayReportNavBarProps, { LocationID: number }>{
+export default class RelayReportNavBar extends React.Component<RelayReportNavBarProps, { LineID: number, LocationID: number, showCoilSelection: boolean }>{
     pqDashboardService: PQDashboardService;
 
     constructor(props, context) {
         super(props, context);
 
         this.pqDashboardService = new PQDashboardService();
-        this.state = {LocationID: -1};
+        this.state = {
+            LocationID: -1,
+            LineID: -1,
+            showCoilSelection: false
+        };
     }
 
     componentDidMount() {
@@ -50,10 +55,10 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
     componentWillReceiveProps(nextProps: RelayReportNavBarProps) {
     }
 
-    getLineData(LocationID) {
+    getLineData(LocationID: number) {
+        
         this.setState({ LocationID: LocationID });
         this.pqDashboardService.GetBreakerData(LocationID).done(results => {
-
             $(this.refs.Breaker).children().remove();
             for (var breaker of results) {
                 $(this.refs.Breaker).append(new Option(breaker.AssetKey, breaker.LineID.toString()));
@@ -63,6 +68,7 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
                 var object = clone(this.props);
                 object.BreakerID = parseInt($(this.refs.Breaker).children("option:selected").val().toString());
                 this.props.stateSetter({ searchBarProps: object });
+                this.getCoilData(parseInt($(this.refs.Breaker).children("option:selected").val().toString()))
             }
             
         });
@@ -78,18 +84,50 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
                     var selected = parseInt($(this.refs.SubStation).children("option:selected").val().toString());
                     this.setState({ LocationID: selected });
                     this.getLineData(selected);
-
                 }};
         });
     }
 
+    getCoilData(LineID: number ) {
+
+        this.pqDashboardService.GetCoilData(LineID).done(results => {
+            if (results.length < 2) {
+                this.setState({ showCoilSelection: false });
+                var object = clone(this.props);
+                object.ChannelID = -1;
+                object.BreakerID = parseInt($(this.refs.Breaker).children("option:selected").val().toString());
+                this.props.stateSetter({ searchBarProps: object });
+                return;
+
+            };
+           
+            this.setState({ showCoilSelection: true });
+
+            $(this.refs.Coil).children().remove();
+            for (var coil of results) {
+                $(this.refs.Coil).append(new Option(coil.Name, coil.ChannelID.toString()));
+            };
+
+            if ($(this.refs.Coil).children("option:selected").val()) {
+                var object = clone(this.props);
+                object.ChannelID = parseInt($(this.refs.Coil).children("option:selected").val().toString());
+                object.BreakerID = parseInt($(this.refs.Breaker).children("option:selected").val().toString());
+                this.props.stateSetter({ searchBarProps: object });
+            }
+
+        });
+
+    }
+
     render() {
+        const showCoilSelection = this.state.showCoilSelection;
+
         return (
             <nav className="navbar navbar-expand-lg navbar-light bg-light">
 
                 <div className="collapse navbar-collapse" id="navbarSupportedContent" style={{ width: '100%' }}>
                     <ul className="navbar-nav mr-auto" style={{ width: '100%' }}>
-                        <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
+                        <li className="nav-item" style={{ width: showCoilSelection ? '33%' : '50%', paddingRight: 10 }}>
                             <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
                                 <legend className="w-auto" style={{ fontSize: 'large' }}>Substation:</legend>
                                 <form>
@@ -104,15 +142,32 @@ export default class RelayReportNavBar extends React.Component<RelayReportNavBar
                                 </form>
                             </fieldset>
                         </li>
-                        <li className="nav-item" style={{ width: '50%', paddingRight: 10 }}>
+                        <li className="nav-item" style={{ width: showCoilSelection ? '33%' : '50%' , paddingRight: 10 }}>
                             <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
                                 <legend className="w-auto" style={{ fontSize: 'large' }}>Breaker:</legend>
                                 <form>
                                     <div className="form-group" style={{ height: 30 }}>
                                         <label style={{ width: 200, position: 'relative', float: "left" }}>Breaker: </label>
-                                        <select ref="Breaker" style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }}  onChange={(e) => {
+                                        <select ref="Breaker" style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} onChange={(e) => {
+                                            this.getCoilData((e.target as any).value);
+                                        }} >
+                                        </select>
+                                    </div>
+
+                                </form>
+                            </fieldset>
+                        </li>
+
+                        <li className="nav-item" style={{ width: '33%', paddingRight: 10, display: showCoilSelection ? 'block' : 'none' }}>
+                            <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
+                                <legend className="w-auto" style={{ fontSize: 'large' }}>Trip Coil:</legend>
+                                <form>
+                                    <div className="form-group" style={{ height: 30 }}>
+                                        <label style={{ width: 200, position: 'relative', float: "left" }}>Breaker: </label>
+                                        <select ref="Coil" style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} onChange={(e) => {
                                             var object = clone(this.props);
-                                            object.BreakerID = (e.target as any).value;
+                                            object.ChannelID = (e.target as any).value;
+                                            object.BreakerID = parseInt($(this.refs.Breaker).children("option:selected").val().toString());
                                             this.props.stateSetter({ searchBarProps: object });
                                         }} >
                                         </select>

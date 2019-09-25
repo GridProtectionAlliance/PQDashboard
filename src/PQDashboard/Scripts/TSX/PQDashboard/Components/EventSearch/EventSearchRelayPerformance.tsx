@@ -92,7 +92,7 @@ export default class EventSearchRrelayPerformance extends React.Component<{ even
 const Row = (row, background) => {
     return (
         <tr style={{ background: background }} key={row.EventID}>
-            <td key={'EventID' + row.EventID}><a id="eventLink" href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
+            <td key={'EventID' + row.EventID}><a id="eventLink" href={homePath + 'Main/OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
             <td key={'InitiateTime' + row.EventID}>{moment(row.TripInitiate).format('DD/MM/YY HH:MM:ss.SSSS')}</td>
             <td key={'TripTime' + row.EventID}>{row.TripTime} micros</td>
             <td key={'PickupTime' + row.EventID}>{row.PickupTime} micros</td>
