@@ -99,6 +99,59 @@ namespace OpenSEE.Controller
             public Dictionary<int, double> DataPoints = new Dictionary<int, double>();
         }
 
+        public class FFT
+        {
+            #region[constructor]
+
+            public FFT(double samplingfreq, double[] data)
+            {
+
+
+                this.m_freq = Fourier.FrequencyScale(data.Length, samplingfreq);
+
+                this.m_result = data
+                    .Select(sample => new Complex(sample, 0))
+                    .ToArray();
+
+                Fourier.Forward(this.m_result, FourierOptions.NoScaling);
+
+                int dcIndex = 0;
+                int nyquistIndex = this.m_result.Count() / 2;
+
+                this.m_result = this.m_result.Select(number => number * 2.0D).ToArray();
+
+                //adjust first and last bucket (residual and DC)
+                this.m_result[dcIndex] = this.m_result[dcIndex] / 2.0D;
+                this.m_result[nyquistIndex] = this.m_result[nyquistIndex] / 2.0D;
+                this.m_result = this.m_result.Where((value, index) => this.m_freq[index] >= 0.0D).ToArray();
+
+                //adjust frequency
+                this.m_freq = this.m_freq.Where(number => number >= 0.0D).ToArray();
+            }
+
+            #endregion[constructor]
+
+            #region[Properties]
+
+            private Complex[] m_result;
+            private double[] m_freq;
+
+            public double[] Angle
+            {
+                get { return m_result.Select(number => number.Phase).ToArray(); }
+            }
+            public double[] Magnitude
+            {
+                get { return m_result.Select(number => number.Magnitude).ToArray(); }
+            }
+
+            public double[] Frequency
+            {
+                get { return m_freq; }
+            }
+
+            #endregion[Properties]
+        }
         // Constants
         public const string TimeCorrelatedSagsSQL =
             "SELECT " +
@@ -1004,16 +1057,11 @@ namespace OpenSEE.Controller
 
             if (cycleData.Count() != samplesPerCycle) return;
             double[] points = cycleData.Select(point => point.Value / samplesPerCycle).ToArray();
-            double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
 
-            Complex[] result = FFT(points);
-
-            fftMag.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Magnitude * 2 / Math.Sqrt(2));
-            //adjust first and last bucket (residual and DC)
-            fftMag.DataPoints[0] = fftMag.DataPoints[0] / 2.0D;
-            fftMag.DataPoints[samplesPerCycle/2] = fftMag.DataPoints[samplesPerCycle / 2] / 2.0D;
-
-            fftAng.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Phase * 180 / Math.PI);
+            FFT fft = new FFT(systemFrequency * samplesPerCycle, points);
+            
+            fftMag.DataPoints = fft.Magnitude.Select((value, index) => new { value, index }).ToDictionary(obj => obj.index, obj => obj.value / Math.Sqrt(2));
+            fftAng.DataPoints = fft.Angle.Select((value, index) => new { value, index }).ToDictionary(obj => obj.index, obj => obj.value *180.0D / Math.PI);
 
             dataLookup.Add($"FFT {label} Mag", fftMag);
             dataLookup.Add($"FFT {label} Ang", fftAng);
@@ -1879,13 +1927,12 @@ namespace OpenSEE.Controller
 
             if (cycleData.Count() != samplesPerCycle * cycles) return;
             double[] points = cycleData.Select(point => point.Value / samplesPerCycle).ToArray();
-            double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
 
-            Complex[] result = FFT(points);
+            FFT fft = new FFT(systemFrequency * samplesPerCycle, points);
 
-            fftMag.DataPoints = frequencyScale.Select((Value, Index) => new { Value, Result = result[Index], Index }).Where(point => point.Value >= 0).ToList().ToDictionary(obj => (int)obj.Value, obj => ((obj.Result.Magnitude * 2)/cycles) / Math.Sqrt(2));
-            fftAng.DataPoints = frequencyScale.Select((Value, Index) => new { Value, Result = result[Index], Index }).Where(point => point.Value >= 0).ToList().ToDictionary(obj => (int)obj.Value, obj => obj.Result.Phase * 180 / Math.PI);
-
+            fftMag.DataPoints = fft.Magnitude.Select((value, index) => new { value, index, freq = (int)fft.Frequency[index] }).ToDictionary(obj => obj.freq, obj => (obj.value/cycles) / Math.Sqrt(2));
+            fftAng.DataPoints = fft.Angle.Select((value, index) => new { value, index, freq = (int)fft.Frequency[index] }).ToDictionary(obj => obj.freq, obj => obj.value * 180 / Math.PI);
+           
             dataLookup.Add($"DFT {label} Mag", fftMag);
             dataLookup.Add($"DFT {label} Ang", fftAng);
 
@@ -3186,35 +3233,23 @@ namespace OpenSEE.Controller
             };
 
             double[][] dataArr = new double[(dataSeries.DataPoints.Count - samplesPerCycle)][];
-            Parallel.For(0, dataSeries.DataPoints.Count - samplesPerCycle, i =>
+            for (int i= 0; i < dataSeries.DataPoints.Count - samplesPerCycle; i++)
+            //Parallel.For(0, dataSeries.DataPoints.Count - samplesPerCycle, i =>
             {
 
                 double[] points = dataSeries.DataPoints.Skip(i).Take(samplesPerCycle).Select(point => point.Value / samplesPerCycle).ToArray();
-                double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
+                FFT fft = new FFT(systemFrequency * samplesPerCycle, points);
 
-                Complex[] result = FFT(points);
 
-                double rmsHarmSum = frequencyScale.Where(value => Math.Round(value) != 60.0D && value % systemFrequency == 0).Select((value, j) => Math.Pow(result[j].Magnitude * 2 / Math.Sqrt(2), 2)).Sum();
-                int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == 60.0D);
-                double rmsHarm = result[index].Magnitude / Math.Sqrt(2);
-                double thdValue = 100 * Math.Sqrt(rmsHarmSum) / rmsHarm - 100;
+                double rmsHarmSum = fft.Magnitude.Where((value,index) => index != 1).Select(value => Math.Pow(value, 2)).Sum();
+                double rmsHarm = fft.Magnitude[1];
+                double thdValue = 100 * Math.Sqrt(rmsHarmSum) / rmsHarm;
 
                 dataArr[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, thdValue };
-            });
+            }//);
 
             thd.DataPoints = dataArr.ToList();
             return thd;
-        }
-
-        private Complex[] FFT(double[] samples)
-        {
-            Complex[] complexSamples = samples
-                .Select(sample => new Complex(sample, 0))
-                .ToArray();
-
-            Fourier.Forward(complexSamples, FourierOptions.NoScaling);
-
-            return complexSamples;
         }
 
         #endregion
@@ -3334,16 +3369,14 @@ namespace OpenSEE.Controller
             Parallel.For(0, dataSeries.DataPoints.Count - samplesPerCycle, i =>
             {
                 double[] points = dataSeries.DataPoints.Skip(i).Take(samplesPerCycle).Select(point => point.Value / samplesPerCycle).ToArray();
-                double[] frequencyScale = Fourier.FrequencyScale(points.Length, systemFrequency * samplesPerCycle);
                 double specifiedFrequency = systemFrequency * specifiedHarmonic;
-                int index = frequencyScale.ToList().FindIndex(value => Math.Round(value) == specifiedFrequency);
 
-                Complex[] result = FFT(points);
+                FFT fft = new FFT(systemFrequency * samplesPerCycle, points);
 
-                Complex specifiedHarmonicCycleResult = result[index];
+                int index = Array.FindIndex(fft.Frequency ,value => Math.Round(value) == specifiedFrequency);
 
-                dataArrHarm[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Magnitude * 2 / Math.Sqrt(2) };
-                dataArrAngle[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, specifiedHarmonicCycleResult.Phase * 180 / Math.PI };
+                dataArrHarm[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, fft.Magnitude[index] / Math.Sqrt(2) };
+                dataArrAngle[i] = new double[] { dataSeries.DataPoints[i].Time.Subtract(m_epoch).TotalMilliseconds, fft.Angle[index] * 180 / Math.PI };
 
             });
 
