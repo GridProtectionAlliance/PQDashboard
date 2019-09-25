@@ -1009,6 +1009,10 @@ namespace OpenSEE.Controller
             Complex[] result = FFT(points);
 
             fftMag.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Magnitude * 2 / Math.Sqrt(2));
+            //adjust first and last bucket (residual and DC)
+            fftMag.DataPoints[0] = fftMag.DataPoints[0] / 2.0D;
+            fftMag.DataPoints[samplesPerCycle/2] = fftMag.DataPoints[samplesPerCycle / 2] / 2.0D;
+
             fftAng.DataPoints = frequencyScale.Where(value => Math.Round(value) >= 0 && value % systemFrequency == 0).Select((Value, Index) => new { Index, Result = result[Index] }).ToList().ToDictionary(obj => obj.Index, obj => obj.Result.Phase * 180 / Math.PI);
 
             dataLookup.Add($"FFT {label} Mag", fftMag);
