@@ -1229,56 +1229,50 @@ namespace OpenSEE.Controller
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
 
             if (vICycleDataGroup.IA != null && vICycleDataGroup.VA != null) {
-                List<DataPoint> voltagePointsMag = vICycleDataGroup.VA.RMS.DataPoints;
-                List<DataPoint> voltagePointsAng = vICycleDataGroup.VA.Phase.DataPoints;
-                List<Complex> voltagePoints = voltagePointsMag.Select((vMagPoint, index) => Complex.FromPolarCoordinates(vMagPoint.Value, voltagePointsAng[index].Value)).ToList();
 
-                List<DataPoint> currentPointsMag = vICycleDataGroup.IA.RMS.DataPoints;
-                List<DataPoint> currentPointsAng = vICycleDataGroup.IA.Phase.DataPoints;
-                List<Complex> currentPoints = currentPointsMag.Select((iMagPoint, index) => Complex.FromPolarCoordinates(iMagPoint.Value, currentPointsAng[index].Value)).ToList();
-
-                IEnumerable<Complex> impedancePoints = voltagePoints.Select((vPoint, index) => currentPoints[index] / vPoint);
-                dataLookup.Add("Reactance AN", new FlotSeries() { ChartLabel = "AN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
-                dataLookup.Add("Resistance AN", new FlotSeries() { ChartLabel = "AN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
-                dataLookup.Add("Impedance AN", new FlotSeries() { ChartLabel = "AN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
+                List<DataPoint> Timing = vICycleDataGroup.VA.RMS.DataPoints;
+                IEnumerable<Complex> impedancePoints = CalculateImpedance(vICycleDataGroup.VA, vICycleDataGroup.IA);
+                dataLookup.Add("Reactance AN", new FlotSeries() { ChartLabel = "AN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
+                dataLookup.Add("Resistance AN", new FlotSeries() { ChartLabel = "AN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
+                dataLookup.Add("Impedance AN", new FlotSeries() { ChartLabel = "AN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
 
             }
 
             if (vICycleDataGroup.IB != null && vICycleDataGroup.VB != null)
             {
-                List<DataPoint> voltagePointsMag = vICycleDataGroup.VB.RMS.DataPoints;
-                List<DataPoint> voltagePointsAng = vICycleDataGroup.VB.Phase.DataPoints;
-                List<Complex> voltagePoints = voltagePointsMag.Select((vMagPoint, index) => Complex.FromPolarCoordinates(vMagPoint.Value, voltagePointsAng[index].Value)).ToList();
-
-                List<DataPoint> currentPointsMag = vICycleDataGroup.IB.RMS.DataPoints;
-                List<DataPoint> currentPointsAng = vICycleDataGroup.IB.Phase.DataPoints;
-                List<Complex> currentPoints = currentPointsMag.Select((iMagPoint, index) => Complex.FromPolarCoordinates(iMagPoint.Value, currentPointsAng[index].Value)).ToList();
-
-                IEnumerable<Complex> impedancePoints = voltagePoints.Select((vPoint, index) => currentPoints[index] / vPoint);
-                dataLookup.Add("Reactance BN", new FlotSeries() { ChartLabel = "BN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
-                dataLookup.Add("Resistance BN", new FlotSeries() { ChartLabel = "BN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
-                dataLookup.Add("Impedance BN", new FlotSeries() { ChartLabel = "BN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
+                List<DataPoint> Timing = vICycleDataGroup.VB.RMS.DataPoints;
+                IEnumerable<Complex> impedancePoints = CalculateImpedance(vICycleDataGroup.VB, vICycleDataGroup.IB);
+                dataLookup.Add("Reactance BN", new FlotSeries() { ChartLabel = "BN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
+                dataLookup.Add("Resistance BN", new FlotSeries() { ChartLabel = "BN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
+                dataLookup.Add("Impedance BN", new FlotSeries() { ChartLabel = "BN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
 
             }
 
             if (vICycleDataGroup.IC != null && vICycleDataGroup.VC != null)
             {
-                List<DataPoint> voltagePointsMag = vICycleDataGroup.VC.RMS.DataPoints;
-                List<DataPoint> voltagePointsAng = vICycleDataGroup.VC.Phase.DataPoints;
-                List<Complex> voltagePoints = voltagePointsMag.Select((vMagPoint, index) => Complex.FromPolarCoordinates(vMagPoint.Value, voltagePointsAng[index].Value)).ToList();
-
-                List<DataPoint> currentPointsMag = vICycleDataGroup.IC.RMS.DataPoints;
-                List<DataPoint> currentPointsAng = vICycleDataGroup.IC.Phase.DataPoints;
-                List<Complex> currentPoints = currentPointsMag.Select((iMagPoint, index) => Complex.FromPolarCoordinates(iMagPoint.Value, currentPointsAng[index].Value)).ToList();
-
-                IEnumerable<Complex> impedancePoints = voltagePoints.Select((vPoint, index) => currentPoints[index] / vPoint);
-                dataLookup.Add("Reactance CN", new FlotSeries() { ChartLabel = "CN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
-                dataLookup.Add("Resistance CN", new FlotSeries() { ChartLabel = "CN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
-                dataLookup.Add("Impedance CN", new FlotSeries() { ChartLabel = "CN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { voltagePointsMag[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
+                List<DataPoint> Timing = vICycleDataGroup.VC.RMS.DataPoints;
+                IEnumerable<Complex> impedancePoints = CalculateImpedance(vICycleDataGroup.VC, vICycleDataGroup.IC);
+                dataLookup.Add("Reactance CN", new FlotSeries() { ChartLabel = "CN Reactance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Imaginary }).ToList() });
+                dataLookup.Add("Resistance CN", new FlotSeries() { ChartLabel = "CN Resistance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Real }).ToList() });
+                dataLookup.Add("Impedance CN", new FlotSeries() { ChartLabel = "CN Impedance", DataPoints = impedancePoints.Select((iPoint, index) => new double[] { Timing[index].Time.Subtract(m_epoch).TotalMilliseconds, iPoint.Magnitude }).ToList() });
             }
 
             return dataLookup;
         }
+
+        private IEnumerable<Complex> CalculateImpedance(CycleDataGroup Voltage, CycleDataGroup Current)
+        {
+            List<DataPoint> voltagePointsMag = Voltage.RMS.DataPoints;
+            List<DataPoint> voltagePointsAng = Voltage.Phase.DataPoints;
+            List<Complex> voltagePoints = voltagePointsMag.Select((vMagPoint, index) => Complex.FromPolarCoordinates(vMagPoint.Value, voltagePointsAng[index].Value)).ToList();
+
+            List<DataPoint> currentPointsMag = Current.RMS.DataPoints;
+            List<DataPoint> currentPointsAng = Current.Phase.DataPoints;
+            List<Complex> currentPoints = currentPointsMag.Select((iMagPoint, index) => Complex.FromPolarCoordinates(iMagPoint.Value, currentPointsAng[index].Value)).ToList();
+
+            return (voltagePoints.Select((vPoint, index) => vPoint / currentPoints[index]));
+        }
+
         #endregion
 
         #region [ Remove Current ]
