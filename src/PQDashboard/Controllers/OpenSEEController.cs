@@ -2496,7 +2496,6 @@ namespace OpenSEE.Controller
                     DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
                     int pixels = int.Parse(query["pixels"]);
                     DataTable table;
-                    double calcTime;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
                     table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
@@ -2552,17 +2551,34 @@ namespace OpenSEE.Controller
 
             DataSeries vAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
             //DataSeries iAN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "AN");
-            //DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
+            DataSeries vBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
             //DataSeries iBN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "BN");
-            //DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
+            DataSeries vCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Voltage" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
             //DataSeries iCN = dataGroup.DataSeries.ToList().Find(x => x.SeriesInfo.Channel.MeasurementType.Name == "Current" && x.SeriesInfo.Channel.MeasurementCharacteristic.Name == "Instantaneous" && x.SeriesInfo.Channel.Phase.Name == "CN");
 
+            FlotSeries fVa = null;
+            FlotSeries fVb = null;
+            FlotSeries fVc = null;
+
             if (vAN != null)
-                dataLookup.Add("Frequency", GenerateFrequency(systemFrequency, vAN, ""));
-            //if (vBN != null)
+            {
+                fVa = GenerateFrequency(systemFrequency, vAN, "Va");
+            }
+            if (vBN != null)
+            {
+                fVb = GenerateFrequency(systemFrequency, vBN, "Vb");
+            }
+            if (vCN != null)
+            {
+                fVc = GenerateFrequency(systemFrequency, vCN, "Vc");
+            }
+
+
             //    dataLookup.Add("Frequency VBN", GenerateFrequency(systemFrequency, vBN, "VBN"));
             //if (vCN != null)
             //    dataLookup.Add("Frequency VCN", GenerateFrequency(systemFrequency, vCN, "VCN"));
+            if (fVa != null || fVb != null || fVc != null)
+                dataLookup.Add("Frequency", AvgFilter(fVa, fVb, fVc));
 
             return dataLookup;
         }
@@ -2593,6 +2609,57 @@ namespace OpenSEE.Controller
             }).ToList();
 
             return fitWave;
+        }
+
+        private FlotSeries AvgFilter(FlotSeries Va, FlotSeries Vb, FlotSeries Vc)
+        {
+            FlotSeries result = new FlotSeries()
+            {
+                ChartLabel = "Frequency",
+                DataPoints = new List<double[]>()
+            };
+
+            double n_signals = 1.0D;
+            // for now assume Va is not null
+            result.DataPoints = Va.DataPoints.Select(point => new double[] { point[0], point[1] }).ToList();
+
+            if (Vb != null)
+            {
+                result.DataPoints = result.DataPoints.Zip(Vb.DataPoints, (point1, point2) => { return new double[] { point1[0], point1[1] + point2[1] }; }).ToList();
+                n_signals = n_signals + 1.0D;
+            }
+            if (Vc != null)
+            {
+                result.DataPoints = result.DataPoints.Zip(Vc.DataPoints, (point1, point2) => { return new double[] { point1[0], point1[1] + point2[1] }; }).ToList();
+                n_signals = n_signals + 1.0D;
+            }
+
+            result.DataPoints = result.DataPoints.Select(point => new double[] { point[0], point[1] / n_signals }).ToList();
+
+            return MedianFilt(result);
+        }
+
+        private FlotSeries MedianFilt(FlotSeries input)
+        {
+            FlotSeries output = new FlotSeries()
+            {
+                ChartLabel = input.ChartLabel,
+                DataPoints = new List<double[]>()
+            };
+
+            List<double[]> inputData = input.DataPoints.OrderBy(point => point[0]).ToList();
+
+            // Edges stay constant
+            output.DataPoints.Add(inputData[0]);
+
+            output.DataPoints.AddRange(inputData.Skip(1).Take(inputData.Count - 2).Select((value, index) =>
+                new double[] { value[0],
+                    MathNet.Numerics.Statistics.Statistics.Median(new double[] { value[1],inputData[index][1],inputData[index+2][1] })
+                }));
+
+            output.DataPoints.Add(inputData.Last());
+
+            return output;
         }
         #endregion
 
