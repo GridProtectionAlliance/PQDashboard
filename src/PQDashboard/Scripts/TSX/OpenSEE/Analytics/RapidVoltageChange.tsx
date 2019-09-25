@@ -28,8 +28,8 @@ import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs
 export default function RapidVoltageChange(props: LineChartAnaltyicalBaseProps): JSX.Element{
     var openSEEService = new OpenSEEService();
     return createElement(LineChartAnalyticBase, {
-        legendDisplay: (key) => true,
-        legendEnable: (key) => true,
+        legendDisplay: (key) => key.indexOf("AN") >= 0 || key.indexOf("BN") >= 0 || key.indexOf("CN") >= 0,
+        legendEnable: (key) => key.indexOf("AN") >= 0 || key.indexOf("BN") >= 0 || key.indexOf("CN") >= 0,
         legendKey: "RapidVoltageChange",
         openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getRapidVoltageChangeData(eventid, pixels, startDate, endDate),
         endDate: props.endDate,

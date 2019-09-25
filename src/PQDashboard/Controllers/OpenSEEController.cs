@@ -2434,6 +2434,10 @@ namespace OpenSEE.Controller
             if (vICycleDataGroup.VB.RMS != null) dataLookup.Add("Rapid Voltage Change VBN", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VB.RMS, "VBN"));
             if (vICycleDataGroup.VC.RMS != null) dataLookup.Add("Rapid Voltage Change VCN", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VC.RMS, "VCN"));
 
+            if (vICycleDataGroup.VAB.RMS != null) dataLookup.Add("Rapid Voltage Change VAB", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VAB.RMS, "VAB"));
+            if (vICycleDataGroup.VBC.RMS != null) dataLookup.Add("Rapid Voltage Change VBC", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VBC.RMS, "VBC"));
+            if (vICycleDataGroup.VCA.RMS != null) dataLookup.Add("Rapid Voltage Change VCA", GetRapidVoltageChangeFlotSeries(vICycleDataGroup.VCA.RMS, "VCA"));
+
             return dataLookup;
         }
 
@@ -2443,7 +2447,7 @@ namespace OpenSEE.Controller
                 double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.LineID) ?? 1;
 
                 double lastY = 0;
-
+                double lastX = 0;
                 FlotSeries flotSeries = new FlotSeries()
                 {
                     ChartLabel = label + " Rapid Voltage Change",
@@ -2459,7 +2463,7 @@ namespace OpenSEE.Controller
                         double[] arr =  new double[] { x, (y - lastY) * 100 / nominalVoltage };
 
                         lastY = y;
-
+                        lastX = x;
                         return arr;
                     }).ToList()
                 };

@@ -81,7 +81,10 @@ export default class Legend extends React.Component<any, any>{
                 : null)}
                 {(this.props.type.toLowerCase() == "impedance" ?
                     <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'R', value: 'R', active: true }, { label: 'X', value: 'X', active: false }, { label: 'Z', value: 'Z', active: false }]} onChange={this.toggleImpedance.bind(this)} />
-                : null)}
+                    : null)}
+                {(this.props.type.toLowerCase() == "rapidvoltagechange" ?
+                    <ToggleButtonGroup type="radio" defaultValue="LN" buttons={[{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'LL', active: false }]} onChange={this.toggleRapidVoltageChange.bind(this)} />
+                    : null)}
 
                 {(this.props.type.toLowerCase() == "firstderivative" ?
                     <ToggleButtonGroup type="radio" defaultValue="Wave" buttons={[{ label: 'V', value: 'V', active: true }, { label: 'VR', value: 'VRMS', active: false }, { label: 'I', value: 'I', active: false },{ label: 'IR', value: 'IRMS', active: false }]} onChange={this.toggleFirstDerivative.bind(this)} />
@@ -236,6 +239,58 @@ export default class Legend extends React.Component<any, any>{
     }
 
 
+    toggleRapidVoltageChange(type, event) {
+        this.props.data.forEach((row, key, map) => {
+            row.display = false;
+            row.enabled = false;
+            $('[name="' + key + '"]').prop('checked', false);
+
+            if (type == "LN" && key.indexOf('AN') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "LN" && key.indexOf('BN') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "LN" && key.indexOf('CN') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+            if (type == "LL" && key.indexOf('AB') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            if (type == "LL" && key.indexOf('BC') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+            if (type == "LL" && key.indexOf('CA') >= 0) {
+                row.enabled = true;
+                row.display = true;
+
+                $('[name="' + key + '"]').prop('checked', true);
+            }
+
+        });
+
+        this.props.callback();
+
+    }
+
     toggleImpedance(type, event) {
         this.props.data.forEach((row, key, map) => {
             row.display = false;
@@ -268,7 +323,6 @@ export default class Legend extends React.Component<any, any>{
         this.props.callback();
 
     }
-
 
     toggleFirstDerivative(type, event) {
         this.props.data.forEach((row, key, map) => {
