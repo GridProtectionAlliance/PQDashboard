@@ -26,9 +26,13 @@ import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
 import { iLegendData } from '../Graphs/Legend';
 
+interface SpecifiedHarmonicProps extends LineChartAnaltyicalBaseProps {
+    harmonic: number;
+}
+
 export default class SpecifiedHarmonic extends React.Component<any, any>{
     openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
+    props: SpecifiedHarmonicProps
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -39,8 +43,7 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
 
     getData(props, ctrl: LineChartAnalyticBase) {
         var legendRow = ctrl.state.legendRows.entries().next().value;
-
-        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, ctrl.state.harmonic, props.startDate, props.endDate).then(data => {
+        var handle = this.openSEEService.getSpecifiedHarmonicData(props.eventId, props.pixels, this.props.harmonic, props.startDate, props.endDate).then(data => {
             if (data == null) {
                 return;
             }
@@ -56,7 +59,7 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
             ctrl.setState({ dataSet: data });
         });
         ctrl.setState({ dataHandle: handle });
-
+        ctrl.setState({ harmonic: this.props.harmonic });
 
     }
     render() {
@@ -67,7 +70,7 @@ export default class SpecifiedHarmonic extends React.Component<any, any>{
             legendKey="SpecifiedHarmonic"
             openSEEServiceFunction={ctrl.openSEEService.getFirstDerivativeData}
             getData={this.getData}
-
+            harmonic={this.props.harmonic}
             endDate={this.props.endDate}
             eventId={this.props.eventId}
             height={this.props.height}

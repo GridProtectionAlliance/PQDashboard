@@ -38,7 +38,7 @@ export interface LineChartAnaltyicalBaseProps {
 
 interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
     legendKey: string, openSEEServiceFunction: StandardAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
-    getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction
+    getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction, harmonic?: number
 
 }
 export default class LineChartAnalyticBase extends React.Component<LineChartAnalyticBassClassProps, any>{
@@ -535,7 +535,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         return (
             <div>
                 <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'/*this.props.pixels - 222 margn: '0x', padding: '0px'*/}}></div>
-                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic: any) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.state.harmonic}/>
+                <Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height} harmonicSetter={(harmonic: any) => this.setState({ harmonic: harmonic }, () => this.getData(this.props))} harmonic={this.props.harmonic}/>
             </div>
         );
     }

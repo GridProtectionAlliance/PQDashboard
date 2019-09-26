@@ -106,7 +106,12 @@ namespace OpenSEE.Controller
             public FFT(double samplingfreq, double[] data)
             {
 
-
+                if (data.Count() == 0)
+                {
+                    this.m_freq = new double[0];
+                    this.m_result = new Complex[0];
+                    return;
+                }
                 this.m_freq = Fourier.FrequencyScale(data.Length, samplingfreq);
 
                 this.m_result = data

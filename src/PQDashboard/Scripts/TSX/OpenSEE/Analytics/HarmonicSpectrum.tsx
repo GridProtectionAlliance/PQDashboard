@@ -25,11 +25,16 @@ import * as React from 'react';
 import { each } from 'lodash';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import BarChartAnalyticBase, { BarChartAnaltyicalBaseProps } from './../Graphs/BarChartAnalyticBase';
+
+interface HarmonicSpectrumProps extends BarChartAnaltyicalBaseProps {
+    harmonic: number;
+}
+
 import { iLegendData } from '../Graphs/Legend';
 
 export default class HarmonicSpectrum extends React.Component<any, any>{
     openSEEService: OpenSEEService;
-    props: BarChartAnaltyicalBaseProps
+    props: HarmonicSpectrumProps
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -44,7 +49,7 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
 
 
     getData(props, ctrl: BarChartAnalyticBase) {
-        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, ctrl.state.harmonic, props.fftStartTime).then(data => {
+        var handle = this.openSEEService.getHarmonicSpectrumData(props.eventId, this.props.harmonic, props.fftStartTime).then(data => {
             if (data == null) {
                 return;
             }
@@ -68,9 +73,10 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
 
             ctrl.createDataRows(data, legend);
             ctrl.setState({ dataSet: data });
+            ctrl.setState({ harmonic: ctrl.props.harmonic });
         });
         ctrl.setState({ dataHandle: handle });
-
+        
 
     }
 
@@ -93,7 +99,7 @@ export default class HarmonicSpectrum extends React.Component<any, any>{
             stateSetter={this.props.stateSetter}
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
-            harmonic={5}
+            harmonic={this.props.harmonic}
         />
     }
 

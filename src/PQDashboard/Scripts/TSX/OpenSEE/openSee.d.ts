@@ -117,7 +117,8 @@ declare interface OpenSEEState {
     fftStartTime?: string,
     fftEndTime?: string,
     TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>,
-    Height?: number
+    Height?: number,
+    AnalyticSettings: AnalyticParamters
 }
 
 declare interface iListObject {

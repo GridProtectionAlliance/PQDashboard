@@ -18,14 +18,32 @@
 //  ----------------------------------------------------------------------------------------------------
 //  03/13/2019 - Billy Ernest
 //       Generated original version of source code.
+//  09/25/2019 - Christoph Lackner
+//       Added Settings Form
 //
 //******************************************************************************************************
 
 import * as React from 'react';
+import { clone } from 'lodash';
+
+declare var cycles: number;
+declare var samplesPerCycle: number;
+
+export interface AnalyticParamters { harmonic: number };
+
 
 export default class RadioselectWindow extends React.Component{
-    props: { style?: object, className?: string, stateSetter: Function, analytic: string}
-    state: { analytics: Array<{label: string, analytic: string}>}
+    props: {
+        style?: object,
+        className?: string,
+        stateSetter: Function,
+        analytic: string,
+        analyticSettings: AnalyticParamters
+    }
+    state: { analytics: Array<{ label: string, analytic: string }> }
+    cyclesOptions: any[];
+    samplesPerCycleOptions: any[];
+
     constructor(props, context) {
         super(props, context);
         this.state = {
@@ -51,6 +69,17 @@ export default class RadioselectWindow extends React.Component{
                 { label: 'Unbalance', analytic: 'Unbalance' },
             ]
         }
+
+        this.cyclesOptions = [];
+
+        for (var i = 1; i < cycles; ++i)
+            this.cyclesOptions.push(<option key={i} value={i.toString()}>{i}</option>);
+
+        this.samplesPerCycleOptions = [];
+
+        for (var i = 1; i <= samplesPerCycle / 2; ++i)
+            this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>);
+
     }
 
     handleClicks(event): void {
@@ -71,6 +100,9 @@ export default class RadioselectWindow extends React.Component{
         if (formStyle['marginRight'] == undefined) formStyle['marginRight'] = '5%';
         if (formStyle['overflow'] == undefined) formStyle['overflow'] = 'auto';
 
+        var optionStyle = formStyle;
+        optionStyle['marginTop'] = '5%';
+
         var style = {};
         style['marginTop'] = '10px';
         style['width'] = '100%';
@@ -83,7 +115,31 @@ export default class RadioselectWindow extends React.Component{
                         {this.state.analytics.map((analytic, index) => <li key={analytic.analytic}><label><input type="radio" name="radioselect" value={analytic.analytic} onChange={this.handleClicks.bind(this)} checked={this.props.analytic == analytic.analytic}/> {analytic.label}</label></li>)}
                     </ul>
                 </form>
+                {(this.props.analytic != null ?
+                    ((this.props.analytic.toLowerCase() == "harmonicspectrum" ?
+                        <form style={optionStyle}>
+                            <ul ref="list" style={{ listStyleType: 'none', padding: 0 }}>
+                                <li><label> Cycles: <select defaultValue={'5'} onChange={this.ChangeCycles.bind(this)}>{this.cyclesOptions}</select></label></li>
+                            </ul>
+                        </form> : null)
+                    )
+                : null)}
+                {(this.props.analytic != null ?
+                    ((this.props.analytic.toLowerCase() == "specifiedharmonic" ?
+                        <form style={optionStyle}>
+                            <ul ref="list" style={{ listStyleType: 'none', padding: 0 }}>
+                                <li><label> Harmonic: <select defaultValue={'1'} onChange={this.ChangeCycles.bind(this)}>{this.samplesPerCycleOptions}</select></label></li>
+                            </ul>
+                        </form> : null)
+                    )
+                    : null)}
             </div>
         );
+    }
+
+    ChangeCycles(event) {
+        var obj = clone(this.props.analyticSettings);
+        obj.harmonic = event.target.value;
+        this.props.stateSetter({ AnalyticSettings: obj });
     }
 }
