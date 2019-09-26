@@ -31,7 +31,7 @@ export default function LowPassFilter(props: LineChartAnaltyicalBaseProps): JSX.
         legendDisplay: (key) => key.indexOf("V") == 0,
         legendEnable: (key) => key.indexOf("V") == 0,
         legendKey: "LowPassFilter",
-        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getLowPassFilterData(eventid, pixels, startDate, endDate),
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getLowPassFilterData(eventid, pixels,1, startDate, endDate),
         endDate: props.endDate,
         eventId: props.eventId,
         height: props.height,

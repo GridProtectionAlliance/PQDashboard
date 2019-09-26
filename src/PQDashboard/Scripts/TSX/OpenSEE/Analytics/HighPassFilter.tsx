@@ -32,7 +32,7 @@ export default function HighPassFilter (props: LineChartAnaltyicalBaseProps): JS
         legendDisplay: (key) => key.indexOf("V") == 0,
         legendEnable: (key) => key.indexOf("V") == 0,
         legendKey: "HighPassFilter",
-        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getHighPassFilterData(eventid, pixels, startDate, endDate),
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getHighPassFilterData(eventid, pixels,1, startDate, endDate),
         endDate: props.endDate,
         eventId: props.eventId,
         height: props.height,

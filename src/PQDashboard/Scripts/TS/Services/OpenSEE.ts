@@ -557,7 +557,7 @@ export default class OpenSEEService{
         return this.missingVoltageDataHandle;
     }
 
-    getLowPassFilterData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+    getLowPassFilterData(eventid: number, pixels: number, filterorder: number, startDate?: string, endDate?: string): JQuery.jqXHR {
         if (this.lowPassFilterDataHandle !== undefined)
             this.lowPassFilterDataHandle.abort();
 
@@ -566,7 +566,8 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/GetLowPassFilterData?eventId=${eventid}` +
                 `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
                 `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
-                `&pixels=${pixels}`,
+                `&pixels=${pixels}` +
+                `&filter=${filterorder}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
@@ -576,7 +577,7 @@ export default class OpenSEEService{
         return this.lowPassFilterDataHandle;
     }
 
-    getHighPassFilterData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+    getHighPassFilterData(eventid: number, pixels: number, filterorder: number, startDate?: string, endDate?: string): JQuery.jqXHR {
         if (this.highPassFilterDataHandle !== undefined)
             this.highPassFilterDataHandle.abort();
 
@@ -585,7 +586,8 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/GetHighPassFilterData?eventId=${eventid}` +
                 `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
                 `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
-                `&pixels=${pixels}`,
+                `&pixels=${pixels}` +
+                `&filter=${filterorder}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,

@@ -1953,7 +1953,10 @@ namespace OpenSEE.Controller
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     Dictionary<string, string> query = Request.QueryParameters();
+
+                    int filterOrder = int.Parse(query["filter"]);
                     int eventId = int.Parse(query["eventId"]);
+
                     Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
                     Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
                     meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
@@ -1972,7 +1975,7 @@ namespace OpenSEE.Controller
                     {
                         int eventID = row.ConvertField<int>("ID");
                         DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetLowPassFilterLookup(dataGroup);
+                        Dictionary<string, FlotSeries> temp = GetLowPassFilterLookup(dataGroup, filterOrder);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2009,7 +2012,7 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> GetLowPassFilterLookup(DataGroup dataGroup)
+        private Dictionary<string, FlotSeries> GetLowPassFilterLookup(DataGroup dataGroup, int order)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
             double systemFrequency;
@@ -2031,7 +2034,8 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2046,7 +2050,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2060,7 +2064,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
                 List<DataPoint> points = vCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2074,7 +2078,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
                 List<DataPoint> points = iAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2089,7 +2093,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
                 List<DataPoint> points = iBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2103,7 +2107,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
                 List<DataPoint> points = iCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2126,7 +2130,9 @@ namespace OpenSEE.Controller
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     Dictionary<string, string> query = Request.QueryParameters();
+                    int filterOrder = int.Parse(query["filter"]);
                     int eventId = int.Parse(query["eventId"]);
+
                     Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
                     Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
                     meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
@@ -2146,7 +2152,7 @@ namespace OpenSEE.Controller
                         int eventID = row.ConvertField<int>("ID");
                         DataGroup dataGroup = QueryDataGroup(eventID, meter);
 
-                        Dictionary<string, FlotSeries> temp = GetHighPassFilterLookup(dataGroup);
+                        Dictionary<string, FlotSeries> temp = GetHighPassFilterLookup(dataGroup, filterOrder);
 
                         foreach (string key in temp.Keys)
                         {
@@ -2183,7 +2189,7 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> GetHighPassFilterLookup(DataGroup dataGroup)
+        private Dictionary<string, FlotSeries> GetHighPassFilterLookup(DataGroup dataGroup, int order)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
             double systemFrequency;
@@ -2205,7 +2211,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2220,7 +2226,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2234,7 +2240,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
                 List<DataPoint> points = vCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2248,7 +2254,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
                 List<DataPoint> points = iAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2263,7 +2269,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
                 List<DataPoint> points = iBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
@@ -2277,7 +2283,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
                 List<DataPoint> points = iCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency);
+                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
                 MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
 
