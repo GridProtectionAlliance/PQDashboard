@@ -96,7 +96,7 @@ export default class Current extends React.Component<any, any>{
             else
                 dataSet = data;
 
-            baseCtrl.createDataRows(dataSet, legend);
+            baseCtrl.createDataRows(data, legend)
             baseCtrl.setState({ dataSet: dataSet });
         })
 

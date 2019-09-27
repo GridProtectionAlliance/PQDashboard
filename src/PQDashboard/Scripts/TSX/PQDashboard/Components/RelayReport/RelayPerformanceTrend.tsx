@@ -50,11 +50,8 @@ export default class RelayPerformanceTrend extends React.Component<{ breakerid: 
 
 
     createTableRows(eventID: number, channelid: number) {
-        console.log(eventID);
-        console.log(channelid);
         this.openSEEService.getRelayTrendPerformance(this.props.breakerid, this.props.channelid).done(data => {
             var rows = [];
-            console.log(data);
             for (var index = 0; index < data.length; ++index) {
                 var row = data[index];
                 var background = 'default';

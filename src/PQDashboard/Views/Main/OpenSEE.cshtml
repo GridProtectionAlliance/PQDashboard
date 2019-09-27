@@ -85,7 +85,8 @@
         var eventEndTime = '@Html.Raw(ViewBag.EventEndTime)';
         var cycles = @Html.Raw(ViewBag.Cycles ?? 0);
     </script>
-    @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE") {
+    @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE")
+    {
         @*<script src="https://polyfill.io/v3/polyfill.min.js?features=default%2Ces2015%2Ces2016%2Ces2017%2Ces5%2Ces6%2Ces7"></script>*@
         <script src="@Url.Content("~/Scripts/default.polyfill.min.js")"></script>
     }
@@ -99,23 +100,23 @@
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.selection.min.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.time.min.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.rangeselection.min.js")"></script>
-	<script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.axislabels.js")"></script>
+    <script src="@("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.axislabels.min.js")"></script>
 
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/flot/jquery.flot.dashes.js")"></script>
 
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/popper.js")"></script>
     <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/bootstrap4.js")"></script>
 
-@if (Model.IsDebug())
-{
-    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
-    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script> 
-}
-else
-{
-    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
-    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
-}
+    @if (Model.IsDebug())
+    {
+        <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
+        <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script>
+    }
+    else
+    {
+        <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
+        <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
+    }
 
 
     @if (enableLightningQuery)
@@ -124,7 +125,7 @@ else
         <script src="~/Scripts/openSEE-lightning-query.js"></script>
     }
 
-   @*@Scripts.Render("~/Scripts/OpenSEE")*@
+    @*@Scripts.Render("~/Scripts/OpenSEE")*@
     <script src="@Url.Content("~/Scripts/OpenSEE.js")"></script>
 </body>
 </html>

@@ -128,7 +128,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
 
         if (ctrl.props.getColor != undefined) ctrl.getColor = (label, i) => ctrl.props.getColor(label, i);
         if (ctrl.props.getData != undefined) ctrl.getData = (props) => ctrl.props.getData(props, ctrl);
-
+        
     }
 
     componentDidMount() {
@@ -283,13 +283,16 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
 
     }
 
-    createDataRows(data, legend) {
+    createDataRows(data, legend, unit?) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
         var startString = this.props.startDate;
         var endString = this.props.endDate;
 
         var newVessel = [];
+
+        if (unit == undefined) unit =  "";
+
         legend.forEach((row, key, map) => {
             if (row.enabled)
                 newVessel.push({ label: key, data: row.data, color: row.color })
@@ -306,7 +309,12 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
             });
             
         }
-        this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, this.options);
+
+        var options = clone(this.options);
+        options.yaxis.axisLabel = unit;
+        options.axisLabels = { show: true };
+
+        this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, options);
         this.plotSelected();
         this.plotZoom();
         this.plotPan();

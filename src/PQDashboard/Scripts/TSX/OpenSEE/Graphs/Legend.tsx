@@ -32,7 +32,15 @@ export interface iLegendData {
 }
 
 export interface iLegendProps {
-    type: string, data: Map<string, iLegendData>, callback: LegendClickCallback, height: number, harmonicSetter: (obj: number, callback?: any) => void, harmonic: number, showTable?: (callback?: any) => void, exportTable?: (callback?: any) => void 
+    type: string,
+    data: Map<string, iLegendData>,
+    callback: LegendClickCallback,
+    height: number,
+    harmonicSetter: (obj: number, callback?: any) => void,
+    harmonic: number,
+    showTable?: (callback?: any) => void,
+    exportTable?: (callback?: any) => void,
+    setUnits?: (obj: number) => void
 }
 
 declare var samplesPerCycle: number;
@@ -586,7 +594,10 @@ export default class Legend extends React.Component<any, any>{
 
     }
 
+    GenerateUnits(type, event) {
+        var units = "";
 
+    }
 }
 
 const Row = (props: {label: string, enabled: boolean, color: string, callback: LegendClickCallback}) => {
