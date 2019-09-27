@@ -2040,8 +2040,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter VAN", new FlotSeries() { ChartLabel = "VAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2057,8 +2058,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter VBN", new FlotSeries() { ChartLabel = "VBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2073,8 +2075,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter VCN", new FlotSeries() { ChartLabel = "VCN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2089,8 +2092,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter IAN", new FlotSeries() { ChartLabel = "IAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2106,8 +2110,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter IBN", new FlotSeries() { ChartLabel = "IBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2122,8 +2127,9 @@ namespace OpenSEE.Controller
 
                 double[] a = PolesToPolynomial(lowpassPoles);
                 double[] b = PolesToPolynomial(lowpassZeros);
+                double K = a.Sum() / b.Sum();
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("Low Pass Filter ICN", new FlotSeries() { ChartLabel = "ICN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2133,15 +2139,13 @@ namespace OpenSEE.Controller
             return dataLookup;
         }
 
-        private double[] Filter(double[] input, double[] a, double[] b)
+        private double[] Filter(double[] input, double[] a, double[] b, double K)
         {
             int n = input.Count();
             int order = a.Count() - 1;
 
             double[] forwardOutput = new double[n];
             double[] ReveresOutput = new double[n];
-
-            double K = a.Sum()/b.Sum();
 
             a[0] = 0;
 
@@ -2309,20 +2313,22 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                systemFrequency = 120;
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
             }
+            int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
 
+            Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, systemFrequency);
+            Complex[] lowpassZeros = Enumerable.Repeat(new Complex(1, 0), order).ToArray();
+
+            double[] a = PolesToPolynomial(lowpassPoles);
+            double[] b = PolesToPolynomial(lowpassZeros);
+            double K = a[0] / b[0];
 
             if (vAN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
-
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("High Pass Filter VAN", new FlotSeries() { ChartLabel = "VAN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2330,42 +2336,30 @@ namespace OpenSEE.Controller
 
             if (vBN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
-
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
-
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("High Pass Filter VBN", new FlotSeries() { ChartLabel = "VBN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (vCN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
+                
                 List<DataPoint> points = vCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K );
 
                 dataLookup.Add("High Pass Filter VCN", new FlotSeries() { ChartLabel = "VCN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (iAN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
+               
                 List<DataPoint> points = iAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("High Pass Filter IAN", new FlotSeries() { ChartLabel = "IAN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2373,28 +2367,20 @@ namespace OpenSEE.Controller
 
             if (iBN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
+                
                 List<DataPoint> points = iBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
-
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("High Pass Filter IBN", new FlotSeries() { ChartLabel = "IBN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (iCN != null)
             {
-                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
+                
                 List<DataPoint> points = iCN.DataPoints;
-
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.HighPass(samplesPerCycle * systemFrequency, systemFrequency, order);
-
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
-
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
 
                 dataLookup.Add("High Pass Filter ICN", new FlotSeries() { ChartLabel = "ICN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
