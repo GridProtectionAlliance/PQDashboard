@@ -84,6 +84,7 @@ export default class LowPassFilter extends React.Component<any, any>{
             tableData={this.props.tableData}
             tableSetter={this.props.tableSetter}
             tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
+            order={this.props.order}
         />
     }
 
