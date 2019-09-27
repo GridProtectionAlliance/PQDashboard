@@ -42,7 +42,7 @@ export default function Retifier(props: LineChartAnaltyicalBaseProps): JSX.Eleme
         legendDisplay: (key) => key.indexOf("V") == 0,
         legendEnable: (key) => key.indexOf("V") == 0,
         legendKey: "Rectifier",
-        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getRectifierData(eventid, pixels, startDate, endDate),
+        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getRectifierData(eventid, pixels,0, startDate, endDate),
         endDate: props.endDate,
         getColor: (key, index) => getColor(key),
         eventId: props.eventId,

@@ -3132,6 +3132,7 @@ namespace OpenSEE.Controller
                 {
                     Dictionary<string, string> query = Request.QueryParameters();
                     int eventId = int.Parse(query["eventId"]);
+                    double TRC = double.Parse(query["Trc"]);
                     Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
                     Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
                     meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
@@ -3150,7 +3151,7 @@ namespace OpenSEE.Controller
                     {
                         int eventID = row.ConvertField<int>("ID");
                         DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup, systemFrequency);
+                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup, systemFrequency,TRC);
 
                         foreach (string key in temp.Keys)
                         {
@@ -3187,7 +3188,7 @@ namespace OpenSEE.Controller
             }, cancellationToken);
         }
 
-        private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup, double systemFrequency)
+        private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup, double systemFrequency, double RC)
         {
             Dictionary<string, FlotSeries> dataLookup = new Dictionary<string, FlotSeries>();
             int samplesPerCycle = Transform.CalculateSamplesPerCycle(dataGroup.DataSeries.First(), systemFrequency);
@@ -3205,12 +3206,27 @@ namespace OpenSEE.Controller
 
 
                 IEnumerable<DataPoint> phaseMaxes = vAN.Select((point, index) => new DataPoint() { Time = point.Time, Value = new double[] { Math.Abs(vAN[index].Value), Math.Abs(vBN[index].Value), Math.Abs(vCN[index].Value) }.Max() });
-                IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
+                //IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
+
+                // Run Through RC Filter
+                if (RC > 0)
+                {
+                    phaseMaxes = phaseMaxes.OrderBy(item => item.Time);
+                    double[] points = phaseMaxes.Select(item => item.Value).ToArray();
+                    double[] b= new double[2] {1.0D, 0.0D};
+                    double[] a = new double[2] { 1.0D, 0.0D };
+                    b[0] = (1 - Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC)));
+                    a[1] = -Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC));
+                    double K = 1.0D;
+
+                    double[] filtered = Filter(points, a, b, K);
+                    phaseMaxes = phaseMaxes.Select((point, index) => new DataPoint() { Time = point.Time, Value = filtered[index] });
+                }
 
                 dataLookup.Add("Rectifier Voltage", 
                     new FlotSeries() {
                         ChartLabel = "Voltage Rectifier",
-                        DataPoints = cycleMaxes.Select(point  => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
+                        DataPoints = phaseMaxes.Select(point  => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
                     });
 
             }
@@ -3219,12 +3235,12 @@ namespace OpenSEE.Controller
             if (iAN != null && iBN != null && iCN != null)
             {
                 IEnumerable<DataPoint> phaseMaxes = iAN.Select((point, index) => new DataPoint() { Time = point.Time, Value = new double[] { Math.Abs(iAN[index].Value), Math.Abs(iBN[index].Value), Math.Abs(iCN[index].Value) }.Max() });
-                IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
+                //IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
 
 
                 dataLookup.Add("Rectifier Current", new FlotSeries() {
                     ChartLabel = "Current Rectifier",
-                    DataPoints = cycleMaxes.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
+                    DataPoints = phaseMaxes.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).ToList()
                 });
 
             }

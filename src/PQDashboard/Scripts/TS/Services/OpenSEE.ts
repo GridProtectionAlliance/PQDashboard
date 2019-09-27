@@ -635,7 +635,7 @@ export default class OpenSEEService{
         return this.unbalanceDataHandle;
     }
 
-    getRectifierData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+    getRectifierData(eventid: number, pixels: number,Trc: number, startDate?: string, endDate?: string): JQuery.jqXHR {
         if (this.rectifierDataHandle !== undefined)
             this.rectifierDataHandle.abort();
 
@@ -644,7 +644,8 @@ export default class OpenSEEService{
             url: `${homePath}api/OpenSEE/GetRectifierData?eventId=${eventid}` +
                 `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
                 `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
-                `&pixels=${pixels}`,
+                `&pixels=${pixels}` +
+                `&Trc=${Trc}`,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,
