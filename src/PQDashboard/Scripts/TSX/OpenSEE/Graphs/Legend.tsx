@@ -594,10 +594,6 @@ export default class Legend extends React.Component<any, any>{
 
     }
 
-    GenerateUnits(type, event) {
-        var units = "";
-
-    }
 }
 
 const Row = (props: {label: string, enabled: boolean, color: string, callback: LegendClickCallback}) => {

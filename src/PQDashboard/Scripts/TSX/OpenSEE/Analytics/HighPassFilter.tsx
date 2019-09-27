@@ -40,13 +40,8 @@ export default class HighPassFilter extends React.Component<any, any>{
         this.getData = this.getData.bind(this);
     }
 
-    componentWillReceiveProps(nextProps: LineChartAnaltyicalBaseProps) {
-        
-    }
 
     getData(props, ctrl: LineChartAnalyticBase) {
-        console.log(props);
-        console.log("here");
         var legendRow = ctrl.state.legendRows.entries().next().value;
         var handle = this.openSEEService.getHighPassFilterData(props.eventId, props.pixels, this.props.order, props.startDate, props.endDate).then(data => {
             if (data == null) {

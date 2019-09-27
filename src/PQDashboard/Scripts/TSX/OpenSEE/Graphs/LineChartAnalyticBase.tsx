@@ -283,15 +283,13 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
 
     }
 
-    createDataRows(data, legend, unit?) {
+    createDataRows(data, legend) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
         var startString = this.props.startDate;
         var endString = this.props.endDate;
 
         var newVessel = [];
-
-        if (unit == undefined) unit =  "";
 
         legend.forEach((row, key, map) => {
             if (row.enabled)
@@ -310,8 +308,9 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
             
         }
 
+        
         var options = clone(this.options);
-        options.yaxis.axisLabel = unit;
+        options.yaxis.axisLabel = this.getPlotUnits(this.props.legendKey, legend);
         options.axisLabels = { show: true };
 
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, options);
@@ -531,7 +530,8 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         if(row != undefined)
             row.enabled = !row.enabled;
 
-        this.setState({ legendRows: this.state.legendRows });
+        this.setState({ legendRows: this.state.legendRows });       
+
         this.createDataRows(this.state.dataSet, this.state.legendRows);
 
         if (getData == true)
@@ -606,4 +606,138 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         return date + millisecondFraction.toString();
     }
 
+    getPlotUnits(type: string, data: any) {
+        const distinct = (value, index, self) => {
+            return self.indexOf(value) === index;
+        }
+
+        var labels = [];
+
+        data.forEach((row, key, map) => {
+            if (row.enabled) {
+
+                //Generate Voltage Plot Legend
+                if (type == "Voltage") {
+                    if (key.indexOf('Phase') >= 0) {
+                        labels.push("deg");
+                    }
+                    else {
+                        labels.push("Volt");
+                    }
+
+                }
+                else if (type == "Current") {
+                    if (key.indexOf('Phase') >= 0) {
+                        labels.push("deg");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "power") {
+                    if (key.indexOf('Active') >= 0) {
+                        labels.push("W");
+                    }
+                    else if (key.indexOf('Reactive') >= 0) {
+                        labels.push("VAR");
+                    }
+                    else if (key.indexOf('Apparent') >= 0) {
+                        labels.push("VA");
+                    }
+                }
+                else if (type.toLowerCase() == "impedance") {
+                    if (key.indexOf('Resistance') >= 0) {
+                        labels.push("Ohm (R)");
+                    }
+                    else if (key.indexOf('Reactance') >= 0) {
+                        labels.push("Ohm (X)");
+                    }
+                    else if (key.indexOf('Impedance') >= 0) {
+                        labels.push("Ohm (Z)");
+                    }
+                }
+                else if (type.toLowerCase() == "rapidvoltagechange") {
+                    labels.push("Volt");
+                }
+                else if (type.toLowerCase() == "firstderivative") {
+                    if (key.indexOf('V') >= 0) {
+                        labels.push("Volt/sec");
+                    }
+                    else {
+                        labels.push("Amps/sec");
+                    }
+                    
+                }
+                else if (type.toLowerCase() == "lowpassfilter") {
+                    if (key.indexOf('V') >= 0) {
+                        labels.push("Volt");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "highpassfilter") {
+                    if (key.indexOf('V') >= 0) {
+                        labels.push("Volt");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "symmetricalcomponents") {
+                    // This is an issue and needs some additonal attention
+                }
+                else if (type.toLowerCase() == "rectifier") {
+                    if (key.indexOf('Voltage') >= 0) {
+                        labels.push("Volt");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "unbalance") {
+                    labels.push("Percent");
+                }
+                else if (type.toLowerCase() == "clippedwaveforms") {
+                    if (key.indexOf('V') >= 0) {
+                        labels.push("Volt");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "thd") {
+                    labels.push("Percent");
+                }
+                else if (type.toLowerCase() == "overlappingwaveform") {
+                    if (key.indexOf('V') >= 0) {
+                        labels.push("Volt");
+                    }
+                    else {
+                        labels.push("Amps");
+                    }
+                }
+                else if (type.toLowerCase() == "removecurrent") {
+                    labels.push("Amps");
+                }
+                else if (type.toLowerCase() == "missingvoltage") {
+                    labels.push("Volt");
+                }
+                else if (type.toLowerCase() == "harmonicspectrum") {
+
+                }
+                else if (type.toLowerCase() == "fft") {
+
+                }
+                else if (type.toLowerCase() == "frequency") {
+                    labels.push("Hz");
+                }
+            }
+        });
+
+        console.log(type);
+        
+        labels = labels.filter(distinct);
+        return labels.join('/');
+    }
 }
