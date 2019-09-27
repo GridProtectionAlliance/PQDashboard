@@ -29,7 +29,7 @@ import { clone } from 'lodash';
 declare var cycles: number;
 declare var samplesPerCycle: number;
 
-export interface AnalyticParamters { harmonic: number };
+export interface AnalyticParamters { harmonic: number, order: number };
 
 
 export default class RadioselectWindow extends React.Component{
@@ -43,6 +43,7 @@ export default class RadioselectWindow extends React.Component{
     state: { analytics: Array<{ label: string, analytic: string }> }
     cyclesOptions: any[];
     samplesPerCycleOptions: any[];
+    orderOptions: any[];
 
     constructor(props, context) {
         super(props, context);
@@ -80,6 +81,10 @@ export default class RadioselectWindow extends React.Component{
         for (var i = 1; i <= samplesPerCycle / 2; ++i)
             this.samplesPerCycleOptions.push(<option key={i} value={i.toString()}>{i}</option>);
 
+        this.orderOptions = [];
+
+        for (var i = 1; i <= 3; ++i)
+            this.orderOptions.push(<option key={i} value={i.toString()}>{i}</option>);
     }
 
     handleClicks(event): void {
@@ -133,6 +138,16 @@ export default class RadioselectWindow extends React.Component{
                         </form> : null)
                     )
                     : null)}
+                {(this.props.analytic != null ?
+                    (((this.props.analytic.toLowerCase() == "highpassfilter") || (this.props.analytic.toLowerCase() == "lowpassfilter") ?
+                        <form style={optionStyle}>
+                            <ul ref="list" style={{ listStyleType: 'none', padding: 0 }}>
+                                <li><label> Order: <select defaultValue={'1'} onChange={this.ChangeOrder.bind(this)}>{this.orderOptions}</select></label></li>
+                            </ul>
+                        </form> : null)
+                    )
+                    : null)}
+
             </div>
         );
     }
@@ -140,6 +155,12 @@ export default class RadioselectWindow extends React.Component{
     ChangeCycles(event) {
         var obj = clone(this.props.analyticSettings);
         obj.harmonic = event.target.value;
+        this.props.stateSetter({ AnalyticSettings: obj });
+    }
+
+    ChangeOrder(event) {
+        var obj = clone(this.props.analyticSettings);
+        obj.order = event.target.value;
         this.props.stateSetter({ AnalyticSettings: obj });
     }
 }

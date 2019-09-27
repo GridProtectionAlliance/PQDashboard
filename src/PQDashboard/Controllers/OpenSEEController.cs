@@ -2173,13 +2173,13 @@ namespace OpenSEE.Controller
                 ReveresOutput[i] = 0;
                 for (int j = 0; j < (order + 1); j++)
                 {
-                    ReveresOutput[i] += K * reversed[i - j] * b[j] - ReveresOutput[i - j] * a[j];
+                    ReveresOutput[i] += (K * reversed[i - j] * b[j] - ReveresOutput[i - j] * a[j]);
                 }
             }
 
+            double[] output = ReveresOutput.Reverse().Select(item => item * 2.0D).ToArray();
 
-
-            return ReveresOutput.Reverse().ToArray();
+            return output;
 
         }
         
