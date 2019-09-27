@@ -2025,7 +2025,7 @@ namespace OpenSEE.Controller
 
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                systemFrequency = 120;
+                systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
             }
 
 
@@ -2035,11 +2035,13 @@ namespace OpenSEE.Controller
                 List<DataPoint> points = vAN.DataPoints;
 
                 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1,0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter VAN", new FlotSeries() { ChartLabel = "VAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2050,11 +2052,13 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter VBN", new FlotSeries() { ChartLabel = "VBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2064,11 +2068,13 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
                 List<DataPoint> points = vCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter VCN", new FlotSeries() { ChartLabel = "VCN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2078,11 +2084,13 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
                 List<DataPoint> points = iAN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter IAN", new FlotSeries() { ChartLabel = "IAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2093,11 +2101,13 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
                 List<DataPoint> points = iBN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter IBN", new FlotSeries() { ChartLabel = "IBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2107,11 +2117,13 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
                 List<DataPoint> points = iCN.DataPoints;
 
-                double[] lowPass = MathNet.Filtering.FIR.FirCoefficients.LowPass(samplesPerCycle * systemFrequency, systemFrequency, 1.0, order);
+                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
+                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
 
-                MathNet.Filtering.FIR.OnlineFirFilter filter = new MathNet.Filtering.FIR.OnlineFirFilter(lowPass);
+                double[] a = PolesToPolynomial(lowpassPoles);
+                double[] b = PolesToPolynomial(lowpassZeros);
 
-                double[] results = filter.ProcessSamples(points.Select(x => x.Value).ToArray());
+                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b);
 
                 dataLookup.Add("Low Pass Filter ICN", new FlotSeries() { ChartLabel = "ICN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2120,6 +2132,101 @@ namespace OpenSEE.Controller
 
             return dataLookup;
         }
+
+        private double[] Filter(double[] input, double[] a, double[] b)
+        {
+            int n = input.Count();
+            int order = a.Count() - 1;
+
+            double[] forwardOutput = new double[n];
+            double[] ReveresOutput = new double[n];
+
+            double K = a.Sum()/b.Sum();
+
+            a[0] = 0;
+
+            //setup first few points for computation
+            for (int i = 0; i < order; i++)
+            {
+                forwardOutput[i] = 0;
+                ReveresOutput[i] = 0;
+            }
+
+            //Forward Filtering
+            for (int i = order; i<n; i++)
+            {
+                forwardOutput[i] = 0;
+                for (int j=0; j < (order+1); j++)
+                {
+                    forwardOutput[i] += K * input[i - j] * b[j] - forwardOutput[i - j] * a[j];
+                }
+            }
+
+
+            //Reverse signal
+            double[] reversed = forwardOutput.Reverse().ToArray();
+            
+
+            //Reverse Filtering
+            for (int i = order; i < n; i++)
+            {
+                ReveresOutput[i] = 0;
+                for (int j = 0; j < (order + 1); j++)
+                {
+                    ReveresOutput[i] += K * reversed[i - j] * b[j] - ReveresOutput[i - j] * a[j];
+                }
+            }
+
+
+
+            return ReveresOutput.Reverse().ToArray();
+
+        }
+        
+        private Complex[] LowPassPoles(int order, double fs, double fc)
+        {
+            Complex[] poles = new Complex[order];
+
+            double Fc = fs / Math.PI * Math.Tan(Math.PI * fc / fs);
+            Fc = fc;
+
+            for (int i=0; i < order; i++)
+            {
+                double theta = (2.0D * (i) + 1.0D) * Math.PI / (2.0D * order) ;
+                poles[i] = (2.0D * Math.PI * Fc) * (new Complex(-Math.Sin(theta), Math.Cos(theta)));
+                poles[i] = (1.0D + poles[i] / (2.0D * fs)) / (1.0D - (poles[i] / (2.0D * fs)));
+            }
+            return poles;
+        }
+
+        private double[] PolesToPolynomial(Complex[] poles)
+        {
+            int n = poles.Count();
+            double[] polynomial = new double[n + 1];
+
+            switch(n)
+            {
+                case (1):
+                    polynomial[0] = 1;
+                    polynomial[1] = (-poles[0]).Real;
+                    break;
+                case (2):
+                    polynomial[0] = 1;
+                    polynomial[1] = (-(poles[0] + poles[1])).Real;
+                    polynomial[2] = (poles[0] * poles[1]).Real;
+                    break;
+                case (3):
+                    polynomial[0] = 1;
+                    polynomial[1] = (-(poles[0] + poles[1] + poles[2])).Real;
+                    polynomial[2] = (poles[0] * poles[1]+ poles[0] * poles[2]+ poles[1] * poles[2]).Real;
+                    polynomial[3] = (-poles[0]*poles[1]*poles[2]).Real;
+                    break;
+
+            }
+            return polynomial;
+        }
+
+
         #endregion
 
         #region [ High Pass Filter ]
