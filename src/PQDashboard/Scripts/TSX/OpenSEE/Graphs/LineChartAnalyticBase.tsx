@@ -94,7 +94,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                     return ticks;
                 },
                 tickFormatter: function (value, axis) {
-                    if (axis.delta < 1) {
+                    if (axis.delta < 12) {
                         var trunc = value - ctrl.floorInBase(value, 1000);
                         return ctrl.defaultTickFormatter(trunc, axis) + " ms";
                     }
