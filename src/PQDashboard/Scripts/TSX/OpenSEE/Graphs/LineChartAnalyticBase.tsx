@@ -733,10 +733,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                     labels.push("Hz");
                 }
             }
-        });
-
-        console.log(type);
-        
+        });       
         labels = labels.filter(distinct);
         return labels.join('/');
     }

@@ -359,7 +359,7 @@ namespace PQDashboard
 
             foreach (DataSeries dataSeries in mergedGroup.DataSeries)
             {
-                string key = dataSeries.SeriesInfo.Channel.Name;
+                string key = (dataSeries.SeriesInfo.Channel.MeasurementType.Name == "Voltage"? "V" :"I") + dataSeries.SeriesInfo.Channel.Phase.Name;
                 dict.GetOrAdd(key, _ => dataSeries.ToSubSeries(startTime, endTime));
             }
 
@@ -368,9 +368,11 @@ namespace PQDashboard
             foreach (CycleDataGroup cycleDataGroup in viCycleDataGroup.CycleDataGroups)
             {
                 DataGroup dg = cycleDataGroup.ToDataGroup();
-                string key = dg.DataSeries.First().SeriesInfo.Channel.Name;
+                string key = (dg.DataSeries.First().SeriesInfo.Channel.MeasurementType.Name == "Voltage" ? "V" : "I") + dg.DataSeries.First().SeriesInfo.Channel.Phase.Name;
                 dict.GetOrAdd(key + " RMS", _ => cycleDataGroup.RMS.ToSubSeries(startTime, endTime));
-                dict.GetOrAdd(key + " Angle", _ => cycleDataGroup.Phase.ToSubSeries(startTime, endTime));
+                DataSeries angles = cycleDataGroup.Phase.ToSubSeries(startTime, endTime);
+                angles.DataPoints = angles.DataPoints.Select(dataPoint => new DataPoint() { Time = dataPoint.Time, Value = dataPoint.Value * 180 / Math.PI }).ToList();
+                dict.GetOrAdd(key + " Angle", _ => angles);
             }
 
             return dict;
@@ -380,7 +382,8 @@ namespace PQDashboard
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(meter, data);
-            return dataGroup;
+            VIDataGroup vIDataGroup = new VIDataGroup(dataGroup);
+            return vIDataGroup.ToDataGroup();
         }
 
         private IDbDataParameter ToDateTime2(AdoDataConnection connection, DateTime dateTime)

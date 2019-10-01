@@ -3632,6 +3632,35 @@ namespace OpenSEE.Controller
             }
         }
 
+        [Route("GetOutputChannelCount/{eventID}"), HttpGet]
+        public IHttpActionResult GetOutputChannelCount(int eventID)
+        {
+            try
+            {
+                if (eventID <= 0) return BadRequest("Invalid EventID");
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    int count = connection.ExecuteScalar<int>(@"
+                SELECT 
+	                COUNT(*) 
+                FROM 
+	                Event JOIN 
+	                Channel ON Channel.MeterID = Event.MeterID AND Channel.LineID = Event.LineID JOIN
+	                Series ON Channel.ID = Series.ChannelID JOIN
+	                OutputChannel ON OutputChannel.SeriesID = Series.ID
+                WHERE
+                    Event.ID = {0}
+                ", eventID);
+                    return Ok(count);
+                }
+            }
+            catch(Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+        }
+
 
         #endregion
 

@@ -134,7 +134,7 @@ const Row = (row, background) => {
 
     return (
         <tr style={{ display: 'table', tableLayout: 'fixed', background: background }} key={row.EventID}>
-            <td style={{ width: 60 }} key={'EventID' + row.EventID}><a id="eventLink" href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
+            <td style={{ width: 60 }} key={'EventID' + row.EventID}><a id="eventLink" target="_blank" href={'./OpenSEE?eventid=' + row.EventID}><div style={{ width: '100%', height: '100%' }}>{row.EventID}</div></a></td>
             <td style={{ width: 80 }} key={'EventType' + row.EventID}>{row.EventType}</td>
             <td style={{ width: 80 }} key={'SagMagnitude' + row.EventID}>{row.SagMagnitudePercent}%</td>
             <td style={{ width: 150 }} key={'SagDuration' + row.EventID}>{row.SagDurationMilliseconds} ms ({row.SagDurationCycles} cycles)</td>

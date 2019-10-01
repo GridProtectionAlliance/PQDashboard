@@ -49,11 +49,30 @@ export default class OpenSEENavbar extends React.Component {
         endDate: string,
         TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>
     }
-    state: {}
+    state: {
+        showComtradeExportButton: boolean
+    }
     constructor(props, context) {
         super(props, context);
 
+        this.state = {
+            showComtradeExportButton: false
+        }
+    }
 
+    componentDidMount() {
+        this.getOutputChannelCount();
+    }
+
+    getOutputChannelCount(): void {
+        $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetOutputChannelCount/${this.props.eventid}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        }).done(data => this.setState({ showComtradeExportButton: data > 0 }));
     }
 
     render() {
@@ -77,7 +96,7 @@ export default class OpenSEENavbar extends React.Component {
 
                                 <div className="dropdown-divider"></div>
                                 <a className="dropdown-item" onClick={this.exportData.bind(this, "csv")}>Export CSV</a>
-                                <a className="dropdown-item" onClick={this.exportComtrade.bind(this)}>Export COMTRADE</a>
+                                {this.state.showComtradeExportButton ? <a className="dropdown-item" onClick={this.exportComtrade.bind(this)}>Export COMTRADE</a> : null}
                             </div>
                         </li>
                         <li className="nav-item" style={{ width: 'calc(100% - 450px)', textAlign: 'center' }}>
@@ -92,7 +111,7 @@ export default class OpenSEENavbar extends React.Component {
                                 <div className="input-group-prepend">
                                     {(this.props.selected == "system" ? <a href={(this.props.nextBackLookup.System.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.System.m_Item1.ID + "&navigation=system" : '#')} id="system-back" key="system-back" className={'btn btn-primary' + (this.props.nextBackLookup.System.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
                                     {(this.props.selected == "station" ? <a href={(this.props.nextBackLookup.Station.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Station.m_Item1.ID + "&navigation=station" : '#')} id="station-back" key="station-back" className={'btn btn-primary' + (this.props.nextBackLookup.Station.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Station.m_Item1 != null ? this.props.nextBackLookup.Station.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
-                                    {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item.ID + "&navigation=meter" : '#')} id="meter-back" key="meter-back" className={'btn btn-primary' + (this.props.nextBackLookup.Meter.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item1 != null ? this.props.nextBackLookup.Meter.m_Item1.StartTime : '')} style={{ padding: '4px 20px' }}>&lt;</a> : null)}
+                                    {(this.props.selected == "meter" ? <a href={(this.props.nextBackLookup.Meter.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Meter.m_Item1.ID + "&navigation=meter" : '#')} id="meter-back" key="meter-back" className={'btn btn-primary' + (this.props.nextBackLookup.Meter.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.Meter.m_Item1 != null ? this.props.nextBackLookup.Meter.m_Item1.StartTime : '')} style={{ padding: '4px 20px' }}>&lt;</a> : null)}
                                     {(this.props.selected == "line" ? <a href={(this.props.nextBackLookup.Line.m_Item1 != null ? "?eventid=" + this.props.nextBackLookup.Line.m_Item1.ID + "&navigation=line" : '#')} id="line-back" key="line-back" className={'btn btn-primary' + (this.props.nextBackLookup.Line.m_Item1 == null ? ' disabled' : '')} title={(this.props.nextBackLookup.System.m_Item1 != null ? this.props.nextBackLookup.System.m_Item1.StartTime : '')} style={{ padding: '4px 20px'}}>&lt;</a> : null)}
                                 </div>
                                 <select id="next-back-selection" value={this.props.selected} onChange={(e) => this.props.stateSetter({ navigation: e.target.value })}>
