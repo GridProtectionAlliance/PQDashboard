@@ -158,6 +158,12 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         if (label.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
         if (label.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
         if (label.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
+        if (label.ChartLabel.indexOf('VAB') >= 0) return '#A30000';
+        if (label.ChartLabel.indexOf('VBC') >= 0) return '#0029A3';
+        if (label.ChartLabel.indexOf('VCA') >= 0) return '#007A29';
+        if (label.ChartLabel.indexOf('NG') >= 0) return '#d3d3d3';
+        if (label.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
+        if (label.ChartLabel.indexOf('IRES') >= 0) return '#D3D3D3';    
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
