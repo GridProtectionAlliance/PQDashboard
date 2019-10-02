@@ -314,6 +314,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         options.axisLabels = { show: true };
 
         this.plot = $.plot($(ctrl.refs.graphWindow), newVessel, options);
+        this.plot.lockCrosshair();
         this.plotSelected();
         this.plotZoom();
         this.plotPan();
@@ -447,7 +448,15 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         var ctrl = this;
         $(ctrl.refs.graphWindow).off("plothover");
         $(ctrl.refs.graphWindow).bind("plothover", function (event, pos, item) {
-            ctrl.props.stateSetter({ Hover: pos.x });
+            var data = ctrl.plot.getData();
+            if (data.length > 0 && data[0].data != undefined) {
+                var point = ctrl.plot.getData()[0].data.map(x => x[0]).sort((a, b) => Math.abs(a - pos.x) - Math.abs(b - pos.x))[0];
+                //ctrl.plot.clearCrosshair(pos.x)
+                //ctrl.plot.setCrosshair(point);
+                
+                ctrl.props.stateSetter({ Hover: point });
+
+            }
         });
     }
 
@@ -455,7 +464,11 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         var ctrl = this;
         $(ctrl.refs.graphWindow).off("plotclick");
         $(ctrl.refs.graphWindow).bind("plotclick", function (event, pos, item) {
-            var timeString = ctrl.getDateString(pos.x);
+            var data = ctrl.plot.getData();
+
+            if (data.length == 0 || data[0].data == undefined) return;
+            var point = ctrl.plot.getData()[0].data.map(x => x[0]).sort((a, b) => Math.abs(a - pos.x) - Math.abs(b - pos.x))[0];
+            var timeString = ctrl.getDateString(point);
 
             var time;
             var deltatime;
