@@ -164,12 +164,12 @@ namespace PQDashboard
         }
 
         // Converts the data group row of CSV data.
-        private string ToCSV(Dictionary<string, DataSeries> dict, int index)
+        private string ToCSV(Dictionary<string, DataSeries> dict, IEnumerable<string> keys,int index)
         {
             DateTime timestamp = dict.Values.First().DataPoints[index].Time;
             IEnumerable<string> row = new List<string>() { timestamp.ToString("MM/dd/yyyy HH:mm:ss.fffffff"), timestamp.ToString("fffffff") };
 
-            row = row.Concat(dict.Keys.Select(x => {
+            row = row.Concat(keys.Select(x => {
                 if (dict[x].DataPoints.Count > index)
                     return dict[x].DataPoints[index].Value.ToString();
                 else
@@ -180,10 +180,10 @@ namespace PQDashboard
         }
 
         // Converts the data group row of CSV data.
-        private string GetCSVHeader(Dictionary<string, DataSeries> dict)
+        private string GetCSVHeader(IEnumerable<string> keys)
         {
             IEnumerable<string> headers = new List<string>() { "TimeStamp", "SubSecond" };
-            headers = headers.Concat(dict.Keys);
+            headers = headers.Concat(keys);
             return string.Join(",", headers);
         }
 
@@ -194,12 +194,13 @@ namespace PQDashboard
 
             using (StreamWriter writer = new StreamWriter(returnStream))
             {
+                IEnumerable<string> keys = dict.Keys.ToList().OrderByDescending(x=> x[0]).ThenBy(x=>x);
                 // Write the CSV header to the file
-                writer.WriteLine(GetCSVHeader(dict));
+                writer.WriteLine(GetCSVHeader(keys));
 
                 // Write data to the file
                 for (int i = 0; i < dict[dict.Keys.First()].DataPoints.Count; ++i)
-                    writer.WriteLine(ToCSV(dict, i));
+                    writer.WriteLine(ToCSV(dict, keys,i));
             }
         }
 
