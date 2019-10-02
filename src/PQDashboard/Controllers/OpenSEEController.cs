@@ -1197,15 +1197,17 @@ namespace OpenSEE.Controller
                             lastY = y;
                         }
 
-                        double[] arr = new double[] { x, (y - lastY) / (x - lastX) };
+                        double[] arr = new double[] { x, (y - lastY) / ((x - lastX)) };
 
                         lastY = y;
                         lastX = x;
+
 
                         return arr;
                     }).ToList()
                 };
 
+                flotSeries.DataPoints = flotSeries.DataPoints.Select(item => new double[] {item[0], item[1]*1000.0D}).ToList();
                 return flotSeries;
             }
 
