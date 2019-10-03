@@ -99,6 +99,7 @@ namespace OpenSEE.Controller
             public Dictionary<int, double> DataPoints = new Dictionary<int, double>();
         }
 
+        #region[AnalyticFilterClasses]
         public class FFT
         {
             #region[constructor]
@@ -157,6 +158,279 @@ namespace OpenSEE.Controller
 
             #endregion[Properties]
         }
+
+        public class Filter
+        {
+            #region[Properties]
+            private List<System.Numerics.Complex> ContinousPoles;
+            private List<System.Numerics.Complex> ContinousZeros;
+            private double Gain;
+
+            private List<System.Numerics.Complex> DiscretePoles;
+            private List<System.Numerics.Complex> DiscreteZeros;
+            private double DiscreteGain;
+
+            #endregion[Properties]
+
+            #region[methods]
+
+            public Filter(List<Complex> poles, List<Complex> zeros, double Gain)
+            {
+                this.ContinousPoles = poles;
+                this.ContinousZeros = zeros;
+                this.Gain = Gain;
+
+                this.DiscretePoles = new List<Complex>();
+                this.DiscreteZeros = new List<Complex>();
+                this.DiscreteGain = 0;
+            }
+
+            private void ContinousToDiscrete(double fs, double fp=0 )
+            {
+                // prewarp
+                double ws = 2* fs;
+                if (fp > 0.0D)
+                {
+                    fp = 2.0D * Math.PI * fp;
+                    ws = fp / Math.Tan(fp / fs / 2.0D);
+                }
+
+                //pole and zero Transormation
+                Complex poleProd = 1.0D;
+                Complex zeroProd = 1.0D;
+
+                foreach (Complex p in this.ContinousPoles)
+                {
+                    this.DiscretePoles.Add((1.0D + p / ws)/ (1.0D - p / ws));
+                    poleProd = poleProd * (ws - p);
+                }
+                foreach (Complex p in this.ContinousZeros)
+                {
+                    this.DiscreteZeros.Add((1.0D + p / ws) / (1.0D - p / ws));
+                    zeroProd = zeroProd * (ws - p);
+                }
+
+
+                this.DiscreteGain = (this.Gain * zeroProd / poleProd).Real;
+
+                if (this.DiscreteZeros.Count < this.DiscretePoles.Count)
+                {
+                    int n = this.DiscretePoles.Count - this.DiscreteZeros.Count;
+                    for (int i = 0; i < n; i++)
+                    {
+                        this.DiscreteZeros.Add(-1.0D);
+                    }
+                }
+
+            }
+
+            public void Scale(double fc)
+            {
+                double wc = 2 * Math.PI * fc;
+
+                this.ContinousPoles = this.ContinousPoles.Select(p => p * wc).ToList();
+                this.ContinousZeros = this.ContinousZeros.Select(p => p * wc).ToList();
+
+                if (this.ContinousZeros.Count < this.ContinousPoles.Count)
+                {
+                    int n = this.ContinousPoles.Count - this.ContinousZeros.Count;
+                    this.Gain = Math.Pow(wc, (double)n) * this.Gain;
+                }
+            }
+
+            public void LP2HP()
+            {
+                Complex k = 1;
+                List<Complex> hPFPoles = new List<Complex>();
+                List<Complex> hPFZeros = new List<Complex>();
+                foreach (Complex p in this.ContinousPoles)
+                {
+                    k = k * (-1.0D / p);
+                    hPFPoles.Add(1.0D / p);
+                }
+
+                foreach (Complex p in this.ContinousZeros)
+                {
+                    k = k * (-p);
+                    hPFZeros.Add(1.0D / p);
+                }
+
+                if (this.ContinousZeros.Count < this.ContinousPoles.Count)
+                {
+                    int n = this.ContinousPoles.Count - this.ContinousZeros.Count;
+                    for (int i = 0; i < n; i++)
+                    {
+                        hPFZeros.Add(0.0D);
+                    }
+                }
+
+                this.ContinousPoles = hPFPoles;
+                this.ContinousZeros = hPFZeros;
+                this.DiscretePoles = new List<Complex>();
+                this.DiscreteZeros = new List<Complex>();
+            }
+
+            private double[] PolesToPolynomial(Complex[] poles)
+            {
+                int n = poles.Count();
+                double[] polynomial = new double[n + 1];
+
+                switch (n)
+                {
+                    case (1):
+                        polynomial[0] = 1;
+                        polynomial[1] = (-poles[0]).Real;
+                        break;
+                    case (2):
+                        polynomial[0] = 1;
+                        polynomial[1] = (-(poles[0] + poles[1])).Real;
+                        polynomial[2] = (poles[0] * poles[1]).Real;
+                        break;
+                    case (3):
+                        polynomial[0] = 1;
+                        polynomial[1] = (-(poles[0] + poles[1] + poles[2])).Real;
+                        polynomial[2] = (poles[0] * poles[1] + poles[0] * poles[2] + poles[1] * poles[2]).Real;
+                        polynomial[3] = (-poles[0] * poles[1] * poles[2]).Real;
+                        break;
+
+                }
+                return polynomial;
+            }
+
+            public double[] filt(double[] signal, double fs)
+            {
+                int n = signal.Count();
+                double[] output = new double[n];
+
+                if (this.DiscretePoles.Count == 0)
+                    this.ContinousToDiscrete(fs);
+
+                double[] a = this.PolesToPolynomial(this.DiscretePoles.ToArray());
+                double[] b = this.PolesToPolynomial(this.DiscreteZeros.ToArray());
+                b = b.Select(z => z * this.DiscreteGain).ToArray();
+
+                int order = a.Count() - 1;
+                //setup first few points for computation
+                for (int i = 0; i < order; i++)
+                {
+                    output[i] = 0;
+                }
+
+                //Forward Filtering
+                for (int i = order; i < n; i++)
+                {
+                    output[i] = 0;
+                    for (int j = 0; j < (order + 1); j++)
+                    {
+                        output[i] += signal[i - j] * b[j] - output[i - j] * a[j];
+                    }
+                    output[i] = output[i] / a[0];
+                }
+                return output;
+            }
+
+            private double[] reverserFilt(double[] signal)
+            {
+                int n = signal.Count();
+                double[] output = new double[n];
+
+                signal = signal.Reverse().ToArray();
+
+                double[] a = this.PolesToPolynomial(this.DiscretePoles.ToArray());
+                double[] b = this.PolesToPolynomial(this.DiscreteZeros.ToArray());
+                b = b.Select(z => z * this.DiscreteGain).ToArray();
+
+                int order = a.Count() - 1;
+                //setup first few points for computation
+                for (int i = 0; i < order; i++)
+                {
+                    output[i] = 0;
+                }
+
+                //Forward Filtering
+                for (int i = order; i < n; i++)
+                {
+                    output[i] = 0;
+                    for (int j = 0; j < (order + 1); j++)
+                    {
+                        output[i] += signal[i - j] * b[j] - output[i - j] * a[j];
+                    }
+                    output[i] = output[i] / a[0];
+                }
+                return output.Reverse().ToArray();
+            }
+
+            public double[] filtfilt(double[] signal, double fs)
+            {
+                double[] forward = filt(signal, fs);
+                return reverserFilt(forward);
+            }
+
+            #endregion[methods]
+            #region[static]
+
+            public static Filter LPButterworth(double fc, int order)
+            {
+                Filter result = NormalButter(order);
+                result.Scale(fc);
+
+                return result;
+
+            }
+
+            private static Filter NormalButter(int order)
+            {
+                List<Complex> zeros = new List<Complex>();
+                List<Complex> poles = new List<Complex>();
+
+                //Generate poles
+                for (int i = 1; i < order; i++)
+                {
+                    double theta = Math.PI * (2 * i - 1.0D) / (2.0D * i) + Math.PI / 2.0D;
+                    double re = Math.Cos(theta);
+                    double im = Math.Sin(theta);
+                    if (i % 2 == 0)
+                    {
+                        poles.Add(new Complex(re, im));
+                    }
+                    else
+                    {
+                        poles.Add(new Complex(re, -im));
+                    }
+                }
+
+                if (order % 2 == 1)
+                {
+                    poles.Add(new Complex(-1.0D, 0.0D));
+                }
+                else
+                {
+                    poles.Add(new Complex(1.0D, 0.0D));
+                }
+
+                Complex Gain = -poles[0];
+                for (int i = 1; i < order; i++)
+                {
+                    Gain = Gain * -poles[i];
+                }
+
+                //scale to fit new filter
+                Filter result = new Filter(poles, zeros, Gain.Real);
+                return result;
+            }
+
+            public static Filter HPButterworth(double fc, int order)
+            {
+                Filter result = NormalButter( order);
+                result.LP2HP();
+                result.Scale(fc);
+                return result;
+            }
+            #endregion[static]
+
+
+        }
+        #endregion[AnalyticFilterClasses]
         // Constants
         public const string TimeCorrelatedSagsSQL =
             "SELECT " +
@@ -2030,21 +2304,14 @@ namespace OpenSEE.Controller
                 systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
             }
 
+            Filter LPF = Filter.LPButterworth(120.0, order);
 
             if (vAN != null)
             {
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1,0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter VAN", new FlotSeries() { ChartLabel = "VAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2055,14 +2322,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
 
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter VBN", new FlotSeries() { ChartLabel = "VBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2072,14 +2332,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
                 List<DataPoint> points = vCN.DataPoints;
 
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter VCN", new FlotSeries() { ChartLabel = "VCN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2089,14 +2342,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
                 List<DataPoint> points = iAN.DataPoints;
 
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter IAN", new FlotSeries() { ChartLabel = "IAN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2107,14 +2353,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
                 List<DataPoint> points = iBN.DataPoints;
 
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter IBN", new FlotSeries() { ChartLabel = "IBN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2124,14 +2363,7 @@ namespace OpenSEE.Controller
                 int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
                 List<DataPoint> points = iCN.DataPoints;
 
-                Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, 60.0);
-                Complex[] lowpassZeros = Enumerable.Repeat(new Complex(-1, 0), order).ToArray();
-
-                double[] a = PolesToPolynomial(lowpassPoles);
-                double[] b = PolesToPolynomial(lowpassZeros);
-                double K = a.Sum() / b.Sum();
-
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = LPF.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("Low Pass Filter ICN", new FlotSeries() { ChartLabel = "ICN Low Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2141,7 +2373,7 @@ namespace OpenSEE.Controller
             return dataLookup;
         }
 
-        private double[] Filter(double[] input, double[] a, double[] b, double K)
+        private double[] oldFilter(double[] input, double[] a, double[] b, double K)
         {
             int n = input.Count();
             int order = a.Count() - 1;
@@ -2317,20 +2549,16 @@ namespace OpenSEE.Controller
             {
                 systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
             }
-            int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
 
-            Complex[] lowpassPoles = LowPassPoles(order, samplesPerCycle * systemFrequency, systemFrequency);
-            Complex[] lowpassZeros = Enumerable.Repeat(new Complex(1, 0), order).ToArray();
-
-            double[] a = PolesToPolynomial(lowpassPoles);
-            double[] b = PolesToPolynomial(lowpassZeros);
-            double K = a[0] / b[0];
+            Filter hpf = Filter.HPButterworth(120.0, order);
+            
 
             if (vAN != null)
             {
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vAN.SampleRate, systemFrequency);
                 List<DataPoint> points = vAN.DataPoints;
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter VAN", new FlotSeries() { ChartLabel = "VAN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2338,30 +2566,31 @@ namespace OpenSEE.Controller
 
             if (vBN != null)
             {
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vBN.SampleRate, systemFrequency);
                 List<DataPoint> points = vBN.DataPoints;
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter VBN", new FlotSeries() { ChartLabel = "VBN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (vCN != null)
             {
-                
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(vCN.SampleRate, systemFrequency);
                 List<DataPoint> points = vCN.DataPoints;
 
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K );
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter VCN", new FlotSeries() { ChartLabel = "VCN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (iAN != null)
             {
-               
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iAN.SampleRate, systemFrequency);
                 List<DataPoint> points = iAN.DataPoints;
 
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter IAN", new FlotSeries() { ChartLabel = "IAN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -2369,20 +2598,20 @@ namespace OpenSEE.Controller
 
             if (iBN != null)
             {
-                
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iBN.SampleRate, systemFrequency);
                 List<DataPoint> points = iBN.DataPoints;
 
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter IBN", new FlotSeries() { ChartLabel = "IBN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
 
             if (iCN != null)
             {
-                
+                int samplesPerCycle = Transform.CalculateSamplesPerCycle(iCN.SampleRate, systemFrequency);
                 List<DataPoint> points = iCN.DataPoints;
-                
-                double[] results = Filter(points.Select(x => x.Value).ToArray(), a, b, K);
+
+                double[] results = hpf.filtfilt(points.Select(x => x.Value).ToArray(), samplesPerCycle * systemFrequency);
 
                 dataLookup.Add("High Pass Filter ICN", new FlotSeries() { ChartLabel = "ICN High Pass Filter", DataPoints = results.Select((point, index) => new double[] { points[index].Time.Subtract(m_epoch).TotalMilliseconds, point }).ToList() });
             }
@@ -3221,7 +3450,7 @@ namespace OpenSEE.Controller
                     a[1] = -Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC));
                     double K = 1.0D;
 
-                    double[] filtered = Filter(points, a, b, K);
+                    double[] filtered = oldFilter(points, a, b, K);
                     phaseMaxes = phaseMaxes.Select((point, index) => new DataPoint() { Time = point.Time, Value = filtered[index] });
                 }
 
