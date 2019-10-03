@@ -313,7 +313,7 @@ namespace OpenSEE.Controller
                 //setup first few points for computation
                 for (int i = 0; i < order; i++)
                 {
-                    output[i] = 0;
+                    output[i] = signal[i];
                 }
 
                 //Forward Filtering
@@ -344,7 +344,7 @@ namespace OpenSEE.Controller
                 //setup first few points for computation
                 for (int i = 0; i < order; i++)
                 {
-                    output[i] = 0;
+                    output[i] = signal[i];
                 }
 
                 //Forward Filtering

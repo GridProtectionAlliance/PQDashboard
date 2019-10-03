@@ -87,6 +87,8 @@ export default class RadioselectWindow extends React.Component{
             this.orderOptions.push(<option key={i} value={i.toString()}>{i}</option>);
 
         this.RCoptions = [];
+        var i = 0;
+        this.RCoptions.push(<option key={i} value={i.toString()}>{i}</option>);
         var i = 100;
         this.RCoptions.push(<option key={i} value={i.toString()}>{i}</option>);
         var i = 200;
