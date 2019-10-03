@@ -38,7 +38,7 @@ export interface LineChartAnaltyicalBaseProps {
 
 interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
     legendKey: string, openSEEServiceFunction: StandardAnalyticServiceFunction, legendEnable: Function, legendDisplay: Function,
-    getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction, harmonic?: number, order?: number
+    getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction, harmonic?: number, order?: number, Trc?: number
 
 }
 export default class LineChartAnalyticBase extends React.Component<LineChartAnalyticBassClassProps, any>{

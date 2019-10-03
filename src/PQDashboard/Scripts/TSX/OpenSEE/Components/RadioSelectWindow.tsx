@@ -29,7 +29,7 @@ import { clone } from 'lodash';
 declare var cycles: number;
 declare var samplesPerCycle: number;
 
-export interface AnalyticParamters { harmonic: number, order: number };
+export interface AnalyticParamters { harmonic: number, order: number, Trc: number };
 
 
 export default class RadioselectWindow extends React.Component{
@@ -44,7 +44,7 @@ export default class RadioselectWindow extends React.Component{
     cyclesOptions: any[];
     samplesPerCycleOptions: any[];
     orderOptions: any[];
-
+    RCoptions: any[];
     constructor(props, context) {
         super(props, context);
         this.state = {
@@ -85,6 +85,14 @@ export default class RadioselectWindow extends React.Component{
 
         for (var i = 1; i <= 3; ++i)
             this.orderOptions.push(<option key={i} value={i.toString()}>{i}</option>);
+
+        this.RCoptions = [];
+        var i = 100;
+        this.RCoptions.push(<option key={i} value={i.toString()}>{i}</option>);
+        var i = 200;
+        this.RCoptions.push(<option key={i} value={i.toString()}>{i}</option>);
+        var i = 500;
+        this.RCoptions.push(<option key={i} value={i.toString()}>{i}</option>);
     }
 
     handleClicks(event): void {
@@ -147,7 +155,15 @@ export default class RadioselectWindow extends React.Component{
                         </form> : null)
                     )
                     : null)}
-
+                {(this.props.analytic != null ?
+                    ((this.props.analytic.toLowerCase() == "rectifier") ?
+                        <form style={optionStyle}>
+                            <ul ref="list" style={{ listStyleType: 'none', padding: 0 }}>
+                                <li><label> RC time Constant (ms): <select defaultValue={'100'} onChange={this.ChangeTrc.bind(this)}>{this.RCoptions}</select></label></li>
+                            </ul>
+                        </form> : null)
+                    
+                    : null)}
             </div>
         );
     }
@@ -161,6 +177,12 @@ export default class RadioselectWindow extends React.Component{
     ChangeOrder(event) {
         var obj = clone(this.props.analyticSettings);
         obj.order = event.target.value;
+        this.props.stateSetter({ AnalyticSettings: obj });
+    }
+
+    ChangeTrc(event) {
+        var obj = clone(this.props.analyticSettings);
+        obj.Trc = event.target.value;
         this.props.stateSetter({ AnalyticSettings: obj });
     }
 }

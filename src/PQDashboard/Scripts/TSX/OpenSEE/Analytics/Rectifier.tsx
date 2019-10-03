@@ -21,12 +21,75 @@
 //
 //******************************************************************************************************
 
-import { createElement } from 'react';
+import * as React from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
+import { iLegendData } from '../Graphs/Legend';
 
-export default function Retifier(props: LineChartAnaltyicalBaseProps): JSX.Element {
-    function getColor(label) {
+
+interface rectifierProps extends LineChartAnaltyicalBaseProps {
+    Trc: number;
+}
+
+export default class Rectifier extends React.Component<any, any>{
+    openSEEService: OpenSEEService;
+    props: rectifierProps
+    constructor(props) {
+        super(props);
+        this.openSEEService = new OpenSEEService();
+        this.getData = this.getData.bind(this);
+    }
+
+
+    getData(props, ctrl: LineChartAnalyticBase) {
+        console.log(props);
+
+        var legendRow = ctrl.state.legendRows.entries().next().value;
+        var handle = this.openSEEService.getRectifierData(props.eventId, props.pixels, this.props.Trc, props.startDate, props.endDate).then(data => {
+            if (data == null) {
+                return;
+            }
+
+            var hightlightFunction = ctrl.props.highlightCycle == undefined || ctrl.props.highlightCycle ? ctrl.highlightCycle : ctrl.highlightSample
+            var highlight = hightlightFunction(data);
+            if (highlight != undefined)
+                ctrl.options['grid'].markings.push(highlight);
+
+            var legend = ctrl.createLegendRows(data.Data);
+
+            ctrl.createDataRows(data, legend);
+            ctrl.setState({ dataSet: data });
+        });
+        ctrl.setState({ dataHandle: handle });
+        ctrl.setState({ Trc: this.props.Trc });
+
+    }
+    render() {
+        var ctrl = this;
+        return <LineChartAnalyticBase
+            legendDisplay={(key) => key.indexOf("V") == 0}
+            legendEnable={(key) => key.indexOf("V") == 0}
+            legendKey={"Rectifier"}
+            openSEEServiceFunction={ctrl.openSEEService.getFirstDerivativeData}
+            getData={this.getData}
+            endDate={this.props.endDate}
+            getColor={(key, index) => this.getColor(key)}
+            eventId={this.props.eventId}
+            height={this.props.height}
+            hover={this.props.hover}
+            pixels={this.props.pixels}
+            pointsTable={this.props.pointsTable}
+            postedData={this.props.postedData}
+            startDate={this.props.startDate}
+            stateSetter={this.props.stateSetter}
+            Trc={this.props.Trc}
+            tableData={this.props.tableData}
+            tableSetter={this.props.tableSetter}
+            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
+        />
+    }
+
+    getColor(label) {
         if (label.ChartLabel.indexOf('Rectifier') >= 0) return '#2e2a41';
         else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
@@ -36,25 +99,4 @@ export default function Retifier(props: LineChartAnaltyicalBaseProps): JSX.Eleme
             return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
         }
     }
-
-    var openSEEService = new OpenSEEService();
-    return createElement(LineChartAnalyticBase, {
-        legendDisplay: (key) => key.indexOf("V") == 0,
-        legendEnable: (key) => key.indexOf("V") == 0,
-        legendKey: "Rectifier",
-        openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getRectifierData(eventid, pixels,0, startDate, endDate),
-        endDate: props.endDate,
-        getColor: (key, index) => getColor(key),
-        eventId: props.eventId,
-        height: props.height,
-        hover: props.hover,
-        pixels: props.pixels,
-        pointsTable: props.pointsTable,
-        postedData: props.postedData,
-        startDate: props.startDate,
-        stateSetter: props.stateSetter,
-        tableData: props.tableData,
-        tableSetter: props.tableSetter,
-        tooltipWithDeltaTable: props.tooltipWithDeltaTable,
-    }, null);
 }

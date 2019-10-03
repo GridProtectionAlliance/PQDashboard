@@ -2373,97 +2373,6 @@ namespace OpenSEE.Controller
             return dataLookup;
         }
 
-        private double[] oldFilter(double[] input, double[] a, double[] b, double K)
-        {
-            int n = input.Count();
-            int order = a.Count() - 1;
-
-            double[] forwardOutput = new double[n];
-            double[] ReveresOutput = new double[n];
-
-            a[0] = 0;
-
-            //setup first few points for computation
-            for (int i = 0; i < order; i++)
-            {
-                forwardOutput[i] = 0;
-                ReveresOutput[i] = 0;
-            }
-
-            //Forward Filtering
-            for (int i = order; i<n; i++)
-            {
-                forwardOutput[i] = 0;
-                for (int j=0; j < (order+1); j++)
-                {
-                    forwardOutput[i] += K * input[i - j] * b[j] - forwardOutput[i - j] * a[j];
-                }
-            }
-
-
-            //Reverse signal
-            double[] reversed = forwardOutput.Reverse().ToArray();
-            
-
-            //Reverse Filtering
-            for (int i = order; i < n; i++)
-            {
-                ReveresOutput[i] = 0;
-                for (int j = 0; j < (order + 1); j++)
-                {
-                    ReveresOutput[i] += (K * reversed[i - j] * b[j] - ReveresOutput[i - j] * a[j]);
-                }
-            }
-
-            double[] output = ReveresOutput.Reverse().Select(item => item * 2.0D).ToArray();
-
-            return output;
-
-        }
-        
-        private Complex[] LowPassPoles(int order, double fs, double fc)
-        {
-            Complex[] poles = new Complex[order];
-
-            double Fc = fs / Math.PI * Math.Tan(Math.PI * fc / fs);
-            Fc = fc;
-
-            for (int i=0; i < order; i++)
-            {
-                double theta = (2.0D * (i) + 1.0D) * Math.PI / (2.0D * order) ;
-                poles[i] = (2.0D * Math.PI * Fc) * (new Complex(-Math.Sin(theta), Math.Cos(theta)));
-                poles[i] = (1.0D + poles[i] / (2.0D * fs)) / (1.0D - (poles[i] / (2.0D * fs)));
-            }
-            return poles;
-        }
-
-        private double[] PolesToPolynomial(Complex[] poles)
-        {
-            int n = poles.Count();
-            double[] polynomial = new double[n + 1];
-
-            switch(n)
-            {
-                case (1):
-                    polynomial[0] = 1;
-                    polynomial[1] = (-poles[0]).Real;
-                    break;
-                case (2):
-                    polynomial[0] = 1;
-                    polynomial[1] = (-(poles[0] + poles[1])).Real;
-                    polynomial[2] = (poles[0] * poles[1]).Real;
-                    break;
-                case (3):
-                    polynomial[0] = 1;
-                    polynomial[1] = (-(poles[0] + poles[1] + poles[2])).Real;
-                    polynomial[2] = (poles[0] * poles[1]+ poles[0] * poles[2]+ poles[1] * poles[2]).Real;
-                    polynomial[3] = (-poles[0]*poles[1]*poles[2]).Real;
-                    break;
-
-            }
-            return polynomial;
-        }
-
 
         #endregion
 
@@ -3450,7 +3359,8 @@ namespace OpenSEE.Controller
                     a[1] = -Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC));
                     double K = 1.0D;
 
-                    double[] filtered = oldFilter(points, a, b, K);
+                    double[] filtered = points;
+
                     phaseMaxes = phaseMaxes.Select((point, index) => new DataPoint() { Time = point.Time, Value = filtered[index] });
                 }
 
