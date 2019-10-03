@@ -3346,20 +3346,17 @@ namespace OpenSEE.Controller
 
 
                 IEnumerable<DataPoint> phaseMaxes = vAN.Select((point, index) => new DataPoint() { Time = point.Time, Value = new double[] { Math.Abs(vAN[index].Value), Math.Abs(vBN[index].Value), Math.Abs(vCN[index].Value) }.Max() });
-                //IEnumerable<DataPoint> cycleMaxes = phaseMaxes.Select((point, index) => new { Point = point, Index = index }).GroupBy(obj => obj.Index / samplesPerCycle).SelectMany(grouping => grouping.Select(point => new DataPoint() { Time = point.Point.Time, Value = grouping.Select(p => p.Point.Value).Max() }));
 
                 // Run Through RC Filter
                 if (RC > 0)
                 {
+                    double wc = 2.0D * Math.PI * 1.0D / (RC / 1000.0D);
+                    Filter filt = new Filter(new List<Complex>(){-wc}, new List<Complex>(), wc);
+
                     phaseMaxes = phaseMaxes.OrderBy(item => item.Time);
                     double[] points = phaseMaxes.Select(item => item.Value).ToArray();
-                    double[] b= new double[2] {1.0D, 0.0D};
-                    double[] a = new double[2] { 1.0D, 0.0D };
-                    b[0] = (1 - Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC)));
-                    a[1] = -Math.Exp(-1 / (samplesPerCycle * systemFrequency * RC));
-                    double K = 1.0D;
 
-                    double[] filtered = points;
+                    double[] filtered = filt.filt(points, samplesPerCycle* systemFrequency);
 
                     phaseMaxes = phaseMaxes.Select((point, index) => new DataPoint() { Time = point.Time, Value = filtered[index] });
                 }
