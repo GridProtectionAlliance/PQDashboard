@@ -2108,15 +2108,71 @@ namespace OpenSEE.Controller
                 DataPoints = new List<double[]>()
             };
 
-            foreach (IEnumerable<DataPoint> cycle in groupedByCycle)
+            double max = dataSeries.DataPoints.Select(point => point.Value).Max();
+            double min = dataSeries.DataPoints.Select(point => point.Value).Min();
+
+            FlotSeries dt = GetFirstDerivativeFlotSeries(dataSeries, "");
+            fitWave.DataPoints = dataSeries.DataPoints.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, point.Value }).OrderBy(item => item[0]).ToList();
+
+            // Find Section that meet Threshold Criteria of close to top/bottom and low derrivative
+            double threshold = 1E-3;
+            double relativeThreshold = threshold * (max - min);
+
+            int npoints = dataSeries.DataPoints.Count();
+            List<bool> isClipped = new List<bool>();
+            double[] distToTop = dataSeries.DataPoints.Select(point => Math.Abs(point.Value - max)).ToArray();
+            double[] distToBottom = dataSeries.DataPoints.Select(point => Math.Abs(point.Value - min)).ToArray();
+
+            isClipped = dt.DataPoints.Select((item, index) => (Math.Abs(item[1]) < threshold) && (Math.Min(distToTop[index],distToBottom[index]) < relativeThreshold)).ToList();
+
+            List<int[]> section = new List<int[]>();
+
+            //Corectly determines clipping but now I need to do something about it....
+            while(isClipped.Any(item => item==true))
             {
-                double max = cycle.Select(point => Math.Abs(point.Value)).Max();
-                double threshold = max / 2;
-                IEnumerable<DataPoint> filteredDataPoints = cycle.Where(point => Math.Abs(point.Value) <= threshold);
+                int start = isClipped.IndexOf(true);
+                int end = isClipped.Skip(start).ToList().IndexOf(false) + start;
+                
+                isClipped = isClipped.Select((item, index) =>
+                {
+                    if (index < start || index > end)
+                        return item;
+                    else
+                        return false;
+                }).ToList();
 
-                SineWave sineWave = WaveFit.SineFit(filteredDataPoints.Select(point => point.Value).ToArray(), filteredDataPoints.Select(point => point.Time.Subtract(m_epoch).TotalSeconds).ToArray(), systemFrequency);
+                int length = end - start;
+                int startRecovery = start - length / 2;
+                int endRecovery = end + length/2;
 
-                fitWave.DataPoints = fitWave.DataPoints.Concat(cycle.Select(point => new double[] { point.Time.Subtract(m_epoch).TotalMilliseconds, sineWave.CalculateY(point.Time.Subtract(m_epoch).TotalSeconds) })).ToList();
+                if (startRecovery < 0)
+                    startRecovery = 0;
+
+                if (endRecovery >= npoints)
+                    endRecovery = npoints - 1;
+
+                List<double[]> filteredDataPoints = fitWave.DataPoints.Where((item, index) =>
+                {
+                    if (index < startRecovery || index > endRecovery)
+                        return false;
+                    else if (index < start || index > end)
+                        return true;
+                    else
+                        return false;
+
+                }
+                ).ToList();
+
+
+                SineWave sineWave = WaveFit.SineFit(filteredDataPoints.Select(item => item[1]).ToArray(), filteredDataPoints.Select(item => item[0]/1000.0D).ToArray(), systemFrequency);
+
+                fitWave.DataPoints = fitWave.DataPoints.Select((item, index) =>
+                {
+                    if (index < start || index > end)
+                        return item;
+                    else
+                        return new double[2] { item[0], sineWave.CalculateY(item[0] / 1000.0D) };
+                }).ToList();
             }
 
             return fitWave;
