@@ -79,10 +79,11 @@ namespace PQDashboard.Controllers
         public class EventSearchPostData {
             public bool dfr { get; set; }
             public bool pqMeter { get; set; }
-            public bool g500 { get; set; }
-            public bool one62to500 { get; set; }
-            public bool seventyTo161 { get; set; }
-            public bool l70 { get; set; }
+            public bool g200 { get; set; }
+            public bool one00to200 { get; set; }
+            public bool thirty5to100 { get; set; }
+            public bool oneTo35 { get; set; }
+            public bool l1 { get; set; }
             public bool faults { get; set; }
             public bool sags { get; set; }
             public bool swells { get; set; }
@@ -119,9 +120,9 @@ namespace PQDashboard.Controllers
                 List<string> eventTypes = new List<string>();
 
                 if (postData.faults)
-                    eventTypes.Add(" (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) = 0) ");
+                    eventTypes.Add(" ((EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) = 0)  OR (EventType.Name  = 'RecloseIntoFault'))");
                 if (postData.breakerOps)
-                    eventTypes.Add(" ( (EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) > 0) OR (EventType.Name  = 'BreakerOpen') OR (EventType.Name  = 'RecloseIntoFault')) ");
+                    eventTypes.Add("((EventType.Name  = 'Fault' AND (SELECT COUNT(*) FROM BreakerOperation WHERE BreakerOperation.EventID = Event.ID) > 0) OR (EventType.Name  = 'BreakerOpen'))");
                 if (postData.sags)
                     eventTypes.Add("EventType.Name  = 'Sag'");
                 if (postData.swells)
@@ -141,14 +142,16 @@ namespace PQDashboard.Controllers
 
                 List<string> voltageClasses = new List<string>();
 
-                if (postData.g500)
-                    voltageClasses.Add(" Line.VoltageKV > 500 ");
-                if (postData.one62to500)
-                    voltageClasses.Add(" (Line.VoltageKV > 161 AND Line.VoltageKV <= 500) ");
-                if (postData.seventyTo161)
-                    voltageClasses.Add(" (Line.VoltageKV >= 70 AND Line.VoltageKV <= 161) ");
-                if (postData.l70)
-                    voltageClasses.Add(" Line.VoltageKV < 70 ");
+                if (postData.g200)
+                    voltageClasses.Add(" Line.VoltageKV > 200 ");
+                if (postData.one00to200)
+                    voltageClasses.Add(" (Line.VoltageKV > 100 AND Line.VoltageKV <= 200) ");
+                if (postData.thirty5to100)
+                    voltageClasses.Add(" (Line.VoltageKV > 35 AND Line.VoltageKV <= 100) ");
+                if (postData.oneTo35)
+                    voltageClasses.Add(" (Line.VoltageKV > 1 AND Line.VoltageKV <= 35) ");
+                if (postData.l1)
+                    voltageClasses.Add(" Line.VoltageKV <= 1 ");
                 if (!voltageClasses.Any())
                     voltageClasses.Add(" Line.VoltageKV = -1234567 ");
 

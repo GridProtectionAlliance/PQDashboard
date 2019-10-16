@@ -28,10 +28,11 @@ import { clone } from 'lodash';
 export interface EventSearchNavbarProps {
     dfr: boolean,
     pqMeter: boolean,
-    g500: boolean,
-    one62to500: boolean,
-    seventyTo161: boolean,
-    l70: boolean,
+    g200: boolean,
+    one00to200: boolean,
+    thirty5to100: boolean,
+    oneTo35: boolean,
+    l1: boolean,
     faults: boolean,
     sags: boolean,
     swells: boolean,
@@ -44,7 +45,7 @@ export interface EventSearchNavbarProps {
     time: string,
     windowSize: number,
     timeWindowUnits: number,
-    stateSetter(state): void
+    stateSetter(obj: any): void
 }
 
 const momentDateTimeFormat = "MM/DD/YYYY HH:mm:ss.SSS";
@@ -57,18 +58,12 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
     React.useEffect(() => {
         $('#datePicker').datetimepicker({ format: momentDateFormat });
         $('#datePicker').on('dp.change', (e) => {
-            var object = clone(props);
-            object.date = (e.target as any).value;
-            props.stateSetter({ searchBarProps: object });
-
+            props.stateSetter({ date: (e.target as any).value });
         });
 
         $('#timePicker').datetimepicker({ format: momentTimeFormat });
         $('#timePicker').on('dp.change', (e) => {
-            var object = clone(props);
-            object.time = (e.target as any).value;
-            props.stateSetter({ searchBarProps: object });
-
+            props.stateSetter({ time: (e.target as any).value });
         });
 
     }, []);
@@ -86,9 +81,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                                     <label style={{ width: 200, position: 'relative', float: "left" }} >Date: </label>
                                     <div className='input-group' style={{ width: 'calc(50% - 100px)', position: 'relative', float: "right" }}>
                                         <input id="timePicker" className='form-control' value={props.time} onChange={(e) => {
-                                            var object = clone(props);
-                                            object.time = (e.target as any).value;
-                                            props.stateSetter({ searchBarProps: object });
+                                            props.stateSetter({ time: (e.target as any).value });
                                         }} />
                                         <div className="input-group-append">
                                             <span className="input-group-text"> <i className="fa fa-clock-o"></i></span>
@@ -97,9 +90,7 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
 
                                     <div className='input-group date' style={{ width: 'calc(50% - 100px)', position: 'relative', float: "right" }}>
                                         <input className='form-control' id='datePicker' value={props.date} onChange={(e) => {
-                                            var object = clone(props);
-                                            object.date = (e.target as any).value;
-                                            props.stateSetter({ searchBarProps: object });
+                                            props.stateSetter({ date: (e.target as any).value });
                                         }} />
                                         <div className="input-group-append">
                                             <span className="input-group-text"> <i className="fa fa-calendar"></i></span>
@@ -110,17 +101,13 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                                 <div className="form-group" style={{ height: 30 }}>
                                     <label style={{ width: 200, position: 'relative', float: "left" }}>Time Window Size(+/-): </label>
                                     <input style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.windowSize} onChange={(e) => {
-                                        var object = clone(props);
-                                        object.windowSize = (e.target as any).value;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ windowSize: (e.target as any).value });
                                     }} type="number" />
                                 </div>
                                 <div className="form-group" style={{ height: 30 }}>
                                     <label style={{ width: 200, position: 'relative', float: "left" }}>Time Window Units: </label>
                                     <select style={{ width: 'calc(100% - 200px)', position: 'relative', float: "right", border: '1px solid #ced4da', borderRadius: '.25em' }} value={props.timeWindowUnits} onChange={(e) => {
-                                        var object = clone(props);
-                                        object.timeWindowUnits = (e.target as any).value;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ timeWindowUnits: (e.target as any).value });
                                     }} >
                                         <option value="7">Year</option>
                                         <option value="6">Month</option>
@@ -141,97 +128,104 @@ const EventSearchNavbar: React.FunctionComponent<EventSearchNavbarProps> = (prop
                             <legend className="w-auto" style={{ fontSize: 'large' }}>Event Types:</legend>
                             <form>
                                 <ul style={{ listStyleType: 'none', padding: 0, width: '50%', position: 'relative', float: 'left' }}>
+                                    <li><label><input type="checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        var value = e.target.checked;
+                                        props.stateSetter({
+                                            faults: value,
+                                            sags: value,
+                                            swells: value,
+                                            interruptions: value,
+                                            breakerOps: value,
+                                            transients: value,
+                                            relayTCE: value,
+                                            others: value 
+                                        });
+                                    }} defaultChecked={true} />  Select All </label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.faults = !props.faults;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ faults: !props.faults });
                                     }} checked={props.faults} />  Faults </label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.sags = !props.sags;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ sags: !props.sags });
                                     }} checked={props.sags} />  Sags</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.swells = !props.swells;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ swells: !props.swells });
                                     }} checked={props.swells} />  Swells</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.interruptions = !props.interruptions;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ interruptions: !props.interruptions });
                                     }} checked={props.interruptions} />  Interruptions</label></li>
                                 </ul>
                                 <ul style={{
                                     listStyleType: 'none', padding: 0, width: '50%', position: 'relative', float: 'right'
                                 }}>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.breakerOps = !props.breakerOps;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ breakerOps: !props.breakerOps });
                                     }} checked={props.breakerOps} />  Breaker Ops</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.transients = !props.transients;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ transients: !props.transients });
                                     }} checked={props.transients} />  Transients</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.relayTCE = !props.relayTCE;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ relayTCE: !props.relayTCE });
                                     }} checked={props.relayTCE} />  Breaker TCE</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.others = !props.others;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ others: !props.others });
                                     }} checked={props.others} />  Others</label></li>
                                 </ul>
                             </form>
                         </fieldset>
                     </li>
-                    <li className="nav-item" style={{ width: '15%', paddingRight: 10 }}>
+                    <li className="nav-item" style={{ width: '20%', paddingRight: 10 }}>
                         <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
                             <legend className="w-auto" style={{ fontSize: 'large' }}>Voltage Class:</legend>
                             <form>
                                 <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                    <li><label><input type="checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        var value = e.target.checked;
+                                        props.stateSetter({
+                                            g200: value,
+                                            one00to200: value,
+                                            thirty5to100: value,
+                                            oneTo35: value,
+                                            l1: value,
+                                        });
+                                    }} defaultChecked={true} />  Select All </label></li>
+
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.g500 = !props.g500;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} checked={props.g500} />{'> 500 kV'}</label></li>
+                                        props.stateSetter({ g200: !props.g200 });
+                                    }} checked={props.g200} />{'EHV/Trans - >200kV'}</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.one62to500 = !props.one62to500;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} checked={props.one62to500} />  162 - 500 kV</label></li>
+                                        props.stateSetter({ one00to200: !props.one00to200 });
+                                    }} checked={props.one00to200} />{'HV/Trans - >100kV & <=200kV'}</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.seventyTo161 = !props.seventyTo161;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} checked={props.seventyTo161} />  70 - 161 kV</label></li>
+                                        props.stateSetter({ thirty5to100: !props.thirty5to100 });
+                                    }} checked={props.thirty5to100} />{'MV/Subtrans - >35kV & <=100kV'}</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.l70 = !props.l70;
-                                        props.stateSetter({ searchBarProps: object });
-                                    }} checked={props.l70} />{'< 70 kV'}</label></li>
+                                        props.stateSetter({ oneTo35: !props.oneTo35 });
+                                    }} checked={props.oneTo35} />{'MV/Dist - >1kV & <=35kV'}</label></li>
+                                    <li><label><input type="checkbox" onChange={() => {
+                                        props.stateSetter({ l1: !props.l1 });
+                                    }} checked={props.l1} />{'LV - <=1kV'}</label></li>
                                 </ul>
                             </form>
                         </fieldset>
                     </li>
-                    <li className="nav-item" style={{ width: '15%' }}>
+                    <li className="nav-item" style={{ width: '10%' }}>
                         <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
                             <legend className="w-auto" style={{ fontSize: 'large' }}>Meter Types:</legend>
                             <form>
                                 <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                    <li><label><input type="checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        var value = e.target.checked;
+                                        props.stateSetter({
+                                            dfr: value,
+                                            pqMeter: value,
+                                        });
+                                    }} defaultChecked={true} />  Select All </label></li>
+
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.dfr = !props.dfr;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ dfr: !props.dfr });
                                     }} checked={props.dfr} />  DFR</label></li>
                                     <li><label><input type="checkbox" onChange={() => {
-                                        var object = clone(props);
-                                        object.pqMeter = !props.pqMeter;
-                                        props.stateSetter({ searchBarProps: object });
+                                        props.stateSetter({ pqMeter: !props.pqMeter });
                                     }} checked={props.pqMeter} />  PQMeter</label></li>
                                 </ul>
                             </form>

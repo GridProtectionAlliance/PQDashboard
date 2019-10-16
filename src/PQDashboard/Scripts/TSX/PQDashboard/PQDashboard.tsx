@@ -54,7 +54,7 @@ class PQDashboard extends React.Component<{}, PQDashboardState>{
                         <a href="https://www.gridprotectionalliance.org"><img style={{ width: 280, margin: 10 }} src={homePath + "Images/SE Dashboard with GPA 200 high.png"} /></a>
                         <div style={{ width: '100%', height: '100%', marginTop: 30}}>
                             <div className="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical" style={{ height: 'calc(100% - 240px)' }}>
-                                <NavLink activeClassName='nav-link active' className="nav-link" exact={true} to={controllerViewPath + "/"}>Home</NavLink>
+                                {/*<NavLink activeClassName='nav-link active' className="nav-link" exact={true} to={controllerViewPath + "/"}>Home</NavLink>*/}
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/eventsearch"}>Event Search</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/meteractivity"}>Meter Activity</NavLink>
                                 <NavLink activeClassName='nav-link active' className="nav-link" to={controllerViewPath + "/breakerreport"}>Breaker Report</NavLink>

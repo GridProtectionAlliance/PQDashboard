@@ -43,8 +43,7 @@ export interface OpenXDAEvent {
     EventID: number, FileStartTime: string, AssetName: string, AssetType: string, VoltageClass: string, EventType: string, BreakerOperation: boolean
 }
 interface IProps { }
-interface IState {
-    searchBarProps: EventSearchNavbarProps,
+interface IState extends EventSearchNavbarProps {
     eventid: number,
     searchText: string,
     searchList: Array<OpenXDAEvent>
@@ -61,31 +60,29 @@ export default class EventSearch extends React.Component<IProps, IState>{
         var query = queryString.parse(this.history['location'].search);
 
         this.state = {
-            searchBarProps: {
-                dfr: (query['dfr'] != undefined ? query['dfr'] == 'true' : true),
-                pqMeter: (query['pqMeter'] != undefined ? query['pqMeter'] == 'true': true),
-                g500: (query['g500'] != undefined ? query['g500'] == 'true' : true),
-                one62to500: (query['one62to500'] != undefined ? query['one62to500'] == 'true' : true),
-                seventyTo161: (query['seventyTo161'] != undefined ? query['seventyTo161'] == 'true' : true),
-                l70: (query['l70'] != undefined ? query['l70'] == 'true': true),
-                faults: (query['faults'] != undefined ? query['faults'] == 'true' : true),
-                sags: (query['sags'] != undefined ? query['sags'] == 'true' : true),
-                swells: (query['swells'] != undefined ? query['swells'] == 'true' : true),
-                interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
-                breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
-                transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
-                relayTCE: (query['relayTCE'] != undefined ? query['realyTCE'] == 'true' : true),
-                others: (query['others'] != undefined ? query['others'] == 'true' : true),
-                date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
-                time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
-                windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
-                timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
-                stateSetter: this.stateSetter.bind(this),
-
-            },
+            dfr: (query['dfr'] != undefined ? query['dfr'] == 'true' : true),
+            pqMeter: (query['pqMeter'] != undefined ? query['pqMeter'] == 'true': true),
+            g200: (query['g200'] != undefined ? query['g200'] == 'true' : true),
+            one00to200: (query['one00to200'] != undefined ? query['one00to200'] == 'true' : true),
+            thirty5to100: (query['thirty5to100'] != undefined ? query['thirty5to100'] == 'true' : true),
+            oneTo35: (query['oneTo35'] != undefined ? query['oneTo35'] == 'true' : true),
+            l1: (query['l1'] != undefined ? query['l1'] == 'true': true),
+            faults: (query['faults'] != undefined ? query['faults'] == 'true' : true),
+            sags: (query['sags'] != undefined ? query['sags'] == 'true' : true),
+            swells: (query['swells'] != undefined ? query['swells'] == 'true' : true),
+            interruptions: (query['interruptions'] != undefined ? query['interruptions'] == 'true' : true),
+            breakerOps: (query['breakerOps'] != undefined ? query['breakerOps'] == 'true' : true),
+            transients: (query['transients'] != undefined ? query['transients'] == 'true' : true),
+            relayTCE: (query['relayTCE'] != undefined ? query['realyTCE'] == 'true' : true),
+            others: (query['others'] != undefined ? query['others'] == 'true' : true),
+            date: (query['date'] != undefined ? query['date'] : moment().format(momentDateFormat)),
+            time: (query['time'] != undefined ? query['time'] : moment().format(momentTimeFormat)),
+            windowSize: (query['windowSize'] != undefined ? query['windowSize'] : 10),
+            timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
             eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
             searchText: (query['searchText'] != undefined ? query['searchText'] : ''),
-            searchList: []
+            searchList: [],
+            stateSetter: this.stateSetter.bind(this)
         };
     }
 
@@ -101,16 +98,16 @@ export default class EventSearch extends React.Component<IProps, IState>{
     render() {
         return (
             <div style={{ width: '100%', height: '100%' }}>
-                <EventSearchNavbar {...this.state.searchBarProps}/>
+                <EventSearchNavbar {...this.state}/>
                 <div style={{ width: '100%', height: 'calc( 100% - 210px)' }}>
                     <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'hidden' }}>
                         <div style={{width: 'calc(100% - 120px)', padding: 10, float: 'left'}}>
                             <input className='form-control' type='text' placeholder='Search...' value={this.state.searchText} onChange={(evt) => this.setState({searchText: evt.target.value})}/>
                         </div>
                         <div style={{ width: 120, float: 'right', padding: 10 }}>
-                            <EventSearchListedEventsNoteWindow searchList={this.state.searchList}/>
+                            <EventSearchListedEventsNoteWindow searchList={this.state.searchList} />
                         </div>
-                        <EventSearchList eventid={this.state.eventid} searchText={this.state.searchText} searchBarProps={this.state.searchBarProps} stateSetter={this.state.searchBarProps.stateSetter} />
+                        <EventSearchList eventid={this.state.eventid} searchText={this.state.searchText} searchBarProps={this.state} stateSetter={this.stateSetter.bind(this)} />
                     </div>
                     <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'right', overflowY: 'scroll' }}>
                         <EventPreviewPane eventid={this.state.eventid} />
@@ -121,10 +118,10 @@ export default class EventSearch extends React.Component<IProps, IState>{
         );
     }
 
-    stateSetter(obj) {
+    stateSetter(obj: any): void {
         function toQueryString(state: IState) {
             var dataTypes = ["boolean", "number", "string"]
-            var stateObject: IState = clone(state.searchBarProps);
+            var stateObject: IState = clone(state);
             stateObject.eventid = state.eventid;
             stateObject.searchText = state.searchText;
             delete stateObject.searchList;

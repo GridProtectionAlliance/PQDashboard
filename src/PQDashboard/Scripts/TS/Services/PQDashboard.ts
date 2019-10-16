@@ -20,6 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+declare var homePath: string;
 
 export default class PQDashboardService {
     mostActiveMeterHandle: JQuery.jqXHR;

@@ -86,7 +86,7 @@ class MostActiveMeters extends React.Component<{}, { meterTable: Array<any>, sor
     }
 
     createTableRows() {
-        this.pQDashboardService.getMostActiveMeterActivityData(this.state.rowsPerPage, this.state.sortField).done(data => {
+        this.pQDashboardService.getMostActiveMeterActivityData(5000, this.state.sortField).done(data => {
             this.setState({ meterTable: data });
         });
     }
@@ -137,10 +137,10 @@ class MostActiveMeters extends React.Component<{}, { meterTable: Array<any>, sor
                 <h3 style={{ display: 'inline' }}>Most Active Meters</h3>
                 <span style={{ float: 'right', color: 'silver' }}>{/*Click on event count to view events*/}</span>
                 <div style={{ height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' }}></div>
-                <div style={{ backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }} ref='divElement'>
+                <div style={{ backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)', overflowY: 'auto'}} ref='divElement'>
                     <Table
                         cols={[
-                            { key: 'AssetKey', label: 'Asset Key', headerStyle: { width: 'calc(40%)' } },
+                            { key: 'AssetKey', label: 'Name', headerStyle: { width: 'calc(40%)' } },
                             { key: '24Hours', label: 'Files(Evts) 24H', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key) },
                             { key: '7Days', label: 'Files(Evts) 7D', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key)  },
                             { key: '30Days', label: 'Files(Evts) 30D', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key)  },
@@ -201,7 +201,7 @@ class LeastActiveMeters extends React.Component<{}, { meterTable: Array<any>, so
 
 
     createTableRows() {
-        this.pQDashboardService.getLeastActiveMeterActivityData(this.state.rowsPerPage, this.state.sortField).done(data => {
+        this.pQDashboardService.getLeastActiveMeterActivityData(5000, this.state.sortField).done(data => {
             this.setState({ meterTable: data });
         });
     }
@@ -237,10 +237,10 @@ class LeastActiveMeters extends React.Component<{}, { meterTable: Array<any>, so
                 <h3 style={{ display: 'inline' }}>Least Active Meters</h3>
                 <span style={{ float: 'right', color: 'silver' }}>{/*Click on event count to view events*/}</span>
                 <div style={{ height: '2px', width: '100%', display: 'inline-block', backgroundColor: 'black' }}></div>
-                <div style={{ backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)' }} ref='divElement'>
+                <div style={{ backgroundColor: 'white', borderColor: 'black', height: 'calc(100% - 60px)', overflowY: 'auto' }} ref='divElement'>
                     <Table
                         cols={[
-                            { key: 'AssetKey', label: 'Asset Key', headerStyle: { width: 'calc(40%)' } },
+                            { key: 'AssetKey', label: 'Name', headerStyle: { width: 'calc(40%)' } },
                             { key: '30Days', label: 'Files(Events) 30D', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key)  },
                             { key: '90Days', label: 'Files(Events) 90D', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key)  },
                             { key: '180Days', label: 'Files(Events) 180D', headerStyle: { width: '20%' }, content: (item, key, style) => this.createContent(item, key)  },

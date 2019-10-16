@@ -149,7 +149,7 @@ export default class EventSearchList extends React.Component<IProps, { sortField
                     { key: 'FileStartTime', label: 'Time', headerStyle: { width: 'calc(20%)' }, rowStyle: { width: 'calc(20%)' }, content: (item, key, style) => <span>{moment(item.FileStartTime).format('MM/DD/YYYY')}<br />{moment(item.FileStartTime).format('HH:mm:ss.SSSSSSS')}</span> },
                     { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' }, rowStyle: { width: '20%' } },
                     { key: 'AssetType', label: 'Asset Tp', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
-                    { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
+                    { key: 'VoltageClass', label: 'kV', headerStyle: { width: '15%' }, rowStyle: { width: '15%' }, content: (item, key, style) => item[key].toString().split('.')[1] != undefined && item[key].toString().split('.')[1].length > 3 ? item[key].toFixed(3) : item[key] },
                     { key: 'EventType', label: 'Evt Cl', headerStyle: { width: '15%' }, rowStyle: { width: '15%' } },
                     { key: 'BreakerOperation', label: 'Brkr Op', headerStyle: { width: '15%' }, rowStyle: { width: '15%' }, content: (item, key, style) => <span><i className={(item.BreakerOperation > 0 ? "fa fa-check" : '')}></i></span> },
 

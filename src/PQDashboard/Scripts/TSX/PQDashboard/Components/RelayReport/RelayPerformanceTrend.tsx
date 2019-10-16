@@ -20,6 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+declare var homePath: string;
 
 import * as React from 'react';
 import * as moment from 'moment';
