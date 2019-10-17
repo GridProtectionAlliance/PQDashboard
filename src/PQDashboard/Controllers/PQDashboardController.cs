@@ -96,7 +96,8 @@ namespace PQDashboard.Controllers
             public string time { get; set; }
             public int windowSize { get; set; }
             public int timeWindowUnits { get; set; }
-
+            public string make { get; set; }
+            public string model { get; set; }
         }
 
         enum TimeWindowUnits {
@@ -168,6 +169,12 @@ namespace PQDashboard.Controllers
 
                 string meterTypeRestriction = $"({string.Join(" OR ", meterType)})";
 
+                string meterMakeRestriction = $"";
+                if(postData.make != "All" && postData.model != "All")
+                    meterMakeRestriction = $" AND Meter.Make = '{postData.make}' AND Meter.Model = '{postData.model}' ";
+                else if (postData.make != "All")
+                    meterMakeRestriction = $" AND Meter.Make = '{postData.make}'  ";
+
                 string query = @" 
 
                     SELECT
@@ -183,13 +190,14 @@ namespace PQDashboard.Controllers
 	                    Event JOIN
 	                    MeterLine ON Event.MeterID = MeterLine.MeterID AND Event.LineID = MeterLine.LineID JOIN
 	                    EventType ON Event.EventTypeID = EventType.ID JOIN
-	                    Line ON Event.LineID = Line.ID
+	                    Line ON Event.LineID = Line.ID JOIN
+                        Meter ON Event.MeterID = Meter.ID
                     WHERE
                         Event.StartTime BETWEEN DATEADD(" + timeWindowUnits + @", " + (-1*postData.windowSize).ToString() + @", {0}) AND
                                                 DATEADD(" + timeWindowUnits + @", " + (postData.windowSize).ToString() + @", {0}) AND
                     " + eventTypeRestriction + @" AND
                     " + voltageClassRestriction + @" AND
-                    " + meterTypeRestriction + @"
+                    " + meterTypeRestriction + meterMakeRestriction + @" 
                 ";
 
                 DataTable table = connection.RetrieveData(query, dateTime) ;
@@ -283,6 +291,31 @@ namespace PQDashboard.Controllers
         }
 
 
+        [Route("GetEventSearchMeterMakes"), HttpGet]
+        public IHttpActionResult GetEventSearchMeterMakes()
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+
+                DataTable table = connection.RetrieveData(@"SELECT DISTINCT Make FROM Meter");
+
+                return Ok(table.Select().Select(x => x["Make"].ToString()));
+            }
+
+        }
+
+        [Route("GetEventSearchMeterModels/{make}"), HttpGet]
+        public IHttpActionResult GetEventSearchMeterModels(string make)
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+
+                DataTable table = connection.RetrieveData(@"SELECT DISTINCT Model FROM Meter WHERE Make = {0}", make);
+
+                return Ok(table.Select().Select(x => x["Model"].ToString()));
+            }
+
+        }
 
 
 

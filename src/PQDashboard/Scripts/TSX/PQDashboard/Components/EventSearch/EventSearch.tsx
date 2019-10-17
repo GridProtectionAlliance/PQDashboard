@@ -81,6 +81,8 @@ export default class EventSearch extends React.Component<IProps, IState>{
             timeWindowUnits: (query['timeWindowUnits'] != undefined ? query['timeWindowUnits'] : 2),
             eventid: (query['eventid'] != undefined ? query['eventid'] : -1),
             searchText: (query['searchText'] != undefined ? query['searchText'] : ''),
+            make: (query['make'] != undefined ? query['make'] : 'All'),
+            model: (query['model'] != undefined ? query['model'] : 'All'),
             searchList: [],
             stateSetter: this.stateSetter.bind(this)
         };

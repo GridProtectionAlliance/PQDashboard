@@ -29,6 +29,7 @@
     <TargetFrameworkProfile />
     <Use64BitIISExpress />
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,6 +73,8 @@
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>
