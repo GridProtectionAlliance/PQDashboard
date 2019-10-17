@@ -25,7 +25,10 @@
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using PQDashboard.Model
+@using Newtonsoft.Json
 @using EventView = openXDA.Model.EventView
+@using EventType = openXDA.Model.EventType
+
 @model AppModel
 @{
     Layout = "";
@@ -38,6 +41,7 @@
     DateTime postedDate;
     string xdaInstance;
     string timeWindow;
+    string[] eventTypes;
     using (DataContext dataContext = new DataContext("systemSettings"))
     {
         theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
@@ -50,6 +54,8 @@
 
         xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
         timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+        eventTypes = dataContext.Table<EventType>().QueryRecords().Select(x => x.Name).ToArray();
+
 
     }
     string context = parameters["context"] ?? "day";
@@ -167,7 +173,14 @@
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
+    var eventTypes = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(eventTypes))')
     var disabledList = $.jStorage.get('disabledList');
+
+    $.each(eventTypes, function (eventType) {
+        if (Object.keys(disabledList.Events).indexOf(eventType) < 0)
+            disabledList.Events[eventType] = false;
+    });
+
     var disabledArray = Object.keys(disabledList.Events).map(function(o){ if(!disabledList.Events[o]) return o}).filter(function(val) { return val !== undefined; });
     reconnectHub = false;
 

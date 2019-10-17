@@ -26,6 +26,7 @@
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using EventView = openXDA.Model.EventView
+@using Newtonsoft.Json
 
 @model AppModel
 @{
@@ -34,11 +35,13 @@
     NameValueCollection parameters = Request.QueryString;
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     string context = parameters["context"] ?? "day";
+    string[] severityCodes;
 
     EventView theEvent;
     using (DataContext dataContext = new DataContext("systemSettings"))
     {
             theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
+            severityCodes = dataContext.Connection.RetrieveData("select Distinct SeverityCode from DisturbanceSeverity").Select().Select(x => x["SeverityCode"].ToString()).ToArray();
     }
 
 }
@@ -114,7 +117,14 @@
     var postedDate = "@theEvent.StartTime";
     var postedMeterName = "@theEvent.MeterName";
     var context = "@context";
+    var severityCodes = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(severityCodes))')
+
     var disabledList = $.jStorage.get('disabledList');
+    $.each(severityCodes, function (severityCode) {
+        if (Object.keys(disabledList.Disturbances).indexOf(severityCode) < 0)
+            disabledList.Disturbances[severityCode] = false;
+    });
+
     var disabledArray = Object.keys(disabledList.Disturbances).map(function (o) { if (!disabledList.Disturbances[o]) return o }).filter(function (val) { return val !== undefined; });
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
 
