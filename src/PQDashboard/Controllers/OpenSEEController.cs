@@ -837,6 +837,17 @@ namespace OpenSEE.Controller
 
             });
 
+            //Add Check to make sure Chartlabel is never null
+            dataLookup = dataLookup.Select(item =>
+            {
+                if (item.Value.ChartLabel == null)
+                {
+                    item.Value.ChartLabel = item.Key;
+                    return item;
+                }
+                return item;
+            }).ToDictionary(item => item.Key, item => item.Value);
+
             return dataLookup;
         }
 
