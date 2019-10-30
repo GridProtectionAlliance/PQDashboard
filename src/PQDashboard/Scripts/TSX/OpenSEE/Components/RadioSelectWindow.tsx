@@ -143,7 +143,7 @@ export default class RadioselectWindow extends React.Component{
                     ((this.props.analytic.toLowerCase() == "specifiedharmonic" ?
                         <form style={optionStyle}>
                             <ul ref="list" style={{ listStyleType: 'none', padding: 0 }}>
-                                <li><label> Harmonic: <select defaultValue={'1'} onChange={this.ChangeCycles.bind(this)}>{this.samplesPerCycleOptions}</select></label></li>
+                                <li><label> Harmonic: <select defaultValue={'5'} onChange={this.ChangeCycles.bind(this)}>{this.samplesPerCycleOptions}</select></label></li>
                             </ul>
                         </form> : null)
                     )
