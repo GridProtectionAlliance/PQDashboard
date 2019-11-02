@@ -685,7 +685,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                     else {
                         labels.push("Amps/sec");
                     }
-                    
+
                 }
                 else if (type.toLowerCase() == "lowpassfilter") {
                     if (key.indexOf('V') >= 0) {
@@ -750,6 +750,12 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                 }
                 else if (type.toLowerCase() == "frequency") {
                     labels.push("Hz");
+                }
+                else if (type.toLowerCase() == "digital") {
+                    labels.push("Digital");
+                }
+                else if (type.toLowerCase() == "trip coil current") {
+                    labels.push("Amps");
                 }
             }
         });       
