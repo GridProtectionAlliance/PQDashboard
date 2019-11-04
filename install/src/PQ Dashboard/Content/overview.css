@@ -1,0 +1,66 @@
+﻿/******************************************************************************************************
+//  FaultSpecifics.css - Gbtc
+//
+//  Copyright © 2017, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the Eclipse Public License -v 1.0 (the "License"); you may
+//  not use this file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://www.opensource.org/licenses/eclipse-1.0.php
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  04/14/2015 - JP Hyder
+//       Generated original version of source code.
+//
+//******************************************************************************************************/
+
+.grid2 {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    column-width: 600px;
+}
+
+.grid2:after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.grid2-sizer,
+.grid2-item {
+    width: 25%;
+}
+
+.grid2-item {
+    float: left;
+    border-color: black;
+    border: 2px solid black;
+    border-radius: 0px;
+    text-align: center;
+    margin-bottom: 0px;
+}
+
+.grid2-item-wide {
+    width: 50%;
+}
+
+.grid2-item-tall {
+    height: 100%;
+}
+
+/* a large grid2 item is twice (2x) the width of a grid2 item*/
+.grid2-item-large {
+    width: 50%;
+}
+
+html {
+    overflow-y: scroll;
+}

@@ -21,7 +21,6 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
-install/src/*
 install/obj/*
 install/bin/*
 
