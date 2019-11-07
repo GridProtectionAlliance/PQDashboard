@@ -940,38 +940,44 @@ namespace OpenSEE.Controller
         private DataGroup QueryDataGroup(int eventID, Meter meter)
         {
             string target = $"DataGroup-{eventID}";
-            DataGroup dataGroup = (DataGroup)s_memoryCache.Get(target);
 
-            if (dataGroup == null)
+            Task<DataGroup> dataGroupTask = new Task<DataGroup>(() =>
             {
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    dataGroup = ToDataGroup(meter, frequencyDomainData);
-                    s_memoryCache.Add(target, dataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                    return ToDataGroup(meter, frequencyDomainData);
                 }
-            }
+            });
 
-            return dataGroup;
+            if (s_memoryCache.Add(target, dataGroupTask, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) }))
+                dataGroupTask.Start();
+
+            dataGroupTask = (Task<DataGroup>)s_memoryCache.Get(target);
+
+            return dataGroupTask.Result;
         }
 
         private VICycleDataGroup QueryVICycleDataGroup(int eventID, Meter meter)
         {
             string target = $"VICycleDataGroup-{eventID}";
-            VICycleDataGroup vICycleDataGroup = (VICycleDataGroup)s_memoryCache.Get(target);
 
-            if (vICycleDataGroup == null)
+            Task<VICycleDataGroup> viCycleDataGroupTask = new Task<VICycleDataGroup>(() =>
             {
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     DataGroup dataGroup = QueryDataGroup(eventID, meter);
                     double freq = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-                    vICycleDataGroup = Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
-                    s_memoryCache.Add(target, vICycleDataGroup, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) });
+                    return Transform.ToVICycleDataGroup(new VIDataGroup(dataGroup), freq);
                 }
-            }
+            });
 
-            return vICycleDataGroup;
+            if (s_memoryCache.Add(target, viCycleDataGroupTask, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) }))
+                viCycleDataGroupTask.Start();
+
+            viCycleDataGroupTask = (Task<VICycleDataGroup>)s_memoryCache.Get(target);
+
+            return viCycleDataGroupTask.Result;
         }
 
         private DataGroup ToDataGroup(Meter meter, byte[] data)
