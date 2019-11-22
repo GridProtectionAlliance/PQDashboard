@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
-    <Product Id="{C0CF66A8-8D13-487C-8795-AF9034EEED4D}" Name="PQ Dashboard" Language="1033" Version="!(bind.FileVersion.fil8A20DABB41240431B350E6A65A81B384)" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
+    <Product Id="{61FB944A-6989-4451-A3A5-23B69550454A}" Name="PQ Dashboard" Language="1033" Version="!(bind.FileVersion.fil8A20DABB41240431B350E6A65A81B384)" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
         <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
