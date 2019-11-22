@@ -757,6 +757,9 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                 else if (type.toLowerCase() == "trip coil current") {
                     labels.push("Amps");
                 }
+                else if (type.toLowerCase() == "faultlocation") {
+                    labels.push("miles");
+                }
             }
         });       
         labels = labels.filter(distinct);
