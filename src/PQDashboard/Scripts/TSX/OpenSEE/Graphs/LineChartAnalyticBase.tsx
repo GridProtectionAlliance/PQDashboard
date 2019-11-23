@@ -304,14 +304,28 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
             if (row.enabled) {
                 newVessel.push({ label: key, data: row.data, color: row.color })
                 if (row.markerdata.length > 0) {
-                    newVessel.push({
-                        label: key, data: row.markerdata, color: row.color, lines: { show: false }, points: {
-                            show: true,
-                            symbol: "circle",
-                            radius: 4,
-                            fill: true
+                    let visiblemarker = [];
+                    let mx = Math.max(...row.data.map(item=>item[0]));
+                    let mn = Math.min(...row.data.map(item => item[0]));
+                   
+                    row.markerdata.forEach(pt => {
+                        if ((pt[0] > mn) && (pt[0] < mx)) {
+                            visiblemarker.push(pt);
                         }
-                    })
+                            
+                    });
+
+                    if (visiblemarker.length > 0) {
+                        newVessel.push({
+                            label: key, data: visiblemarker, color: row.color, lines: { show: false }, points: {
+                                show: true,
+                                symbol: "circle",
+                                radius: 4,
+                                fill: true,
+                                fillColor: row.color
+                            }
+                        })
+                    }
                 }
             }
                 

@@ -130,7 +130,6 @@ export default class TCE extends React.Component<any, any>{
             fftStartTime={this.props.fftStartTime}
             fftEndTime={this.props.fftEndTime}
             analytic={this.props.analytic}
-
             endDate={this.props.endDate}
             eventId={this.props.eventId}
             height={this.props.height}
