@@ -270,9 +270,12 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         $.each(data, function (i, key) {
             var record = legend.get(key.ChartLabel);
             if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints});
-            else
-                legend.get(key.ChartLabel).data = key.DataPoints
+                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, markerdata: (key.DataMarker ? key.DataMarker : []) });
+            else {
+                legend.get(key.ChartLabel).data = key.DataPoints;
+                legend.get(key.ChartLabel).markerdata = (key.DataMarker ? key.DataMarker : []);
+            }
+
         });
 
         legend = new Map(Array.from(legend).sort((a, b) => {
@@ -298,8 +301,20 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
         var newVessel = [];
 
         legend.forEach((row, key, map) => {
-            if (row.enabled)
+            if (row.enabled) {
                 newVessel.push({ label: key, data: row.data, color: row.color })
+                if (row.markerdata.length > 0) {
+                    newVessel.push({
+                        label: key, data: row.markerdata, color: row.color, lines: { show: false }, points: {
+                            show: true,
+                            symbol: "circle",
+                            radius: 4,
+                            fill: true
+                        }
+                    })
+                }
+            }
+                
         });
 
         newVessel.push([[this.getMillisecondTime(startString), null], [this.getMillisecondTime(endString), null]]);

@@ -110,7 +110,7 @@ export default class BarChartAnalyticBase extends React.Component<BarChartAnalyt
         $.each(data, function (i, key) {
             var record = legend.get(key.ChartLabel);
             if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints });
+                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), data: key.DataPoints, markerdata: [] });
             else
                 legend.get(key.ChartLabel).data = key.DataPoints
         });

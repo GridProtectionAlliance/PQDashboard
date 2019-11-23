@@ -76,6 +76,7 @@ export default class TCE extends React.Component<any, any>{
                 dataSet.Data = dataSet.Data.concat(data.Data);
             else
                 dataSet = data;
+            
 
             baseCtrl.createDataRows(data, legend);
             baseCtrl.setState({ dataSet: data });
@@ -102,19 +103,19 @@ export default class TCE extends React.Component<any, any>{
 
     }
     getColor(key, index) {
-        if (key.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
-        if (key.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
-        if (key.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
-        if (key.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
-        if (key.ChartLabel.indexOf('IRES') >= 0) return '#D3D3D3';
+        //if (key.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
+        //if (key.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
+        //if (key.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
+        //if (key.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
+        //if (key.ChartLabel.indexOf('IRES') >= 0) return '#D3D3D3';
 
-        else {
+        //else {
             var ranNumOne = Math.floor(Math.random() * 256).toString(16);
             var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
             var ranNumThree = Math.floor(Math.random() * 256).toString(16);
 
             return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
-        }
+        //}
 
     }
 

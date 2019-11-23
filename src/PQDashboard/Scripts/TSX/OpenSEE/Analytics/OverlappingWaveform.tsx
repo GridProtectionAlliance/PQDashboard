@@ -160,7 +160,7 @@ export default class OverlappingWaveform extends React.Component{
         $.each(data, function (i, key) {
             var record = legend.get(key.ChartLabel);
             if (record == undefined)
-                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: key.ChartLabel.indexOf('V') == 0, enabled: key.ChartLabel.indexOf('V') == 0, data: key.DataPoints });
+                legend.set(key.ChartLabel, { color: ctrl.getColor(key, i), display: key.ChartLabel.indexOf('V') == 0, enabled: key.ChartLabel.indexOf('V') == 0, data: key.DataPoints, markerdata: [] });
             else
                 legend.get(key.ChartLabel).data = key.DataPoints
         });

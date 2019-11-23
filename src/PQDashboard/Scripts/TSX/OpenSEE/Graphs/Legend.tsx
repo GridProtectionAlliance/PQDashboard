@@ -28,7 +28,8 @@ export interface iLegendData {
     color: string,
     display: boolean,
     enabled: boolean,
-    data: Array<Array<number>>
+    data: Array<Array<number>>,
+    markerdata: Array<Array<number>>
 }
 
 export interface iLegendProps {

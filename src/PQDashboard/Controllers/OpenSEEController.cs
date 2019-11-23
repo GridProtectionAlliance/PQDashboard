@@ -84,6 +84,7 @@ namespace OpenSEE.Controller
             public string SeriesType;
             public string ChartLabel;
             public List<double[]> DataPoints = new List<double[]>();
+            public List<double[]> DataMarker = new List<double[]>();
         }
 
         public class FFTSeries
@@ -520,7 +521,7 @@ namespace OpenSEE.Controller
 
                     if (dataType == "Time") {
                         DataGroup dataGroup = QueryDataGroup(eventId, meter);
-                        temp = GetDataLookup(dataGroup, type);
+                        temp = GetDataLookup(dataGroup, type, eventID);
                     }
                     else if (dataType == "Statistics")
                     {
@@ -594,7 +595,7 @@ namespace OpenSEE.Controller
             }
         }
 
-        private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type)
+        private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type, int eventID)
         {
             Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries()
             {
@@ -610,7 +611,47 @@ namespace OpenSEE.Controller
 
             });
 
+            //Special Case if data is of type TCE We want to add the markers at 3 points
+            Dictionary<string, FlotSeries> TCELookup = dataLookup.Where((item) => item.Value.SeriesType == "TripCoilCurrent").Select(item => {
+                // First get the 3 points
+                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                {
+                    DataTable table = connection.RetrieveData("select TripInitiate, TripTime, PickupTime from RelayPerformance WHERE EventID = {0} AND ChannelID = {1}", eventID, item.Value.ChannelID);
+                    if (table.Rows.Count == 0)
+                        return new Tuple<string, FlotSeries>(item.Key, item.Value);
+
+                    double TripInitiate = table.Rows[0].ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds;
+
+                    double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.001;
+
+                    double PickupTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("PickupTime") * 0.001;
+
+                    // Add them to FlotSeries
+                    item.Value.DataMarker = new List<double[]>() {
+                        this.SnapToPoint(TripInitiate, item.Value),
+                        this.SnapToPoint(TripTime, item.Value),
+                        this.SnapToPoint(PickupTime, item.Value)
+                    };
+                }
+                return new Tuple<string, FlotSeries>(item.Key, item.Value);
+
+            }).ToDictionary(ds => ds.Item1 + "Test", ds => ds.Item2);
+            
+               
             return dataLookup;
+        }
+
+        private double[] SnapToPoint(double T, FlotSeries data)
+        {
+            List<double> TS = data.DataPoints.Select(item => item[0]).ToList();
+            List<double> value = data.DataPoints.Select(item => item[1]).ToList();
+
+            int index = 0;
+            while (index < TS.Count() && TS[index] < T)
+                index++;
+
+            return new double[2] { TS[index - 1], value[index - 1] };
+
         }
 
         private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, string type)
@@ -3717,7 +3758,7 @@ namespace OpenSEE.Controller
             dataLookup.Add(SpecifiedHarmonicMag.ChartLabel, SpecifiedHarmonicMag);
             dataLookup.Add(SpecifiedHarmonicAng.ChartLabel, SpecifiedHarmonicAng);
         }
-        
+
         #endregion
 
         #endregion
