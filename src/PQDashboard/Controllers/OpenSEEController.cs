@@ -620,7 +620,7 @@ namespace OpenSEE.Controller
                     if (table.Rows.Count == 0)
                         return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
-                    double TripInitiate = table.Rows[0].ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds;
+                    double TripInitiate = this.RecalculateTripTime(item.Value, table.Rows[0].ConvertField<DateTime>("TripInitiate"));
 
                     double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.001;
 
@@ -646,14 +646,48 @@ namespace OpenSEE.Controller
             List<double> TS = data.DataPoints.Select(item => item[0]).ToList();
             List<double> value = data.DataPoints.Select(item => item[1]).ToList();
 
-            int index = 0;
-            while (index < TS.Count() && TS[index] < T)
-                index++;
+            int index = indexofClosestPoint(T, TS);
 
             return new double[2] { TS[index - 1], value[index - 1] };
 
         }
 
+        private int indexofClosestPoint(double T, List<double> TS)
+        {
+            int index = 0;
+            while (index < TS.Count() && TS[index] < T)
+                index++;
+
+            return index - 1;
+        }
+
+        // This is not ideal but currently the DateTimes from the Database are inacurate. 
+        // This can be fixed in the future but we need to do this step to account for old data
+        private double RecalculateTripTime(FlotSeries data, DateTime estimateTS)
+        {
+            List<double> TS = data.DataPoints.Select(item => item[0]).ToList();
+            List<double> value = data.DataPoints.Select(item => item[1]).ToList();
+
+            estimateTS = estimateTS + TimeSpan.FromMilliseconds(2);
+            double estimate = estimateTS.Subtract(m_epoch).TotalMilliseconds;
+
+            int minIndex = indexofClosestPoint(estimate, TS);
+
+            while (minIndex > 0)
+            {
+                if (value[minIndex] > value[minIndex+1])
+                {
+                    break;
+                }
+                if (!(value[minIndex] > 0.0001))
+                { 
+                    break;
+                }
+                minIndex--;
+            }
+
+            return TS[minIndex + 1];
+        }
         private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, string type)
         {
             Dictionary<string, FlotSeries> result = new Dictionary<string, FlotSeries>();
