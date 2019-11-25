@@ -620,11 +620,11 @@ namespace OpenSEE.Controller
                     if (table.Rows.Count == 0)
                         return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
-                    double TripInitiate = this.RecalculateTripTime(item.Value, table.Rows[0].ConvertField<DateTime>("TripInitiate"));
+                    double TripInitiate = table.Rows[0].ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds;
+                   
+                    double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.0001;
 
-                    double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.001;
-
-                    double PickupTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("PickupTime") * 0.001;
+                    double PickupTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("PickupTime") * 0.0001;
 
                     // Add them to FlotSeries
                     item.Value.DataMarker = new List<double[]>() {
@@ -635,7 +635,7 @@ namespace OpenSEE.Controller
                 }
                 return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
-            }).ToDictionary(ds => ds.Item1 + "Test", ds => ds.Item2);
+            }).ToDictionary(ds => ds.Item1, ds => ds.Item2);
             
                
             return dataLookup;
@@ -648,7 +648,7 @@ namespace OpenSEE.Controller
 
             int index = indexofClosestPoint(T, TS);
 
-            return new double[2] { TS[index - 1], value[index - 1] };
+            return new double[2] { TS[index], value[index] };
 
         }
 
@@ -658,36 +658,17 @@ namespace OpenSEE.Controller
             while (index < TS.Count() && TS[index] < T)
                 index++;
 
-            return index - 1;
-        }
-
-        // This is not ideal but currently the DateTimes from the Database are inacurate. 
-        // This can be fixed in the future but we need to do this step to account for old data
-        private double RecalculateTripTime(FlotSeries data, DateTime estimateTS)
-        {
-            List<double> TS = data.DataPoints.Select(item => item[0]).ToList();
-            List<double> value = data.DataPoints.Select(item => item[1]).ToList();
-
-            estimateTS = estimateTS + TimeSpan.FromMilliseconds(2);
-            double estimate = estimateTS.Subtract(m_epoch).TotalMilliseconds;
-
-            int minIndex = indexofClosestPoint(estimate, TS);
-
-            while (minIndex > 0)
+            if (Math.Abs(TS[index] - T) > Math.Abs(TS[index - 1] - T))
             {
-                if (value[minIndex] > value[minIndex+1])
-                {
-                    break;
-                }
-                if (!(value[minIndex] > 0.0001))
-                { 
-                    break;
-                }
-                minIndex--;
+                return index - 1;
             }
-
-            return TS[minIndex + 1];
+            else
+            {
+                return index;
+            }
         }
+
+
         private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, string type)
         {
             Dictionary<string, FlotSeries> result = new Dictionary<string, FlotSeries>();
@@ -712,7 +693,13 @@ namespace OpenSEE.Controller
 
                 foreach (String param in RelayParamters)
                 {
-                    List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param) }).ToList();
+                    double scaling = 1.0;
+                    if ((param == "PickupTime")||(param == "TripTime"))
+                    {
+                        scaling = 0.1d;
+
+                    }
+                    List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param)* scaling }).ToList();
                     result.Add(param, new FlotSeries()
                     {
                         ChannelID = 0,

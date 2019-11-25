@@ -257,7 +257,13 @@ namespace PQDashboard.Controllers.BreakerReport
 
             foreach (String param in RelayParamters)
             {
-                List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param) }).ToList();
+                double scaling = 1.0;
+                if ((param == "PickupTime") || (param == "TripTime"))
+                {
+                    scaling = 0.1d;
+
+                }
+                List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param) * scaling }).ToList();
                 result.Add(param, new FlotSeries()
                 {
                     ChannelID = 0,
