@@ -494,69 +494,92 @@ namespace OpenSEE.Controller
         [Route("GetData"),HttpGet]
         public JsonReturn GetData()
         {
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-                Dictionary<string, string> query = Request.QueryParameters();
-                int eventId = int.Parse(query["eventId"]);
-                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-
-                string type = query["type"];
-                string dataType = query["dataType"];
-
-                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                int pixels = (int)double.Parse(query["pixels"]);
-                DataTable table;
-
-                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                foreach (DataRow row in table.Rows)
+             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    int eventID = row.ConvertField<int>("ID");
-                    Dictionary<string, FlotSeries> temp;
+                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventId = int.Parse(query["eventId"]);
+                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
 
-                    if (dataType == "Time") {
-                        DataGroup dataGroup = QueryDataGroup(eventId, meter);
-                        temp = GetDataLookup(dataGroup, type, eventID);
-                    }
-                    else if (dataType == "Statistics")
-                    {
-                        temp = GetStatisticsLookup(evt.LineID, type);
-                    }
-                    else
-                    {
-                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
-                        temp = GetFrequencyDataLookup(viCycleDataGroup, type);
-                    }
+                    string type = query["type"];
+                    string dataType = query["dataType"];
 
-                    foreach (string key in temp.Keys)
+                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                    int pixels = (int)double.Parse(query["pixels"]);
+                    DataTable table;
+
+                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    foreach (DataRow row in table.Rows)
                     {
-                        if (temp[key].DataPoints.Count()>0)
+                        int eventID = row.ConvertField<int>("ID");
+                        Dictionary<string, FlotSeries> temp;
+
+                        if (dataType == "Time")
                         {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
+                            DataGroup dataGroup = QueryDataGroup(eventId, meter);
+                            temp = GetDataLookup(dataGroup, type, eventID);
+                        }
+                        else if (dataType == "Statistics")
+                        {
+                            temp = GetStatisticsLookup(evt.LineID, type);
+                        }
+                        else
+                        {
+                            VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
+                            temp = GetFrequencyDataLookup(viCycleDataGroup, type);
+                        }
+
+                        foreach (string key in temp.Keys)
+                        {
+                            if (temp[key].DataPoints.Count() > 0)
+                            {
+                                if (dict.ContainsKey(key))
+                                    dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                                else
+                                    dict.Add(key, temp[key]);
+                            }
                         }
                     }
-                }
-                if (dict.Count == 0) return null;
+                    if (dict.Count == 0) return null;
 
-                JsonReturn returnDict = new JsonReturn();
-                List<FlotSeries> returnList = new List<FlotSeries>();
+                    JsonReturn returnDict = new JsonReturn();
+                    List<FlotSeries> returnList = new List<FlotSeries>();
 
-                if (dataType == "Statistics")
-                {
+                    if (dataType == "Statistics")
+                    {
+                        foreach (string key in dict.Keys)
+                        {
+                            FlotSeries series = new FlotSeries();
+                            series = dict[key];
+
+                            series.DataPoints = dict[key].DataPoints.OrderBy(x => x[0]).ToList();
+
+                            returnList.Add(series);
+                        }
+
+                        returnDict.StartDate = evt.StartTime;
+                        returnDict.EndDate = evt.EndTime;
+                        returnDict.Data = returnList;
+                        returnDict.CalculationTime = 0;
+                        returnDict.CalculationEnd = 0;
+
+                        return returnDict;
+
+                    }
+
+                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
                     foreach (string key in dict.Keys)
                     {
                         FlotSeries series = new FlotSeries();
                         series = dict[key];
-                            
-                        series.DataPoints = dict[key].DataPoints.OrderBy(x => x[0]).ToList();
+
+                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
 
                         returnList.Add(series);
                     }
@@ -564,52 +587,60 @@ namespace OpenSEE.Controller
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
                     returnDict.Data = returnList;
-                    returnDict.CalculationTime = 0;
-                    returnDict.CalculationEnd = 0;
+                    returnDict.CalculationTime = calcTime;
+                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
                     return returnDict;
 
+
                 }
-
-                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                foreach (string key in dict.Keys)
-                {
-                    FlotSeries series = new FlotSeries();
-                    series = dict[key];
-                    
-                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        
-                    returnList.Add(series);
-                }
-                
-                returnDict.StartDate = evt.StartTime;
-                returnDict.EndDate = evt.EndTime;
-                returnDict.Data = returnList;
-                returnDict.CalculationTime = calcTime;
-                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                return returnDict;
-
-
-            }
+            
         }
 
         private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type, int eventID)
         {
-            Dictionary<string, FlotSeries> dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel), ds => new FlotSeries()
-            {
-                ChannelID = ds.SeriesInfo.Channel.ID,
-                ChannelName = ds.SeriesInfo.Channel.Name,
-                ChannelDescription = ds.SeriesInfo.Channel.Description,
-                MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
-                MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
-                Phase = ds.SeriesInfo.Channel.Phase.Name,
-                SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
-                DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
-                ChartLabel = GetChartLabel(ds.SeriesInfo.Channel)
+            //Special Case if there are more than 1 TCE
+            Dictionary<string, FlotSeries> dataLookup;
 
-            });
+            if (type == "TripCoilCurrent" && dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).Count() > 1)
+            {
+                List<int> tceIDs = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).Select(ds => ds.SeriesInfo.Channel.ID).ToList();
+                tceIDs.Sort();
+
+                dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds =>
+                {
+                    return (GetChartLabel(ds.SeriesInfo.Channel) + " " + tceIDs.FindIndex(item => item == ds.SeriesInfo.Channel.ID));
+                }, ds => new FlotSeries()
+                {
+                    ChannelID = ds.SeriesInfo.Channel.ID,
+                    ChannelName = ds.SeriesInfo.Channel.Name,
+                    ChannelDescription = ds.SeriesInfo.Channel.Description,
+                    MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                    MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                    Phase = ds.SeriesInfo.Channel.Phase.Name,
+                    SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                    DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(ds.SeriesInfo.Channel) + " " + tceIDs.FindIndex(item => item == ds.SeriesInfo.Channel.ID)
+
+                });
+            }
+            else
+            {
+               dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel)
+                    , ds => new FlotSeries()
+                    {
+                        ChannelID = ds.SeriesInfo.Channel.ID,
+                        ChannelName = ds.SeriesInfo.Channel.Name,
+                        ChannelDescription = ds.SeriesInfo.Channel.Description,
+                        MeasurementCharacteristic = ds.SeriesInfo.Channel.MeasurementCharacteristic.Name,
+                        MeasurementType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                        Phase = ds.SeriesInfo.Channel.Phase.Name,
+                        SeriesType = ds.SeriesInfo.Channel.MeasurementType.Name,
+                        DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                        ChartLabel = GetChartLabel(ds.SeriesInfo.Channel)
+
+                    });
+            }
 
             //Special Case if data is of type TCE We want to add the markers at 3 points
             Dictionary<string, FlotSeries> TCELookup = dataLookup.Where((item) => item.Value.SeriesType == "TripCoilCurrent").Select(item => {
@@ -620,11 +651,11 @@ namespace OpenSEE.Controller
                     if (table.Rows.Count == 0)
                         return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
-                    double TripInitiate = this.RecalculateTripTime(item.Value, table.Rows[0].ConvertField<DateTime>("TripInitiate"));
+                    double TripInitiate = table.Rows[0].ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds;
+                   
+                    double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.0001;
 
-                    double TripTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("TripTime") * 0.001;
-
-                    double PickupTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("PickupTime") * 0.001;
+                    double PickupTime = TripInitiate + (double)table.Rows[0].ConvertField<int>("PickupTime") * 0.0001;
 
                     // Add them to FlotSeries
                     item.Value.DataMarker = new List<double[]>() {
@@ -635,7 +666,7 @@ namespace OpenSEE.Controller
                 }
                 return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
-            }).ToDictionary(ds => ds.Item1 + "Test", ds => ds.Item2);
+            }).ToDictionary(ds => ds.Item1, ds => ds.Item2);
             
                
             return dataLookup;
@@ -648,7 +679,7 @@ namespace OpenSEE.Controller
 
             int index = indexofClosestPoint(T, TS);
 
-            return new double[2] { TS[index - 1], value[index - 1] };
+            return new double[2] { TS[index], value[index] };
 
         }
 
@@ -658,36 +689,17 @@ namespace OpenSEE.Controller
             while (index < TS.Count() && TS[index] < T)
                 index++;
 
-            return index - 1;
-        }
-
-        // This is not ideal but currently the DateTimes from the Database are inacurate. 
-        // This can be fixed in the future but we need to do this step to account for old data
-        private double RecalculateTripTime(FlotSeries data, DateTime estimateTS)
-        {
-            List<double> TS = data.DataPoints.Select(item => item[0]).ToList();
-            List<double> value = data.DataPoints.Select(item => item[1]).ToList();
-
-            estimateTS = estimateTS + TimeSpan.FromMilliseconds(2);
-            double estimate = estimateTS.Subtract(m_epoch).TotalMilliseconds;
-
-            int minIndex = indexofClosestPoint(estimate, TS);
-
-            while (minIndex > 0)
+            if (Math.Abs(TS[index] - T) > Math.Abs(TS[index - 1] - T))
             {
-                if (value[minIndex] > value[minIndex+1])
-                {
-                    break;
-                }
-                if (!(value[minIndex] > 0.0001))
-                { 
-                    break;
-                }
-                minIndex--;
+                return index - 1;
             }
-
-            return TS[minIndex + 1];
+            else
+            {
+                return index;
+            }
         }
+
+
         private Dictionary<string, FlotSeries> GetStatisticsLookup(int LineID, string type)
         {
             Dictionary<string, FlotSeries> result = new Dictionary<string, FlotSeries>();
@@ -712,7 +724,13 @@ namespace OpenSEE.Controller
 
                 foreach (String param in RelayParamters)
                 {
-                    List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param) }).ToList();
+                    double scaling = 1.0;
+                    if ((param == "PickupTime")||(param == "TripTime"))
+                    {
+                        scaling = 0.1d;
+
+                    }
+                    List<double[]> dataPoints = dr.Select(dataPoint => new double[] { dataPoint.ConvertField<DateTime>("TripInitiate").Subtract(m_epoch).TotalMilliseconds, dataPoint.ConvertField<double>(param)* scaling }).ToList();
                     result.Add(param, new FlotSeries()
                     {
                         ChannelID = 0,
