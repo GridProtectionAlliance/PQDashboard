@@ -122,7 +122,7 @@ export default class TCE extends React.Component<any, any>{
     render() {
         return <LineChartAnalyticBase
             legendDisplay={(key) => true}
-            legendEnable={(key) => key.length == 3}
+            legendEnable={(key) => true}
             legendKey="Trip Coil Current"
             openSEEServiceFunction={this.openSEEService.getWaveformTCEData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
