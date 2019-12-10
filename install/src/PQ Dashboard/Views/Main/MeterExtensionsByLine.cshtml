@@ -27,6 +27,8 @@
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using openXDA.Model
+@using Newtonsoft.Json
+
 @model AppModel
 @{
     Layout = "";
@@ -36,11 +38,16 @@
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     EventView theEvent;
     string xdaInstance;
+    string[] extensions;
+
     using (DataContext dataContext = new DataContext("systemSettings"))
     {
 
         theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
         xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        extensions = dataContext.Connection.RetrieveData("select Distinct ServiceName from DisturbanceSeverity").Select().Select(x => x["ServiceName"].ToString()).ToArray();
+
+
     }
     string context = parameters["context"] ?? "day";
 }
@@ -96,7 +103,7 @@
 </div>
 
 
-<div style="height: 100%; width: 100%;">
+<div style="height: calc(100% - 23px) ; width: 100%;">
     <div style="height: 100%; display: inline-block" id="MeterDetailsByDate"></div>
 </div>
 
@@ -108,8 +115,14 @@
     var context = "@context";
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     reconnectHub = false;
+    var extensions = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(extensions))')
 
     var disabledList = $.jStorage.get('disabledList');
+    $.each(extensions, function (extension) {
+        if (Object.keys(disabledList.Extensions).indexOf(extension) < 0)
+            disabledList.Extensions[extension] = false;
+    });
+
     var disabledArray = Object.keys(disabledList.Extensions).map(function (o) { if (!disabledList.Extensions[o]) return o }).filter(function (val) { return val !== undefined; });
 
 
