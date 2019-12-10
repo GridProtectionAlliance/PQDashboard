@@ -25,7 +25,7 @@ import * as React from 'react';
 import { clone } from 'lodash';
 
 export interface TableProps {
-    cols: Array<{ key: string, label: string, headerStyle?: React.CSSProperties, rowStyle?: React.CSSProperties, content?(item: any, key: string, style: React.CSSProperties): void }>,
+    cols: Array<{ key: string, label: string, headerStyle?: React.CSSProperties, colStyle?: React.CSSProperties, content?(item: any, key: string, style: React.CSSProperties): void }>,
     data: Array<any>,
     onClick: Function,
     sortField: string,
@@ -68,7 +68,7 @@ const Table: React.FunctionComponent <TableProps> = (props) => {
 
         return props.data.map((item, index) => {
             var cells = props.cols.map(colData => {
-                var style = clone(colData.rowStyle);
+                var style = clone(colData.colStyle);
                 return <td
                     key={index.toString() + item[colData.key] + colData.key}
                     style={style}

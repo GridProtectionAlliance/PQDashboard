@@ -80,108 +80,53 @@ export default class PolarChart extends React.Component<any, any>{
         super(props);
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.updatePhasorChart();
-    }
 
     componentDidMount() {
         ($("#phasor") as any).draggable({ scroll: false, handle: '#phasorhandle', containment: 'document' });
-        this.updatePhasorChart();
     }
 
-   updatePhasorChart() {
-        var canvas = $("#phasorCanvas");
-        var context = (canvas[0] as any).getContext("2d");
 
-        var padding = 10;
-        var center = { x: canvas.width() / 2, y: canvas.height() / 2 };
-        var chartRadius = Math.min(center.x, center.y) - padding;
-
-        if (canvas.is(":hidden"))
-            return;
-
-       context.clearRect(0, 0, canvas.width(), canvas.height());
-       this.drawGrid(context, center, chartRadius);
-       this.drawPhasors(context, center, chartRadius);
+    drawVectorSVG(mag: number, scale: number, angle: number): string {
+        if (mag == undefined || scale == undefined || angle == undefined) return '';
+        var x = mag*scale * Math.cos(angle * Math.PI / 180);
+        var y = mag * scale * Math.sin(angle * Math.PI / 180);
+        return `M 150 150 L ${150 + x} ${150 - y} Z`
     }
 
-    drawPhasors(context, center, chartRadius) {
+    render() {
+    
+        var dataV = [];
+
+        if (this.props.data.get('VAN RMS') != undefined)
+            dataV.push({ mag: this.props.data.get('VAN RMS').data, ang: this.props.data.get('VAN Phase').data, color: this.props.data.get('VAN RMS').color });
+        if (this.props.data.get('VBN RMS') != undefined)
+            dataV.push({ mag: this.props.data.get('VBN RMS').data, ang: this.props.data.get('VBN Phase').data, color: this.props.data.get('VBN RMS').color });
+        if (this.props.data.get('VCN RMS') != undefined)
+            dataV.push({ mag: this.props.data.get('VCN RMS').data, ang: this.props.data.get('VCN Phase').data, color: this.props.data.get('VCN RMS').color });
+
+        var dataI = [];
+        if (this.props.data.get('IAN RMS') != undefined)
+            dataI.push({ mag: this.props.data.get('IAN RMS').data, ang: this.props.data.get('IAN Phase').data, color: this.props.data.get('IAN RMS').color });
+        if (this.props.data.get('IBN RMS') != undefined)
+            dataI.push({ mag: this.props.data.get('IBN RMS').data, ang: this.props.data.get('IBN Phase').data, color: this.props.data.get('IBN RMS').color });
+        if (this.props.data.get('ICN RMS') != undefined)
+            dataI.push({ mag: this.props.data.get('ICN RMS').data, ang: this.props.data.get('ICN Phase').data, color: this.props.data.get('ICN RMS').color });        
+
         var vMax = 0;
-        var iMax = 0;
-        var ctrl = this;
-
-        context.lineWidth = 3;
-       
-        if (this.props.data.get('VAN RMS') == undefined || this.props.data.get('IAN RMS') == undefined ) return;
-
-        var dataV = [
-            { mag: this.props.data.get('VAN RMS').data, ang: this.props.data.get('VAN Phase').data, color: this.props.data.get('VAN RMS').color },
-            { mag: this.props.data.get('VBN RMS').data, ang: this.props.data.get('VBN Phase').data, color: this.props.data.get('VBN RMS').color },
-            { mag: this.props.data.get('VCN RMS').data, ang: this.props.data.get('VCN Phase').data, color: this.props.data.get('VCN RMS').color }
-        ];
-
-        var dataI = [
-            { mag: this.props.data.get('IAN RMS').data, ang: this.props.data.get('IAN Phase').data, color: this.props.data.get('IAN RMS').color },
-            { mag: this.props.data.get('IBN RMS').data, ang: this.props.data.get('IBN Phase').data, color: this.props.data.get('IBN RMS').color },
-            { mag: this.props.data.get('ICN RMS').data, ang: this.props.data.get('ICN Phase').data, color: this.props.data.get('ICN RMS').color }
-        ];
-
         $.each(dataV, function (key, series) {
             if (series.mag > vMax)
                 vMax = series.mag;
         });
+        var scaleV = 0.9 * 150 / vMax;
 
+        var iMax = 0;
         $.each(dataI, function (key, series) {
             if (series.mag > iMax)
                 iMax = series.mag;
         });
+        var scaleI = 0.9 * 150 / iMax;
 
-        $.each(dataV, function (index: number, series) {
-            var scale = 0.9 * chartRadius / vMax;
-            context.strokeStyle = series.color;
-            ctrl.drawVector(context, center, series.mag * scale, series.ang);
-            context.setLineDash([]);
-        });
 
-        $.each(dataI, function (index: number, series) {
-            var scale = 0.9 * chartRadius / iMax;
-            context.setLineDash([10, 5]);
-
-            context.strokeStyle = series.color;
-            ctrl.drawVector(context, center, series.mag * scale, series.ang);
-            context.setLineDash([]);
-        });
-    }
-
-    drawGrid(context, center, chartRadius) {
-        context.lineWidth = 1;
-        context.strokeStyle = "#BBB";
-
-        for (var i = 0; i < 4; i++)
-            this.drawVector(context, center, chartRadius, i * 90);
-
-        context.strokeStyle = "#DDD";
-        this.drawCircle(context, center, 0.9 * chartRadius / 2);
-        this.drawCircle(context, center, 0.9 * chartRadius);
-    }
-
-    drawVector(context, center, r, t) {
-        var x = r * Math.cos(t * Math.PI / 180);
-        var y = r * Math.sin(t * Math.PI / 180);
-
-        context.beginPath();
-        context.moveTo(center.x, center.y);
-        context.lineTo(center.x + x, center.y - y);
-        context.stroke();
-    }
-
-    drawCircle(context, center, r) {
-        context.beginPath();
-        context.arc(center.x, center.y, r, 0, 2 * Math.PI);
-        context.stroke();
-    }
-
-    render() {
         var vanRMS = this.props.data.get('VAN RMS');
         var vbnRMS = this.props.data.get('VBN RMS');
         var vcnRMS = this.props.data.get('VCN RMS');
@@ -201,7 +146,14 @@ export default class PolarChart extends React.Component<any, any>{
             <div id="phasor" className="ui-widget-content" style={outerDiv}>
                 <div id="phasorhandle" className={handle}></div>
                 <div id="phasorchart" style={{ width: '500px', height: '300px', zIndex: 1001 }}>
-                    <canvas id="phasorCanvas" width="300" height="300" style={{ display: 'block' , float: 'left'}}></canvas>
+                    <svg width="300" height="300">
+                        <circle cx="150" cy="150" r={60} stroke="lightgrey" strokeWidth="1" fill='white' fillOpacity="0"/>
+                        <circle cx="150" cy="150" r={130} stroke="lightgrey" strokeWidth="1" fill='white' fillOpacity="0" />
+                        <line x1="150" y1="0" x2="150" y2="300" style={{ stroke: 'lightgrey' , strokeWidth: 2}} />
+                        <line x1="0" y1="150" x2="300" y2="150" style={{ stroke: 'lightgrey', strokeWidth: 2 }} />
+                        { dataV.map((value, index) => <path key={index} d={this.drawVectorSVG(value.mag, scaleV, value.ang)} style={{ stroke: value.color, strokeWidth: 3 }} />)}
+                        { dataI.map((value, index) => <path key={index} d={this.drawVectorSVG(value.mag, scaleI, value.ang)} strokeDasharray="10,10" style={{ stroke: value.color, strokeWidth: 3 }} />)}
+                    </svg>
                     <table className="table" style={{ width: 200, height: 300, float: 'right' }}>
                         <thead>
                             <tr>
