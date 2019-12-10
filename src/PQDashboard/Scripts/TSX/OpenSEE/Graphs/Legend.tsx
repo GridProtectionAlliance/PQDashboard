@@ -81,14 +81,11 @@ export default class Legend extends React.Component<any, any>{
 
         return (
             <div ref="legend" id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
-                {(this.props.type == "Voltage" ?
+                {(this.props.type == "Voltage" || this.props.type == "Current" ?
                     <>
-                        <ToggleButtonGroup type="radio" defaultValue="LN" buttons={[{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }]} onChange={this.toggleVoltage.bind(this)} />
-                        <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleVoltage.bind(this)} />
+                        {(this.props.type == "Voltage" ? <ToggleButtonGroup type="radio" defaultValue="LN" buttons={[{ label: 'L-N', value: 'LN', active: true }, { label: 'L-L', value: 'L-L', active: false }]} onChange={this.toggleAll.bind(this)} /> : null)}
+                        <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Waveform', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amplitude', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleAll.bind(this)} />
                     </>
-                    : null)}
-                {( this.props.type == "Current" ?
-                        <ToggleButtonGroup type="checkbox" defaultValue="Wave" buttons={[{ label: 'W', value: 'Wave', active: true }, { label: 'R', value: 'RMS', active: false }, { label: 'A', value: 'Amp', active: false }, { label: 'Ph', value: 'Phase', active: false }]} onChange={this.toggleAll.bind(this)} />
                     : null)}
 
                 {(this.props.type.toLowerCase() == "digital" ?
@@ -133,7 +130,7 @@ export default class Legend extends React.Component<any, any>{
                     </div> : null)}
 
 
-                <table ref="table" style={{ maxHeight: 'calc(100% - ' + (this.props.type == 'Voltage' ? '70' : '35') + 'px)', overflowY: 'auto', display: 'block' }}>
+                <table ref="table" style={{ maxHeight: /*'calc(100% - ' + (this.props.type == 'Voltage' ? '70' : '35') + 'px)'*/ this.props.height - 38 - (this.props.type == 'Voltage' ? 70 : 35) , overflowY: 'auto', display: 'block' }}>
                 <tbody >
                     {rows}
                 </tbody>
@@ -142,39 +139,44 @@ export default class Legend extends React.Component<any, any>{
         );
     }
 
-    toggleVoltage(type) {
+    keyType(key: string): string {
+        if (key.indexOf('RMS') >= 0) return "RMS";
+        if (key.indexOf('Amplitude') >= 0) return "Amplitude";
+        if (key.indexOf('Phase') >= 0) return "Phase";
+        else return "Waveform"
+    }
+
+    toggleAll(active: Array<string>, value: string, type: string) {
         this.props.data.forEach((row, key, map) => {
-            row.display = false;
-            row.enabled = false;
-            $('[name="' + key + '"]').prop('checked', false);
+            var enabled = row.enabled && this.keyType(key) != value;
 
-            if ($(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("L-N") >= 0 && key[2] == 'N') {
-                row.display = true;
+            if (type == "radio" && value == "LN") {
+                row.display = key[2] == 'N';
+                enabled = false;
             }
-            else if ($(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("L-L") >= 0 && key[2] != 'N') {
-                row.display = true;
-            }
-
-
-            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("W") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
+            else if (type == "radio" && value == "L-L") {
+                row.display = key[2] != 'N';
+                enabled = false;
             }
 
-            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("R") >= 0 && key.indexOf('RMS') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("W") >= 0 && this.keyType(key) == "Waveform") {
+                enabled = true;
             }
 
-            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("A") >= 0 && key.indexOf('Amplitude') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("R") >= 0 && this.keyType(key) == "RMS") {
+                enabled = true;
             }
 
-            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("Ph") >= 0 && key.indexOf('Phase') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("A") >= 0 && this.keyType(key) == "Amplitude") {
+                enabled = true;
             }
+
+            if (row.display && $(this.refs.legend).find('label.active').toArray().map(x => $(x).text()).indexOf("Ph") >= 0 && this.keyType(key) == "Phase") {
+                enabled = true;
+            }
+
+            row.enabled = enabled;
+            $('[name="' + key + '"]').prop('checked', row.enabled);
 
         });
 
@@ -182,36 +184,6 @@ export default class Legend extends React.Component<any, any>{
 
     }
 
-    toggleAll(type) {
-        this.props.data.forEach((row, key, map) => {
-            row.enabled = false;
-            $('[name="' + key + '"]').prop('checked', false);
-
-            if (type.indexOf("Wave") >= 0 && key.indexOf('RMS') < 0 && key.indexOf('Amplitude') < 0 && key.indexOf('Phase') < 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
-            }
-
-            if (type.indexOf("RMS") >= 0 && key.indexOf('RMS') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
-            }
-
-            if (type.indexOf("Amp") >= 0 && key.indexOf('Amplitude') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
-            }
-
-            if (type.indexOf("Phase") >= 0 && key.indexOf('Phase') >= 0) {
-                row.enabled = true;
-                $('[name="' + key + '"]').prop('checked', true);
-            }
-
-        });
-
-        this.props.callback();
-
-    }
 
     togglePower(type, event) {
         this.props.data.forEach((row, key, map) => {
@@ -627,7 +599,7 @@ function convertHex(hex, opacity) {
 }
 
 class ToggleButtonGroup extends React.Component {
-    props: { type: "radio" | "checkbox", buttons: { label: string, value: string, active: boolean }[], onChange: Function, defaultValue: string }
+    props: { type: "radio" | "checkbox", buttons: { label: string, value: string, active: boolean }[], onChange: (active: Array<string>, value: string, type: string) => void, defaultValue: string }
     state: { buttons: { label: string, value: string, active: boolean }[]}
     constructor(props, context) {
         super(props, context);
@@ -643,14 +615,14 @@ class ToggleButtonGroup extends React.Component {
             var buttons = JSON.parse(JSON.stringify(this.state.buttons)) as { label: string, value: string, active: boolean }[];
             var button = buttons.find(x => x.value == value);
             button.active = !button.active;
-            this.setState({buttons: buttons}, () => this.props.onChange(this.state.buttons.filter(x=> x.active).map(x=> x.value)));
+            this.setState({buttons: buttons}, () => this.props.onChange(this.state.buttons.filter(x=> x.active).map(x=> x.value), value, this.props.type));
         }
         else {
             var buttons = JSON.parse(JSON.stringify(this.state.buttons)) as { label: string, value: string, active: boolean }[];
             buttons.forEach(x => x.active = false);
             var button = buttons.find(x => x.value == value);
             button.active = true;
-            this.setState({ buttons: buttons }, () => this.props.onChange(this.state.buttons.filter(x => x.active).map(x => x.value)));
+            this.setState({ buttons: buttons }, () => this.props.onChange(this.state.buttons.filter(x => x.active).map(x => x.value), value, this.props.type));
         }
     }
 
@@ -664,13 +636,13 @@ class ToggleButtonGroup extends React.Component {
 }
 
 class ToggleButton extends React.Component {
-    props: { active: boolean, value: string, style: React.CSSProperties, label: string, onChange: Function}
+    props: { active: boolean, value: string, style: React.CSSProperties, label: string, onChange: (value: string) => void}
     constructor(props, context) {
         super(props, context);
 
     }
 
     render() {
-        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} style={this.props.style}><input className="toggleButton" type="checkbox" name="checkbox" value={this.props.value}  onChange={(e) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
+        return <label className={"btn btn-primary" + (this.props.active ? ' active' : '')} style={this.props.style}><input className="toggleButton" type="checkbox" name="checkbox" value={this.props.value}  onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.props.onChange(this.props.value)} />{this.props.label}</label>;
     }
 }
