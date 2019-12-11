@@ -87,18 +87,20 @@ export default class Voltage extends React.Component<any, any>{
         this.setState({ eventDataHandle: eventDataHandle });
 
         var frequencyDataHandle = this.openSEEService.getFrequencyData(props.eventId, props.pixels, "Voltage", props.startDate, props.endDate).then(data => {
-            if (data == null) return;
+            setTimeout(() => {
+                if (data == null) return;
 
-            var legend = baseCtrl.createLegendRows(data.Data);
+                var legend = baseCtrl.createLegendRows(data.Data);
 
-            var dataSet = baseCtrl.state.dataSet;
-            if (dataSet.Data != undefined)
-                dataSet.Data = dataSet.Data.concat(data.Data);
-            else
-                dataSet = data;
+                var dataSet = baseCtrl.state.dataSet;
+                if (dataSet.Data != undefined)
+                    dataSet.Data = dataSet.Data.concat(data.Data);
+                else
+                    dataSet = data;
 
-            baseCtrl.createDataRows(dataSet, legend);
-            baseCtrl.setState({ dataSet: dataSet });
+                baseCtrl.createDataRows(data, legend)
+                baseCtrl.setState({ dataSet: dataSet });
+            }, 200);
         })
 
         this.setState({ frequencyDataHandle: frequencyDataHandle });

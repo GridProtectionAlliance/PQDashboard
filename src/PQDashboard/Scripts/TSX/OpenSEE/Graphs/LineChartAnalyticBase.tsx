@@ -41,19 +41,30 @@ interface LineChartAnalyticBassClassProps extends LineChartAnaltyicalBaseProps{
     getColor?: GetColorFunction, highlightCycle?: boolean, getData?: GetDataFunction, harmonic?: number, order?: number, Trc?: number
 
 }
+
+interface iDataSet {
+    CalculationEnd: number, CalculationTime: number, Data: Array<iDataSeries>, EndDate: string, StartDate: string
+}
+interface iDataSeries {
+    ChannelID: number, ChannelName: string, ChannelDescription: string, MeasurementType: string, MeasurementCharacteristic: string, Phase: string, SeriesType: string, ChartLabel: string, DataPoints: Array<[number, number]>
+}
+
+
 export default class LineChartAnalyticBase extends React.Component<LineChartAnalyticBassClassProps, any>{
     plot: any;
     options: object;
     clickHandled: boolean;
     panCenter: number;
-    state: { legendRows: Map<string, iLegendData>, dataSet: any, dataHandle: JQuery.jqXHR, harmonic: number }
+    state: { legendRows: Map<string, iLegendData>, dataSet: iDataSet, dataHandle: JQuery.jqXHR, harmonic: number }
     constructor(props, context) {
         super(props, context);
         var ctrl = this;
 
         ctrl.state = {
             legendRows: new Map<string, iLegendData>(),
-            dataSet: {}, 
+            dataSet: {
+                CalculationEnd: null, CalculationTime: null, Data: null, EndDate: null, StartDate: null
+            } , 
             dataHandle: undefined,
             harmonic: 1
         };
@@ -74,18 +85,9 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
                 reserveSpace: false,
                 ticks: function (axis) {
                     var ticks = [],
-                        delta = (axis.max - axis.min)/11,
-                        start = ctrl.floorInBase(axis.min, axis.delta),
-                        i = 0,
-                        v = Number.NaN,
-                        prev;
+                        delta = (axis.max - axis.min) / 11,
+                        i = 0;
 
-                    //do {
-                    //    prev = v;
-                    //    v = start + i * axis.delta;
-                    //    ticks.push(v);
-                    //    ++i;
-                    //} while (v < axis.max && v != prev);
                     for (var i = 1; i < 11; ++i)
                     {
                         ticks.push(axis.min + i * delta);
@@ -174,7 +176,7 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
     }
 
     getData(props: LineChartAnaltyicalBaseProps) {
-        var handle = this.props.openSEEServiceFunction(props.eventId, props.pixels, props.startDate, props.endDate).then(data => {
+        var handle = this.props.openSEEServiceFunction(props.eventId, props.pixels, props.startDate, props.endDate).then((data: iDataSet) => {
             if (data == null) {
                 return;
             }
@@ -486,8 +488,6 @@ export default class LineChartAnalyticBase extends React.Component<LineChartAnal
             var data = ctrl.plot.getData();
             if (data.length > 0 && data[0].data != undefined) {
                 var point = ctrl.plot.getData()[0].data.map(x => x[0]).sort((a, b) => Math.abs(a - pos.x) - Math.abs(b - pos.x))[0];
-                //ctrl.plot.clearCrosshair(pos.x)
-                //ctrl.plot.setCrosshair(point);
                 
                 ctrl.props.stateSetter({ Hover: point });
 
