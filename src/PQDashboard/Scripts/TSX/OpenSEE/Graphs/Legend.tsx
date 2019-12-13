@@ -76,7 +76,25 @@ export default class Legend extends React.Component<any, any>{
         let rows: Array<JSX.Element> = [];
         this.props.data.forEach((row, key, map) => {
             if (row.display)
-                rows.push( <Row key={key} label={key} color={row.color} enabled={row.enabled} callback={(e) => this.props.callback(e, row, key)} />)
+                rows.push(<Row key={key} label={key} color={row.color} enabled={row.enabled} callback={(e) => {
+
+                    if (row.enabled) {
+                        var legend = $(this.refs.legend)
+                        var keyType = this.keyType(key)
+
+                        if (keyType == "Waveform")
+                            $(legend.find('label')[legend.find('label').toArray().map(x => $(x).text()).indexOf("W")]).removeClass('active')
+                        else if (keyType == "RMS")
+                            $(legend.find('label')[legend.find('label').toArray().map(x => $(x).text()).indexOf("R")]).removeClass('active')
+                        else if (keyType == "Amplitude")
+                            $(legend.find('label')[legend.find('label').toArray().map(x => $(x).text()).indexOf("A")]).removeClass('active')
+                        else if (keyType == "Phase")
+                            $(legend.find('label')[legend.find('label').toArray().map(x => $(x).text()).indexOf("Ph")]).removeClass('active')
+
+
+                    }
+                    this.props.callback(e, row, key)
+                }} />)
         });
 
         return (
