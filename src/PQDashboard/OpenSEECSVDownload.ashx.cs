@@ -339,13 +339,14 @@ namespace PQDashboard
             };
 
             double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-            DataTable dataTable = connection.RetrieveData("SELECT TimeDomainData FROM EventData WHERE ID IN (SELECT EventDataID FROM Event WHERE MeterID = {0} AND EndTime >= {1} AND StartTime <= {2})", meter.ID, ToDateTime2(connection, startTime), ToDateTime2(connection, endTime));
+            DataTable dataTable = connection.RetrieveData("(SELECT ID FROM Event WHERE MeterID = {0} AND EndTime >= {1} AND StartTime <= {2})", meter.ID, ToDateTime2(connection, startTime), ToDateTime2(connection, endTime));
+
             Dictionary<string, DataSeries> dict = new Dictionary<string, DataSeries>();
 
             IEnumerable<DataGroup> dataGroups = dataTable
                 .Select()
-                .Select(row => row.ConvertField<byte[]>("TimeDomainData"))
-                .Select(timeDomainData => ToDataGroup(meter, timeDomainData))
+                .Select(row => row.ConvertField<int>("ID"))
+                .Select(id => ToDataGroup(meter, ChannelData.DataFromEvent(id,connection)))
                 .OrderBy(subGroup => subGroup.StartTime)
                 .ToList();
 
@@ -379,7 +380,7 @@ namespace PQDashboard
             return dict;
         }
 
-        private DataGroup ToDataGroup(Meter meter, byte[] data)
+        private DataGroup ToDataGroup(Meter meter, List<byte[]> data)
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(meter, data);

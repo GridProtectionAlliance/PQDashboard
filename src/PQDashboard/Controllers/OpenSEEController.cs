@@ -442,14 +442,15 @@ namespace OpenSEE.Controller
             "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
             "    Event.StartTime, " +
             "    Meter.Name AS MeterName, " +
-            "    MeterLine.LineName " +
+            "    Asset.AssetName " +
             "FROM " +
             "    Event JOIN " +
             "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
             "    Meter ON Event.MeterID = Meter.ID JOIN " +
-            "    MeterLine ON " +
+            "    MeterAsset ON " +
             "        Event.MeterID = MeterLine.MeterID AND " +
-            "        Event.LineID = MeterLine.LineID CROSS APPLY " +
+            "        Event.AssetID = MeterAsset.AssetID JOIN" +
+            "   Asset ON Asset.ID = MeterAsset.AssetID  CROSS APPLY " +
             "    ( " +
             "        SELECT TOP 1 " +
             "            Disturbance.PerUnitMagnitude, " +
@@ -513,7 +514,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -526,7 +527,7 @@ namespace OpenSEE.Controller
                         }
                         else if (dataType == "Statistics")
                         {
-                            temp = GetStatisticsLookup(evt.LineID, type);
+                            temp = GetStatisticsLookup(evt.AssetID, type);
                         }
                         else
                         {
@@ -874,7 +875,7 @@ namespace OpenSEE.Controller
 
                 int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
                 Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                table = connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                table = connection.RetrieveData("select ID from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                 foreach (DataRow row in table.Rows)
                 {
                     int eventID = row.ConvertField<int>("ID");
@@ -967,7 +968,7 @@ namespace OpenSEE.Controller
 
                 int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
                 Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                table = connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                table = connection.RetrieveData("SELECT ID FROM FaultCurve WHERE EventID IN (SELECT ID FROM Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3})", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                 foreach (DataRow row in table.Rows)
                 {
                     KeyValuePair<string, FlotSeries> temp = QueryFaultDistanceData(int.Parse(row["ID"].ToString()), meter);
@@ -1006,7 +1007,7 @@ namespace OpenSEE.Controller
             {
                 FaultCurve faultCurve = new TableOperations<FaultCurve>(connection).QueryRecordWhere("ID = {0}", faultCurveID);
                 DataGroup dataGroup = new DataGroup();
-                dataGroup.FromData(meter, faultCurve.Data);
+                dataGroup.FromData(meter, new List<byte[]>(1) { faultCurve.Data });
                 FlotSeries flotSeries = new FlotSeries()
                 {
                     ChannelID = 0,
@@ -1038,8 +1039,7 @@ namespace OpenSEE.Controller
             {
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
-                    return ToDataGroup(meter, frequencyDomainData);
+                    return ToDataGroup(meter, ChannelData.DataFromEvent(eventID,connection));
                 }
             });
 
@@ -1073,7 +1073,7 @@ namespace OpenSEE.Controller
             return viCycleDataGroupTask.Result;
         }
 
-        private DataGroup ToDataGroup(Meter meter, byte[] data)
+        private DataGroup ToDataGroup(Meter meter, List<byte[]> data)
         {
             DataGroup dataGroup = new DataGroup();
             dataGroup.FromData(meter, data);
@@ -1480,7 +1480,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -1563,7 +1563,7 @@ namespace OpenSEE.Controller
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.LineID) ?? 1;
+                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.AssetID) ?? 1;
 
                 double lastX = 0;
                 double lastY = 0;
@@ -1621,7 +1621,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -1736,7 +1736,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -1866,7 +1866,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2006,7 +2006,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2134,7 +2134,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2412,7 +2412,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2566,7 +2566,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2719,7 +2719,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, OverlapSeries> dict = new Dictionary<string, OverlapSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2842,7 +2842,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -2901,7 +2901,7 @@ namespace OpenSEE.Controller
         private FlotSeries GetRapidVoltageChangeFlotSeries(DataSeries dataSeries, string label) {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
-                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.LineID) ?? 1;
+                double nominalVoltage = connection.ExecuteScalar<double?>("SELECT VoltageKV * 1000 FROM Line WHERE ID = {0}", dataSeries.SeriesInfo.Channel.AssetID) ?? 1;
 
                 double lastY = 0;
                 double lastX = 0;
@@ -2953,7 +2953,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3140,7 +3140,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3309,7 +3309,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3452,7 +3452,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3577,7 +3577,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3701,7 +3701,7 @@ namespace OpenSEE.Controller
                     DataTable table;
 
                     Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
                     foreach (DataRow row in table.Rows)
                     {
                         int eventID = row.ConvertField<int>("ID");
@@ -3886,7 +3886,7 @@ namespace OpenSEE.Controller
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
                 Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventID);
-                return RelayHistoryTable(evt.LineID,-1);
+                return RelayHistoryTable(evt.AssetID,-1);
             }
 
         }

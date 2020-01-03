@@ -1144,7 +1144,7 @@ namespace PQDashboard
         public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
         {
             Event record = DataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.LineID);
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.AssetID);
         }
 
         #endregion

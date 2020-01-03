@@ -116,9 +116,7 @@ namespace PQDashboard
                 List<FlotSeries> flotInfo = GetFlotInfo(eventID);
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                byte[] timeDomainData = connection.ExecuteScalar<byte[]>("SELECT TimeDomainData FROM EventData WHERE ID = {0}", evt.EventDataID);
-
-                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, timeDomainData));
+                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, ChannelData.DataFromEvent(evt.ID,connection)));
                 Dictionary<int, DataSeries> waveformData = dataGroup.Value.DataSeries.ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
 
 
@@ -131,7 +129,7 @@ namespace PQDashboard
                         .Select(faultCurve => new
                         {
                             Algorithm = faultCurve.Algorithm,
-                            DataGroup = ToDataGroup(meter, faultCurve.Data)
+                            DataGroup = ToDataGroup(meter, new List<byte[]>(1) { faultCurve.Data })
                         })
                         .Where(obj => obj.DataGroup.DataSeries.Count > 0)
                         .ToDictionary(obj => obj.Algorithm, obj => obj.DataGroup[0]);
@@ -188,7 +186,7 @@ namespace PQDashboard
             return flotSeriesList;
         }
 
-        public DataGroup ToDataGroup(Meter meter, byte[] data)
+        public DataGroup ToDataGroup(Meter meter, List<byte[]> data)
         {
             DataGroup dataGroup = new DataGroup();
 
@@ -221,15 +219,15 @@ namespace PQDashboard
             {
                 Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
                 Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
-                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
-                EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.AssetID);
+                
                 theset.Yaxis0name = "Voltage";
                 theset.Yaxis1name = "Current";
 
 
                 //eventDataAdapter.GetTimeDomainData(evt.EventDataID);
 
-                eventDataGroup.FromData(meter, eventData.TimeDomainData);
+                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID,connection));
 
                 int i = 0;
 
@@ -322,11 +320,11 @@ namespace PQDashboard
             {
                 Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
                 Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
-                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.AssetID);
                 EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
 
 
-                eventDataGroup.FromData(meter, eventData.TimeDomainData);
+                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID,connection));
 
                 int i = -1;
 
@@ -442,7 +440,7 @@ namespace PQDashboard
 
                 Event evt = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
                 Meter meter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", evt.MeterID);
-                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.LineID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", evt.AssetID);
                 EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
                 FaultSummary thesummary = (new TableOperations<FaultSummary>(connection)).QueryRecordWhere("EventID = {0} AND IsSelectedAlgorithm = 1", Convert.ToInt32(EventInstanceID));
 
@@ -524,7 +522,7 @@ namespace PQDashboard
         private DataSeries ToDataSeries(FaultCurve faultCurve)
         {
             DataGroup dataGroup = new DataGroup();
-            dataGroup.FromData(faultCurve.Data);
+            dataGroup.FromData(new List<byte[]>(1) { faultCurve.Data });
             return dataGroup[0];
         }
 
@@ -533,9 +531,9 @@ namespace PQDashboard
         /// </summary>
         /// <param name="eventData"></param>
         /// <returns></returns>
-        private DataGroup ToDataSeries(Meter meter, EventData eventData)
+        private DataGroup ToDataSeries(Meter meter, List<ChannelData> eventData)
         {
-            DataGroup dataGroup = ToDataGroup(meter, eventData.TimeDomainData);
+            DataGroup dataGroup = ToDataGroup(meter, eventData.Select(item => item.TimeDomainData).ToList());
             return dataGroup;
         }
 
@@ -546,8 +544,8 @@ namespace PQDashboard
         /// <param name="line"></param>
         private void FixFaultCurve(DataSeries faultCurve, Line line)
         {
-            double maxFaultDistance = MaxFaultDistanceMultiplier * line.Length;
-            double minFaultDistance = MinFaultDistanceMultiplier * line.Length;
+            double maxFaultDistance = MaxFaultDistanceMultiplier * line.Segments.Select(item => item.Length).Sum();
+            double minFaultDistance = MinFaultDistanceMultiplier * line.Segments.Select(item => item.Length).Sum();
 
             foreach (DataPoint dataPoint in faultCurve.DataPoints)
             {
@@ -572,8 +570,8 @@ namespace PQDashboard
         private eventSet FetchMeterEventCycleData(string EventInstanceID, string MeasurementName, eventSet theset)
         {
             DataGroup eventDataGroup = new DataGroup();
-            List<DataGroup> cycleCurves;
-            List<EventData> cycleDataRows;
+            DataGroup cycleCurves;
+            List<ChannelData> cycleDataRows;
 
             if (MeasurementName != "Voltage" && MeasurementName != "Current")
                 return theset;
@@ -585,10 +583,10 @@ namespace PQDashboard
 
                 Event theevent = (new TableOperations<Event>(connection)).QueryRecordWhere("ID = {0}", Convert.ToInt32(EventInstanceID));
                 Meter themeter = (new TableOperations<Meter>(connection)).QueryRecordWhere("ID = {0}", theevent.MeterID);
-                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", theevent.LineID);
+                Line line = (new TableOperations<Line>(connection)).QueryRecordWhere("ID = {0}", theevent.AssetID);
 
-                cycleDataRows = (new TableOperations<EventData>(connection)).QueryRecordsWhere("ID = {0}", theevent.EventData.ID).ToList();
-                cycleCurves = cycleDataRows.Select(row => ToDataSeries(themeter, row)).ToList();
+                cycleDataRows = (new TableOperations<ChannelData>(connection)).QueryRecordsWhere("EventID = {0}", theevent.ID).ToList();
+                cycleCurves = ToDataSeries(themeter, cycleDataRows);
 
                 //RMS, Phase angle, Peak, and Error
                 //VAN, VBN, VCN, IAN, IBN, ICN, IR
@@ -613,12 +611,12 @@ namespace PQDashboard
             };
 
                 // Lookup table to find a DataSeries by name
-                Dictionary<string, DataSeries> seriesNameLookup = cycleCurves[0].DataSeries
+                Dictionary<string, DataSeries> seriesNameLookup = cycleCurves.DataSeries
                     .Select((series, index) => new { Name = seriesNames[index], Series = series })
                     .ToDictionary(obj => obj.Name, obj => obj.Series);
 
                 int i = 0;
-                if (cycleCurves.Count > 0)
+                if (cycleCurves != null)
                 {
                     foreach (string seriesName in seriesOrder)
                     {
@@ -768,7 +766,7 @@ namespace PQDashboard
                 if ((object)evt == null)
                     return new List<FlotSeries>();
 
-                List<Series> waveformInfo = GetWaveformInfo(connection, evt.MeterID, evt.LineID);
+                List<Series> waveformInfo = GetWaveformInfo(connection, evt.MeterID, evt.AssetID);
 
                 var lookup = waveformInfo
                     .Where(info => info.Channel.MeasurementCharacteristic.Name == "Instantaneous")
