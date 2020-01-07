@@ -20,6 +20,8 @@
 //       Generated original version of source code.
 //  08/20/2019 - Christoph Lackner
 //       Added Relay Performance.
+//  01/06/2020 - Christoph Lackner
+//       Changed to D3 plotting.
 //
 //******************************************************************************************************
 declare var homePath: string;
@@ -66,6 +68,8 @@ export default class OpenSEEService{
 
     constructor() {
         this.getWaveformVoltageData = this.getWaveformVoltageData.bind(this);
+
+
         this.getWaveformCurrentData = this.getWaveformCurrentData.bind(this);
 
         this.getFaultDistanceData = this.getFaultDistanceData.bind(this);
