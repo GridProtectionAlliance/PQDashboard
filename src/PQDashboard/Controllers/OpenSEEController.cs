@@ -55,7 +55,6 @@ namespace OpenSEE.Controller
 
         // Fields
         private DateTime m_epoch = new DateTime(1970, 1, 1);
-        private bool m_disposed;
 
         public class JsonReturn
         {
@@ -63,14 +62,31 @@ namespace OpenSEE.Controller
             public DateTime EndDate;
             public double CalculationTime;
             public double CalculationEnd;
-            public List<FlotSeries> Data;
+            public List<D3Series> Data;
         }
+
+       
         public class FFTReturn
         {
             public List<FFTSeries> Data;
             public double CalculationTime;
             public double CalculationEnd;
 
+        }
+
+        // New D3 Ploting initially only for Voltage
+        public class D3Series
+        {
+            public string ChartLabel;
+            public string XaxisLabel;
+            public string Color;
+            public string LegendClass; //Determines which Button this will be under in the Legend
+            public string SecondaryLegendClass; //Determines which Button this will be under in the Legend
+            public string LegendGroup; //Determines the Group TYhis will be under in the Legend 
+            public int ChannelID;
+            
+            public List<double[]> DataPoints = new List<double[]>();
+            public List<double[]> DataMarker = new List<double[]>();
         }
 
         public class FlotSeries
@@ -101,6 +117,7 @@ namespace OpenSEE.Controller
         }
 
         #region[AnalyticFilterClasses]
+
         public class FFT
         {
             #region[constructor]
@@ -431,6 +448,7 @@ namespace OpenSEE.Controller
 
 
         }
+
         #endregion[AnalyticFilterClasses]
         // Constants
         public const string TimeCorrelatedSagsSQL =
@@ -448,7 +466,7 @@ namespace OpenSEE.Controller
             "    EventType ON Event.EventTypeID = EventType.ID JOIN " +
             "    Meter ON Event.MeterID = Meter.ID JOIN " +
             "    MeterAsset ON " +
-            "        Event.MeterID = MeterLine.MeterID AND " +
+            "        Event.MeterID = MeterAsset.MeterID AND " +
             "        Event.AssetID = MeterAsset.AssetID JOIN" +
             "   Asset ON Asset.ID = MeterAsset.AssetID  CROSS APPLY " +
             "    ( " +
@@ -495,60 +513,115 @@ namespace OpenSEE.Controller
         [Route("GetData"),HttpGet]
         public JsonReturn GetData()
         {
-             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+
+                int eventId = int.Parse(query["eventId"]);
+                string type = query["type"];
+                string dataType = query["dataType"];
+                int pixels = (int)double.Parse(query["pixels"]);
+
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                Dictionary<string, D3Series> dictD3 = new Dictionary<string, D3Series>();
+
+                Dictionary<string, FlotSeries> temp = new Dictionary<string, FlotSeries>();
+                Dictionary<string, D3Series> tempD3 = new Dictionary<string, D3Series>();
+
+                if (dataType == "Time")
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-
-                    string type = query["type"];
-                    string dataType = query["dataType"];
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = (int)double.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.AssetID);
-                    foreach (DataRow row in table.Rows)
+                    DataGroup dataGroup;
+                    if (type == "Voltage")
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        Dictionary<string, FlotSeries> temp;
+                        dataGroup = QueryDataGroup(eventId, meter);
+                        tempD3 = GetD3DataLookup(dataGroup, type);
+                    }
 
-                        if (dataType == "Time")
-                        {
-                            DataGroup dataGroup = QueryDataGroup(eventId, meter);
-                            temp = GetDataLookup(dataGroup, type, eventID);
-                        }
-                        else if (dataType == "Statistics")
-                        {
-                            temp = GetStatisticsLookup(evt.AssetID, type);
-                        }
-                        else
-                        {
-                            VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
-                            temp = GetFrequencyDataLookup(viCycleDataGroup, type);
-                        }
+                    else
+                    {
+                        dataGroup = QueryDataGroup(eventId, meter);
+                        temp = GetDataLookup(dataGroup, type);
+                    }
+                        
+                }
+                else if (dataType == "Statistics")
+                {
+                    temp = GetStatisticsLookup(evt.AssetID, type);
+                }
+                else
+                {
+                    VICycleDataGroup viCycleDataGroup;
+                    if (type == "Voltage")
+                    {
+                        viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
+                        tempD3 = GetD3FrequencyDataLookup(viCycleDataGroup, type);
+                    }
+                    else
+                    {
+                        viCycleDataGroup = QueryVICycleDataGroup(eventId, meter);
+                        temp = GetFrequencyDataLookup(viCycleDataGroup, type);
+                    }
+                }
 
-                        foreach (string key in temp.Keys)
+                JsonReturn returnDict = new JsonReturn();
+
+                if (type == "Voltage")
+                {
+                    foreach (string key in tempD3.Keys)
+                    {
+                        if (tempD3[key].DataPoints.Count() > 0)
                         {
-                            if (temp[key].DataPoints.Count() > 0)
-                            {
-                                if (dict.ContainsKey(key))
-                                    dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                                else
-                                    dict.Add(key, temp[key]);
-                            }
+                            if (dictD3.ContainsKey(key))
+                                dictD3[key].DataPoints = dictD3[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dictD3.Add(key, tempD3[key]);
                         }
                     }
+
+                    if (dictD3.Count == 0) return null;
+
+                    List<D3Series> returnList = new List<D3Series>();
+
+                    foreach (string key in dictD3.Keys)
+                    {
+                        D3Series series = new D3Series();
+                        series = dictD3[key];
+
+                        series.DataPoints = Downsample(dictD3[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+
+                        returnList.Add(series);
+                    }
+
+                    returnDict.Data = returnList;
+
+                }
+                else
+                {
+                    foreach (string key in temp.Keys)
+                    {
+                        if (temp[key].DataPoints.Count() > 0)
+                        {
+                            if (dict.ContainsKey(key))
+                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                            else
+                                dict.Add(key, temp[key]);
+                        }
+                    }
+
                     if (dict.Count == 0) return null;
 
-                    JsonReturn returnDict = new JsonReturn();
+                    
                     List<FlotSeries> returnList = new List<FlotSeries>();
 
                     if (dataType == "Statistics")
@@ -565,16 +638,14 @@ namespace OpenSEE.Controller
 
                         returnDict.StartDate = evt.StartTime;
                         returnDict.EndDate = evt.EndTime;
-                        returnDict.Data = returnList;
+                        returnDict.Data = null;
                         returnDict.CalculationTime = 0;
                         returnDict.CalculationEnd = 0;
 
                         return returnDict;
 
                     }
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
+                    
                     foreach (string key in dict.Keys)
                     {
                         FlotSeries series = new FlotSeries();
@@ -585,9 +656,15 @@ namespace OpenSEE.Controller
                         returnList.Add(series);
                     }
 
-                    returnDict.StartDate = evt.StartTime;
+                    returnDict.Data = null;
+                }
+
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+
+                returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -598,7 +675,175 @@ namespace OpenSEE.Controller
             
         }
 
-        private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type, int eventID)
+        private Dictionary<string, D3Series> GetD3DataLookup(DataGroup dataGroup, string type)
+        {
+            Dictionary<string, D3Series> dataLookup;
+
+            dataLookup = dataGroup.DataSeries.Where(ds => ds.SeriesInfo.Channel.MeasurementType.Name == type).ToDictionary(ds => GetChartLabel(ds.SeriesInfo.Channel)
+                    , ds => new D3Series()
+                    {
+                        ChannelID = ds.SeriesInfo.Channel.ID,
+                        ChartLabel = GetChartLabel(ds.SeriesInfo.Channel),
+                        XaxisLabel = GetUnits(ds.SeriesInfo.Channel),
+                        Color = GetColor(ds.SeriesInfo.Channel),
+                        LegendClass = GetVoltageType(ds.SeriesInfo.Channel),
+                        SecondaryLegendClass = GetSignalType(ds.SeriesInfo.Channel),
+                        LegendGroup = "",
+                        DataPoints = ds.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    });
+
+            return dataLookup;
+        }
+
+
+        private string GetUnits(Channel channel)
+        {
+            if (channel.MeasurementType.Name == "Voltage")
+                return "kV";
+            else
+                return " ";
+        }
+
+        private string GetColor(Channel channel)
+        {
+            if (channel.MeasurementType.Name == "Voltage")
+            {
+                switch (channel.Phase.Name)
+                {
+                    case ("AN"):
+                        return "#A30000";
+                    case ("BN"):
+                        return "#0029A3";
+                    case ("CN"):
+                        return "#007A29";
+                    case ("AB"):
+                        return "#A30000";
+                    case ("BC"):
+                        return "#0029A3";
+                    case ("CA"):
+                        return "#007A29";
+                    case ("NG"):
+                        return "#d3d3d3";
+                    default: // Should be random
+                        return "#A30000";
+                }
+            }
+            else if (channel.MeasurementType.Name == "Current")
+            {
+                switch (channel.Phase.Name)
+                {
+                    case ("AN"):
+                        return "#FF0000";
+                    case ("BN"):
+                        return "#0066CC";
+                    case ("CN"):
+                        return "#33CC33";
+                    case ("NG"):
+                        return "#d3d3d3";
+                    case ("RES"):
+                        return "#d3d3d3";
+                    default: // Should be random
+                        return "#A30000";
+                }
+            }
+
+            //Should be Random
+            return "#A30000";
+
+        }
+
+        private string GetVoltageType(Channel channel)
+        {
+            if (channel.MeasurementType.Name == "Voltage")
+            {
+                if (channel.Phase.Name == "AB" || channel.Phase.Name == "BC" || channel.Phase.Name == "CA")
+                {
+                    return "L-L";
+                }
+                else
+                {
+                    return "L-N";
+                }
+            }
+
+            return "";
+        }
+
+        private string GetSignalType(Channel channel)
+        {
+            if (channel.MeasurementType.Name == "Voltage" || channel.MeasurementType.Name == "Current")
+            {
+                if (channel.MeasurementCharacteristic.Name == "Instantaneous")
+                {
+                    return "W";
+                }
+                else if (channel.MeasurementCharacteristic.Name == "RMS")
+                {
+                    return "RMS";
+                }
+            }
+
+            return "";
+        }
+
+        private Dictionary<string, D3Series> GetD3FrequencyDataLookup(VICycleDataGroup vICycleDataGroup, string type)
+        {
+            IEnumerable<string> names = vICycleDataGroup.CycleDataGroups.Where(ds => ds.RMS.SeriesInfo.Channel.MeasurementType.Name == type).Select(ds => ds.RMS.SeriesInfo.Channel.Phase.Name);
+            Dictionary<string, D3Series> dataLookup = new Dictionary<string, D3Series>();
+
+            foreach (CycleDataGroup cdg in vICycleDataGroup.CycleDataGroups.Where(ds => ds.RMS.SeriesInfo.Channel.MeasurementType.Name == type))
+            {
+
+                D3Series flotSeriesRMS = new D3Series
+                {
+                    ChannelID = cdg.RMS.SeriesInfo.Channel.ID,
+                    DataPoints = cdg.RMS.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.RMS.SeriesInfo.Channel, "RMS"),
+                    XaxisLabel = GetUnits(cdg.RMS.SeriesInfo.Channel),
+                    Color = GetColor(cdg.RMS.SeriesInfo.Channel),
+                    LegendClass = GetVoltageType(cdg.RMS.SeriesInfo.Channel),
+                    SecondaryLegendClass = "RMS",
+                    LegendGroup = "",
+
+                };
+                dataLookup.Add(flotSeriesRMS.ChartLabel, flotSeriesRMS);
+
+                D3Series flotSeriesWaveAmp = new D3Series
+                {
+                    ChannelID = cdg.Peak.SeriesInfo.Channel.ID,
+                    DataPoints = cdg.Peak.DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.Peak.SeriesInfo.Channel, "Amplitude"),
+
+                    XaxisLabel = GetUnits(cdg.Peak.SeriesInfo.Channel),
+                    Color = GetColor(cdg.Peak.SeriesInfo.Channel),
+                    LegendClass = GetVoltageType(cdg.Peak.SeriesInfo.Channel),
+                    SecondaryLegendClass = "A",
+                    LegendGroup = "",
+
+                };
+                dataLookup.Add(flotSeriesWaveAmp.ChartLabel, flotSeriesWaveAmp);
+
+                D3Series flotSeriesPolarAngle = new D3Series
+                {
+                    ChannelID = cdg.Phase.SeriesInfo.Channel.ID,
+                    DataPoints = cdg.Phase.Multiply(180.0D / Math.PI).DataPoints.Select(dataPoint => new double[] { dataPoint.Time.Subtract(m_epoch).TotalMilliseconds, dataPoint.Value }).ToList(),
+                    ChartLabel = GetChartLabel(cdg.Phase.SeriesInfo.Channel, "Phase"),
+
+                    XaxisLabel = GetUnits(cdg.Phase.SeriesInfo.Channel),
+                    Color = GetColor(cdg.Phase.SeriesInfo.Channel),
+                    LegendClass = GetVoltageType(cdg.Phase.SeriesInfo.Channel),
+                    SecondaryLegendClass = "Ph",
+                    LegendGroup = "",
+                };
+            
+                dataLookup.Add(flotSeriesPolarAngle.ChartLabel, flotSeriesPolarAngle);
+
+            }
+
+            return dataLookup;
+        }
+
+        private Dictionary<string, FlotSeries> GetDataLookup(DataGroup dataGroup, string type)
         {
             //Special Case if there are more than 1 TCE
             Dictionary<string, FlotSeries> dataLookup;
@@ -648,7 +893,7 @@ namespace OpenSEE.Controller
                 // First get the 3 points
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    DataTable table = connection.RetrieveData("select TripInitiate, TripTime, PickupTime from RelayPerformance WHERE EventID = {0} AND ChannelID = {1}", eventID, item.Value.ChannelID);
+                    DataTable table = connection.RetrieveData("select TripInitiate, TripTime, PickupTime from RelayPerformance WHERE EventID = {0} AND ChannelID = {1}", 1, item.Value.ChannelID);
                     if (table.Rows.Count == 0)
                         return new Tuple<string, FlotSeries>(item.Key, item.Value);
 
@@ -905,7 +1150,7 @@ namespace OpenSEE.Controller
                 JsonReturn returnDict = new JsonReturn();
                 returnDict.StartDate = evt.StartTime;
                 returnDict.EndDate = evt.EndTime;
-                returnDict.Data = returnList;
+                returnDict.Data = null;
                 returnDict.CalculationTime = calcTime;
 
                 return returnDict;
@@ -992,7 +1237,7 @@ namespace OpenSEE.Controller
                 JsonReturn returnDict = new JsonReturn();
                 returnDict.StartDate = evt.StartTime;
                 returnDict.EndDate = evt.EndTime;
-                returnDict.Data = returnList;
+                returnDict.Data = null;
                 returnDict.CalculationTime = calcTime;
 
                 return returnDict;
@@ -1039,7 +1284,8 @@ namespace OpenSEE.Controller
             {
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    return ToDataGroup(meter, ChannelData.DataFromEvent(eventID,connection));
+                    List<byte[]> data = ChannelData.DataFromEvent(eventID, connection);
+                    return ToDataGroup(meter, data);
                 }
             });
 
@@ -1176,7 +1422,7 @@ namespace OpenSEE.Controller
                 { "System", Tuple.Create((EventView)null, (EventView)null) },
                 { "Station", Tuple.Create((EventView)null, (EventView)null) },
                 { "Meter", Tuple.Create((EventView)null, (EventView)null) },
-                { "Line", Tuple.Create((EventView)null, (EventView)null) }
+                { "Asset", Tuple.Create((EventView)null, (EventView)null) }
             };
 
             Dictionary<string, dynamic> returnDict = new Dictionary<string, dynamic>();
@@ -1190,8 +1436,7 @@ namespace OpenSEE.Controller
                 returnDict.Add("postedStationName", theEvent.StationName);
                 returnDict.Add("postedMeterId", theEvent.MeterID.ToString());
                 returnDict.Add("postedMeterName", theEvent.MeterName);
-                returnDict.Add("postedLineName", theEvent.LineName);
-                returnDict.Add("postedLineLength", theEvent.Length.ToString());
+                returnDict.Add("postedAssetName", theEvent.AssetName);
 
                 returnDict.Add("postedEventName", theEvent.EventTypeName);
                 returnDict.Add("postedEventDate", theEvent.StartTime.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
@@ -1333,13 +1578,12 @@ namespace OpenSEE.Controller
                 SELECT
 	                DISTINCT
 	                Meter.Name as MeterName,
-	                MeterLine.LineName,
+	                Asset.AssetName,
 	                Event.ID as EventID
                 FROM
 	                Event JOIN
 	                Meter ON Meter.ID = Event.MeterID JOIN
-	                Line ON Line.ID = Event.LineID JOIN
-	                MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+	                Asset ON Asset.ID = Event.AssetID
                 WHERE
 	                Event.ID != {0} AND  
 	                Event.StartTime <= {2} AND
@@ -1511,7 +1755,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -1651,7 +1895,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -1767,7 +2011,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -1897,7 +2141,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2036,7 +2280,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2164,7 +2408,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2442,7 +2686,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2597,7 +2841,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2872,7 +3116,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -2983,7 +3227,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = 0;
                     returnDict.CalculationEnd = 0 + 1000 / systemFrequency;
 
@@ -3171,7 +3415,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -3339,7 +3583,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -3482,7 +3726,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -3607,7 +3851,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -3732,7 +3976,7 @@ namespace OpenSEE.Controller
                     JsonReturn returnDict = new JsonReturn();
                     returnDict.StartDate = evt.StartTime;
                     returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
+                    returnDict.Data = null;
                     returnDict.CalculationTime = calcTime;
                     returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
 
@@ -3949,7 +4193,7 @@ namespace OpenSEE.Controller
 	                COUNT(*) 
                 FROM 
 	                Event JOIN 
-	                Channel ON Channel.MeterID = Event.MeterID AND Channel.LineID = Event.LineID JOIN
+	                Channel ON Channel.MeterID = Event.MeterID AND Channel.AssetID = Event.AssetID JOIN
 	                Series ON Channel.ID = Series.ChannelID JOIN
 	                OutputChannel ON OutputChannel.SeriesID = Series.ID
                 WHERE
