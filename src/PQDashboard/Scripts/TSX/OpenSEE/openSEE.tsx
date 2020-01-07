@@ -131,7 +131,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
 
         this.openSEEService.getOverlappingEvents(this.state.eventid, this.state.StartDate, this.state.EndDate).done(data => {           
             this.setState({
-                overlappingEvents: data.map(d => new Object({ group: d.MeterName, label: d.LineName, value: d.EventID, selected: this.state.comparedEvents.indexOf(d.EventID) >= 0 }))
+                overlappingEvents: data.map(d => new Object({ group: d.MeterName, label: d.AssetName, value: d.EventID, selected: this.state.comparedEvents.indexOf(d.EventID) >= 0 }))
             });
         });
 
@@ -211,6 +211,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
                             </table>
                         </div>
                         <div className={"tab-pane fade" + (this.state.tab == "Compare" ? " show active" : '')} id="compare" role="tabpanel" aria-labelledby="profile-tab">
+
                             <MultiselectWindow comparedEvents={this.state.comparedEvents} stateSetter={this.stateSetter.bind(this)} data={this.state.overlappingEvents} />
                         </div>
                         <div className={"tab-pane fade" + (this.state.tab == "Analytics" ? " show active" : '')} id="analysis" role="tabpanel" aria-labelledby="contact-tab">
@@ -336,7 +337,7 @@ const ViewerWindow = (props: ViewerWindowProps) => {
         <div className="card" style={{ height: (props.isCompare ? null : '100%') }}>
             <div className="card-header">{props.label}</div>
             <div className="card-body" style={{padding: 0}}>
-                {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} tooltipWithDeltaTable={props.tooltipWithDeltaTable}  /> : null)}
+                {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} /> : null)}
                 {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
                 {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
                 {(props.displayTCE ? <TripCoilCurrent eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} tooltipWithDeltaTable={props.tooltipWithDeltaTable} /> : null)}
@@ -344,7 +345,7 @@ const ViewerWindow = (props: ViewerWindowProps) => {
         </div>
         :
         <div>
-            {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
+            {(props.displayVolt ? <Voltage eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} /> : null)}
             {(props.displayCur ? <Current eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/> : null)}
             {(props.displayDigitals ? <Digital eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} postedData={props.postedData} tableSetter={props.tableSetter} tooltipWithDeltaTable={props.tooltipWithDeltaTable}/>: null)}
             {(props.displayTCE ? <TripCoilCurrent eventId={props.eventId} startDate={props.startDate} endDate={props.endDate} pixels={props.pixels} stateSetter={props.stateSetter} height={props.height} hover={props.hover} tableData={props.tableData} pointsTable={props.pointsTable} tableSetter={props.tableSetter} postedData={props.postedData} fftStartTime={props.fftStartTime} fftEndTime={props.fftEndTime} analytic={props.analytic} tooltipWithDeltaTable={props.tooltipWithDeltaTable} /> : null)}

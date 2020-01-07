@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  Current.tsx - Gbtc
+//  Voltage.tsx - Gbtc
 //
 //  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
 //
@@ -18,17 +18,19 @@
 //  ----------------------------------------------------------------------------------------------------
 //  03/18/2019 - Billy Ernest
 //       Generated original version of source code.
+//  01/06/2020 - C. Lackner
+//       Switched to D3 plotting
 //
 //******************************************************************************************************
 
 import * as React  from 'react';
 
 import OpenSEEService from './../../../TS/Services/OpenSEE';
-import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
+import D3LineChartBase, { D3LineChartBaseProps } from './../Graphs/D3LineChartBase';
 
 export default class Voltage extends React.Component<any, any>{
     openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps;
+    props: D3LineChartBaseProps;
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -47,32 +49,10 @@ export default class Voltage extends React.Component<any, any>{
     }
 
 
-    getData(props: LineChartAnaltyicalBaseProps, baseCtrl: LineChartAnalyticBase, ctrl: Voltage): void {
+    getData(props: D3LineChartBaseProps, baseCtrl: D3LineChartBase, ctrl: Voltage): void {
         
         var eventDataHandle = ctrl.openSEEService.getWaveformVoltageData(props.eventId, props.pixels, props.startDate, props.endDate).then(data => {
-            baseCtrl.options['grid'].markings = [];
-            baseCtrl.options['rangeselection'] = undefined;
-            baseCtrl.options['selection'] = { mode: 'x' };
-
-            var highlight = baseCtrl.highlightCycle(data);
-            if (highlight != undefined)
-                baseCtrl.options['grid'].markings.push(highlight);
-
-            if (props.fftStartTime != undefined) {
-                baseCtrl.options['selection'] = undefined;
-                baseCtrl.options['rangeselection'] = {
-                    color: "#ADD8E6",
-                    start: this.props.fftStartTime,
-                    end: this.props.fftEndTime,
-                    enabled: true,
-                    fixedWidth: true,
-                    movex: 100,
-                    noOffset: true,
-                    callback: (o) => this.props.stateSetter({ fftStartTime: o.start, fftEndTime: o.end })
-                }
-
-            }
-
+       
             var legend = baseCtrl.createLegendRows(data.Data);
 
             var dataSet = baseCtrl.state.dataSet;
@@ -81,7 +61,6 @@ export default class Voltage extends React.Component<any, any>{
             else
                 dataSet = data;
 
-            baseCtrl.createDataRows(data, legend);
             baseCtrl.setState({ dataSet: data });
         });
         this.setState({ eventDataHandle: eventDataHandle });
@@ -97,8 +76,7 @@ export default class Voltage extends React.Component<any, any>{
                     dataSet.Data = dataSet.Data.concat(data.Data);
                 else
                     dataSet = data;
-
-                baseCtrl.createDataRows(data, legend)
+               
                 baseCtrl.setState({ dataSet: dataSet });
             }, 200);
         })
@@ -107,49 +85,24 @@ export default class Voltage extends React.Component<any, any>{
 
 
     }
-    getColor(key, index) {
-        if (key.ChartLabel.indexOf('VAN') >= 0) return '#A30000';
-        if (key.ChartLabel.indexOf('VAB') >= 0) return '#A30000';
-        if (key.ChartLabel.indexOf('VBN') >= 0) return '#0029A3';
-        if (key.ChartLabel.indexOf('VBC') >= 0) return '#0029A3';
-        if (key.ChartLabel.indexOf('VCN') >= 0) return '#007A29';
-        if (key.ChartLabel.indexOf('VCA') >= 0) return '#007A29';
-        if (key.ChartLabel.indexOf('NG') >= 0) return '#d3d3d3';
-
-        else {
-            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
-            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
-            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
-
-            return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
-        }
-
-    }
-
+    
     render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => key[2] == 'N'}
-            legendEnable={(key) => key[2] == 'N' && key.length == 3}
+        return <D3LineChartBase
+
+            legendDisplay={(key) => key == 'L-N'}
+            legendEnable={(key) => key == 'L-N'}
             legendKey="Voltage"
             openSEEServiceFunction={this.openSEEService.getWaveformVoltageData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
-            getColor={this.getColor}
-            fftStartTime={this.props.fftStartTime}
-            fftEndTime={this.props.fftEndTime}
-            analytic={this.props.analytic}
 
             endDate={this.props.endDate}
             eventId={this.props.eventId}
             height={this.props.height}
-            hover={this.props.hover}
+            //hover={this.props.hover}
             pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
             startDate={this.props.startDate}
             stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
+
         />
     }
 
