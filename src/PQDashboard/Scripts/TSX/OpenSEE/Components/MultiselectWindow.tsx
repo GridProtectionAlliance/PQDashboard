@@ -37,6 +37,7 @@ export default class MultiselectWindow extends React.Component<{ data: Array<iLi
 
     render() {
         var groups = groupBy(this.props.data, 'group'); 
+
         var formStyle = (this.props.style == undefined ? {} : this.props.style);
 
         if (formStyle['backgroundColor'] == undefined) formStyle['backgroundColor'] = 'white';
