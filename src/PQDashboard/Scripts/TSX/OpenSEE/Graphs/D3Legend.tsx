@@ -22,30 +22,18 @@
 //******************************************************************************************************
 import * as React from 'react';
 import * as _ from 'lodash';
-import { LegendClickCallback } from './D3LineChartBase';
+import { LegendClickCallback, iD3DataSeries } from './D3LineChartBase';
 
-export interface iD3LegendData {
-    color: string,
-    display: boolean,
-    enabled: boolean,
-    channelID: number,
-    chartLabel: string,
-    legendClass: string,
-    legendGroup: string,
-    secondaryLegendClass: string
-}
+
 
 export interface iD3LegendProps {
     type: string,
-    data: Map<string, iD3LegendData>,
+    data: Array<iD3DataSeries>
     callback: LegendClickCallback,
     height: number,
 }
 
-declare var samplesPerCycle: number;
-declare var cycles: number;
-
-export default class Legend extends React.Component<any, any>{
+export default class D3Legend extends React.Component<any, any>{
     props: iD3LegendProps;
     samplesPerCycleOptions: any[];
 
@@ -58,25 +46,27 @@ export default class Legend extends React.Component<any, any>{
     }
 
     render() {
-        if (this.props.data == null || this.props.data.size == 0) return null;
+        if (this.props.data == null || this.props.data.length == 0) return null;
 
         let rows: Array<JSX.Element> = [];
-        this.props.data.forEach((row, key, map) => {
-            if (row.display)
-                rows.push(<Row key={key} label={key} color={row.color} enabled={row.enabled} callback={(e) => {
 
-                    if (row.enabled) {
+        this.props.data.forEach((row, key, map) => {
+            if (row.Display)
+                rows.push(<Row key={key} label={row.ChartLabel} color={row.Color} enabled={row.Enabled} callback={(e) => {
+
+                    if (row.Enabled) {
                         var legend = $(this.refs.legend);
 
-                        $(legend.find('label').toArray().find(x => $(x).text() === row.secondaryLegendClass)).removeClass('active');
+                        $(legend.find('label').toArray().find(x => $(x).text() === row.SecondaryLegendClass)).removeClass('active');
 
                     }
-                    this.props.callback(e, row, key)
+                    this.props.callback(e, row)
                 }} />)
         });
 
-        let secondaryHeader: Array<string> = Array.from(new Set(Array.from(this.props.data.values()).map(item => item.secondaryLegendClass)));
-        let primaryHeader: Array<string> = Array.from(new Set(Array.from(this.props.data.values()).map(item => item.legendClass)));
+
+        let secondaryHeader: Array<string> = Array.from(new Set(this.props.data.map(item => item.SecondaryLegendClass)));
+        let primaryHeader: Array<string> = Array.from(new Set(this.props.data.map(item => item.LegendClass)));
 
         let secondaryBtns: Array<any> = [];
         let primaryBtns: Array<any> = [];
@@ -107,33 +97,33 @@ export default class Legend extends React.Component<any, any>{
 
    
     toggleAll(active: Array<string>, value: string, type: string) {
+
         this.props.data.forEach((row, key, map) => {
-            var enabled = row.enabled && row.secondaryLegendClass != value;
+            var enabled = row.Enabled && row.SecondaryLegendClass != value;
 
             //If type is Radio we hide all that are not in this one
             if (type == "radio") {
-                row.display = row.legendClass == value;
+                row.Display = row.LegendClass == value;
                 enabled = false;
             }
             
             if (type == "radio") {
-                if (row.display && $(this.refs.legend).find('label.active').toArray().some(x => $(x).text() === row.legendClass)) {
+                if (row.Display && $(this.refs.legend).find('label.active').toArray().some(x => $(x).text() === row.LegendClass)) {
                     enabled = true;
                 }
             }
             else {
-                if (row.display && $(this.refs.legend).find('label.active').toArray().some(x => $(x).text() === row.secondaryLegendClass)) {
+                if (row.Display && $(this.refs.legend).find('label.active').toArray().some(x => $(x).text() === row.SecondaryLegendClass)) {
                     enabled = true;
                 }
             }
 
-            row.enabled = enabled;
-            $('[name="' + key + '"]').prop('checked', row.enabled);
+            row.Enabled = enabled;
+            $('[name="' + key + '"]').prop('checked', row.Enabled);
 
         });
 
         this.props.callback();
-
     }
 
 }

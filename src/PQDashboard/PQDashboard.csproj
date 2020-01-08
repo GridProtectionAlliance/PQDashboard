@@ -74,7 +74,6 @@
     <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>
@@ -438,9 +437,6 @@
       <DependentUpon>PQI.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Compile Include="OpenSEEComtradeDownload.ashx.cs">
-      <DependentUpon>OpenSEEComtradeDownload.ashx</DependentUpon>
-    </Compile>
     <Compile Include="BreakerReportCSVDownload.ashx.cs">
       <DependentUpon>BreakerReportCSVDownload.ashx</DependentUpon>
     </Compile>
@@ -453,13 +449,13 @@
     <Compile Include="WebExtensions.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
     <Content Include="OpenSEECSVDownload.ashx" />
-    <Content Include="OpenSEEComtradeDownload.ashx" />
     <Content Include="BreakerReportCSVDownload.ashx" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
+    <Content Include="Scripts\D3v5\d3.js" />
     <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
@@ -1295,7 +1291,6 @@
     <Content Include="Views\Shared\SecurityError.cshtml" />
     <Content Include="Views\Shared\_ErrorLayout.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Main\OpenSEEold.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
     <Content Include="Views\Main\MeterEventsByLine.cshtml" />
     <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
@@ -1334,6 +1329,7 @@
     <None Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
+    <None Include="Scripts\TSX\OpenSEE\Graphs\D3LineChartBase.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
@@ -1353,6 +1349,7 @@
     <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TooltipWithDelta.tsx" />
     <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
+    <None Include="Scripts\TSX\OpenSEE\Graphs\D3Legend.tsx" />
     <None Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
     <None Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />

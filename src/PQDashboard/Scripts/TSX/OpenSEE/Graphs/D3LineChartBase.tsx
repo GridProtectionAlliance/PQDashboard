@@ -22,12 +22,14 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
-import { clone, isEqual, each, findLast} from "lodash";
+import { clone, isEqual, each, findLast } from "lodash";
+import * as d3 from '../../../D3/d3';
+
 import { utc } from "moment";
-import D3Legend, { iD3LegendData } from './D3Legend';
+import D3Legend from './D3Legend';
 import { StandardAnalyticServiceFunction } from '../../../TS/Services/OpenSEE';
 
-export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iD3LegendData, key?: string, getData?: boolean) => void;
+export type LegendClickCallback = (event?: React.MouseEvent<HTMLDivElement>, row?: iD3DataSeries, getData?: boolean) => void;
 export type GetDataFunction = (props: D3LineChartBaseProps, ctrl: D3LineChartBase) => void;
 
 export interface D3LineChartBaseProps {
@@ -43,20 +45,31 @@ interface D3LineChartBaseClassProps extends D3LineChartBaseProps{
 interface iD3DataSet {
      Data: Array<iD3DataSeries>, EndDate: string, StartDate: string
 }
-interface iD3DataSeries {
-    ChannelID: number, ChartLabel: string, XaxisLabel: string, Color: string, LegendClass: string, SecondaryLegendClass: string, LegendGroup: string, DataPoints: Array<[number, number]>
+
+export interface iD3DataSeries {
+    ChannelID: number,
+    ChartLabel: string,
+    XaxisLabel: string,
+
+    Color: string,
+    Display: boolean,
+    Enabled: boolean,
+    
+    LegendClass: string,
+    LegendGroup: string,
+    SecondaryLegendClass: string,
+    DataPoints: Array<[number, number]>,
 }
 
 
 export default class D3LineChartBase extends React.Component<D3LineChartBaseClassProps, any>{
     plot: any;
-    state: { legendRows: Map<string, iD3LegendData>, dataSet: iD3DataSet, dataHandle: JQuery.jqXHR }
+    state: { dataSet: iD3DataSet, dataHandle: JQuery.jqXHR }
     constructor(props, context) {
         super(props, context);
         var ctrl = this;
 
         ctrl.state = {
-            legendRows: new Map<string, iD3LegendData>(),
             dataSet: {
                 Data: null, EndDate: null, StartDate: null
             } , 
@@ -86,18 +99,37 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
                 return;
             }
 
-            var legend = this.createLegendRows(data.Data);
-
+            
             var dataSet = this.state.dataSet;
             if (dataSet.Data != undefined)
                 dataSet.Data = dataSet.Data.concat(data.Data);
             else
                 dataSet = data;
 
-            //this.createDataRows(data, legend);
+            dataSet.Data = this.createLegendRows(dataSet.Data);
+
+            this.createDataRows(dataSet.Data);
+
             this.setState({ dataSet: data });
         });
         this.setState({ dataHandle: handle });
+
+    }
+
+    createLegendRows(data) {
+        var ctrl = this;
+
+        let legend: Array<iD3DataSeries> = [];
+
+        $.each(data, function (i, key) {
+
+            key.Display = true;
+            key.Enabled = false;
+
+            legend.push(key);
+        });
+
+        return legend;
 
     }
 
@@ -133,45 +165,91 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
         
     }
 
-    createLegendRows(data) {
+    // create Plot
+    createDataRows(data) {
+        // if start and end date are not provided calculate them from the data set
         var ctrl = this;
+        var startString = this.props.startDate;
+        var endString = this.props.endDate;
 
-        var legend = (this.state.legendRows != undefined ? this.state.legendRows : new Map<string, iD3LegendData>());
+        var newVessel = [];
 
-        $.each(data, function (i, key) {
-            var record = legend.get(key.ChartLabel);
+        data.forEach((row, key, map) => {
+            if (row.enabled) {
+                newVessel.push({ label: key, data: row.data, color: row.color })
+                if (row.markerdata.length > 0) {
+                    let visiblemarker = [];
+                    let mx = Math.max(...row.data.map(item => item[0]));
+                    let mn = Math.min(...row.data.map(item => item[0]));
 
-            if (record == undefined)
-                legend.set(key.ChartLabel, {
-                    color: key.Color, display: ctrl.props.legendDisplay(key.ChartLabel), enabled: ctrl.props.legendEnable(key.ChartLabel), channelID: key.ChannelID, chartLabel: key.ChartLabel, legendClass: key.LegendClass,
-                    legendGroup: "Test", secondaryLegendClass: key.SecondaryLegendClass});
+                    row.markerdata.forEach(pt => {
+                        if ((pt[0] > mn) && (pt[0] < mx)) {
+                            visiblemarker.push(pt);
+                        }
+
+                    });
+
+                    if (visiblemarker.length > 0) {
+                        newVessel.push({
+                            label: key, data: visiblemarker, color: row.color, lines: { show: false }, points: {
+                                show: true,
+                                symbol: "circle",
+                                radius: 4,
+                                fill: true,
+                                fillColor: row.color
+                            }
+                        })
+                    }
+                }
+            }
 
         });
 
-        legend = new Map(Array.from(legend).sort((a, b) => {
-            return natural_compare(a[0], b[0]);
-        }));
-        this.setState({ legendRows: legend });
-        return legend;
+        console.log("Plotting")
+        // set the dimensions and margins of the graph
+        var margin = { top: 10, right: 30, bottom: 30, left: 60 },
+            width = 460 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
 
-        function pad(n) { return ("00000000" + n).substr(-8); }
-        function natural_expand(a) { return a.replace(/\d+/g, pad) };
-        function natural_compare(a, b) {
-            return natural_expand(a).localeCompare(natural_expand(b));
-        }
+        // append the svg object to the body of the page
+        var svg = d3.select("#graphWindow")
+            .append("svg")
+            .attr("width", "calc(100% - 220px)")
+            .attr("height", this.props.height)
+            .append("g");
 
+        var yAxis = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) { return +d.value; })])
+            .range(['calc(100 % - 220px)', 0]);
+
+        svg.append("g").call(d3.axisLeft(yAxis));
+
+        var xAxis = d3.scaleTime().domain(d3.extent(data, function (d) { return d.date; })).range([0, width]);
+
+        svg.append("g").attr("transform", "translate(0," + this.props.height + ")").call(d3.axisBottom(xAxis));
+
+
+
+
+        
     }
+
+
+
+    
    
     // round to nearby lower multiple of base
     floorInBase(n, base) {
         return base * Math.floor(n / base);
     }
 
-    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iD3LegendData, key: string, getData?: boolean): void {
+    handleSeriesLegendClick(event: React.MouseEvent<HTMLDivElement>, row: iD3DataSeries, key: number, getData?: boolean): void {
         if (row != undefined)
-            row.enabled = !row.enabled;
+            row.Enabled = !row.Enabled;
 
-        this.setState({ legendRows: this.state.legendRows });
+        this.setState({ dataSet: this.state.dataSet });    
+
+        this.createDataRows(this.state.dataSet.Data);
 
        if (getData == true)
             this.getData(this.props);
@@ -182,7 +260,7 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
         return (
             <div>
                 <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'}}></div>
-                <D3Legend data={this.state.legendRows} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height}/>
+                <D3Legend data={this.state.dataSet.Data} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height}/>
             </div>
         );
     }
