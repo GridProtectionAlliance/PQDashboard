@@ -23,7 +23,7 @@
 
 import * as React  from 'react';
 import { clone, isEqual, each, findLast } from "lodash";
-import * as d3 from '../../../D3/d3';
+import * as d3 from '../../../D3v5/d3';
 
 import { utc } from "moment";
 import D3Legend from './D3Legend';
@@ -169,69 +169,59 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
     createDataRows(data) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
-        var startString = this.props.startDate;
-        var endString = this.props.endDate;
+        var startString = new Date(this.props.startDate);
+        var endString = new Date(this.props.endDate);
 
-        var newVessel = [];
+        // remove the previous SVG object
+        d3.select("#graphWindow-" + this.props.legendKey + ">svg").remove()
 
+        //add new Plot
+        var container = d3.select("#graphWindow-" + this.props.legendKey);
+        
+        var svg = container.append("svg")
+            .attr("width", '100%')
+            .attr("height", this.props.height).append("g")
+            .attr("transform", "translate(40,10)");
+
+        var lines = [];
         data.forEach((row, key, map) => {
-            if (row.enabled) {
-                newVessel.push({ label: key, data: row.data, color: row.color })
-                if (row.markerdata.length > 0) {
-                    let visiblemarker = [];
-                    let mx = Math.max(...row.data.map(item => item[0]));
-                    let mn = Math.min(...row.data.map(item => item[0]));
+            if (row.Enabled) {
+                lines.push(row);
 
-                    row.markerdata.forEach(pt => {
-                        if ((pt[0] > mn) && (pt[0] < mx)) {
-                            visiblemarker.push(pt);
-                        }
-
-                    });
-
-                    if (visiblemarker.length > 0) {
-                        newVessel.push({
-                            label: key, data: visiblemarker, color: row.color, lines: { show: false }, points: {
-                                show: true,
-                                symbol: "circle",
-                                radius: 4,
-                                fill: true,
-                                fillColor: row.color
-                            }
-                        })
-                    }
-                }
             }
-
         });
 
-        console.log("Plotting")
-        // set the dimensions and margins of the graph
-        var margin = { top: 10, right: 30, bottom: 30, left: 60 },
-            width = 460 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
+        let xmin = Math.min.apply(null, lines.map(item => Math.min.apply(null, item.DataPoints.map(item => item[0]))));
+        let xmax = Math.max.apply(null, lines.map(item => Math.max.apply(null, item.DataPoints.map(item => item[0]))));
 
-        // append the svg object to the body of the page
-        var svg = d3.select("#graphWindow")
-            .append("svg")
-            .attr("width", "calc(100% - 220px)")
-            .attr("height", this.props.height)
-            .append("g");
+        let ymin = Math.min.apply(null, lines.map(item => Math.min.apply(null, item.DataPoints.map(item => item[1]))));
+        let ymax = Math.max.apply(null, lines.map(item => Math.max.apply(null, item.DataPoints.map(item => item[1]))));
 
         var yAxis = d3.scaleLinear()
-            .domain([0, d3.max(data, function (d) { return +d.value; })])
-            .range(['calc(100 % - 220px)', 0]);
+            .domain([ymin, ymax])
+            .range([this.props.height - 40, 0]);
+
+        var xAxis = d3.scaleLinear()
+            .domain([xmin, xmax])
+            .range([0, container.node().getBoundingClientRect().width - 100])
+            ;
 
         svg.append("g").call(d3.axisLeft(yAxis));
+        svg.append("g").attr("transform", "translate(0," + (this.props.height - 40) + ")").call(d3.axisBottom(xAxis));
+        var datagroup = svg.append("g");
 
-        var xAxis = d3.scaleTime().domain(d3.extent(data, function (d) { return d.date; })).range([0, width]);
+        lines.forEach((row, key, map) => {
+            console.log(row.DataPoints.map(item => { return { x: item[0], y: item[1] } }))
 
-        svg.append("g").attr("transform", "translate(0," + this.props.height + ")").call(d3.axisBottom(xAxis));
-
-
-
-
-        
+            datagroup.append("path").datum(row.DataPoints.map(item => { return {x: item[0], y: item[1] } })).attr("fill", "none")
+                .attr("stroke", row.Color)
+                .attr("stroke-width", 2.0)
+                .attr("d", d3.line()
+                    .x(function (d) { return xAxis(d.x) })
+                    .y(function (d) { return yAxis(d.y) })
+            );
+        });
+                
     }
 
 
@@ -259,7 +249,7 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
     render() {
         return (
             <div>
-                <div ref="graphWindow" style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'}}></div>
+                <div id={"graphWindow-" + this.props.legendKey} style={{ height: this.props.height, float: 'left', width: 'calc(100% - 220px)'}}></div>
                 <D3Legend data={this.state.dataSet.Data} callback={this.handleSeriesLegendClick.bind(this)} type={this.props.legendKey} height={this.props.height}/>
             </div>
         );
