@@ -121,14 +121,28 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
 
         let legend: Array<iD3DataSeries> = [];
 
+        let secondaryHeader: Array<string> = Array.from(new Set(data.map(item => item.SecondaryLegendClass)));
+        let primaryHeader: Array<string> = Array.from(new Set(data.map(item => item.LegendClass)));
+
+
         $.each(data, function (i, key) {
 
-            key.Display = true;
+            key.Display = false;
+            if (primaryHeader.length < 2 || key.LegendClass == primaryHeader[0]) {
+                key.Display = true;
+            }
+
             key.Enabled = false;
+
+            if (secondaryHeader.length < 2 || key.SecondaryLegendClass == secondaryHeader[0]) {
+                key.Enabled = true;
+            }
+            
 
             legend.push(key);
         });
 
+        console.log(legend);
         return legend;
 
     }
@@ -169,8 +183,8 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
     createDataRows(data) {
         // if start and end date are not provided calculate them from the data set
         var ctrl = this;
-        var startString = new Date(this.props.startDate);
-        var endString = new Date(this.props.endDate);
+        var startTime = new Date(this.props.startDate + "Z");
+        var endTime = new Date(this.props.endDate + "Z");
 
         // remove the previous SVG object
         d3.select("#graphWindow-" + this.props.legendKey + ">svg").remove()
@@ -191,9 +205,6 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
             }
         });
 
-        let xmin = Math.min.apply(null, lines.map(item => Math.min.apply(null, item.DataPoints.map(item => item[0]))));
-        let xmax = Math.max.apply(null, lines.map(item => Math.max.apply(null, item.DataPoints.map(item => item[0]))));
-
         let ymin = Math.min.apply(null, lines.map(item => Math.min.apply(null, item.DataPoints.map(item => item[1]))));
         let ymax = Math.max.apply(null, lines.map(item => Math.max.apply(null, item.DataPoints.map(item => item[1]))));
 
@@ -201,8 +212,8 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
             .domain([ymin, ymax])
             .range([this.props.height - 40, 0]);
 
-        var xAxis = d3.scaleLinear()
-            .domain([xmin, xmax])
+        var xAxis = d3.scaleTime()
+            .domain([startTime, endTime])
             .range([0, container.node().getBoundingClientRect().width - 100])
             ;
 
@@ -211,9 +222,7 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
         var datagroup = svg.append("g");
 
         lines.forEach((row, key, map) => {
-            console.log(row.DataPoints.map(item => { return { x: item[0], y: item[1] } }))
-
-            datagroup.append("path").datum(row.DataPoints.map(item => { return {x: item[0], y: item[1] } })).attr("fill", "none")
+            datagroup.append("path").datum(row.DataPoints.map(item => { return {x: new Date(item[0]), y: item[1] } })).attr("fill", "none")
                 .attr("stroke", row.Color)
                 .attr("stroke-width", 2.0)
                 .attr("d", d3.line()
@@ -223,10 +232,6 @@ export default class D3LineChartBase extends React.Component<D3LineChartBaseClas
         });
                 
     }
-
-
-
-    
    
     // round to nearby lower multiple of base
     floorInBase(n, base) {

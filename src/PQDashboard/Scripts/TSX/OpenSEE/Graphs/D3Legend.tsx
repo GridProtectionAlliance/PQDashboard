@@ -35,7 +35,6 @@ export interface iD3LegendProps {
 
 export default class D3Legend extends React.Component<any, any>{
     props: iD3LegendProps;
-    samplesPerCycleOptions: any[];
 
     constructor(props) {
         super(props);
@@ -73,17 +72,20 @@ export default class D3Legend extends React.Component<any, any>{
 
         let TableHeight: number = this.props.height - 38 - (secondaryHeader.length > 1 ? 35 : 0) - (primaryHeader.length > 1 ? 35 : 0);
 
-        primaryHeader.forEach(item => primaryBtns.push({ label: item, value: item, active: true}));
-        secondaryHeader.forEach(item => secondaryBtns.push({ label: item, value: item, active: true}));
+        primaryHeader.forEach(item => primaryBtns.push({ label: item, value: item, active: false}));
+        secondaryHeader.forEach(item => secondaryBtns.push({ label: item, value: item, active: false}));
+
+        primaryBtns[0].active = true;
+        secondaryBtns[0].active = true;
 
         return (
             <div ref="legend" id={this.props.type + '-legend'} className='legend' style={{ float: 'right', width: '200px', height: this.props.height - 38, marginTop: '6px', borderStyle: 'solid', borderWidth: '2px', overflowY: 'hidden' }}>
                 {(primaryHeader.length > 1 ?
-                    <ToggleButtonGroup type="radio" defaultValue={primaryHeader[0]} buttons={primaryBtns} onChange={this.toggleAll.bind(this)} />
+                    <ToggleButtonGroup type="radio" buttons={primaryBtns} onChange={this.toggleAll.bind(this)} />
                     : null)}
 
                 {(secondaryHeader.length > 1 ?
-                    <ToggleButtonGroup type="radio" defaultValue={secondaryHeader[0]} buttons={secondaryBtns} onChange={this.toggleAll.bind(this)} />
+                    <ToggleButtonGroup type="checkbox" buttons={secondaryBtns} onChange={this.toggleAll.bind(this)} />
                     : null)}
 
                 <table ref="table" style={{ maxHeight: TableHeight, overflowY: 'auto', display: 'block' }}>
@@ -105,9 +107,7 @@ export default class D3Legend extends React.Component<any, any>{
             if (type == "radio") {
                 row.Display = row.LegendClass == value;
                 enabled = false;
-            }
-            
-            if (type == "radio") {
+
                 if (row.Display && $(this.refs.legend).find('label.active').toArray().some(x => $(x).text() === row.LegendClass)) {
                     enabled = true;
                 }
@@ -158,7 +158,7 @@ function convertHex(hex, opacity) {
 }
 
 class ToggleButtonGroup extends React.Component {
-    props: { type: "radio" | "checkbox", buttons: { label: string, value: string, active: boolean }[], onChange: (active: Array<string>, value: string, type: string) => void, defaultValue: string }
+    props: { type: "radio" | "checkbox", buttons: { label: string, value: string, active: boolean }[], onChange: (active: Array<string>, value: string, type: string) => void}
     state: { buttons: { label: string, value: string, active: boolean }[]}
     constructor(props, context) {
         super(props, context);
@@ -166,7 +166,7 @@ class ToggleButtonGroup extends React.Component {
         this.state = {
             buttons: this.props.buttons
         }
-
+        
     }
 
     handleToggle(value: string): void {
