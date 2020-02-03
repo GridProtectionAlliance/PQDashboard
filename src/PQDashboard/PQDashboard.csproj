@@ -74,7 +74,6 @@
     <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
   </PropertyGroup>
@@ -428,7 +427,10 @@
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
     <Content Include="Images\PQDashboardLogo II w-GPA_600.png" />
     <Content Include="Images\PQI.png" />
+    <Content Include="Images\SE Browser - Spelled out %28for dark bg%29.png" />
+    <Content Include="Images\SE Browser - Spelled out - 111 high.png" />
     <Content Include="Images\SE Dashboard with GPA 200 high.png" />
+    <Content Include="Images\SEB Logo 400.png" />
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
