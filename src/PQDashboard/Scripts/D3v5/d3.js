@@ -4662,7 +4662,8 @@ function brush$1(dim) {
     if (touchending && !exports.event.touches) return;
     if (!filter.apply(this, arguments)) return;
 
-    var that = this,
+      console.log(exports)
+      var that = this,
         type = exports.event.target.__data__.type,
         mode = (keys && exports.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (keys && exports.event.altKey ? MODE_CENTER : MODE_HANDLE),
         signX = dim === Y ? null : signsX[type],
