@@ -228,7 +228,7 @@ namespace PQDashboard.Controllers.BreakerReport
 
             //returnDict.StartDate = evt.StartTime;
             //returnDict.EndDate = evt.EndTime;
-            returnDict.Data = returnList;
+            returnDict.Data = null;
             returnDict.CalculationTime = 0;
             returnDict.CalculationEnd = 0;
 
