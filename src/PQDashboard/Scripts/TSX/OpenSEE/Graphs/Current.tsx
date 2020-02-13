@@ -18,16 +18,19 @@
 //  ----------------------------------------------------------------------------------------------------
 //  03/18/2019 - Billy Ernest
 //       Generated original version of source code.
+//  01/17/2020 - C. Lackner
+//       Moved to D3.
 //
 //******************************************************************************************************
 
 import * as React  from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
-import LineChartAnalyticBase, { LineChartAnaltyicalBaseProps } from './../Graphs/LineChartAnalyticBase';
+import D3LineChartBase, { D3LineChartBaseProps } from './../Graphs/D3LineChartBase';
+import moment = require('moment');
 
 export default class Current extends React.Component<any, any>{
     openSEEService: OpenSEEService;
-    props: LineChartAnaltyicalBaseProps
+    props: D3LineChartBaseProps
     constructor(props) {
         super(props);
         this.openSEEService = new OpenSEEService();
@@ -46,33 +49,9 @@ export default class Current extends React.Component<any, any>{
     }
 
 
-    getData(props: LineChartAnaltyicalBaseProps, baseCtrl: LineChartAnalyticBase, ctrl: Current): void {
+    getData(props: D3LineChartBaseProps, baseCtrl: D3LineChartBase, ctrl: Current): void {
 
         var eventDataHandle = ctrl.openSEEService.getWaveformCurrentData(props.eventId, props.pixels, props.startDate, props.endDate).then(data => {
-            baseCtrl.options['grid'].markings = [];
-            baseCtrl.options['rangeselection'] = undefined;
-            baseCtrl.options['selection'] = { mode: 'x' };
-
-            var highlight = baseCtrl.highlightCycle(data);
-            if (highlight != undefined)
-                baseCtrl.options['grid'].markings.push(highlight);
-
-            if (props.fftStartTime != undefined) {
-                baseCtrl.options['selection'] = undefined;
-                baseCtrl.options['rangeselection'] = {
-                    color: "#ADD8E6",
-                    start: this.props.fftStartTime,
-                    end: this.props.fftEndTime,
-                    enabled: true,
-                    fixedWidth: true,
-                    movex: 100,
-                    noOffset: true,
-                    callback: (o) => this.props.stateSetter({fftStartTime: o.start, fftEndTime: o.end})
-                }
-
-            }
-
-            var legend = baseCtrl.createLegendRows(data.Data);
 
             var dataSet = baseCtrl.state.dataSet;
             if (dataSet.Data != undefined)
@@ -80,8 +59,13 @@ export default class Current extends React.Component<any, any>{
             else
                 dataSet = data;
 
-            baseCtrl.createDataRows(data, legend);
-            baseCtrl.setState({ dataSet: data });
+            if (ctrl.props.endTime == null) ctrl.props.stateSetter({ endTime: moment(data.EndDate + "Z").valueOf() });
+            if (ctrl.props.startTime == null) ctrl.props.stateSetter({ startTime: moment(data.StartDate + "Z").valueOf() });
+
+            dataSet.Data = baseCtrl.createLegendRows(dataSet.Data);
+
+            baseCtrl.createDataRows(dataSet.Data);
+            baseCtrl.setState({ dataSet: dataSet });
         });
         this.setState({ eventDataHandle: eventDataHandle });
 
@@ -89,7 +73,6 @@ export default class Current extends React.Component<any, any>{
             setTimeout(() => {
                 if (data == null) return;
 
-                var legend = baseCtrl.createLegendRows(data.Data);
 
                 var dataSet = baseCtrl.state.dataSet;
                 if (dataSet.Data != undefined)
@@ -97,7 +80,12 @@ export default class Current extends React.Component<any, any>{
                 else
                     dataSet = data;
 
-                baseCtrl.createDataRows(data, legend)
+                if (ctrl.props.endTime == null) ctrl.props.stateSetter({ endTime: moment(data.EndDate + "Z").valueOf() });
+                if (ctrl.props.startTime == null) ctrl.props.stateSetter({ startTime: moment(data.StartDate + "Z").valueOf() });
+
+                dataSet.Data = baseCtrl.createLegendRows(dataSet.Data);
+
+                baseCtrl.createDataRows(dataSet.Data)
                 baseCtrl.setState({ dataSet: dataSet });
             }, 200);
         })
@@ -106,47 +94,25 @@ export default class Current extends React.Component<any, any>{
 
 
     }
-    getColor(key, index) {
-        if (key.ChartLabel.indexOf('IAN') >= 0) return '#FF0000';
-        if (key.ChartLabel.indexOf('IBN') >= 0) return '#0066CC';
-        if (key.ChartLabel.indexOf('ICN') >= 0) return '#33CC33';
-        if (key.ChartLabel.indexOf('ING') >= 0) return '#ffd900';
-        if (key.ChartLabel.indexOf('IRES') >= 0) return '#D3D3D3';
-
-        else {
-            var ranNumOne = Math.floor(Math.random() * 256).toString(16);
-            var ranNumTwo = Math.floor(Math.random() * 256).toString(16);
-            var ranNumThree = Math.floor(Math.random() * 256).toString(16);
-
-            return `#${(ranNumOne.length > 1 ? ranNumOne : "0" + ranNumOne)}${(ranNumTwo.length > 1 ? ranNumTwo : "0" + ranNumTwo)}${(ranNumThree.length > 1 ? ranNumThree : "0" + ranNumThree)}`;
-        }
-
-    }
+    
 
     render() {
-        return <LineChartAnalyticBase
-            legendDisplay={(key) => true}
-            legendEnable={(key) => key.length == 3}
+        return <D3LineChartBase
+            //legendDisplay={(key) => key == 'L-N'}
+            //legendEnable={(key) => key == 'L-N'}
             legendKey="Current"
             openSEEServiceFunction={this.openSEEService.getWaveformCurrentData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
-            getColor={this.getColor}
-            fftStartTime={this.props.fftStartTime}
-            fftEndTime={this.props.fftEndTime}
-            analytic={this.props.analytic}
-
             endDate={this.props.endDate}
             eventId={this.props.eventId}
             height={this.props.height}
-            hover={this.props.hover}
             pixels={this.props.pixels}
-            pointsTable={this.props.pointsTable}
-            postedData={this.props.postedData}
             startDate={this.props.startDate}
             stateSetter={this.props.stateSetter}
-            tableData={this.props.tableData}
-            tableSetter={this.props.tableSetter}
-            tooltipWithDeltaTable={this.props.tooltipWithDeltaTable}
+            options={this.props.options}
+            startTime={this.props.startTime}
+            endTime={this.props.endTime}
+            hover={this.props.hover}
         />
     }
 

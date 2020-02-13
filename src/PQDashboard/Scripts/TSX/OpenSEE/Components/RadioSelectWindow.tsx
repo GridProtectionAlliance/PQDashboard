@@ -50,11 +50,11 @@ export default class RadioselectWindow extends React.Component{
         this.state = {
             analytics: [
                 { label: 'Fault Distance', analytic: 'FaultDistance' },
-                { label: 'FFT', analytic: 'FFT' },
+                //{ label: 'FFT', analytic: 'FFT' },
                 { label: 'First Derivative', analytic: 'FirstDerivative' },
                 { label: 'Fix Clipped Waveforms', analytic: 'ClippedWaveforms' },
                 { label: 'Frequency', analytic: 'Frequency' },
-                { label: 'Harmonic Spectrum', analytic: 'HarmonicSpectrum' },
+                //{ label: 'Harmonic Spectrum', analytic: 'HarmonicSpectrum' },
                 { label: 'High Pass', analytic: 'HighPassFilter' },
                 { label: 'Low Pass', analytic: 'LowPassFilter' },
                 { label: 'Missing Voltage', analytic: 'MissingVoltage' },
@@ -126,9 +126,10 @@ export default class RadioselectWindow extends React.Component{
         return (
             <div style={style}> 
                 <form style={formStyle}>
-                    <ul ref="list" style={{listStyleType: 'none', padding: 0}}>
-                        {this.state.analytics.map((analytic, index) => <li key={analytic.analytic}><label><input type="radio" name="radioselect" value={analytic.analytic} onChange={this.handleClicks.bind(this)} checked={this.props.analytic == analytic.analytic}/> {analytic.label}</label></li>)}
-                    </ul>
+                    <select onChange={this.handleClicks.bind(this)} value={this.props.analytic} >
+
+                        {this.state.analytics.map((analytic, index) => <option key={analytic.analytic} value={analytic.analytic}> {analytic.label} </option>)}
+                    </select>                    
                 </form>
                 {(this.props.analytic != null ?
                     ((this.props.analytic.toLowerCase() == "harmonicspectrum" ?

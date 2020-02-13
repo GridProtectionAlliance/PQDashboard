@@ -83,7 +83,7 @@ declare interface iPostedData {
     postedEventMilliseconds?: string;
     postedEventName?: string;
     postedLineLength?: string;
-    postedLineName?: string;
+    postedAssetName?: string;
     postedMagnitude?: string;
     postedMeterId?: string;
     postedMeterName?: string;
@@ -103,6 +103,7 @@ declare interface OpenSEEState {
     displayCur: boolean,
     displayTCE: boolean,
     breakerdigitals: boolean,
+    displayAnalogs: boolean,
     Width: number,
     Hover: number,
     PointsTable: Array<any>,
@@ -118,7 +119,9 @@ declare interface OpenSEEState {
     fftEndTime?: string,
     TooltipWithDeltaTable: Map<string, Map<string, { data: number, color: string }>>,
     Height?: number,
-    AnalyticSettings: AnalyticParamters
+    AnalyticSettings: AnalyticParamters,
+    startTime: number,
+    endTime: number
 }
 
 declare interface iListObject {

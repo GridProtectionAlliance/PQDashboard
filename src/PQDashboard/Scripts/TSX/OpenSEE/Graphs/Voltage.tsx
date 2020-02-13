@@ -24,6 +24,8 @@
 //******************************************************************************************************
 
 import * as React  from 'react';
+import { utc } from "moment";
+import moment = require('moment');
 
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import D3LineChartBase, { D3LineChartBaseProps } from './../Graphs/D3LineChartBase';
@@ -59,6 +61,9 @@ export default class Voltage extends React.Component<any, any>{
             else
                 dataSet = data;
 
+            if (ctrl.props.endTime == null) ctrl.props.stateSetter({ endTime: moment(data.EndDate + "Z").valueOf() });
+            if (ctrl.props.startTime == null) ctrl.props.stateSetter({ startTime: moment(data.StartDate + "Z").valueOf() });
+
             dataSet.Data = baseCtrl.createLegendRows(dataSet.Data);
             baseCtrl.createDataRows(dataSet.Data);
 
@@ -77,11 +82,16 @@ export default class Voltage extends React.Component<any, any>{
                 else
                     dataSet = data;
 
+                if (ctrl.props.endTime == null) ctrl.props.stateSetter({ endTime: moment(data.EndDate + "Z").valueOf() });
+                if (ctrl.props.startTime == null) ctrl.props.stateSetter({ startTime: moment(data.StartDate + "Z").valueOf() });
+
+
                 dataSet.Data = baseCtrl.createLegendRows(dataSet.Data);
 
                 baseCtrl.createDataRows(dataSet.Data);
 
                 baseCtrl.setState({ dataSet: dataSet });
+
             }, 200);
         })
 
@@ -95,20 +105,21 @@ export default class Voltage extends React.Component<any, any>{
     render() {
         return <D3LineChartBase
 
-            legendDisplay={(key) => key == 'L-N'}
-            legendEnable={(key) => key == 'L-N'}
+            //legendDisplay={(key) => key == 'L-N'}
+            //legendEnable={(key) => key == 'L-N'}
             legendKey="Voltage"
             openSEEServiceFunction={this.openSEEService.getWaveformVoltageData}
             getData={(props, ctrl) => this.getData(props, ctrl, this)}
-
             endDate={this.props.endDate}
             eventId={this.props.eventId}
             height={this.props.height}
-            //hover={this.props.hover}
             pixels={this.props.pixels}
             startDate={this.props.startDate}
             stateSetter={this.props.stateSetter}
-
+            options={ this.props.options }
+            startTime={this.props.startTime}
+            endTime={this.props.endTime}
+            hover={this.props.hover}
         />
     }
 

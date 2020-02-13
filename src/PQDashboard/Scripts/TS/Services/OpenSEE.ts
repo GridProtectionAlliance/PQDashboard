@@ -65,7 +65,8 @@ export default class OpenSEEService{
     RelayPerformanceHandle: JQuery.jqXHR;
     relayTrendHandle: JQuery.jqXHR;
     RelayTrendPerformanceHandle: JQuery.jqXHR;
-
+    breakerAnalogsDataHandle: JQuery.jqXHR;
+    
     constructor() {
         this.getWaveformVoltageData = this.getWaveformVoltageData.bind(this);
 
@@ -95,6 +96,8 @@ export default class OpenSEEService{
         this.getStatisticData = this.getStatisticData.bind(this);
         this.getRelayTrendData = this.getRelayTrendData.bind(this);
         this.getRelayTrendPerformance = this.getRelayTrendPerformance.bind(this);
+        this.getAnalogsData = this.getAnalogsData.bind(this);
+
     }
     
 
@@ -257,6 +260,26 @@ export default class OpenSEEService{
 
         return this.breakerDigitalsDataHandle;
     }
+
+    getAnalogsData(eventid: number, pixels: number, startDate?: string, endDate?: string): JQuery.jqXHR {
+        if (this.breakerAnalogsDataHandle !== undefined)
+            this.breakerAnalogsDataHandle.abort();
+
+        this.breakerAnalogsDataHandle = $.ajax({
+            type: "GET",
+            url: `${homePath}api/OpenSEE/GetAnalogs?eventId=${eventid}` +
+                `${startDate != undefined ? `&startDate=${startDate}` : ``}` +
+                `${endDate != undefined ? `&endDate=${endDate}` : ``}` +
+                `&pixels=${pixels}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        });
+
+        return this.breakerAnalogsDataHandle;
+    }
+
 
     getHeaderData(filters): JQuery.jqXHR {
         if (this.headerDataHandle !== undefined)

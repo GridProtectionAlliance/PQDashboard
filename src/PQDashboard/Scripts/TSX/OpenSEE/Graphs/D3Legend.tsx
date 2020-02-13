@@ -49,9 +49,16 @@ export default class D3Legend extends React.Component<any, any>{
 
         let rows: Array<JSX.Element> = [];
 
+        let current_group = this.props.data[0].LegendGroup;
+        rows.push(<Row key={"header-" + current_group} label={current_group} color="#000000" enabled={true} isheader={true} callback={(e) => { }} />);
+
         this.props.data.forEach((row, key, map) => {
-            if (row.Display)
-                rows.push(<Row key={key} label={row.ChartLabel} color={row.Color} enabled={row.Enabled} callback={(e) => {
+            if (row.Display) {
+                if (current_group != row.LegendGroup) {
+                    current_group = row.LegendGroup
+                    rows.push(<Row key={"header-" + current_group} label={current_group} color="#000000" enabled={true} isheader={true} callback={(e) => { }} />);
+                }
+                rows.push(<Row key={key} label={row.ChartLabel} color={row.Color} enabled={row.Enabled} isheader={false} callback={(e) => {
 
                     if (row.Enabled) {
                         var legend = $(this.refs.legend);
@@ -61,6 +68,7 @@ export default class D3Legend extends React.Component<any, any>{
                     }
                     this.props.callback(e, row)
                 }} />)
+            }
         });
 
 
@@ -88,8 +96,8 @@ export default class D3Legend extends React.Component<any, any>{
                     <ToggleButtonGroup type="checkbox" buttons={secondaryBtns} onChange={this.toggleAll.bind(this)} />
                     : null)}
 
-                <table ref="table" style={{ maxHeight: TableHeight, overflowY: 'auto', display: 'block' }}>
-                    <tbody >
+                <table ref="table" style={{ maxHeight: TableHeight, overflowY: 'auto', display: 'block', width: '100%' }}>
+                    <tbody style={{ width: '100%', display: 'table'}}>
                         {rows}
                     </tbody>
                 </table>                
@@ -128,23 +136,34 @@ export default class D3Legend extends React.Component<any, any>{
 
 }
 
-const Row = (props: {label: string, enabled: boolean, color: string, callback: LegendClickCallback}) => {
-    return (
-        <tr>
-            <td>
-                <input name={props.label} className='legendCheckbox' type="checkbox" style={{ display: 'none' }} defaultChecked={props.enabled}/>
-            </td>
-            <td>
-                <div style={{ border: '1px solid #ccc', padding: '1px' }}>
-                    <div style={{ width: ' 4px', height: 0, border: '5px solid', borderColor: (props.enabled ? convertHex(props.color, 100) : convertHex(props.color, 50)), overflow: 'hidden' }} onClick={props.callback}>
+const Row = (props: { label: string, enabled: boolean, color: string, callback: LegendClickCallback, isheader: boolean }) => {
+    if (props.isheader) {
+        return (
+            <tr>
+                <td colSpan={3} style={{ background: 'rgb(238, 238, 238)', width: '100%'}}>
+                    <span style={{ fontSize: 'smaller', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{props.label}</span>
+                </td>
+            </tr>
+        );
+    }
+    else {
+        return (
+            <tr>
+                <td>
+                    <input name={props.label} className='legendCheckbox' type="checkbox" style={{ display: 'none' }} defaultChecked={props.enabled} />
+                </td>
+                <td>
+                    <div style={{ border: '1px solid #ccc', padding: '1px', width: '14px' }}>
+                        <div style={{ width: ' 4px', height: 0, border: '5px solid', borderColor: (props.enabled ? convertHex(props.color, 100) : convertHex(props.color, 50)), overflow: 'hidden' }} onClick={props.callback}>
+                        </div>
                     </div>
-                </div>
-            </td>
-            <td>
-                <span style={{color: props.color, fontSize: 'smaller', fontWeight: 'bold', whiteSpace: 'nowrap'}}>{props.label}</span>
-            </td>
-        </tr>
-    );
+                </td>
+                <td>
+                    <span style={{ color: props.color, fontSize: 'smaller', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{props.label}</span>
+                </td>
+            </tr>
+        );
+    }
 }
 
 function convertHex(hex, opacity) {

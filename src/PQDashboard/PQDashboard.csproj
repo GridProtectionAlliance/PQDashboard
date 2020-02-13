@@ -317,6 +317,7 @@
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OpenSEEAnalyticController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="Controllers\SEDashboard\BreakerReport\AllBreakersReportController.cs" />
@@ -1311,11 +1312,8 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FaultLocation.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\HarmonicSpectrum.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\OverlappingWaveform.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\SpecifiedHarmonic.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
@@ -1333,7 +1331,6 @@
     <None Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FirstDerivative.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\Power.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Analytics\Impedance.tsx" />
     <None Include="Scripts\TSX\OpenSEE\Components\RadioselectWindow.tsx" />
@@ -1382,8 +1379,10 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Scripts\TSX\OpenSEE\Graphs\Analog.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
     <Content Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\FFTTable.tsx" />
+    <Content Include="Scripts\TSX\OpenSEE\Graphs\AnalyticLine.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayPerformanceTrend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReport.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportNavBar.tsx" />
@@ -1408,7 +1407,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>51414</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:51414/</IISUrl>
+          <IISUrl>http://localhost:51415/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

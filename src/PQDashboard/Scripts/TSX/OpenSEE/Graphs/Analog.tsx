@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  Digital.ts - Gbtc
+//  Analog.ts - Gbtc
 //
 //  Copyright © 2019, Grid Protection Alliance.  All Rights Reserved.
 //
@@ -16,10 +16,8 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  03/18/2019 - Billy Ernest
-//       Generated original version of source code.
 //  01/20/2020 - C Lackner
-//       Moved over to D3.
+//       Generated original version of source code.
 //
 //******************************************************************************************************
 
@@ -27,11 +25,11 @@ import { createElement } from 'react';
 import OpenSEEService from './../../../TS/Services/OpenSEE';
 import D3LineChartBase, { D3LineChartBaseProps } from './../Graphs/D3LineChartBase';
 
-export default function Digital(props: D3LineChartBaseProps): JSX.Element {
+export default function Analog(props: D3LineChartBaseProps): JSX.Element {
     
     var openSEEService = new OpenSEEService();
     return createElement(D3LineChartBase, {
-        legendKey: "Digital",
+        legendKey: "Analog",
         openSEEServiceFunction: (eventid, pixels, startDate, endDate) => openSEEService.getDigitalsData(eventid, pixels, startDate, endDate),
         endDate: props.endDate,
         eventId: props.eventId,
@@ -42,7 +40,7 @@ export default function Digital(props: D3LineChartBaseProps): JSX.Element {
         options: props.options,
         startTime: props.startTime,
         endTime: props.endTime,
-        hover: props.hover,
+        hover: props.hover
     }, null);
 
 }
