@@ -122,6 +122,9 @@
     @if (enableLightningQuery)
     {
         <script src="http://js.arcgis.com/3.15/"></script>
+        <script>
+            windows.Esri = {require: require }
+        </script>
         <script src="~/Scripts/openSEE-lightning-query.js"></script>
     }
 
