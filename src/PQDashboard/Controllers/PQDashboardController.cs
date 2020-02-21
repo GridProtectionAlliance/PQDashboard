@@ -641,6 +641,7 @@ namespace PQDashboard.Controllers
             public int EventID { get; set; }
             public double DurationSeconds { get; set; }
             public double PerUnitMagnitude { get; set; }
+            public int SeverityCode { get; set; }
         }
 
         public class VoltageMagnitudeDataForm {
@@ -681,7 +682,8 @@ namespace PQDashboard.Controllers
                 DataTable table = connection.RetrieveData(
                 @" SELECT Disturbance.EventID, 
                           Disturbance.DurationSeconds,
-                          Disturbance.PerUnitMagnitude
+                          Disturbance.PerUnitMagnitude,
+                          DisturbanceSeverity.SeverityCode
                   FROM Disturbance JOIN 
                        Event ON Event.ID = Disturbance.EventID JOIN
 			           DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
@@ -695,7 +697,8 @@ namespace PQDashboard.Controllers
                 {
                     EventID = int.Parse(row["EventID"].ToString()),
                     DurationSeconds = double.Parse(row["DurationSeconds"].ToString()),
-                    PerUnitMagnitude = double.Parse(row["PerUnitMagnitude"].ToString())
+                    PerUnitMagnitude = double.Parse(row["PerUnitMagnitude"].ToString()),
+                    SeverityCode = int.Parse(row["SeverityCode"].ToString())
                 });
 
             }
