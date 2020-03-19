@@ -1072,6 +1072,10 @@ namespace OpenSEE.Controller
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
                     byte[] frequencyDomainData = connection.ExecuteScalar<byte[]>("SELECT CycleData FROM EventData WHERE ID = (SELECT EventDataID FROM Event WHERE ID = {0})", eventID);
+
+                    if (frequencyDomainData.Length == 0)
+                        return new DataGroup();
+
                     return ToDataGroup(meter, frequencyDomainData);
                 }
             });
