@@ -205,7 +205,7 @@
         var homePath = '@Html.Raw(Url.Content("~/"))';
         $.ajax({
             type: "POST",
-            url: homePath + 'eventService.asmx/' + thedatasource,
+            url: homePath + 'eventService.asmx/getTrendsforChannelIDDate',
             data: thedatasent,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',

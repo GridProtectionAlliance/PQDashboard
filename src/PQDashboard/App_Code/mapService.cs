@@ -245,40 +245,6 @@ public class mapService : WebService
     private static CoordinateReferenceSystem s_crs = new EPSG3857();
     private static LongSynchronizedOperation s_cleanUpAnimationOperation = new LongSynchronizedOperation(CleanUpAnimation);
 
-    [WebMethod]
-    public List<MeterID> getMeters(string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        List<MeterID> meterIDs = new List<MeterID>();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeters", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                MeterID metersId = new MeterID();
-                metersId.name = (string)rdr["name"];
-                metersId.id = (int)rdr["id"];
-                meterIDs.Add(metersId);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-                conn.Close();
-
-            if (rdr != null)
-                rdr.Close();
-        }
-        return (meterIDs);
-    }
 
     /// <summary>
     /// getMeterIDsForArea (Dragged Rect on Map)

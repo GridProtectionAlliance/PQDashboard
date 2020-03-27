@@ -51,7 +51,7 @@ function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteN
 
     $.ajax({
         type: "POST",
-        url: './eventService.asmx/' + thedatasource,
+        url: './eventService.asmx/getSiteChannelCompletenessDetailsByDate',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',

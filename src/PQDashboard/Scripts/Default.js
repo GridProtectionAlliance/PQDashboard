@@ -392,7 +392,7 @@ function selectsitesincharts() {
     selectiontimeout = null;
 
     if (cache_Last_Date !== null) {
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), cache_Last_Date);
+        getTableDivData(meterList.selectedIdsString(), cache_Last_Date);
     } else {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -405,7 +405,7 @@ function selectsitesincharts() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
-function getTableDivData(thedatasource, thediv, siteID, theDate) {
+function getTableDivData(siteID, theDate) {
     $.post(homePath + 'api/PQDashboard/GetDetailsForSites', { siteId: siteID, targetDate: theDate, userName: userId, tab: currentTab, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
         cache_Table_Data = data;
 
@@ -3109,7 +3109,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
     setMapHeaderDate(thedatefrom, thedateto);
 
-    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), thedatefrom);
+    getTableDivData(meterList.selectedIdsString(), thedatefrom);
     if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
