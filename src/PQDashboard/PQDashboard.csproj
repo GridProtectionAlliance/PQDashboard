@@ -314,17 +314,23 @@
       <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="Controllers\Breakers\LocationController.cs" />
+    <Compile Include="Controllers\Completeness\LocationController.cs" />
+    <Compile Include="Controllers\Correctness\LocationController.cs" />
+    <Compile Include="Controllers\Disturbances\LocationController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
+    <Compile Include="Controllers\Events\LocationController.cs" />
+    <Compile Include="Controllers\Events\MaximumSwellHeatmapController.cs" />
+    <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
+    <Compile Include="Controllers\Extensions\LocationController.cs" />
+    <Compile Include="Controllers\Faults\LocationController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OpenSEEAnalyticController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
     <Compile Include="Controllers\OpenSEEController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\AllBreakersReportController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\IndividualBreakerReportController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\MaximoBreakersController.cs" />
-    <Compile Include="Controllers\SEDashboard\MeterActivity\MeterActivityController.cs" />
-    <Compile Include="Controllers\SEDashboard\RelayReport\RelayReportController.cs" />
+    <Compile Include="Controllers\TrendingData\LocationController.cs" />
+    <Compile Include="Controllers\Trending\LocationController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
     <Content Include="Content\bootstrap4-datetimepicker.css" />

@@ -2095,7 +2095,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     }
 
     if (currentTab != 'TrendingData') {
-        $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext}, function (data) {
+        $.post(homePath + 'api/'+currentTab +'/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: globalContext}, function (data) {
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
@@ -2105,7 +2105,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         });
     }
     else {
-        $.post(homePath + 'api/PQDashboard/GetLocationsTrendingData', thedatasent.contourQuery, function (data) {
+        $.post(homePath + 'api/TrendingData/Location', thedatasent.contourQuery, function (data) {
             cache_Map_Matrix_Data_Date_From = data.DateFrom;
             cache_Map_Matrix_Data_Date_To = data.DateTo;
             cache_Map_Matrix_Data = data;
@@ -2947,7 +2947,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 
 function showHeatmap(thecontrol) {
     if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        $.post(homePath + 'api/PQDashboard/GetLocationHeatmap', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), type: $(thecontrol).val() }, function (data) {
+        $.post(homePath + 'api/Events/' + $(thecontrol).val(), { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString() }, function (data) {
             LoadHeatmapLeaflet(data);
         });
     }
@@ -2956,7 +2956,7 @@ function showHeatmap(thecontrol) {
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
             if (currentTab != "TrendingData") {
-                $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext }, function (data) {
+                $.post(homePath + 'api/'+currentTab+'/Location', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), context: globalContext }, function (data) {
                     LoadHeatmapLeaflet(data);
                 });
             }
