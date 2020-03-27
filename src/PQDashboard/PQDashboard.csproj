@@ -477,7 +477,6 @@
     <Content Include="Views\Email\UpdateSettings.cshtml" />
     <Content Include="Views\Email\Message.cshtml" />
     <Content Include="Views\Email\Verify.cshtml" />
-    <Content Include="Views\Main\Home2.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
@@ -1295,7 +1294,6 @@
     <Content Include="Views\Main\Settings.cshtml" />
     <Content Include="Views\Main\QuickSearch.cshtml" />
     <None Include="tsconfig.json" />
-    <Content Include="Views\Main\OpenSEE.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
