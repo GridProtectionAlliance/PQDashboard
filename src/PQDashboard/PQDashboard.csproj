@@ -326,9 +326,7 @@
     <Compile Include="Controllers\Extensions\LocationController.cs" />
     <Compile Include="Controllers\Faults\LocationController.cs" />
     <Compile Include="Controllers\MainController.cs" />
-    <Compile Include="Controllers\OpenSEEAnalyticController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
-    <Compile Include="Controllers\OpenSEEController.cs" />
     <Compile Include="Controllers\TrendingData\LocationController.cs" />
     <Compile Include="Controllers\Trending\LocationController.cs" />
     <Compile Include="DataHub.cs" />
@@ -462,13 +460,9 @@
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />
     <Content Include="Scripts\bootstrap4-datetimepicker.min.js" />
-    <Content Include="Scripts\D3v5\d3.js" />
     <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
-    <Content Include="Scripts\openSEE-lightning-query.js" />
-    <Content Include="Scripts\OpenSEE.js" />
-    <Content Include="Scripts\OpenSEE2.js" />
     <Content Include="Scripts\PQDashboard.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
@@ -596,7 +590,6 @@
     <Content Include="Scripts\flot\README.md" />
     <Content Include="Scripts\ChannelDataCompleteness.js" />
     <Content Include="Scripts\ChannelDataQuality.js" />
-    <Content Include="Scripts\CustomGoogleMapMarker.js" />
     <Content Include="Scripts\D3\d3-color.v1.js" />
     <Content Include="Scripts\D3\d3-interpolate.v1.js" />
     <Content Include="Scripts\D3\d3-scale.v1.js" />
@@ -669,8 +662,6 @@
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
-    <Content Include="Scripts\OpenSEEold.js" />
-    <Content Include="Scripts\OpenSEEveryold.js" />
     <Content Include="Scripts\plotly-latest.min.js" />
     <Content Include="Scripts\PQIByEvent.js" />
     <Content Include="Scripts\prettify.js" />
@@ -1317,81 +1308,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\TSX\OpenSEE\Analytics\HarmonicSpectrum.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\OverlappingWaveform.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\SpecifiedHarmonic.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\RapidVoltageChange.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Rectifier.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Unbalance.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\SymmetricalComponents.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\About.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\D3LineChartBase.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Power.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Impedance.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\RadioselectWindow.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\MultiselectWindow.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\OpenSEENavbar.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\OpenSEENoteModal.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Digital.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\AccumulatedPoints.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\HarmonicStats.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\ScalarStats.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TimeCorrelatedSags.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TooltipWithDelta.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\D3Legend.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
-    <None Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\LightningData.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\About.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReport.d.ts" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReport.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReportNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchCorrelatedSags.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchList.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchListedEventsNoteWindow.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNoteWindow.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchPreviewPane.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\MeterActivity.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\PQDashboardNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\Table.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\PQDashboard.d.ts" />
-    <None Include="Scripts\TSX\PQDashboard\PQDashboard.tsx" />
-    <None Include="Scripts\TS\Services\OpenSEE.ts" />
-    <None Include="Scripts\TS\Services\PQDashboard.ts" />
-    <None Include="Scripts\TS\Services\SEDashboard\BreakerReport.ts" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Scripts\TSX\OpenSEE\Graphs\Analog.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
-    <Content Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\FFTTable.tsx" />
-    <Content Include="Scripts\TSX\OpenSEE\Graphs\AnalyticLine.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayPerformanceTrend.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReport.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportNavBar.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportPane.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
