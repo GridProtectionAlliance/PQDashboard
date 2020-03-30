@@ -314,32 +314,41 @@
       <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="Controllers\Breakers\TableDataController.cs" />
     <Compile Include="Controllers\Breakers\BarChartController.cs" />
     <Compile Include="Controllers\Breakers\LocationController.cs" />
     <Compile Include="Controllers\Completeness\BarChartController.cs" />
     <Compile Include="Controllers\Completeness\LocationController.cs" />
+    <Compile Include="Controllers\Completeness\TableDataController.cs" />
     <Compile Include="Controllers\Correctness\BarChartController.cs" />
     <Compile Include="Controllers\Correctness\LocationController.cs" />
+    <Compile Include="Controllers\Correctness\TableDataController.cs" />
     <Compile Include="Controllers\Disturbances\MagDurChartController.cs" />
     <Compile Include="Controllers\Disturbances\BarChartController.cs" />
     <Compile Include="Controllers\Disturbances\LocationController.cs" />
+    <Compile Include="Controllers\Disturbances\TableDataController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\Events\BarChartController.cs" />
     <Compile Include="Controllers\Events\LocationController.cs" />
     <Compile Include="Controllers\Events\MaximumSwellHeatmapController.cs" />
     <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
+    <Compile Include="Controllers\Events\TableDataController.cs" />
     <Compile Include="Controllers\Extensions\BarChartController.cs" />
     <Compile Include="Controllers\Extensions\LocationController.cs" />
+    <Compile Include="Controllers\Extensions\TableDataController.cs" />
     <Compile Include="Controllers\Faults\BarChartController.cs" />
     <Compile Include="Controllers\Faults\LocationController.cs" />
+    <Compile Include="Controllers\Faults\TableDataController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OpenSTE\TrendingDataController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
     <Compile Include="Controllers\TrendingData\ErrorBarChartController.cs" />
     <Compile Include="Controllers\TrendingData\LocationController.cs" />
+    <Compile Include="Controllers\TrendingData\TableDataController.cs" />
     <Compile Include="Controllers\Trending\BarChartController.cs" />
     <Compile Include="Controllers\Trending\LocationController.cs" />
+    <Compile Include="Controllers\Trending\TableDataController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
     <Content Include="Content\bootstrap4-datetimepicker.css" />

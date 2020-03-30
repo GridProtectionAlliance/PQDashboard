@@ -66,7 +66,7 @@ namespace PQDashboard.Controllers.Faults
     }
 
     [RoutePrefix("api/Faults/BarChart")]
-    public class ExtensionsBarChartController : ApiController
+    public class FaultsBarChartController : ApiController
     {
         [Route(""), HttpPost]
         public IHttpActionResult Post(DataForPeriodForm form)
@@ -173,13 +173,13 @@ namespace PQDashboard.Controllers.Faults
                         ' ' +
                         ' SELECT Date as thedate, ' + SUBSTRING(@ReturnColumns,0, LEN(@ReturnColumns)) +
                         ' FROM ( ' +
-                        '       SELECT ' + @dateStatement + ' AS Date, Line.VoltageKV, COUNT(*) AS thecount ' +
+                        '       SELECT ' + @dateStatement + ' AS Date, Asset.VoltageKV, COUNT(*) AS thecount ' +
                         '       FROM Event JOIN '+
                         '       EventType ON Event.EventTypeID = EventType.ID JOIN ' +
                         '       Asset ON Event.AssetID = Asset.ID ' +
                         '       WHERE EventType.Name = ''Fault'' AND ' +
                         '       MeterID IN (SELECT * FROM #selectedMeters) AND Event.StartTime >= @startDate AND Event.StartTime < @endDate  ' +
-                        '       GROUP BY ' + @groupByStatement + ', EventType.Name, Line.VoltageKV ' +
+                        '       GROUP BY ' + @groupByStatement + ', EventType.Name, Asset.VoltageKV ' +
                         '       ) as eventtable ' +
                         ' PIVOT( ' +
                         '       SUM(eventtable.thecount) ' +

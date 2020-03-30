@@ -169,7 +169,6 @@ namespace PQDashboard.Controllers.Events
 
                     SET @SQLStatement =
                     '
-                    DECLARE @user varchar(max) = @username
                     DECLARE @ids varchar(max) = @MeterID
                     DECLARE @start DateTime = @startDate
                     DECLARE @end DateTime = @endDate

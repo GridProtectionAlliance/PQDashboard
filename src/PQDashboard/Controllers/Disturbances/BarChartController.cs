@@ -175,7 +175,6 @@ namespace PQDashboard.Controllers.Disturbances
 
                         SET @SQLStatement =
                         N'
-                        DECLARE @user varchar(max) = @username
                         DECLARE @ids varchar(max) = @MeterID
                         DECLARE @start DateTime = @startDate
                         DECLARE @end DateTime = @endDate

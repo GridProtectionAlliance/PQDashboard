@@ -406,7 +406,7 @@ function selectsitesincharts() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(siteID, theDate) {
-    $.post(homePath + 'api/PQDashboard/GetDetailsForSites', { siteId: siteID, targetDate: theDate, userName: userId, tab: currentTab, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
+    $.post(homePath + 'api/'+currentTab+'/TableData', { siteId: siteID, targetDate: theDate, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
         cache_Table_Data = data;
 
         var filterString = [];
@@ -458,7 +458,8 @@ function populateFaultsDivWithGrid(data) {
             }
         });
 
-        columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true });
+        columns.push({ field: 'AssetName', headerText: 'Asset', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true });
+        columns.push({ field: 'AssetType', headerText: 'Asset Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
 
         if (includeCauseCode)
             columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
@@ -1827,7 +1828,7 @@ function deepCopy(o) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function populateDivWithErrorBarChart(thediv, siteID, thedatefrom, thedateto) {
-    $.post(homePath + 'api/PQDashboard/GetTrendingDataForPeriod', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: userId }, function (data) {
+    $.post(homePath + 'api/TrendingData/ErrorBarChart', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto}, function (data) {
         cache_ErrorBar_Data = data;
         buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
     }).fail(function (msg) {

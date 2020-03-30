@@ -47,12 +47,11 @@ namespace PQDashboard.Controllers.TrendingData
         public string colorScale { get; set; }
         public string targetDateFrom { get; set; }
         public string targetDateTo { get; set; }
-        public string userName { get; set; }
     }
 
 
     [RoutePrefix("api/TrendingData/ErrorBarChart")]
-    public class TrendingBarChartController : ApiController
+    public class ErrorBarChartController : ApiController
     {
         [Route(""), HttpPost]
         public IHttpActionResult Post(TrendingDataForPeriodForm form)

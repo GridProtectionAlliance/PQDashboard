@@ -24,27 +24,23 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Web.Http;
-using GSF;
+using GSF.Collections;
 using GSF.Data;
-using GSF.Data.Model;
-using GSF.Identity;
-using GSF.Security;
-using GSF.Web.Model;
-using openXDA.Model;
-using PQDashboard.Model;
+using openHistorian.XDALink;
 
 namespace PQDashboard.Controllers.OpenSTE
 {
     public class TrendingDataSet
     {
-        public List<eventService.TrendingDataDatum> ChannelData;
+        public List<TrendingDataDatum> ChannelData;
         public List<TrendingAlarmLimit> AlarmLimits;
         public List<TrendingAlarmLimit> OffNormalLimits;
 
         public TrendingDataSet()
         {
-            ChannelData = new List<eventService.TrendingDataDatum>();
+            ChannelData = new List<TrendingDataDatum>();
             AlarmLimits = new List<TrendingAlarmLimit>();
             OffNormalLimits = new List<TrendingAlarmLimit>();
         }
@@ -67,7 +63,7 @@ namespace PQDashboard.Controllers.OpenSTE
     }
 
     [RoutePrefix("api/OpenSTE/TrendingData")]
-    public class TrendingLocationController : ApiController
+    public class TrendingDataController : ApiController
     {
         [Route("{channelID:int}/{date}"), HttpGet]
         public IHttpActionResult Get(int channelID, string date)
@@ -76,13 +72,13 @@ namespace PQDashboard.Controllers.OpenSTE
             {
                 string historianServer;
                 string historianInstance;
-                IEnumerable<int> channelIDs = new List<int>() { Convert.ToInt32(ChannelID) };
-                DateTime startDate = Convert.ToDateTime(targetDate);
+                IEnumerable<int> channelIDs = new List<int>() { channelID };
+                DateTime startDate = Convert.ToDateTime(date);
                 DateTime endDate = startDate.AddDays(1);
                 TrendingDataSet trendingDataSet = new TrendingDataSet();
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                using (AdoDataConnection connection = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
+                using (AdoDataConnection connection = new AdoDataConnection("systemCenter"))
                 {
                     historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
                     historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
@@ -115,7 +111,7 @@ namespace PQDashboard.Controllers.OpenSTE
                                                                 " FROM   AlarmRangeLimit JOIN " +
                                                                 "        Channel ON AlarmRangeLimit.ChannelID = Channel.ID " +
                                                                 "WHERE   AlarmRangeLimit.AlarmTypeID = (SELECT ID FROM AlarmType where Name = 'Alarm') AND " +
-                                                                "        AlarmRangeLimit.ChannelID = {1}", startDate, Convert.ToInt32(ChannelID)).Select();
+                                                                "        AlarmRangeLimit.ChannelID = {1}", startDate, channelID).Select();
 
                     foreach (DataRow row in table)
                     {
@@ -144,7 +140,7 @@ namespace PQDashboard.Controllers.OpenSTE
                                                                 "        HourOfWeekLimit ON HourOfWeekLimit.HourOfWeek = HourlyIndex.HourOfWeek " +
                                                                 " WHERE " +
                                                                 "        HourOfWeekLimit.ChannelID IS NULL OR " +
-                                                                "        HourOfWeekLimit.ChannelID = {1} ", startDate, Convert.ToInt32(ChannelID)).Select();
+                                                                "        HourOfWeekLimit.ChannelID = {1} ", startDate, channelID).Select();
 
                     foreach (DataRow row in table)
                     {
