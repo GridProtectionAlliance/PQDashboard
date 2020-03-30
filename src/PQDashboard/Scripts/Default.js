@@ -955,7 +955,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
 
-    $.post(homePath + "api/PQDashboard/GetDataForPeriod", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: userId, tab: currentTab, context: context}, function (data) {
+    $.post(homePath + "api/"+currentTab+"/BarChart", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, context: context}, function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
@@ -995,7 +995,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     
 
     if (currentTab == "Disturbances") {
-        $.post(homePath + "api/PQDashboard/GetVoltageMagnitudeData", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
+        $.post(homePath + "api/Disturbances/MagDur", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
             cache_MagDur_Data = data;
             buildMagDurChart(data, thediv + "MagDur")
         });
@@ -1826,7 +1826,7 @@ function deepCopy(o) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-function populateDivWithErrorBarChart(thedatasource, thediv, siteID, thedatefrom, thedateto) {
+function populateDivWithErrorBarChart(thediv, siteID, thedatefrom, thedateto) {
     $.post(homePath + 'api/PQDashboard/GetTrendingDataForPeriod', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: userId }, function (data) {
         cache_ErrorBar_Data = data;
         buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
@@ -3043,7 +3043,7 @@ function ManageLocationClick(siteID) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     if (currentTab == "TrendingData")
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+        populateDivWithErrorBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
     else
     {
         populateDivWithBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
@@ -3094,7 +3094,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     if(currentTab != "TrendingData")
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), barChartStartDate, thedateto);
     else
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
+        populateDivWithErrorBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
 

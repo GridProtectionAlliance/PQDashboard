@@ -144,61 +144,6 @@ public class mapService : WebService
     private static LongSynchronizedOperation s_cleanUpAnimationOperation = new LongSynchronizedOperation(CleanUpAnimation);
 
 
-    /// <summary>
-    /// getMeterIDsForArea (Dragged Rect on Map)
-    /// </summary>
-    /// <param name="ax"></param>
-    /// <param name="ay"></param>
-    /// <param name="bx"></param>
-    /// <param name="by"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-
-    [WebMethod]
-    public List<string> getMeterIDsForArea(double ax, double ay, double bx, double by, string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        List<String> theMeterIDs = new List<String>();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterIDsForArea", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.Add(new SqlParameter("@ax", ax));
-            cmd.Parameters.Add(new SqlParameter("@ay", ay));
-            cmd.Parameters.Add(new SqlParameter("@bx", bx));
-            cmd.Parameters.Add(new SqlParameter("@by", by));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-
-            rdr = cmd.ExecuteReader();
-            if (rdr.HasRows)
-            {
-                while (rdr.Read())
-                {
-                    theMeterIDs.Add((String)rdr["TheMeterID"].ToString());
-                }
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (theMeterIDs);
-    }
-
     [WebMethod]
     public void getContourTile()
     {

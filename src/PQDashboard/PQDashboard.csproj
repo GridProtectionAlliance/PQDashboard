@@ -314,20 +314,31 @@
       <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="Controllers\Breakers\BarChartController.cs" />
     <Compile Include="Controllers\Breakers\LocationController.cs" />
+    <Compile Include="Controllers\Completeness\BarChartController.cs" />
     <Compile Include="Controllers\Completeness\LocationController.cs" />
+    <Compile Include="Controllers\Correctness\BarChartController.cs" />
     <Compile Include="Controllers\Correctness\LocationController.cs" />
+    <Compile Include="Controllers\Disturbances\MagDurChartController.cs" />
+    <Compile Include="Controllers\Disturbances\BarChartController.cs" />
     <Compile Include="Controllers\Disturbances\LocationController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
+    <Compile Include="Controllers\Events\BarChartController.cs" />
     <Compile Include="Controllers\Events\LocationController.cs" />
     <Compile Include="Controllers\Events\MaximumSwellHeatmapController.cs" />
     <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
+    <Compile Include="Controllers\Extensions\BarChartController.cs" />
     <Compile Include="Controllers\Extensions\LocationController.cs" />
+    <Compile Include="Controllers\Faults\BarChartController.cs" />
     <Compile Include="Controllers\Faults\LocationController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OpenSTE\TrendingDataController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
+    <Compile Include="Controllers\TrendingData\ErrorBarChartController.cs" />
     <Compile Include="Controllers\TrendingData\LocationController.cs" />
+    <Compile Include="Controllers\Trending\BarChartController.cs" />
     <Compile Include="Controllers\Trending\LocationController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
@@ -445,15 +456,11 @@
     <Compile Include="BreakerReportCSVDownload.ashx.cs">
       <DependentUpon>BreakerReportCSVDownload.ashx</DependentUpon>
     </Compile>
-    <Compile Include="OpenSEECSVDownload.ashx.cs">
-      <DependentUpon>OpenSEECSVDownload.ashx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
-    <Content Include="OpenSEECSVDownload.ashx" />
     <Content Include="BreakerReportCSVDownload.ashx" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />

@@ -194,19 +194,17 @@
         label += " for a Day";
 
         $("#chartTitle").text(label);
-        populateDivWithLineChartByChannelID("getTrendsforChannelIDDate", "WaveformTrending", postedchannelid, posteddate, label);
+        populateDivWithLineChartByChannelID( postedchannelid, posteddate);
         resizecontents();
     });
 
     //////////////////////////////////////////////////////////////////////////////////////////////
 
-    function populateDivWithLineChartByChannelID(thedatasource, thediv, thechannelid, thedate, label) {
-        var thedatasent = "{'ChannelID':'" + thechannelid + "', 'targetDate':'" + thedate + "'}";
+    function populateDivWithLineChartByChannelID(thechannelid, thedate) {
         var homePath = '@Html.Raw(Url.Content("~/"))';
         $.ajax({
-            type: "POST",
-            url: homePath + 'eventService.asmx/getTrendsforChannelIDDate',
-            data: thedatasent,
+            type: "GET",
+            url: homePath + 'api/OpenSTE/TrendingData/' + thechannelid + '/' + thedate,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             cache: true,

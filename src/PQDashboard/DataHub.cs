@@ -1164,12 +1164,12 @@ namespace PQDashboard
                     ; WITH cte AS
                     (
                     SELECT
-                        Event.LineID AS thelineid, 
+                        Event.AssetID AS thelineid, 
                         Event.ID AS theeventid, 
                         EventType.Name AS theeventtype,
                         CAST(Event.StartTime AS VARCHAR(26)) AS theinceptiontime,
-                        MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
-                        Line.VoltageKV AS voltage,
+                        Asset.AssetName AS thelinename,
+                        Asset.VoltageKV AS voltage,
                         COALESCE(FaultSummary.FaultType, Phase.Name, '') AS thefaulttype,
                         CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE COALESCE(CAST(CAST(FaultSummary.Distance AS DECIMAL(16, 4)) AS NVARCHAR(19)), '') END AS thecurrentdistance,
                         Event.StartTime,
@@ -1188,8 +1188,8 @@ namespace PQDashboard
                         FaultSummary ON FaultSummary.EventID = Event.ID  LEFT OUTER JOIN
                         Phase ON Disturbance.PhaseID = Phase.ID JOIN
                         Meter ON Meter.ID = Event.MeterID JOIN
-                        Line ON Event.LineID = Line.ID JOIN
-                        MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+                        Asset ON Event.AssetID = Asset.ID JOIN
+                        MeterAsset ON MeterAsset.MeterID = Meter.ID AND MeterAsset.AssetID = Asset.ID
                     WHERE
                         Event.StartTime >= @startDate AND Event.StartTime < @endDate AND (Phase.ID IS NULL OR Phase.Name <> 'Worst')
                     )
@@ -1210,7 +1210,7 @@ namespace PQDashboard
                     DECLARE @voltageEnvelope varchar(max) = (SELECT TOP 1 Value FROM Setting WHERE Name = 'DefaultVoltageEnvelope')
 
                     SELECT 
-	                    Event.LineID AS thelineid, 
+	                    Event.AssetID AS thelineid, 
 	                    Event.ID AS theeventid, 
 	                    Disturbance.ID as disturbanceid,
 	                    EventType.Name AS disturbancetype,
@@ -1227,8 +1227,8 @@ namespace PQDashboard
                         dbo.DateDiffTicks('1970-01-01', Disturbance.StartTime) / 10000.0 AS startmillis,
                         dbo.DateDiffTicks('1970-01-01', Disturbance.EndTime) / 10000.0 AS endmillis,
 	                    DisturbanceSeverity.SeverityCode,
-	                    MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
-	                    Line.VoltageKV AS voltage,
+	                    Asset.AssetName as thelinename,
+	                    Asset.VoltageKV AS voltage,
 		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as Note
                     FROM
 	                    Event JOIN
@@ -1241,8 +1241,8 @@ namespace PQDashboard
 	                    Phase ON Disturbance.PhaseID = Phase.ID JOIN
 	                    DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
 	                    Meter ON Meter.ID = Event.MeterID JOIN
-	                    Line ON Event.LineID = Line.ID JOIN
-	                    MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID JOIN
+	                    Asset ON Event.AssetID = Asset.ID JOIN
+	                    MeterAsset ON MeterAsset.MeterID = Meter.ID AND MeterAsset.AssetID = Asset.ID JOIN
 	                    VoltageEnvelope ON VoltageEnvelope.ID = DisturbanceSeverity.VoltageEnvelopeID	
                     WHERE
 	                    Event.StartTime >= @startDate AND Event.StartTime < @endDate AND 
@@ -1371,97 +1371,6 @@ namespace PQDashboard
             }
             return dt.Rows.Count;
 
-        }
-
-        #endregion
-
-        #region [OpenSEE Operations]
-        public List<SignalCode.FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
-        {
-            SignalCode sc = new SignalCode();
-            return sc.GetFlotData(eventID, seriesIndexes);
-        }
-        #endregion
-
-        #region [OpenSTE Operations]
-
-
-
-        public TrendingDataSet GetTrendsForChannelIDDate(string ChannelID, string targetDate)
-        {
-            string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
-            IEnumerable<int> channelIDs = new List<int>() { Convert.ToInt32(ChannelID) };
-            DateTime startDate = Convert.ToDateTime(targetDate);
-            DateTime endDate = startDate.AddDays(1);
-            TrendingDataSet trendingDataSet = new TrendingDataSet();
-            DateTime epoch = new DateTime(1970, 1, 1);
-
-            using (Historian historian = new Historian(historianServer, historianInstance))
-            {
-                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIDs, startDate, endDate))
-                {
-                    if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
-                    {
-                        trendingDataSet.ChannelData.Add(new openXDA.Model.TrendingDataPoint());
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
-                    }
-
-                    if (point.SeriesID.ToString() == "Average")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Average = point.Value;
-                    else if (point.SeriesID.ToString() == "Minimum")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Minimum = point.Value;
-                    else if (point.SeriesID.ToString() == "Maximum")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Maximum = point.Value;
-
-                }
-            }
-            IEnumerable<DataRow> table = Enumerable.Empty<DataRow>();
-
-            table = DataContext.Connection.RetrieveData(" Select {0} AS thedatefrom, " +
-                                                        "        DATEADD(DAY, 1, {0}) AS thedateto, " +
-                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.High * PerUnitValue ELSE AlarmRangeLimit.High END AS alarmlimithigh," +
-                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.Low * PerUnitValue ELSE AlarmRangeLimit.Low END AS alarmlimitlow " +
-                                                        " FROM   AlarmRangeLimit JOIN " +
-                                                        "        Channel ON AlarmRangeLimit.ChannelID = Channel.ID " +
-                                                        "WHERE   AlarmRangeLimit.AlarmTypeID = (SELECT ID FROM AlarmType where Name = 'Alarm') AND " +
-                                                        "        AlarmRangeLimit.ChannelID = {1}", startDate, Convert.ToInt32(ChannelID)).Select();
-
-            foreach (DataRow row in table)
-            {
-                trendingDataSet.AlarmLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("alarmlimithigh"), Low = row.Field<double?>("alarmlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
-            }
-
-            table = Enumerable.Empty<DataRow>();
-
-            table = DataContext.Connection.RetrieveData(" DECLARE @dayOfWeek INT = DATEPART(DW, {0}) - 1 " +
-                                                        " DECLARE @hourOfWeek INT = @dayOfWeek * 24 " +
-                                                        " ; WITH HourlyIndex AS" +
-                                                        " ( " +
-                                                        "   SELECT @hourOfWeek AS HourOfWeek " +
-                                                        "   UNION ALL " +
-                                                        "   SELECT HourOfWeek + 1 " +
-                                                        "   FROM HourlyIndex" +
-                                                        "   WHERE (HourOfWeek + 1) < @hourOfWeek + 24" +
-                                                        " ) " +
-                                                        " SELECT " +
-                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek, {0}) AS thedatefrom, " +
-                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek + 1, {0}) AS thedateto, " +
-                                                        "        HourOfWeekLimit.High AS offlimithigh, " +
-                                                        "        HourOfWeekLimit.Low AS offlimitlow " +
-                                                        " FROM " +
-                                                        "        HourlyIndex LEFT OUTER JOIN " +
-                                                        "        HourOfWeekLimit ON HourOfWeekLimit.HourOfWeek = HourlyIndex.HourOfWeek " +
-                                                        " WHERE " +
-                                                        "        HourOfWeekLimit.ChannelID IS NULL OR " +
-                                                        "        HourOfWeekLimit.ChannelID = {1} ", startDate, Convert.ToInt32(ChannelID)).Select();
-
-            foreach (DataRow row in table)
-            {
-                trendingDataSet.OffNormalLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("offlimithigh"), Low = row.Field<double?>("offlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
-            }
-
-            return trendingDataSet;
         }
 
         #endregion
