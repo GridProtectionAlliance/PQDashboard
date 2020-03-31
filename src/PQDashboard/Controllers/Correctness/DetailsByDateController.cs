@@ -32,11 +32,11 @@ using GSF.Data.Model;
 using GSF.Collections;
 using openXDA.Model;
 
-namespace PQDashboard.Controllers.Completeness
+namespace PQDashboard.Controllers.Correctness
 {
 
-    [RoutePrefix("api/Completeness/DetailsByDate")]
-    public class CompletenessDetailsByDateController : ApiController
+    [RoutePrefix("api/Correctness/DetailsByDate")]
+    public class CorrectnessDetailsByDateController : ApiController
     {
         [Route("{siteID:int}/{month:int}/{day:int}/{year:int}"), HttpGet]
         public IHttpActionResult Get(int siteID, int month, int day, int year)
@@ -51,18 +51,18 @@ namespace PQDashboard.Controllers.Completeness
 
                         select
                         Distinct [dbo].[Channel].[ID] as channelid,
-                        [dbo].[Channel].[Name] as channelname,
                         @EventDate as date,
+                        [dbo].[Channel].[Name] as channelname,
                         [dbo].[Meter].[ID] as meterid,
                         [dbo].[MeasurementType].[Name] as measurementtype,
                         [dbo].[MeasurementCharacteristic].[Name] as characteristic,
                         [dbo].[Phase].[Name] as phasename,
-
-                        COALESCE(CAST( cast(LatchedPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Latched,
-                        COALESCE(CAST( cast(UnreasonablePoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Unreasonable,
-                        COALESCE(CAST( cast(NoncongruentPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Noncongruent,
-                        COALESCE(CAST( cast(GoodPoints + LatchedPoints + UnreasonablePoints + NoncongruentPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as completeness
-
+                        [dbo].[ChannelDataQualitySummary].[ExpectedPoints] as ExpectedPoints,
+                        [dbo].[ChannelDataQualitySummary].[GoodPoints] as GoodPoints,
+                        [dbo].[ChannelDataQualitySummary].[LatchedPoints] as LatchedPoints,
+                        [dbo].[ChannelDataQualitySummary].[UnreasonablePoints] as UnreasonablePoints,
+                        [dbo].[ChannelDataQualitySummary].[NoncongruentPoints] as NoncongruentPoints,
+                        [dbo].[ChannelDataQualitySummary].[DuplicatePoints] as DuplicatePoints
                         from [dbo].[ChannelDataQualitySummary]
                         join [dbo].[Channel] on [dbo].[ChannelDataQualitySummary].[ChannelID] = [dbo].[Channel].[ID]
                         join [dbo].[Meter] on [dbo].[Channel].[MeterID] = @MeterID

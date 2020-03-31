@@ -52,12 +52,9 @@ var columnsrenderer = function (value) { return '<div style="text-align: center;
 
 function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
 
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
-
     $.ajax({
         type: "POST",
-        url: './eventService.asmx/getSiteChannelDataQualityDetailsByDate',
-        data: thedatasent,
+        url: './api/Correctness/DetailsByDate/' + siteID + '/' + theDate,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,

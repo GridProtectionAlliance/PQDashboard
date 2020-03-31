@@ -322,6 +322,7 @@
     <Compile Include="Controllers\Completeness\LocationController.cs" />
     <Compile Include="Controllers\Completeness\TableDataController.cs" />
     <Compile Include="Controllers\Correctness\BarChartController.cs" />
+    <Compile Include="Controllers\Correctness\DetailsByDateController.cs" />
     <Compile Include="Controllers\Correctness\LocationController.cs" />
     <Compile Include="Controllers\Correctness\TableDataController.cs" />
     <Compile Include="Controllers\Disturbances\MagDurChartController.cs" />
