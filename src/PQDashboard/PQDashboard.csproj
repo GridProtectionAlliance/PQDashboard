@@ -326,6 +326,7 @@
     <Compile Include="Controllers\Disturbances\MagDurChartController.cs" />
     <Compile Include="Controllers\Disturbances\BarChartController.cs" />
     <Compile Include="Controllers\Disturbances\LocationController.cs" />
+    <Compile Include="Controllers\Disturbances\DetailsByDateController.cs" />
     <Compile Include="Controllers\Disturbances\TableDataController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />

@@ -713,45 +713,6 @@ namespace PQDashboard
             return thedata;
         }
 
-        /// <summary>
-        /// GetSiteLinesDetailsByDate
-        /// </summary>
-        /// <param name="siteID"></param>
-        /// <param name="targetDate"></param>
-        /// <param name="context"></param>
-        /// <param name="tab"></param>
-
-        /// <returns>JSON string</returns>
-        public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
-        {
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                DataTable table = new DataTable();
-                sc.CommandText = "dbo.selectSiteLines" + tab + "DetailsByDate";
-                sc.CommandType = CommandType.StoredProcedure;
-
-
-                IDbDataParameter date = sc.CreateParameter();
-                date.ParameterName = "@EventDate";
-                date.Value = targetDate;
-                sc.Parameters.Add(date);
-
-                IDbDataParameter meter = sc.CreateParameter();
-                meter.ParameterName = "@MeterID";
-                meter.Value = siteID;
-                sc.Parameters.Add(meter);
-
-
-                IDbDataParameter window = sc.CreateParameter();
-                window.ParameterName = "@context";
-                window.Value = context;
-                sc.Parameters.Add(window);
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-                return table;
-            }
-        }
-
 
         #endregion
 
