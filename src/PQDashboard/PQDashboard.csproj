@@ -318,6 +318,7 @@
     <Compile Include="Controllers\Breakers\BarChartController.cs" />
     <Compile Include="Controllers\Breakers\LocationController.cs" />
     <Compile Include="Controllers\Completeness\BarChartController.cs" />
+    <Compile Include="Controllers\Completeness\DetailsByDateController.cs" />
     <Compile Include="Controllers\Completeness\LocationController.cs" />
     <Compile Include="Controllers\Completeness\TableDataController.cs" />
     <Compile Include="Controllers\Correctness\BarChartController.cs" />

@@ -89,13 +89,6 @@ public class eventService : System.Web.Services.WebService {
         public double? Average;
     }
 
-    public eventService ()
-    {
-        //Uncomment the following line if using designed components 
-        //InitializeComponent(); 
-    }
-
-
     /// <summary>
     /// getSiteChannelDataQualityDetailsByDate
     /// </summary>
