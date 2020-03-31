@@ -91,13 +91,12 @@ namespace PQDashboard.Controllers.Extensions
                                     SELECT  Event.ID as EventID,
                                             Event.StartTime as StartTime,
                                             '''+ t.ServiceName + ''' as ServiceType,
-                                            MeterLine.LineName + '' '' + [Line].[AssetKey] AS LineName,
-                                            Line.VoltageKV AS Voltage,
+                                            Asset.AssetName AS AssetName,
+                                            Asset.VoltageKV AS Voltage,
                                             CAST(dbo.'+ t.HasResultFunction+'(Event.ID) as varchar(max)) as Confidence
                                     FROM    #temp as Event JOIN
                                             Meter ON Meter.ID = Event.MeterID JOIN
-                                            Line ON Event.LineID = Line.ID JOIN
-                                            MeterLine ON MeterLine.MeterID = Event.MeterID AND MeterLine.LineID = Line.ID
+                                            Asset ON Event.AssetID = Asset.ID 
                                     WHERE   dbo.' + t.HasResultFunction +'(Event.ID) != '''' UNION'
 
                         FROM (Select * FROM EASExtension) AS t
