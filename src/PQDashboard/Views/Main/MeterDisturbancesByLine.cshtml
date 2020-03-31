@@ -37,7 +37,6 @@
     string context = parameters["context"] ?? "day";
     string[] severityCodes;
 
-    EventView theEvent;
     using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
     {
             ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);

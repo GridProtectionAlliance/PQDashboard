@@ -336,6 +336,7 @@
     <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
     <Compile Include="Controllers\Events\TableDataController.cs" />
     <Compile Include="Controllers\Extensions\BarChartController.cs" />
+    <Compile Include="Controllers\Extensions\DetailsByDateController.cs" />
     <Compile Include="Controllers\Extensions\LocationController.cs" />
     <Compile Include="Controllers\Extensions\TableDataController.cs" />
     <Compile Include="Controllers\Faults\BarChartController.cs" />
