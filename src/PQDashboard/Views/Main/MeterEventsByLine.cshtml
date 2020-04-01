@@ -22,7 +22,7 @@
 //*******************************************************************************************************@
 
 @using System.Collections.Specialized
-@using GSF.Data.Model
+@using GSF.Data
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using Newtonsoft.Json
@@ -37,24 +37,27 @@
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
     string postedDateString = parameters["posteddate"] ?? "";
-    EventView theEvent;
     DateTime postedDate;
     string xdaInstance;
     string timeWindow;
     string[] eventTypes;
-    using (DataContext dataContext = new DataContext("systemSettings"))
+
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
     {
-        theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
-        postedDate = theEvent.StartTime;
+
+        ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
+        ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
+        postedDate = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
 
         if (postedDateString != "")
         {
             DateTime.TryParse(postedDateString, out postedDate);
         }
 
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-        timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
-        eventTypes = dataContext.Table<EventType>().QueryRecords().Select(x => x.Name).ToArray();
+
+        xdaInstance = connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
+        timeWindow = connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+        eventTypes = connection.RetrieveData("SELECT * FROM EventType").Select().Select(x => x["Name"].ToString()).ToArray();
 
 
     }
@@ -101,7 +104,8 @@
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy") (<a href="@(xdaInstance + "/Workbench/MeterEventsByLine.cshtml?EventID=" + postedEventId + "&context=" + context)" target="_blank">View in OpenXDA</a>)</center>
+<div id="pageBody"></div>
+<div class="gridheader"><center>Events for @ViewBag.MeterName for @postedDate.ToString("MM/dd/yyyy") (<a href="@(xdaInstance + "/Workbench/MeterEventsByLine.cshtml?EventID=" + postedEventId + "&context=" + context)" target="_blank">View in OpenXDA</a>)</center>
 </div>
 
 
@@ -165,12 +169,33 @@
     </div>
 </div>
 
+    @if (Model.IsDebug())
+{
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.development.js")"></script>
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.development.js")"></script> 
+}
+else
+{
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react.production.min.js")"></script>
+    <script src="@Url.Content("~/@GSF/Web/Shared/Scripts/react-dom.production.min.js")"></script>
+
+}
+
+<script>
+    var meterName = '@ViewBag.MeterName'
+    var date = '@postedDate.ToString("MM/dd/yyyy")'
+    var eventID = "@postedEventId";
+    var xdaInstance = "@xdaInstance";
+    var context = "@context";
+    var homePath = '@Url.Content("~/")'
+</script>
+@*<script src="~/Scripts/MeterEventsByLine.js"></script>*@
 
 <script>
 
-    var postedMeterId = "@theEvent.MeterID";
+    var postedMeterId = "@ViewBag.MeterID";
     var postedDate = "@postedDate";
-    var postedMeterName = "@theEvent.MeterName";
+    var postedMeterName = "@ViewBag.MeterName";
     var context = "@context";
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     var eventTypes = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(eventTypes))')
@@ -228,7 +253,7 @@
                           }
                     },
                     { field: 'theeventtype', headerText: 'Event Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
-                    { field: 'thelinename', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
+                    { field: 'thelinename', headerText: 'Asset', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
                     { field: 'voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thefaulttype', headerText: 'Phase', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'thecurrentdistance', headerText: 'Distance', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
@@ -254,7 +279,7 @@
         html += '<tr><td style="width: 50%">List <b>simultaneous</b> Events <br> (+/- <input id="timeWindow" onchange="updateSimultaneousEvents(' + data.theeventid + ')" style="width: 60px" value="@timeWindow" /> <select id="timeUnits" onchange="updateSimultaneousEvents(' + data.theeventid + ')"><option value="7">Year</option><option value="6">Month</option><option value="5">Week</option><option value="4">Day</option><option value="3">Hour</option><option value="2">Minute</option><option value="1" selected>Second</option><option value="0">Millisecond</option></select>)</td><td colspan="2" style="width: auto"><button id="simultaneousFaultsAndSags" class="btn btn-default" onclick="openSimultaneousEvents('+data.theeventid+')"><span id="simultaneousCount"></span> Events Found</button><button style="margin-left: 10px" onclick="openMultiNoteModal(' + data.theeventid + ')"><span class="glyphicon glyphicon-pencil" title=""></span></button></td></tr>';
         updateSimultaneousEvents(data.theeventid);
 
-        html += '<tr><td style="width: 50%">List events for this <b>line</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
+        html += '<tr><td style="width: 50%">List events for this <b>asset</b> (last 60 days)</td><td colspan="2"style="width: auto"><button id="getSixty" class="btn btn-default">' + data.SixtyDayCount + ' Events Found</button></td></tr></table>';
         dataHub.getEventsForLineLastSixtyDays(data.theeventid).done(function (data) {
             //console.log(data);
 
@@ -272,10 +297,10 @@
                             "}" +
                         "</style>" +
                         //"<ul class='list-group contextmenu1' >" +
-                            "<table class='table table-responsive listtable'><tr><td>Line</td><td>Start Time</td><td>Type</td></tr>";
+                            "<table class='table table-responsive listtable'><tr><td>Asset</td><td>Start Time</td><td>Type</td></tr>";
 
             $.each(data, function (index, object) {
-                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.AssetName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
             });
 
             html += "</table>";
@@ -353,10 +378,10 @@
                 "background-color: #66BB6A;" +
                 "}" +
                 "</style>" +
-                "<table class='table table-responsive listtable'><tr><th>Line</th><th>Start Time</th><th>Type</th></tr>";
+                "<table class='table table-responsive listtable'><tr><th>Asset</th><th>Start Time</th><th>Type</th></tr>";
 
             $.each(d, function (index, object) {
-                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.LineName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
+                html += "<tr class=\"listtr\" onclick=\"OpenWindowToOpenSEE(" + object.ID + ")\"><td>" + object.AssetName + "</td><td>" + object.StartTime + "</td><td>" + object.EventTypeName + "</td></tr>"
             });
 
             html += "</table>";

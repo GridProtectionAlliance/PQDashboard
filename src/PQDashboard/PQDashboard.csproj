@@ -333,6 +333,7 @@
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\Events\BarChartController.cs" />
+    <Compile Include="Controllers\Events\DetailsByDateController.cs" />
     <Compile Include="Controllers\Events\LocationController.cs" />
     <Compile Include="Controllers\Events\MaximumSwellHeatmapController.cs" />
     <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
@@ -483,6 +484,7 @@
     <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
+    <Content Include="Scripts\MeterEventsByLine.js" />
     <Content Include="Scripts\PQDashboard.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
@@ -1327,6 +1329,10 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\MeterEventsByLine.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Table.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

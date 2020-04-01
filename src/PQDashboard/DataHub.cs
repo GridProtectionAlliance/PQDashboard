@@ -982,6 +982,169 @@ namespace PQDashboard
 
         #region [ MeterEventsByLine Operations ]
 
+        public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
+        {
+            DataTable table = DataContext.Connection.RetrieveData(@"
+					DECLARE @EventDate DATETIME2 = {0}
+                    DECLARE @context as nvarchar(20) = {1}
+					DECLARE @MeterID INT = {2}
+
+                    DECLARE @startDate DATETIME = @EventDate
+                    DECLARE @endDate DATETIME
+
+
+                    IF @context = '180d'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, -180, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '90d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -90, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '30d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -30, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '7d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -7, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '24h'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, -24, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = 'day'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, DATEDIFF(DAY, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(DAY, 1, @startDate)
+                    END
+
+                    if @context = 'hour'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, DATEDIFF(HOUR, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(HOUR, 1, @startDate)
+                    END
+
+                    if @context = 'minute'
+                    BEGIN
+                        SET @startDate = DATEADD(MINUTE, DATEDIFF(MINUTE, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(MINUTE, 1, @startDate)
+                    END
+
+                    if @context = 'second'
+                    BEGIN
+                        DECLARE @tempDate DATETIME = DATEADD(DAY, DATEDIFF(DAY, 0, @EventDate), 0)
+                        SET @startDate = DATEADD(SECOND, DATEDIFF(SECOND, @tempDate, @EventDate), @tempDate)
+                        SET @endDate = DATEADD(SECOND, 1, @startDate)
+                    END
+
+
+                DECLARE @simStartDate DATETIME = DATEADD(SECOND, -5, @startDate)
+                    DECLARE @simEndDate DATETIME = DATEADD(SECOND, 5, @endDate)
+                    print @simStartDate
+                    print @simEndDate
+                    DECLARE @localEventDate DATE = CAST(@EventDate AS DATE)
+                    DECLARE @localMeterID INT = CAST(@MeterID AS INT)
+                    DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+
+	                SELECT
+		                Event.ID,
+		                Event.AssetID,
+		                EventType.Name AS EventType,
+		                Event.StartTime,
+		                Asset.AssetName as LineName,
+		                Asset.AssetKey AS LineKey,
+		                Asset.VoltageKV AS LineVoltage,
+		                FaultSummary.FaultType,
+		                Disturbance.Type AS DisturbanceType,
+		                FaultSummary.Distance AS FaultDistance,
+		                Event.UpdatedBy
+	                INTO #event
+                    FROM
+                        Event JOIN
+                        EventType ON Event.EventTypeID = EventType.ID OUTER APPLY
+		                (
+			                SELECT TOP 1
+				                Disturbance.*,
+				                Phase.Name AS Type
+			                FROM
+				                Disturbance JOIN
+				                Phase ON Disturbance.PhaseID = Phase.ID
+			                WHERE
+				                EventID = Event.ID AND
+				                Phase.Name <> 'Worst'
+			                ORDER BY
+				                CASE EventType.Name
+					                WHEN 'Sag' THEN PerUnitMagnitude
+					                WHEN 'Swell' THEN -PerUnitMagnitude
+					                WHEN 'Interruption' THEN PerUnitMagnitude
+					                WHEN 'Transient' THEN -PerUnitMagnitude
+				                END,
+				                StartTime
+		                ) Disturbance OUTER APPLY
+		                (
+			                SELECT TOP 1 *
+			                FROM FaultSummary
+			                WHERE EventID = Event.ID
+			                ORDER BY IsSelectedAlgorithm DESC, IsSuppressed, IsValid DESC, Inception
+		                ) FaultSummary JOIN
+                        Meter ON Meter.ID = @MeterID JOIN
+                        Asset ON Event.AssetID = Asset.ID JOIN
+                        MeterAsset ON MeterAsset.MeterID = @MeterID AND MeterAsset.AssetID = Asset.ID
+                    WHERE
+                        Event.StartTime >= @startDate AND Event.StartTime < @endDate AND
+                        Event.MeterID = @localMeterID
+
+	                SELECT
+                        AssetID AS thelineid,
+                        ID AS theeventid,
+                        EventType AS theeventtype,
+                        CAST(StartTime AS VARCHAR(26)) AS theinceptiontime,
+                        LineName + ' ' + LineKey AS thelinename,
+                        LineVoltage AS voltage,
+                        COALESCE(FaultType, DisturbanceType, '') AS thefaulttype,
+                        CASE WHEN FaultDistance = '-1E308' THEN 'NaN' ELSE COALESCE(CAST(CAST(FaultDistance AS DECIMAL(16, 4)) AS NVARCHAR(19)), '') END AS thecurrentdistance,
+                        dbo.EventHasImpactedComponents(ID) AS pqiexists,
+                        StartTime,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.StartTime BETWEEN DateAdd(SECOND, -5, Event.StartTime) and  DateAdd(SECOND, 5, Event.StartTime)) as SimultaneousCount,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND EventCount.StartTime BETWEEN DateAdd(SECOND, -@timeWindow, Event.StartTime) and  DateAdd(SECOND, @timeWindow, Event.StartTime)) as SimultaneousFAndSCount,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.AssetID = Event.AssetID AND EventCount.StartTime BETWEEN DateAdd(Day, -60, Event.StartTime) and  Event.StartTime) as SixtyDayCount,
+                        UpdatedBy,
+                        (SELECT COUNT(*) FROM EventNote WHERE EventID = Event.ID) as Note
+	                INTO #temp
+	                FROM #event Event
+
+                    DECLARE @sql NVARCHAR(MAX)
+                    SELECT @sql = COALESCE(@sql + ',dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName, 'dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName)
+                    FROM EASExtension
+
+                    DECLARE @serviceList NVARCHAR(MAX)
+                    SELECT @serviceList = COALESCE(@serviceList + ',' + ServiceName, ServiceName)
+                    FROM EASExtension
+                    Set @serviceList = '''' + @serviceList + ''''
+
+
+                    SET @sql = COALESCE('SELECT *,' + @sql + ', '+ @ServiceList +'as ServiceList FROM #temp', 'SELECT *, '''' AS ServiceList FROM #temp')
+                    print @sql
+                    EXEC sp_executesql @sql
+
+                    DROP TABLE #temp
+	                DROP TABLE #event
+                ", targetDate, context, siteID);
+
+                return table;
+
+        }
         public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window, int timeUnit)
         {
             DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
@@ -997,7 +1160,7 @@ namespace PQDashboard
         public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
         {
             Event record = DataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.AssetID);
+            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND AssetID = {1}", record.StartTime, record.AssetID);
         }
 
         #endregion

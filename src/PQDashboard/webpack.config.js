@@ -7,9 +7,9 @@ module.exports = {
     context: path.resolve(__dirname, 'Scripts'),
     cache: true,
     entry: {
-        OpenSEE: "./TSX/OpenSEE/openSEE.tsx",
-        PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
-
+        //OpenSEE: "./TSX/OpenSEE/openSEE.tsx",
+        //PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
+        MeterEventsByLine: "./TSX/MeterEventsByLine.tsx"
     },
     output: {
         path: path.resolve(__dirname, 'Scripts'),
