@@ -81,7 +81,7 @@ export default class Points extends React.Component<any, any>{
     }
 
     componentDidMount() {
-        ($("#accumulatedpoints") as any).draggable({ scroll: false, handle: '#accumulatedpointshandle', containment: 'document' });
+        ($("#accumulatedpoints") as any).draggable({ scroll: false, handle: '#accumulatedpointshandle', containment: '#chartpanel' });
     }
 
 

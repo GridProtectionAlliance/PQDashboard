@@ -223,7 +223,7 @@ export class OpenSEE extends React.Component<{}, OpenSEEState>{
                         <span><About/></span>
                     </div>
                 </div> 
-                <div style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right', overflow: 'hidden' }}>
+                <div id="chartpanel" style={{ width: 'calc(100% - 300px)', height: 'inherit', position: 'relative', float: 'right', overflow: 'hidden' }}>
                     <OpenSEENavbar
                         eventid={this.state.eventid}
                         endDate={this.state.EndDate}

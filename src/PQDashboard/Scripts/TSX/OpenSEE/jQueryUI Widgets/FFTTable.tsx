@@ -76,7 +76,7 @@ export default class FFTTable extends React.Component<any, any>{
         super(props);
     }
     componentDidMount() {
-        ($("#ffttable") as any).draggable({ scroll: false, handle: '#ffttablehandle', containment: 'document' });
+        ($("#ffttable") as any).draggable({ scroll: false, handle: '#ffttablehandle', containment: '#chartpanel' });
     }
 
     render() {
