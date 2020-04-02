@@ -82,7 +82,7 @@ export default class TooltipWithDelta extends React.Component<any, any>{
     }
     componentDidMount() {
         var ctrl = this;
-        ($('#tooltipwithdelta') as any).draggable({ scroll: false, handle: '#tooltipwithdeltahandle', containment: 'document' });
+        ($('#tooltipwithdelta') as any).draggable({ scroll: false, handle: '#tooltipwithdeltahandle', containment: '#chartpanel' });
     }
 
     getMillisecondTime(date) {

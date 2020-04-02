@@ -84,7 +84,7 @@ export default class ScalarStats extends React.Component<any, any>{
         };
     }
     componentDidMount() {
-        ($("#scalarstats") as any).draggable({ scroll: false, handle: '#statshandle', containment: 'document' });
+        ($("#scalarstats") as any).draggable({ scroll: false, handle: '#statshandle', containment: '#chartpanel' });
         this.openSEEService.getScalarStats(this.props.eventId).done(data => {
             var rows = Object.keys(data).map(key => Row({ label: key, data: data[key] }));
             this.setState({rows: rows});

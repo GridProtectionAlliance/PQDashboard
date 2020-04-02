@@ -85,7 +85,7 @@ export default class HarmonicStats extends React.Component<any, any>{
         };
     }
     componentDidMount() {
-        ($("#harmonicstats") as any).draggable({ scroll: false, handle: '#harmonichandle', containment: 'document' });
+        ($("#harmonicstats") as any).draggable({ scroll: false, handle: '#harmonichandle', containment: '#chartpanel' });
         this.openSEEService.getHarmonicStats(this.props.eventId).done(data => {
             var headers = HeaderRow(data.map(x => x.Channel), this.props.exportCallback);
             var secondaryHeader = SecondaryHeaderRow(data.map(x => x.Channel));

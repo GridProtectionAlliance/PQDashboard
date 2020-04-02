@@ -82,7 +82,7 @@ export default class PolarChart extends React.Component<any, any>{
 
 
     componentDidMount() {
-        ($("#phasor") as any).draggable({ scroll: false, handle: '#phasorhandle', containment: 'document' });
+        ($("#phasor") as any).draggable({ scroll: false, handle: '#phasorhandle', containment: '#chartpanel' });
     }
 
 

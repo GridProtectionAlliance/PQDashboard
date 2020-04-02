@@ -87,7 +87,7 @@ export default class HarmonicStats extends React.Component<any, any>{
     }
 
     componentDidMount() {
-        ($("#correlatedsags") as any).draggable({ scroll: false, handle: '#correlatedsagshandle', containment: 'document' });
+        ($("#correlatedsags") as any).draggable({ scroll: false, handle: '#correlatedsagshandle', containment: '#chartpanel' });
 
         this.openSEEService.getTimeCorrelatedSags(this.props.eventId).done(data => {
             var header = HeaderRow(this.props.exportCallback);
