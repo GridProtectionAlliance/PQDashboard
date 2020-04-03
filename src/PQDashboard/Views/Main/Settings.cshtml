@@ -30,53 +30,23 @@
 @model AppModel
 @{
     Layout = "";
-    List<DashSettings> dashSettings;
-    List<UserDashSettings> userDashSettings;
     int meterCount;
-    IEnumerable<DashSettings> kml;
 
+    IEnumerable<ValueList> kml;
     IEnumerable<ValueList> tabs;
     IEnumerable<ValueList> systemSettings;
+    IEnumerable<ValueListGroup> chartGroups;
+    IEnumerable<ValueList> chartSettings;
 
     using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
         tabs = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs')");
         systemSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        kml = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'KML')");
+        chartGroups = new TableOperations<ValueListGroup>(connection).QueryRecordsWhere("Name LIKE 'Chart.%'");
+        chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID IN (SELECT ID FROM ValueListGroup WHERE Name LIKE 'Chart.%')");
     }
     using (DataContext dataContext = new DataContext("dbOpenXDA")) {
-        dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
-
-        userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
         meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
-        foreach (DashSettings setting in dashSettings)
-        {
-            if (setting.Name == "DashTab" || setting.Name == "KML" || setting.Name.EndsWith("Chart"))
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-            }
-            else if (setting.Name.EndsWith("Colors") )
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value.Split(',')[0] == setting.Value.Split(',')[0]);
-                if (index >= 0)
-                {
-                    setting.Value = userDashSettings[index].Value;
-                }
-            }
-            else if (setting.Name.Contains("System."))
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name);
-                if (index >= 0)
-                {
-                    setting.Value = userDashSettings[index].Value;
-                }
-            }
-        }
-
-        kml = dashSettings.Where(x => x.Name == "KML");
-
     }
 
 
@@ -104,12 +74,9 @@
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#systemSettings" data-toggle="tab">System</a></li>
                             <li><a href="#tabs" data-toggle="tab">Tabs</a></li>
-                            @foreach (DashSettings setting in dashSettings)
+                            @foreach (ValueListGroup setting in chartGroups)
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
-                                {
-                                    <li><a href="#@setting.Value.Substring(5).ToLower()" data-toggle="tab">@setting.Value.Substring(5)</a></li>
-                                }
+                                <li><a href="#@setting.Name.ToLower().Replace(".","_")" data-toggle="tab">@setting.Name.Replace("Chart.", "")</a></li>
                             }
                             <li><a href="#kml" data-toggle="tab">KML</a></li>
                         </ul>
@@ -162,11 +129,9 @@
                                 </div>
                             </div>
 
-                            @foreach (DashSettings setting in dashSettings)
+                            @foreach (ValueListGroup chartGroup in chartGroups)
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
-                                {
-                                    <div id="@setting.Value.Substring(5).ToLower()" class="tab-pane fade">
+                                    <div id="@chartGroup.Name.ToLower().Replace(".","_")" class="tab-pane fade">
                                         <div class="well">
                                             <table class="table table-responsive">
                                                 <thead>
@@ -176,30 +141,23 @@
                                                         <th>Enabled</th>
                                                     </tr>
                                                 </thead>
-                                                @foreach (DashSettings innerSetting in dashSettings)
+                                                @foreach (ValueList setting in chartSettings.Where(x=> x.GroupID == chartGroup.ID))
                                                 {
-                                                    if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                @innerSetting.Value
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-                                                                }
-                                                                <input id="color@(color.ID)" style="background-color: @(color?.Value.Split(',')?[1])" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(color))" value="@(color?.Value.Split(',')?[1] ?? "")" />
-                                                            </td>
-                                                            <td>
-                                                                <input id="enable@(innerSetting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(innerSetting))" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
-                                                            </td>
-                                                        </tr>
-                                                    }
+                                                    <tr>
+                                                        <td>
+                                                            @setting.Text
+                                                        </td>
+                                                        <td>
+                                                            <input id="color@(setting.ID)" style="background-color: @(setting.AltText1)" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(setting))" value="@(setting.AltText1)" />
+                                                        </td>
+                                                        <td>
+                                                            <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                                        </td>
+                                                    </tr>
                                                 }
                                             </table>
                                         </div>
                                     </div>
-                                }
                             }
 
                             <div id="kml" class="tab-pane fade">
@@ -211,11 +169,11 @@
                                                 <th>Enabled</th>
                                             </tr>
                                         </thead>
-                                        @foreach (DashSettings setting in kml)
+                                        @foreach (ValueList setting in kml)
                                         {
                                             <tr>
                                                 <td>
-                                                    @setting.Value
+                                                    @setting.Text
                                                 </td>
                                                 <td>
                                                     <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
@@ -308,7 +266,6 @@
     </div>
 </div>
 <script>
-    var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
     var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
     var pendingUpdates = {};
 
@@ -318,28 +275,6 @@
         $.when.apply(null, pendingUpdatesList).done(function () {
             location.reload();
         });
-    }
-
-    function updateDashSettings(key, setting) {
-        var pendingUpdate = pendingUpdates[key];
-        var deferred = $.Deferred();
-        pendingUpdates[key] = deferred;
-
-        function callUpdateDashSettings() {
-            var form = {
-                ID: setting.ID,
-                Name: setting.Name,
-                Value: setting.Value,
-                Enabled: setting.Enabled,
-                UserId: userId
-            };
-            $.post(homePath + 'api/PQDashboard/UpdateDashSettings', form, function () { }).always(deferred.resolve);
-        }
-
-        if (pendingUpdate)
-            pendingUpdate.done(callUpdateDashSettings);
-        else
-            callUpdateDashSettings();
     }
 
     function updateSetting(key, valueList) {
@@ -365,28 +300,28 @@
     }
   
     function updateSystemSetting(input, setting) {
-        var key = setting.Name;
+        var key = setting.Text;
         setting.AltText1 = input.value;
         updateSetting(key, setting);
     }
 
     function updateColorSetting(input, setting) {
-        var key = setting.Name + setting.Value.split(',')[0];
+        var key = setting.Text + setting.AltText1;
         $(input).css('background-color', input.value);
-        setting.Value = setting.Value.split('#')[0] + input.value;
-        updateDashSettings(key, setting);
+        setting.AltText1 = input.value;
+        updateSetting(key, setting);
     }
 
     function updateEnableSetting(input, setting) {
-        var key = setting.Name + setting.Value;
+        var key = setting.Text + setting.Value;
         setting.Enabled = input.checked;
-        updateDashSettings(key, setting);
+        updateSetting(key, setting);
     }
 
     function updateKMLSetting(input, setting) {
-        var key = setting.Name + setting.Value;
+        var key = setting.Text + setting.Value;
         setting.Enabled = input.checked;
-        updateDashSettings(key, setting);
+        updateSetting(key, setting);
     }
 
 </script>

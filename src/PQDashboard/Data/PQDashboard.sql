@@ -295,336 +295,156 @@ GO
 
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 0, 'MeterActivity','Event Search', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 1, 'Events','Events', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 2, 'Disturbances', 'Disturbances', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 3, 'Faults', 'Faults', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 4, 'Breakers', 'Breakers', 0, 0, 0, 0, 0)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 5, 'Extensions', 'Extensions', 0, 0, 0, 0, 0)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 6, 'Trending', 'Trending', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 7, 'TrendingData', 'Trending Data', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 8, 'Completeness', 'Completeness', 0, 0, 0, 0, 1)
 GO
-
 INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs'), 9, 'Correctness', 'Correctness', 0, 0, 0, 0, 1)
 GO
 
-INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Tabs', N'Used to Enabled tab display.',1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Events', N'Used to Enabled chart displays.',1)
 GO
 
-
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Fault', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'RecloseIntoFault', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'BreakerOpen', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Sag', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Swell', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Interruption', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Transient', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Other', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Test', 0)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Breaker', 0)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChart', 'Snapshot', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Fault,#FF2800', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'RecloseIntoFault,#323232', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'BreakerOpen,#B245BA', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Sag,#FF9600', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Swell,#00FFF4', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Interruption,#C00000', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Transient,#FFFF00', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Other,#0000FF', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Test,#A9A9A9', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Breaker,#A500FF', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('EventsChartColors', 'Snapshot,#9db087', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '5', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '4', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '3', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '2', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '1', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChart', '0', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '5,#C00000', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '4,#FF2800', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '3,#FF9600', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '2,#00FFF4', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Fault', '#FF2800', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '1,#FFFF00', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('DisturbancesChartColors', '0,#0000FF', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '0', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '0.208', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '12', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '13.8', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '46', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '69', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '115', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '135', 1)
-GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '161', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'RecloseIntoFault', '#323232', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '200', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'BreakerOpen', '#B245BA', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '230', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Sag', '#FF9600', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '300', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Swell', '#00FFF4', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChart', '500', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Interruption', '#C00000', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '0,#90ed7d', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Transient', '#FFFF00', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '0.208,#78E35C', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Other', '#0000FF', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '12,#806283', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Test', '#A9A9A9', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '13.8,#DC14B2', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Breaker', '#A500FF', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '46,#434348', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Events'), 9, 'Snapshot', '#9db087', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '69,#ff0000', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Disturbances', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '115,#f7a35c', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '5', '#C00000', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '135,#8085e9', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '4', '#FF2800', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '161,#f15c80', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '3', '#FF9600', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '200,#e4d354', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '2', '#00FFF4', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '230,#2b908f', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '1', '#FFFF00', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '300,#f45b5b', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Disturbances'), 9, '0', '#0000FF', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('FaultsChartColors', '500,#91e8e1', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Breakers', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChart', 'Normal', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Breakers'), 9, 'Normal', '#FF0000', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChart', 'Late', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Breakers'), 9, 'Late', '#434348', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChart', 'Indeterminate', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Breakers'), 9, 'Indeterminate', '#90ED7D', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChart', 'No Operation', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Breakers'), 9, 'No Operation', '#FC8EBA', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChartColors', 'Normal,#FF0000', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Trending', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChartColors', 'Late,#434348', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Trending'), 9, 'Alarm', '#FF0000', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChartColors', 'Indeterminate,#90ED7D', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Trending'), 9, 'Offnormal', '#434348', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('BreakersChartColors', 'No Operation,#FC8EBA', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Extensions', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('TrendingChart', 'Alarm', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Faults', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('TrendingChart', 'Offnormal', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '0', '#90ed7d', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('TrendingChartColors', 'Alarm,#ff0000', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '0.208', '#78E35C', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('TrendingChartColors', 'Offnormal,#434348', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '12', '#806283', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '> 100%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '13.8', '#DC14B2', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '98% - 100%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '46', '#434348', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '90% - 97%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '69', '#ff0000', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '70% - 89%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '115', '#f7a35c', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '50% - 69%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '135', '#8085e9', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '>0% - 49%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '161', '#f15c80', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChart', '0%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '200', '#e4d354', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '> 100%,#00FFF4', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '230', '#2b908f', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '98% - 100%,#00C80E', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '300', '#f45b5b', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '90% - 97%,#FFFF00', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Faults'), 9, '500', '#91e8e1', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '70% - 89%,#FF9600', 1)
-GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '50% - 69%,#FF2800', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Completeness', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '>0% - 49%,#FF0EF0', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '> 100%', '#00FFF4', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CompletenessChartColors', '0%,#0000FF', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '98% - 100%', '#00C80E', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '> 100%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '90% - 97%', '#FFFF00', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '98% - 100%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '70% - 89%', '#FF9600', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '90% - 97%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '50% - 69%', '#FF2800', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '70% - 89%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '>0% - 49%', '#FF0EF0', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '50% - 69%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Completeness'), 9, '0%', '#0000FF', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '>0% - 49%', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'Chart.Correctness', N'Used to Enabled chart displays.',1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChart', '0%', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '> 100%', '#00FFF4', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '> 100%,#00FFF4', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '98% - 100%', '#00C80E', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '98% - 100%,#00C80E', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '90% - 97%', '#FFFF00', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '90% - 97%,#FFFF00', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '70% - 89%', '#FF9600', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '70% - 89%,#FF9600', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '50% - 69%', '#FF2800', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '50% - 69%,#FF2800', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '>0% - 49%', '#FF0EF0', 0, 0, 0, 0, 1)
 GO
-
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '>0% - 49%,#FF0EF0', 1)
+INSERT [dbo].[ValueList] ([GroupID], [Key], [Text], [AltText1], [SortOrder], [Flag], [IsDefault],[Hidden], [Enabled] ) VALUES ( (SELECT ID FROM ValueListGroup WHERE Name = 'Chart.Correctness'), 9, '0%', '#0000FF', 0, 0, 0, 0, 1)
 GO
 
-INSERT INTO DashSettings (Name, Value, Enabled) VALUES ('CorrectnessChartColors', '0%,#0000FF', 1)
+INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'KML', N'Used to Enabled KML displays.',1)
 GO
-
