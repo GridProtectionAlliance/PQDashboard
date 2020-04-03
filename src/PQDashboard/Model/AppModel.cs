@@ -30,9 +30,8 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Web;
 using GSF.Web.Model;
-using openXDA.Model;
 using Path = System.Web.VirtualPathUtility;
-
+using PQDashboard;
 namespace PQDashboard.Model
 {
     /// <summary>

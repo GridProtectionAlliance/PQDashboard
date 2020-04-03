@@ -3412,33 +3412,7 @@ $(document).ready(function () {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadSettingsAndApply() {
-        // Turn Off Features
-
-        applicationsettings = dashSettings;
-
-        $.each(dashSettings, (function (key, value) {
-            if (value.Name == "DashTab") {
-                if (value.Enabled == true) {
-                    $(value.Value).show();
-                } else {
-                    $(value.Value).hide();
-                }
-            }
-
-
-            if (value.Name == "DashImage") {
-
-            }
-
-        }));
-}
-  
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function buildPage() {
-
-    loadSettingsAndApply();
 
     $(document).bind('contextmenu', function (e) { return false; });
 
@@ -3526,42 +3500,9 @@ function buildPage() {
     else
         $.jStorage.set("disabledList", disabledList)
 
-        $('#filterExpressionHelp').mouseenter(function (e) {
-        $.jsPanel({
-            paneltype: {
-                tooltip: true,
-                mode: 'semisticky',
-                connector: true
-            },
-            position: {
-                my: 'center-bottom',
-                at: 'center-top',
-                of: e.target
-            },
-            contentSize: { width: 400, height: 400 },
-            theme: 'blue',
-            headerTitle: 'Filter Expression Help',
-            callback: function (panel) {
-                panel.content.css('padding', '10px');
-                panel.css('z-index','2000')
-                if ($(window).scrollTop() > parseInt(panel.css('top'))) {
-                    panel.reposition({ my: 'center-top', at: 'center-bottom', of: e.target });
-                }
-
-                var content = "<p>Filter expressions can be used to limit the number of monitors for a monitor (meter) group.  The syntax is like a SQL WHERE expression.  The operators are:</p><ul><li><code>=</code> operator to equate an attribute</li><li> the <code>LIKE</code> operator to do a compare</li><li> the <code>%</code> or <code>*</code> operator are used as a wild card</li></ul> " +
-                              "<p>The available fields for filtering are associted with a monitor (meter) are: </p><ul><li>Name</li><li>Alias</li><li>ShortName</li><li>AssetKey</li><li>MeterLocationID</li></ul>" +
-                              "<p>Examples:</p> <ul><li><code>Alias = 'Greenville'</code></li><li><code>Name LIKE 'DFR%'</code></li><li><code>ShortName LIKE '%ville'</code></li></ul>"
-
-                panel.content.append(content)
-
-            }
-        });
-    });
-
     $("#application-tabs").tabs({
         heightStyle: "100%",
         widthStyle: "99%",
-
         activate: function (event, ui) {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
             if(newTab === "Event Search") {
@@ -3588,8 +3529,6 @@ function buildPage() {
                 loadDataForDate();
                 updateUrlParams('tab', newTab);
             }
-
-
         }
     });
 

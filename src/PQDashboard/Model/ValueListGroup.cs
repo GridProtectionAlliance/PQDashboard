@@ -1,12 +1,12 @@
 ﻿//******************************************************************************************************
-//  WebExtensions.cs - Gbtc
+//  ValueListGroup.cs - Gbtc
 //
-//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//  Copyright © 2020, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
-//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may
-//  not use this file except in compliance with the License. You may obtain a copy of the License at:
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
 //
 //      http://opensource.org/licenses/MIT
 //
@@ -16,31 +16,47 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  08/30/2016 - Billy Ernest
+//  04/03/2020 - Billy Ernest
 //       Generated original version of source code.
 //
 //******************************************************************************************************
 
-using System.Collections.Generic;
-using GSF.Data;
+using GSF.ComponentModel.DataAnnotations;
 using GSF.Data.Model;
-using openXDA.Model;
+using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace PQDashboard
+namespace PQDashboard.Model
 {
-    public static class WebExtensions
+    [PrimaryLabel("Name")]
+    public class ValueListGroup
     {
-        public static Dictionary<string, string> LoadDatabaseSettings(AdoDataConnection connnection, string scope)
+        [PrimaryKey(true)]
+        public int ID
         {
-            Dictionary<string, string> settings = new Dictionary<string, string>();
+            get; set;
+        }
 
-            foreach (Setting setting in new TableOperations<Setting>(connnection).QueryRecords("Name", new RecordRestriction("Scope = {0}", scope)))
-            {
-                if (!string.IsNullOrEmpty(setting.Name))
-                    settings.Add(setting.Name, setting.Value);
-            }
+        [StringLength(200)]
+        public string Name
+        {
+            get; set;
+        }
 
-            return settings;
+        public string Description
+        {
+            get; set;
+        }
+
+        [InitialValueScript("true")]
+        public bool Enabled
+        {
+            get; set;
+        }
+
+        public DateTime CreatedOn
+        {
+            get; set;
         }
     }
 }

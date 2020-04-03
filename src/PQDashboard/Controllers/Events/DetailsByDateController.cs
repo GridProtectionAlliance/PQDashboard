@@ -43,9 +43,12 @@ namespace PQDashboard.Controllers.Events
         {
             try
             {
+                using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    DataTable table = connection.RetrieveData(@"
+                    int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                    DataTable table = XDAconnection.RetrieveData(@"
                         DECLARE @eventID AS INT = {0}
                         DECLARE @context as nvarchar(20) = {1}
 
@@ -118,7 +121,7 @@ namespace PQDashboard.Controllers.Events
                         print @simEndDate
                         DECLARE @localEventDate DATE = CAST(@EventDate AS DATE)
                         DECLARE @localMeterID INT = CAST(@MeterID AS INT)
-                        DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+                        DECLARE @timeWindow int = {2}
 
                         ; WITH cte AS
                         (
@@ -170,7 +173,7 @@ namespace PQDashboard.Controllers.Events
                         FROM cte
                         WHERE RowPriority = 1
                         ORDER BY StartTime
-                    ", eventID, context);
+                    ", eventID, context, timeWindow);
 
                     return Ok(table);
 

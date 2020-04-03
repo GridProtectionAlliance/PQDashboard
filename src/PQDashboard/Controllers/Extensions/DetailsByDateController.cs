@@ -43,7 +43,7 @@ namespace PQDashboard.Controllers.Extensions
         {
             try
             {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     DataTable table = connection.RetrieveData(@"
                         DECLARE @eventID AS INT = {0}

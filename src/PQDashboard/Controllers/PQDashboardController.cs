@@ -80,7 +80,7 @@ namespace PQDashboard.Controllers
             Dictionary<string, string> query = Request.QueryParameters();
             int id = int.Parse(query["id"]);
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA")) {
                 return new TableOperations<EventNote>(connection).QueryRecords(restriction: new RecordRestriction("EventID = {0}", id));
             }
         }
@@ -98,7 +98,7 @@ namespace PQDashboard.Controllers
         {
             if (form.note.Trim().Length > 0)
             {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     new TableOperations<EventNote>(connection).AddNewRecord(new EventNote()
                     {
@@ -114,7 +114,7 @@ namespace PQDashboard.Controllers
         [Route("RemoveEventNote"),HttpPost]
         public void RemoveEventNote(NoteForEventForm form)
         {
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             {
                 new TableOperations<EventNote>(connection).DeleteRecord(restriction: new RecordRestriction("ID = {0}", form.id));
             }
@@ -124,7 +124,7 @@ namespace PQDashboard.Controllers
         [Route("GetCurves"),HttpGet]
         public IEnumerable<WorkbenchVoltageCurveView> GetCurves()
         {
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             {
                 return new TableOperations<WorkbenchVoltageCurveView>(connection).QueryRecords("ID, LoadOrder");
             }
@@ -150,7 +150,7 @@ namespace PQDashboard.Controllers
         public GetMetersReturn GetMeters(MetersForm form)
         {
             GetMetersReturn data = new GetMetersReturn();
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA")) {
                 data.ParentAssetGroupID = connection.ExecuteScalar<int?>("SELECT TOP 1 ParentAssetGroupID FROM AssetGroupAssetGroup where ChildAssetGroupID = {0}", form.deviceFilter);
                 data.Meters = new TableOperations<Meter>(connection).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {0})", form.deviceFilter);
                 var assetGroups = new TableOperations<AssetGroup>(connection).QueryRecordsWhere("ID IN (SELECT ChildAssetGroupID FROM AssetGroupAssetGroup WHERE ParentAssetGroupID = {0})", form.deviceFilter);
@@ -177,7 +177,7 @@ namespace PQDashboard.Controllers
         public void ResetDefaultSettings()
         {
             string user = UserInfo.UserNameToSID(User.Identity.Name);
-            using(DataContext dataContext = new DataContext("systemSettings"))
+            using(DataContext dataContext = new DataContext("dbOpenXDA"))
             {
                 dataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", user));
             }
@@ -193,7 +193,7 @@ namespace PQDashboard.Controllers
         [Route("UpdateDashSettings"),HttpPost]
         public void UpdateDashSettings(UpdateDashSettingsForm form)
         {
-            using (DataContext dataContext = new DataContext("systemSettings")) {
+            using (DataContext dataContext = new DataContext("dbOpenXDA")) {
                 TableOperations<DashSettings> dashSettingsTable = dataContext.Table<DashSettings>();
                 TableOperations<UserDashSettings> userDashSettingsTable = dataContext.Table<UserDashSettings>();
 

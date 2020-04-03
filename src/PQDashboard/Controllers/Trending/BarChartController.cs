@@ -99,7 +99,7 @@ namespace PQDashboard.Controllers.Trending
                 Dictionary<string, string> colors = new Dictionary<string, string>();
                 Random r = new Random(DateTime.UtcNow.Millisecond);
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     IEnumerable<DashSettings> dashSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
 

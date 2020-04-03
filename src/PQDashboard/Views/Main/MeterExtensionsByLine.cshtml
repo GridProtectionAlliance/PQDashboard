@@ -39,14 +39,17 @@
     string xdaInstance;
     string[] extensions;
 
-    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+    using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
 
         ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
         ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
         ViewBag.StartTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
-        xdaInstance = connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
         extensions = connection.RetrieveData("select Distinct ServiceName from EASExtension").Select().Select(x => x["ServiceName"].ToString()).ToArray();
+    }
+
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
     }
 
     string context = parameters["context"] ?? "day";

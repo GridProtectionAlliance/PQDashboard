@@ -51,7 +51,7 @@ namespace PQDashboard.Controllers.Extensions
             try
             {
                 string tab = "Extensions";
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     IEnumerable<DashSettings> dashSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
                     DateTime date = DateTime.Parse(form.targetDate).ToUniversalTime();

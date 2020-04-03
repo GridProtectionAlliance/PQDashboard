@@ -984,7 +984,12 @@ namespace PQDashboard
 
         public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
-            DataTable table = DataContext.Connection.RetrieveData(@"
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                DataTable table = XDAconnection.RetrieveData(@"
 					DECLARE @EventDate DATETIME2 = {0}
                     DECLARE @context as nvarchar(20) = {1}
 					DECLARE @MeterID INT = {2}
@@ -1055,7 +1060,7 @@ namespace PQDashboard
                     print @simEndDate
                     DECLARE @localEventDate DATE = CAST(@EventDate AS DATE)
                     DECLARE @localMeterID INT = CAST(@MeterID AS INT)
-                    DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+                    DECLARE @timeWindow int = {3}
 
 	                SELECT
 		                Event.ID,
@@ -1140,9 +1145,10 @@ namespace PQDashboard
 
                     DROP TABLE #temp
 	                DROP TABLE #event
-                ", targetDate, context, siteID);
+                ", targetDate, context, siteID, timeWindow);
 
                 return table;
+            }
 
         }
         public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window, int timeUnit)
@@ -1153,8 +1159,15 @@ namespace PQDashboard
 
         public IEnumerable<EventView> GetSimultaneousFaultsAndSags(int eventId)
         {
-            DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) AND ID != {1}", time, eventId);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                DateTime time = XDAconnection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
+                return new TableOperations<EventView>(XDAconnection).QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*{2}, {0}) and  DateAdd(SECOND, {2}, {0}) AND ID != {1}", time, eventId, timeWindow);
+
+            }
         }
 
         public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
@@ -1169,13 +1182,18 @@ namespace PQDashboard
 
         public DataTable GetEvents(DateTime date, int minuteWindow, int timeUnit)
         {
-            string query = @"
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                string query = @"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
 
                     DECLARE @localEventDate DATE = CAST({1} AS DATE)
-	                DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+	                DECLARE @timeWindow int = {2}
                     
                     ; WITH cte AS
                     (
@@ -1213,7 +1231,8 @@ namespace PQDashboard
                     ORDER BY StartTime
 
             ";
-            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+                return XDAconnection.RetrieveData(query, minuteWindow, date, timeWindow);
+            }
         }
 
         public DataTable GetDisturbances(DateTime date, int minuteWindow, int timeUnit)

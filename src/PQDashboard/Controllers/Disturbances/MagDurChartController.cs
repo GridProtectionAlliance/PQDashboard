@@ -79,7 +79,7 @@ namespace PQDashboard.Controllers.Disturbances
                     finishDate = DateTime.Parse(form.endDate).ToUniversalTime();
                 }
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     DataTable table = connection.RetrieveData(
                     @" SELECT Disturbance.EventID, 

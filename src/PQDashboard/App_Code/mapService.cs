@@ -64,7 +64,7 @@ using GSF.Collections;
 [System.Web.Script.Services.ScriptService]
 public class mapService : WebService
 {
-    private static string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+    private static string connectionstring = ConfigurationFile.Current.Settings["dbOpenXDA"]["ConnectionString"].Value;
 
     public class siteGeocoordinates
     {

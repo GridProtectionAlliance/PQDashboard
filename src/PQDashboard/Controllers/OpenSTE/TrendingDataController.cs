@@ -78,7 +78,7 @@ namespace PQDashboard.Controllers.OpenSTE
                 TrendingDataSet trendingDataSet = new TrendingDataSet();
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemCenter"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
                     historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";

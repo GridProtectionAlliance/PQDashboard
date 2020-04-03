@@ -48,7 +48,7 @@ namespace PQDashboard.Controllers.TrendingData
                 List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
                 DataTable colorScale;
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     DataTable table = connection.RetrieveData(@"
                         DECLARE @EventDateFrom DATETIME = {0}

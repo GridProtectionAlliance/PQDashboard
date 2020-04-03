@@ -63,7 +63,7 @@ namespace PQDashboard.Controllers.TrendingData
                 DateTime thedateto = DateTime.Parse(form.targetDateTo);
 
                 int duration = thedateto.Subtract(thedatefrom).Days + 1;
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     DataTable table = connection.RetrieveData(@"
                         DECLARE  @MeterIDs TABLE (ID int);

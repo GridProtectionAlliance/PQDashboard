@@ -24,6 +24,7 @@
 @using GSF.Collections;
 @using GSF.Data.Model
 @using GSF.Web.Model
+@using GSF.Data
 @using PQDashboard.Model
 @using Newtonsoft.Json
 @using openXDA.Model
@@ -37,18 +38,21 @@
     string xdaInstance;
     string yearBegin;
 
-    using(DataContext dataContext = new DataContext("systemSettings")) {
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        ViewBag.Tabs = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs') AND Enabled = 1");
+        xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        yearBegin = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'YearBeginDate' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "January 1";
+        
+        ViewBag.DateRange = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.DateRange' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "2";
+        ViewBag.Tab = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.Tab' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Events";
+        ViewBag.MapGrid =  connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.MapGrid' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Grid";
+        ViewBag.AssetGroup = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.AssetGroup' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "1";
+
+    }
+    using(DataContext dataContext = new DataContext("dbOpenXDA")) {
         historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
         assetGroups = dataContext.Table<AssetGroup>().QueryRecords();
         meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-        yearBegin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'YearBeginDate'") ?? "January 1";
-
-        ViewBag.DateRange = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.DateRange'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.DateRange'") ?? "2";
-        ViewBag.Tab = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.Tab'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.Tab'") ?? "Events";
-        ViewBag.MapGrid =  dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.MapGrid'") ?? dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.MapGrid'") ?? "Grid";
-        ViewBag.AssetGroup = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.DefaultView.AssetGroup'") ??  dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.DefaultView.AssetGroup'") ?? "1";
-
     }
 
     int defaulAssetGroupID = -1;
@@ -185,99 +189,100 @@
 
     <div id="application-tabs" class="noselect">
         <ul>
-            <li id="tabsMeterActivity"><a href="#tabs-MeterActivity">Event Search</a></li>
-            <li id="tabsEvents"><a href="#tabs-Events">Events</a></li>
-            <li id="tabsDisturbances"><a href="#tabs-Disturbances">Disturbances</a></li>
-            <li id="tabsFaults"><a href="#tabs-Faults">Faults</a></li>
-            <li id="tabsBreakers"><a href="#tabs-Breakers">Breakers</a></li>
-            <li id="tabsExtensions"><a href="#tabs-Extensions">Extensions</a></li>
-            <li id="tabsTrending"><a href="#tabs-Trending">Trending</a></li>
-            <li id="tabsTrendingData"><a href="#tabs-TrendingData">TrendingData</a></li>
-            <li id="tabsCompleteness"><a href="#tabs-Completeness">Completeness</a></li>
-            <li id="tabsCorrectness"><a href="#tabs-Correctness">Correctness</a></li>
+            @foreach (ValueList tab in ViewBag.Tabs) {
+                <li id="tabs@(tab.Text)"><a href="#tabs-@(tab.Text)">@tab.AltText1</a></li>
+            }
         </ul>
 
-        <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
-        </div>
-
-        <div id="tabs-TrendingData">
-            <div id="column_5" class="column resizeable">
-                <div class="portlet" id="Portlet1TrendingData">
-                    <div class="portlet-header">
-                        <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
-                    </div>
-                    <div id="DockOverviewTrendingData" class="portlet-content theDockOverviewStyle">
-                        <div id="OverviewTrendingData" class="docklet">
-                        </div>
-                    </div>
-                </div>
-                <div class="portlet" id="Portlet2TrendingData">
-                    <div class="portlet-header">
-                        <div class="portlet-header-text" style="display: inline">
-                            Trending Data Detail for
-                            <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
-                            &nbsp;(24 Hours)
-                        </div>
-                    </div>
-                    <div id="DockDetailTrendingData" class="portlet-content theDockDetailStyle">
-                        <div id="DetailTrendingData" class="docklet">
-                            <div id="DetailTrendingDataTable"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="column_6" class="column">
-                <div class="portlet">
-                    <div class="portlet-header portlet-header-text">
-                        <div class="header-container">
-                            <div class="siteselectdropdown" style="position: absolute;">
-                                <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
-                                    <option value="Map">Map</option>
-                                    <option value="Grid">Grid</option>
-                                </select>
-                                <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
-                                    <option value="All">All Sites</option>
-                                    <option value="RecievedData">Recieved Data</option>
-                                    <option value="NoData">No Data</option>
-                                    <option value="SelectedSites">Selected Sites</option>
-                                    <option value="None">None</option>
-                                </select>
-                                <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
-                                    <option value="Average">Average</option>
-                                    <option value="Maximum">Maximum</option>
-                                    <option value="Minimum">Minimum</option>
-                                </select>
-                                <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
-                                </select>
-                                <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
-
-                            </div>
-                            <div class="overlaydate pull-right">
-                                <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
-                                <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
-                                <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
-                            </div>
-
-
-                        </div>
-                    </div>
-                    <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
-                        <div class="theMapStyle" id="theMapTrendingData">
-                        </div>
-                        <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @foreach (string tab in tabs)
+        @foreach (ValueList tab in ViewBag.Tabs)
         {
-            <div id="tabs-@(tab)">
-                <div id="column_1" class="column resizeable">
-                    <div class="portlet" id="Portlet1@(tab)">
+
+            if (tab.Text == "MeterActivity")
+            {
+                <div id="tabs-MeterActivity" style="background-color: #064e1b; width: 100%; height: 100%">
+                </div>
+
+            }
+            else if (tab.Text == "TrendingData")
+            {
+                <div id="tabs-TrendingData">
+                    <div id="column_5" class="column resizeable">
+                        <div class="portlet" id="Portlet1TrendingData">
+                            <div class="portlet-header">
+                                <div class="portlet-header-text" style="display: inline">Trending Data Overview (Past 30 Days)</div>
+                            </div>
+                            <div id="DockOverviewTrendingData" class="portlet-content theDockOverviewStyle">
+                                <div id="OverviewTrendingData" class="docklet">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="portlet" id="Portlet2TrendingData">
+                            <div class="portlet-header">
+                                <div class="portlet-header-text" style="display: inline">
+                                    Trending Data Detail for
+                                    <div style="display: inline;" id="trendingDataDetailHeader">Date</div>
+                                    &nbsp;(24 Hours)
+                                </div>
+                            </div>
+                            <div id="DockDetailTrendingData" class="portlet-content theDockDetailStyle">
+                                <div id="DetailTrendingData" class="docklet">
+                                    <div id="DetailTrendingDataTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="column_6" class="column">
+                        <div class="portlet">
+                            <div class="portlet-header portlet-header-text">
+                                <div class="header-container">
+                                    <div class="siteselectdropdown" style="position: absolute;">
+                                        <select class="smallbutton mapGrid" id="mapTrendingDataGrid" onchange="selectmapgrid(this);">
+                                            <option value="Map">Map</option>
+                                            <option value="Grid">Grid</option>
+                                        </select>
+                                        <select class="smallbutton" id="selectSiteSetTrendingData" onchange="showSiteSet(this);">
+                                            <option value="All">All Sites</option>
+                                            <option value="RecievedData">Recieved Data</option>
+                                            <option value="NoData">No Data</option>
+                                            <option value="SelectedSites">Selected Sites</option>
+                                            <option value="None">None</option>
+                                        </select>
+                                        <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
+                                            <option value="Average">Average</option>
+                                            <option value="Maximum">Maximum</option>
+                                            <option value="Minimum">Minimum</option>
+                                        </select>
+                                        <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
+                                        </select>
+                                        <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
+
+                                    </div>
+                                    <div class="overlaydate pull-right">
+                                        <div id="mapHeaderTrendingDataFrom" class="mapheader noselect"></div>
+                                        <div id="mapHeaderTrendingDataDivider" class="mapheader noselect">&nbsp;-&nbsp;</div>
+                                        <div id="mapHeaderTrendingDataTo" class="mapheader noselect"></div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <div id="MapMatrixTrendingData" class="portlet-content portlet-header-text">
+                                <div class="theMapStyle" id="theMapTrendingData">
+                                </div>
+                                <div class="theMatrixStyle noselect" id="theMatrixTrendingData"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+            <div id="tabs-@(tab.Text)">
+                <div class="column resizeable">
+                    <div class="portlet" id="Portlet1@(tab.Text)">
                         <div class="portlet-header">
-                            <div class="portlet-header-text" style="display: inline">@(tab) Overview (<span class="contextWindow"></span>)</div>
-                            @if (tab == "Disturbances")
+                            <div class="portlet-header-text" style="display: inline">@(tab.Text) Overview (<span class="contextWindow"></span>)</div>
+                            @if (tab.Text == "Disturbances")
                             {
                                 <select class="smallbutton pull-right" style="margin-right: 20px" onchange="showMagDur(this)">
                                     <option value="0">Bar Chart</option>
@@ -285,51 +290,51 @@
                                 </select>
                             }
                         </div>
-                        <div id="DockOverview@(tab)" class="portlet-content theDockOverviewStyle">
-                            <div id="Overview@(tab)" style="height: auto" class="docklet chart-container"></div>
-                            <div id="Overview@(tab)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
-                            @if (tab == "Disturbances")
+                        <div id="DockOverview@(tab.Text)" class="portlet-content theDockOverviewStyle">
+                            <div id="Overview@(tab.Text)" style="height: auto" class="docklet chart-container"></div>
+                            <div id="Overview@(tab.Text)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
+                            @if (tab.Text == "Disturbances")
                             {
                                 <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
                             }
                         </div>
                     </div>
-                    <div class="portlet" id="Portlet2@(tab)">
+                    <div class="portlet" id="Portlet2@(tab.Text)">
                         <div class="portlet-header">
                             <div class="portlet-header-text" style="display: inline">
-                                @tab Detail for <span class="contextWindow"></span>
+                                @tab.Text Detail for <span class="contextWindow"></span>
                             </div>
-                            @if (tab == "Faults")
+                            @if (tab.Text == "Faults")
                             {
                                 <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
                             }
                         </div>
-                        <div id="DockDetail@(tab)" class="portlet-content noselect theDockDetailStyle">
-                            <div id="Detail@(tab)" class="docklet">
-                                <div id="Detail@(tab)Table"></div>
+                        <div id="DockDetail@(tab.Text)" class="portlet-content noselect theDockDetailStyle">
+                            <div id="Detail@(tab.Text)" class="docklet">
+                                <div id="Detail@(tab.Text)Table"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="column_2" class="column">
+                <div class="column">
                     <div class="portlet">
                         <div class="portlet-header portlet-header-text">
                             <div class="header-container">
                                 <div class="siteselectdropdown" style="position: absolute;">
-                                    <select class="smallbutton mapGrid" id="map@(tab)Grid" onchange="selectmapgrid(this);">
+                                    <select class="smallbutton mapGrid" id="map@(tab.Text)Grid" onchange="selectmapgrid(this);">
                                         <option value="Map">Map</option>
                                         <option value="Grid">Grid</option>
                                     </select>
-                                    <select class="smallbutton" id="selectSiteSet@(tab)" onchange="showSiteSet(this);">
+                                    <select class="smallbutton" id="selectSiteSet@(tab.Text)" onchange="showSiteSet(this);">
                                         <option value="All">All Sites</option>
-                                        <option value="Events">@(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
-                                        <option value="NoEvents">No @(tab == "Events" ? "" : tab.Trim('s') + " ")Events</option>
+                                        <option value="Events">@(tab.Text == "Events" ? "" : tab.Text.Trim('s') + " ")Events</option>
+                                        <option value="NoEvents">No @(tab.Text == "Events" ? "" : tab.Text.Trim('s') + " ")Events</option>
                                         <option value="SelectedSites">Selected Sites</option>
                                         <option value="None">None</option>
                                     </select>
-                                    @if (tab == "Events")
+                                    @if (tab.Text == "Events")
                                     {
-                                    <select class="smallbutton" id="selectHeatmap@(tab)" onchange="showHeatmap(this);">
+                                    <select class="smallbutton" id="selectHeatmap@(tab.Text)" onchange="showHeatmap(this);">
                                         <option value="EventCounts">Event Counts</option>
                                         <option value="MinimumSags">Sag Minimum</option>
                                         <option value="MaximumSwell">Swell Maximum</option>
@@ -339,22 +344,23 @@
                                 </div>
 
                                 <div class="overlaydate pull-right">
-                                    <div id="mapHeader@(tab)From" class="mapheader"></div>
-                                    <div id="mapHeader@(tab)Divider" class="mapheader">&nbsp;-&nbsp;</div>
-                                    <div id="mapHeader@(tab)To" class="mapheader"></div>
+                                    <div id="mapHeader@(tab.Text)From" class="mapheader"></div>
+                                    <div id="mapHeader@(tab.Text)Divider" class="mapheader">&nbsp;-&nbsp;</div>
+                                    <div id="mapHeader@(tab.Text)To" class="mapheader"></div>
                                 </div>
 
                             </div>
 
                         </div>
 
-                        <div id="MapMatrix@(tab)" class="portlet-content portlet-header-text">
-                            <div class="theMapStyle" id="theMap@(tab)"></div>
-                            <div class="theMatrixStyle noselect" id="theMatrix@(tab)"></div>
+                        <div id="MapMatrix@(tab.Text)" class="portlet-content portlet-header-text">
+                            <div class="theMapStyle" id="theMap@(tab.Text)"></div>
+                            <div class="theMatrixStyle noselect" id="theMatrix@(tab.Text)"></div>
                         </div>
                     </div>
                 </div>
             </div>
+            }
         }
     </div>
 

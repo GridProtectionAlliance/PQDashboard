@@ -96,41 +96,41 @@
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Communication, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Communication.2.3.199-beta\lib\net46\GSF.Communication.dll</HintPath>
+    <Reference Include="GSF.Communication, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Communication.2.3.285-beta\lib\net46\GSF.Communication.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.COMTRADE, Version=2.3.195.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.COMTRADE.2.3.195-beta\lib\net46\GSF.COMTRADE.dll</HintPath>
+    <Reference Include="GSF.COMTRADE, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.COMTRADE.2.3.285-beta\lib\net46\GSF.COMTRADE.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.3.199-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="GSF.Core, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.3.285-beta\lib\net46\GSF.Core.dll</HintPath>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PhasorProtocols, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PhasorProtocols.2.3.199-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
+    <Reference Include="GSF.PhasorProtocols, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PhasorProtocols.2.3.285-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PQDIF, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.199-beta\lib\net46\GSF.PQDIF.dll</HintPath>
+    <Reference Include="GSF.PQDIF, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PQDIF.2.3.285-beta\lib\net46\GSF.PQDIF.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Security, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Security.2.3.199-beta\lib\net46\GSF.Security.dll</HintPath>
+    <Reference Include="GSF.Security, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Security.2.3.285-beta\lib\net46\GSF.Security.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceModel, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceModel.2.3.199-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+    <Reference Include="GSF.ServiceModel, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceModel.2.3.285-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceProcess, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceProcess.2.3.199-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+    <Reference Include="GSF.ServiceProcess, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceProcess.2.3.285-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.TimeSeries, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.TimeSeries.2.3.199-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+    <Reference Include="GSF.TimeSeries, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.TimeSeries.2.3.285-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Web, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Web.2.3.199-beta\lib\net46\GSF.Web.dll</HintPath>
+    <Reference Include="GSF.Web, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Web.2.3.285-beta\lib\net46\GSF.Web.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zlib, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.199-beta\lib\net46\Ionic.Zlib.dll</HintPath>
+      <HintPath>..\packages\GSF.PQDIF.2.3.285-beta\lib\net46\Ionic.Zlib.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\Dependencies\log4net.dll</HintPath>
@@ -348,6 +348,7 @@
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OpenSTE\TrendingDataController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
+    <Compile Include="Controllers\Settings\SettingsController.cs" />
     <Compile Include="Controllers\TrendingData\ErrorBarChartController.cs" />
     <Compile Include="Controllers\TrendingData\LocationController.cs" />
     <Compile Include="Controllers\TrendingData\TableDataController.cs" />
@@ -432,6 +433,7 @@
     <Content Include="Content\themes\redmond\jquery-ui.css" />
     <Content Include="Content\themes\redmond\jquery-ui.min.css" />
     <Content Include="Content\themes\redmond\theme.css" />
+    <Content Include="Data\PQDashboard.sql" />
     <Content Include="EASServiceTemplate.aspx.cs">
       <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -452,6 +454,7 @@
       <DependentUpon>ICFService.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="GlobalSettings.cs" />
     <Compile Include="Model\AppModel.cs" />
     <Content Include="Images\2-Line - 500.png" />
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
@@ -470,6 +473,8 @@
     <Compile Include="BreakerReportCSVDownload.ashx.cs">
       <DependentUpon>BreakerReportCSVDownload.ashx</DependentUpon>
     </Compile>
+    <Compile Include="Model\ValueList.cs" />
+    <Compile Include="Model\ValueListGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
@@ -489,11 +494,6 @@
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
-    <Content Include="Shared\Content\Images\ui-icons_444444_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_555555_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
     <Content Include="Shared\Scripts\flot\LICENSE.txt" />
     <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
@@ -1320,6 +1320,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="KML\" />
+    <Folder Include="Shared\Content\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />
@@ -1369,9 +1370,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets'))" />
+    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets'))" />
   </Target>
-  <Import Project="..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" />
+  <Import Project="..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

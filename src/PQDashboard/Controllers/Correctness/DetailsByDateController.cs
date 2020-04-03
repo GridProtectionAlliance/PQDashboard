@@ -43,7 +43,7 @@ namespace PQDashboard.Controllers.Correctness
         {
             try
             {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     DataTable table = connection.RetrieveData(@"
                         DECLARE @MeterID AS INT = {0}

@@ -37,7 +37,7 @@
     string context = parameters["context"] ?? "day";
     string[] severityCodes;
 
-    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+    using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
             ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
             ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);

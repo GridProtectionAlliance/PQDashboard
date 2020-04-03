@@ -31,10 +31,9 @@
     Layout = null;
     string xdaInstance;
     string timeWindow;
-    using (DataContext dataContext = new DataContext("systemSettings"))
-    {
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-        timeWindow = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        timeWindow = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "January 1";
     }
 }
 <!DOCTYPE html>

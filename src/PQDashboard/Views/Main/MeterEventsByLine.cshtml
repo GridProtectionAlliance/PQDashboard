@@ -42,7 +42,7 @@
     string timeWindow;
     string[] eventTypes;
 
-    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+    using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
 
         ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
@@ -54,13 +54,15 @@
             DateTime.TryParse(postedDateString, out postedDate);
         }
 
-
-        xdaInstance = connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-        timeWindow = connection.ExecuteScalar<string>("SELECT Value FROM UserDashSettings WHERE Name = 'System.TimeWindow'") ?? connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow'") ?? "1";
         eventTypes = connection.RetrieveData("SELECT * FROM EventType").Select().Select(x => x["Name"].ToString()).ToArray();
 
 
     }
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        timeWindow = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "January 1";
+    }
+
     string context = parameters["context"] ?? "day";
 }
 

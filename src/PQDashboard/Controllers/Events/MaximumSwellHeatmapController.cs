@@ -53,7 +53,7 @@ namespace PQDashboard.Controllers.Events.MaximumSwells
                 Locations meters = new Locations();
                 meters.Colors = null;
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     meters.Data = connection.RetrieveData(@"
                     DECLARE @EventDateFrom DATETIME = {0}

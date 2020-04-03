@@ -54,7 +54,7 @@
     string postedlinename;
     string postedmetername;
 
-    using (DataContext dataContext = new DataContext("systemSettings"))
+    using (DataContext dataContext = new DataContext("dbOpenXDA"))
     {
 
         channel = dataContext.Table<Channel>().QueryRecordWhere("ID = {0}", postedchannelid);

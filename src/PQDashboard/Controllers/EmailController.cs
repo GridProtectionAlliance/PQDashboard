@@ -108,7 +108,7 @@ namespace PQDashboard.Controllers
 
         public ActionResult UpdateSettings()
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 m_appModel.ConfigureView(Url.RequestContext, "UpdateSettings", ViewBag);
@@ -136,7 +136,7 @@ namespace PQDashboard.Controllers
 
         public ActionResult Verify(string id)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 m_appModel.ConfigureView(Url.RequestContext, "Verify", ViewBag);
@@ -189,7 +189,7 @@ namespace PQDashboard.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult VerifyCode(VerifyCodeModel formData)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 string username = HttpContext.User.Identity.Name;
@@ -216,7 +216,7 @@ namespace PQDashboard.Controllers
         [HttpGet]
         public ActionResult ApproveUser(string id)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 ActionResult adminValidationResult = ValidateAdminRequest();
@@ -244,7 +244,7 @@ namespace PQDashboard.Controllers
         [HttpGet]
         public ActionResult DenyUser(string id)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 ActionResult adminValidationResult = ValidateAdminRequest();
@@ -275,7 +275,8 @@ namespace PQDashboard.Controllers
 
         private void HandleSignUp(UpdateSettingModel formData)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
+            using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
 
                 UserInfo userInfo = new UserInfo(System.Web.HttpContext.Current.User.Identity.Name);
@@ -309,7 +310,7 @@ namespace PQDashboard.Controllers
                 if (smsEmailTypeIDList.Length > 0)
                     smsTemplate = dataContext.Table<XSLTemplate>().QueryRecordsWhere($"ID IN (SELECT XSLTemplateID FROM EmailType WHERE ID IN ({smsEmailTypeIDList}))");
 
-                string url = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
+                string url = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'URL' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
                 string admin = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Email.AdminAddress'");
                 string emailTemplateName = (emailTemplate.Any() ? string.Join(", ", emailTemplate.Select(x => x.Name)) : "None");
                 string smsTemplateName = (smsTemplate.Any() ? string.Join(", ", smsTemplate.Select(x => x.Name)) : "None");
@@ -339,12 +340,13 @@ namespace PQDashboard.Controllers
 
         private void HandleUpdate(UpdateSettingModel formData)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
 
                 TableOperations<ConfirmableUserAccount> userAccountTable = dataContext.Table<ConfirmableUserAccount>();
                 ConfirmableUserAccount userAccount = userAccountTable.QueryRecordWhere("Name = {0}", formData.sid);
-                string url = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
+                string url = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'URL' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
                 string emailServiceName = GetEmailServiceName();
                 string recipient, subject, body;
 
@@ -384,7 +386,7 @@ namespace PQDashboard.Controllers
 
         private void UpdateUserAccountAssetGroup(ConfirmableUserAccount userAccount, UpdateSettingModel formData)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 // update link to asset group
@@ -434,7 +436,7 @@ namespace PQDashboard.Controllers
 
         private void UpdateUserAccountEmailType(ConfirmableUserAccount userAccount, IEnumerable<int> emailTypeIDs, bool sms)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 // update links between user account and email type
@@ -478,7 +480,7 @@ namespace PQDashboard.Controllers
 
         private ActionResult HandleVerifySubmit(VerifyCodeModel formData, ConfirmableUserAccount user)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 if (s_memoryCache.Contains(formData.type + user.ID.ToString()))
@@ -512,10 +514,11 @@ namespace PQDashboard.Controllers
 
         private ActionResult HandleVerifyResendCode(VerifyCodeModel formData, ConfirmableUserAccount user)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
             {
 
-                string url = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.URL'");
+                string url = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'URL' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
 
                 // if email changed force reconfirmation
                 if (formData.type == "email")
@@ -566,7 +569,7 @@ namespace PQDashboard.Controllers
 
         private string GetEmailServiceName()
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 const string DefaultEmailServiceName = "openXDA Event Email Service";
@@ -589,7 +592,7 @@ namespace PQDashboard.Controllers
         // and are therefore SQL injectable.
         private void CascadeDelete(string tableName, string criterion)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 using (IDbCommand sc = dataContext.Connection.Connection.CreateCommand())
@@ -628,7 +631,7 @@ namespace PQDashboard.Controllers
 
         private void SendEmail(string recipient, string subject, string body)
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new DataContext("dbOpenXDA"))
             {
 
                 const int DefaultSMTPPort = 25;
