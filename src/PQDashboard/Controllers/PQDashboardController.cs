@@ -172,61 +172,6 @@ namespace PQDashboard.Controllers
         }
         #endregion
 
-        #region [ Settings View ]
-        [Route("ResetDefaultSettings"),HttpGet]
-        public void ResetDefaultSettings()
-        {
-            string user = UserInfo.UserNameToSID(User.Identity.Name);
-            using(DataContext dataContext = new DataContext("dbOpenXDA"))
-            {
-                dataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", user));
-            }
-        }
-
-        public class UpdateDashSettingsForm {
-            public int ID { get; set; }
-            public string Name { get; set; }
-            public string Value { get; set; }
-            public bool Enabled { get; set; }
-            public string UserId { get; set; }
-        }
-        [Route("UpdateDashSettings"),HttpPost]
-        public void UpdateDashSettings(UpdateDashSettingsForm form)
-        {
-            using (DataContext dataContext = new DataContext("dbOpenXDA")) {
-                TableOperations<DashSettings> dashSettingsTable = dataContext.Table<DashSettings>();
-                TableOperations<UserDashSettings> userDashSettingsTable = dataContext.Table<UserDashSettings>();
-
-                Guid userAccountID = dataContext.Connection.ExecuteScalar<Guid>("SELECT ID FROM UserAccount WHERE Name = {0}", form.UserId);
-                DashSettings globalSetting = dashSettingsTable.QueryRecordWhere("ID = {0}", form.ID);
-                UserDashSettings userSetting;
-
-                if (form.Name.StartsWith("System."))
-                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1}", userAccountID, form.Name);
-                else if (form.Name.EndsWith("Colors"))
-                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value LIKE {2}", userAccountID, form.Name, form.Value.Split(',')[0] + "%");
-                else
-                    userSetting = userDashSettingsTable.QueryRecordWhere("UserAccountID = {0} AND Name = {1} AND Value = {2}", userAccountID, form.Name, form.Value);
-
-                if (userSetting == null)
-                {
-                    userSetting = new UserDashSettings();
-                    userSetting.UserAccountID = userAccountID;
-                    userSetting.Name = form.Name;
-                }
-
-                userSetting.Value = form.Value;
-                userSetting.Enabled = form.Enabled;
-
-                if ((userSetting.Enabled != globalSetting.Enabled) || (userSetting.Value != globalSetting.Value))
-                    dataContext.Table<UserDashSettings>().AddNewOrUpdateRecord(userSetting);
-                else
-                    dataContext.Table<UserDashSettings>().DeleteRecord(new RecordRestriction("ID = {0}", userSetting.ID));
-
-            }
-        }
-
-        #endregion
         #endregion
 
     }
