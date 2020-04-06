@@ -28,96 +28,88 @@ using System.Linq;
 using System.Web.Http;
 using GSF.Data;
 using GSF.Data.Model;
-using GSF.Collections;
 using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
 {
-
-    public class BarChartController<T> : ApiController where T : class, new()
+    public class LocationController<T> : ApiController
     {
         #region [ Members ]
-        public class EventSet
+        public class Locations
         {
-            public DateTime StartDate;
-            public DateTime EndDate;
-            public class EventDetail
-            {
-                public string Name;
-                public List<Tuple<DateTime, int>> Data;
-                public string Color;
-                public EventDetail()
-                {
-                    Data = new List<Tuple<DateTime, int>>();
-                }
-            }
-            public List<EventDetail> Types;
-
-            public EventSet()
-            {
-                Types = new List<EventDetail>();
-            }
+            public DataTable Data;
+            public Dictionary<string, string> Colors;
         }
 
-        public class DataForPeriodForm
+        public class LocationsForm
         {
-            public string siteID { get; set; }
             public string targetDateFrom { get; set; }
             public string targetDateTo { get; set; }
-            //public string userName { get; set; }
-            //public string tab { get; set; }
+            public string meterIds { get; set; }
             public string context { get; set; }
         }
+
         #endregion
 
         #region [ Properties ]
         protected string Tab { get; set; }
         protected string Query { get; set; }
+
         #endregion
 
-        #region [ Methods ]
         [Route(""), HttpPost]
-        public IHttpActionResult Post(DataForPeriodForm form)
+        public IHttpActionResult Post(LocationsForm form)
         {
             try
             {
-                EventSet eventSet = new EventSet();
-                if (form.context == "day")
-                {
-                    eventSet.StartDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                    eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
-                }
-                else if (form.context == "hour")
-                {
-                    eventSet.StartDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                    eventSet.EndDate = eventSet.StartDate.AddHours(1).AddSeconds(-1);
-                }
-                else if (form.context == "minute" || form.context == "second")
-                {
-                    eventSet.StartDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                    eventSet.EndDate = eventSet.StartDate.AddMinutes(1).AddSeconds(-1);
-                }
-                else
-                {
-                    eventSet.StartDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                    eventSet.EndDate = DateTime.Parse(form.targetDateTo).ToUniversalTime();
-                    form.context = "DateRange";
-                }
+                Locations meters = new Locations();
+                DataTable table = new DataTable();
+
+                Dictionary<string, string> colors = new Dictionary<string, string>();
 
                 using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    DataTable table = XDAconnection.RetrieveData(Query, eventSet.StartDate, eventSet.EndDate, form.siteID, form.context);
+                    DateTime startDate;
+                    DateTime endDate;
+
+                    if (form.context == "day")
+                    {
+                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
+                        endDate = startDate.AddDays(1).AddSeconds(-1);
+                    }
+                    else if (form.context == "hour")
+                    {
+                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
+                        endDate = startDate.AddHours(1).AddSeconds(-1);
+                    }
+                    else if (form.context == "minute")
+                    {
+                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
+                        endDate = startDate.AddMinutes(1).AddSeconds(-1);
+                    }
+                    else if (form.context == "second")
+                    {
+                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
+                        endDate = startDate.AddSeconds(1).AddMilliseconds(-1);
+                    }
+                    else
+                    {
+                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
+                        endDate = DateTime.Parse(form.targetDateTo).ToUniversalTime();
+                    }
+
+                    table = XDAconnection.RetrieveData(Query, startDate, endDate, form.meterIds, form.context);
 
                     IEnumerable<ValueList> chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = ( SELECT ID FROM ValueListGroup WHERE Name = 'Chart." + Tab + "')");
                     int groupID = connection.ExecuteScalar<int>($"SELECT ID FROM ValueListGroup WHERE Name = 'Charts.{Tab}'");
 
-
-                    // remove disabled columns from set and create settings for columns that do not have settings
+                    List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
+                    List<string> columnsToRemove = new List<string>();
                     foreach (DataColumn column in table.Columns)
                     {
-                        if (column.ColumnName == "thedate") continue;
+                        if (skipColumns.Contains(column.ColumnName)) continue;
 
                         if (!chartSettings.Any(x => x.Text == column.ColumnName))
                         {
@@ -139,43 +131,29 @@ namespace PQDashboard.Controllers
                         }
 
                         ValueList setting = chartSettings.First(x => x.Text == column.ColumnName);
-                        if (setting.Enabled)
-                        {
-                            if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                            {
-                                EventSet.EventDetail ed = new EventSet.EventDetail();
-                                ed.Name = column.ColumnName;
-                                ed.Color = setting.AltText1;
-                                eventSet.Types.Add(ed);
-                            }
-                        }
-                    }
 
-                    foreach (DataRow row in table.Rows)
+                        if (!setting.Enabled)
+                        {
+                            columnsToRemove.Add(column.ColumnName);
+                        }
+
+                    }
+                    foreach (string columnName in columnsToRemove)
                     {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName == "thedate") continue;
-
-                            if (chartSettings.First(x => x.Text == column.ColumnName).Enabled)
-                            {
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
+                        table.Columns.Remove(columnName);
                     }
 
-
-                    return Ok(eventSet);
+                    meters.Colors = chartSettings.ToDictionary(x => x.Text, x => x.AltText1);
+                    meters.Data = table;
+                    return Ok(meters);
 
                 }
 
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 return InternalServerError(ex);
             }
         }
-
-        #endregion
     }
 }

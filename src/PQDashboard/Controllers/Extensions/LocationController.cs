@@ -34,86 +34,15 @@ using GSF.Web.Model;
 using openXDA.Model;
 using PQDashboard.Model;
 
-namespace PQDashboard.Controllers.Extensions
+namespace PQDashboard.Controllers
 {
-    public class Locations
-    {
-        public DataTable Data;
-        public Dictionary<string, string> Colors;
-    }
-
-    public class LocationsForm
-    {
-        public string targetDateFrom { get; set; }
-        public string targetDateTo { get; set; }
-        public string meterIds { get; set; }
-        public string context { get; set; }
-    }
-
     [RoutePrefix("api/Extensions/Location")]
-    public class ExtensionsLocationController : ApiController
+    public class ExtensionsLocationController : LocationController<EASExtension>
     {
-        [Route(""), HttpPost]
-        public IHttpActionResult Post(LocationsForm form)
+        #region [ constructor ]
+        public ExtensionsLocationController()
         {
-            try
-            {
-                string tab = "Extensions";
-                Locations meters = new Locations();
-                DataTable table = new DataTable();
-
-                Dictionary<string, string> colors = new Dictionary<string, string>();
-
-                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
-                {
-                    IEnumerable<DashSettings> dashSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-
-                    Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-                    foreach (DashSettings setting in dashSettings)
-                    {
-                        if (!disabledFileds.ContainsKey(setting.Value))
-                            disabledFileds.Add(setting.Value, setting.Enabled);
-                    }
-
-                    IEnumerable<DashSettings> colorSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
-
-                    foreach (var color in colorSettings)
-                    {
-                        if (colors.ContainsKey(color.Value.Split(',')[0]))
-                            colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                        else
-                            colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-                    }
-                    DateTime startDate;
-                    DateTime endDate;
-
-                    if (form.context == "day")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddDays(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "hour")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddHours(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "minute")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddMinutes(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "second")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddSeconds(1).AddMilliseconds(-1);
-                    }
-                    else
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = DateTime.Parse(form.targetDateTo).ToUniversalTime();
-                    }
-
-                    table = connection.RetrieveData(@"
+            Query = @"
                         DECLARE @EventDateFrom DATETIME = {0}
                         DECLARE @EventDateTo DATETIME = {1}
                         DECLARE @meterIds AS varchar(max) = {2}
@@ -231,49 +160,9 @@ namespace PQDashboard.Controllers.Extensions
                     '
 
                     exec sp_executesql @SQLStatement, N'@MeterIds nvarchar(MAX), @startDate DATETIME, @endDate DATETIME, @EventDateFrom DATETIME ', @MeterIds = @MeterIds, @startDate = @startDate, @endDate = @endDate, @EventDateFrom = @EventDateFrom
-                    ", startDate, endDate, form.meterIds, form.context);
-
-                    List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
-                    List<string> columnsToRemove = new List<string>();
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            new TableOperations<DashSettings>(connection).GetOrAdd(tab + "Chart", column.ColumnName, true);
-                        }
-
-                        if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
-                        {
-                            Random r = new Random(DateTime.UtcNow.Millisecond);
-                            string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                            colors.Add(column.ColumnName, color);
-                            new TableOperations<DashSettings>(connection).GetOrAdd(tab + "ChartColors", column.ColumnName + "," + color, true);
-                        }
-
-
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                        {
-                            columnsToRemove.Add(column.ColumnName);
-                        }
-
-                    }
-                    foreach (string columnName in columnsToRemove)
-                    {
-                        table.Columns.Remove(columnName);
-                    }
-
-                    meters.Colors = colors;
-                    meters.Data = table;
-                    return Ok(meters);
-
-                }
-
-            }
-            catch(Exception ex)
-            {
-                return InternalServerError(ex);
-            }
+                ";
+            Tab = "Extensions";
         }
+        #endregion
     }
 }

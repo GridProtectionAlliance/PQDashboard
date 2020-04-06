@@ -346,6 +346,7 @@
     <Compile Include="Controllers\Faults\LocationController.cs" />
     <Compile Include="Controllers\Faults\TableDataController.cs" />
     <Compile Include="Controllers\Generic\BarChartController.cs" />
+    <Compile Include="Controllers\Generic\LocationController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OpenSTE\TrendingDataController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
