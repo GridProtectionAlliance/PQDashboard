@@ -25,7 +25,10 @@ using GSF.Web.Security;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Owin;
+using System.Collections.Generic;
 using System.Web.Http;
+using System.Web.Http.Controllers;
+using System.Web.Http.Routing;
 
 [assembly: OwinStartupAttribute(typeof(PQDashboard.Startup))]
 namespace PQDashboard
@@ -53,10 +56,22 @@ namespace PQDashboard
             HttpConfiguration config = new HttpConfiguration();
 
             // Set configuration to use reflection to setup routes
-            config.MapHttpAttributeRoutes();
+            config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
 
             app.UseWebApi(config);
         }
     }
+
+
+    public class CustomDirectRouteProvider : DefaultDirectRouteProvider
+    {
+        protected override IReadOnlyList<IDirectRouteFactory>
+        GetActionRouteFactories(HttpActionDescriptor actionDescriptor)
+        {
+            return actionDescriptor.GetCustomAttributes<IDirectRouteFactory>
+            (inherit: true);
+        }
+    }
+
 }

@@ -985,7 +985,7 @@ namespace PQDashboard
         public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
             {
                 int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
 

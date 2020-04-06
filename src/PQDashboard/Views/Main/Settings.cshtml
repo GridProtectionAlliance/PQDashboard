@@ -282,14 +282,14 @@
         var deferred = $.Deferred();
         pendingUpdates[key] = deferred;
 
-        function callUpdateDashSettings() {
+        function callUpdateSettings() {
             $.post(homePath + 'api/Settings', valueList, function () { }).always(deferred.resolve);
         }
 
         if (pendingUpdate)
-            pendingUpdate.done(callUpdateDashSettings);
+            pendingUpdate.done(callUpdateSettings);
         else
-            callUpdateDashSettings();
+            callUpdateSettings();
     }
 
 
