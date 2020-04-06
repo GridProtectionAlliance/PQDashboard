@@ -32,37 +32,15 @@ using GSF.Data.Model;
 using GSF.Collections;
 using openXDA.Model;
 
-namespace PQDashboard.Controllers.Correctness
+namespace PQDashboard.Controllers
 {
-    public class DetailtsForSitesForm
-    {
-        public string siteId { get; set; }
-        public string targetDate { get; set; }
-        public string colorScale { get; set; }
-        public string context { get; set; }
-    }
-
     [RoutePrefix("api/Correctness/TableData")]
-    public class CorrectnessTableDataController : ApiController
+    public class CorrectnessTableDataController : TableDataController<CorrectnessBarChart>
     {
-        [Route(""), HttpPost]
-        public IHttpActionResult Post(DetailtsForSitesForm form)
+        #region [ constructor ]
+        public CorrectnessTableDataController()
         {
-            try
-            {
-                string tab = "Correctness";
-                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
-                {
-                    IEnumerable<DashSettings> dashSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-                    DateTime date = DateTime.Parse(form.targetDate).ToUniversalTime();
-                    Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-                    foreach (DashSettings setting in dashSettings)
-                    {
-                        if (!disabledFileds.ContainsKey(setting.Value))
-                            disabledFileds.Add(setting.Value, setting.Enabled);
-                    }
-
-                    DataTable table = connection.RetrieveData(@"
+            Query = @"
                         DECLARE @EventDate DATETIME = {0}
                         DECLARE @MeterID AS varchar(max) = {1}
                         DECLARE @context as nvarchar(20) = {2}
@@ -174,45 +152,9 @@ namespace PQDashboard.Controllers.Correctness
                         DEALLOCATE site_cursor;
 
                         SELECT * FROM @composite
-
-                    ", date, form.siteId, form.context, form.colorScale);
-
-
-                    List<string> skipColumns;
-                    if (tab == "Events" || tab == "Disturbances") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
-                    else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
-
-
-                    List<string> columnsToRemove = new List<string>();
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            new TableOperations<DashSettings>(connection).GetOrAdd(tab + "Chart", column.ColumnName, true);
-                        }
-
-
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                        {
-                            columnsToRemove.Add(column.ColumnName);
-                        }
-
-                    }
-                    foreach (string columnName in columnsToRemove)
-                    {
-                        table.Columns.Remove(columnName);
-                    }
-
-
-                    return Ok(table);
-
-                }
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
+                ";
+            Tab = "Correctness";
         }
+        #endregion
     }
 }

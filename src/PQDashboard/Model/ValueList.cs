@@ -44,7 +44,7 @@ namespace PQDashboard.Model
 
         [Label("Key (Option Value)")]
         [UseEscapedName]
-        public int Key
+        public int? Key
         {
             get; set;
         }
@@ -83,7 +83,7 @@ namespace PQDashboard.Model
             get; set;
         }
 
-        public bool Flag
+        public bool? Flag
         {
             get; set;
         }
@@ -99,25 +99,22 @@ namespace PQDashboard.Model
             get; set;
         }
 
-        public bool Hidden
+        public bool? Hidden
         {
             get; set;
         }
 
-        public bool IsDefault
+        public bool? IsDefault
         {
             get; set;
         }
 
         [InitialValueScript("true")]
-        public bool Enabled
+        public bool? Enabled
         {
             get; set;
         }
 
-        public DateTime CreatedOn
-        {
-            get; set;
-        }
+        public DateTime? CreatedOn { get; set; }
     }
 }

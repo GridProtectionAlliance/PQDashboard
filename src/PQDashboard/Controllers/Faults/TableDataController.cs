@@ -21,48 +21,18 @@
 //
 //******************************************************************************************************
 
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Web.Http;
-using GSF.Data;
-using GSF.Data.Model;
-using GSF.Collections;
 using openXDA.Model;
 
-namespace PQDashboard.Controllers.Faults
+namespace PQDashboard.Controllers
 {
-    public class DetailtsForSitesForm
-    {
-        public string siteId { get; set; }
-        public string targetDate { get; set; }
-        public string colorScale { get; set; }
-        public string context { get; set; }
-    }
-
     [RoutePrefix("api/Faults/TableData")]
-    public class FaultsTableDataController : ApiController
+    public class FaultsTableDataController : TableDataController<Fault>
     {
-        [Route(""), HttpPost]
-        public IHttpActionResult Post(DetailtsForSitesForm form)
+        #region [ constructor ]
+        public FaultsTableDataController()
         {
-            try
-            {
-                string tab = "Faults";
-                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
-                {
-                    IEnumerable<DashSettings> dashSettings = new TableOperations<DashSettings>(connection).QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-                    DateTime date = DateTime.Parse(form.targetDate).ToUniversalTime();
-                    Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-                    foreach (DashSettings setting in dashSettings)
-                    {
-                        if (!disabledFileds.ContainsKey(setting.Value))
-                            disabledFileds.Add(setting.Value, setting.Enabled);
-                    }
-
-                    DataTable table = connection.RetrieveData(@"
+            Query = @"
                         DECLARE @EventDate DATETIME = {0}
                         DECLARE @MeterID AS varchar(max) = {1}
                         DECLARE @context as nvarchar(20) = {2}
@@ -117,45 +87,9 @@ namespace PQDashboard.Controllers.Faults
                         SELECT *
                         FROM FaultDetail
                         WHERE rk = 1
-
-                    ", date, form.siteId, form.context, form.colorScale);
-
-
-                    List<string> skipColumns;
-                    if (tab == "Events" || tab == "Disturbances") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
-                    else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
-
-
-                    List<string> columnsToRemove = new List<string>();
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                        {
-                            disabledFileds.Add(column.ColumnName, true);
-                            new TableOperations<DashSettings>(connection).GetOrAdd(tab + "Chart", column.ColumnName, true);
-                        }
-
-
-                        if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                        {
-                            columnsToRemove.Add(column.ColumnName);
-                        }
-
-                    }
-                    foreach (string columnName in columnsToRemove)
-                    {
-                        table.Columns.Remove(columnName);
-                    }
-
-
-                    return Ok(table);
-
-                }
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
+                ";
+            Tab = "Faults";
         }
+        #endregion
     }
 }

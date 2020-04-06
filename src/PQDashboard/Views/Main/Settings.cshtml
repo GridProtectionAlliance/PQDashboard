@@ -121,7 +121,7 @@
                                                         @tab.Text
                                                     </td>
                                                     <td>
-                                                        <input id="tab@(tab.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(tab))" @(tab.Enabled ? "checked='checked'" : "") />
+                                                        <input id="tab@(tab.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(tab))" @(tab.Enabled == true ? "checked='checked'" : "") />
                                                     </td>
                                                 </tr>
                                         }
@@ -151,7 +151,7 @@
                                                             <input id="color@(setting.ID)" style="background-color: @(setting.AltText1)" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(setting))" value="@(setting.AltText1)" />
                                                         </td>
                                                         <td>
-                                                            <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled ? "checked='checked'" : "") />
+                                                            <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled== true  ? "checked='checked'" : "") />
                                                         </td>
                                                     </tr>
                                                 }
@@ -176,7 +176,7 @@
                                                     @setting.Text
                                                 </td>
                                                 <td>
-                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled== true  ? "checked='checked'" : "") />
                                                 </td>
                                             </tr>
                                         }
@@ -266,7 +266,7 @@
     </div>
 </div>
 <script>
-    var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
+    var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x => x.Enabled == true ).FirstOrDefault()));
     var pendingUpdates = {};
 
     function refresh() {

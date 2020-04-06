@@ -64,11 +64,11 @@ CREATE TABLE [dbo].[ApplicationRole](
 	[ID] [uniqueidentifier] NOT NULL PRIMARY KEY DEFAULT NEWID(),
 	[Name] [varchar](200) NOT NULL,
 	[Description] [varchar](max) NULL,
-	[NodeID] [uniqueidentifier]  NOT NULL FOREIGN KEY REFERENCES Node(ID) DEFAULT '00000000-0000-0000-0000-000000000000',
-	[CreatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
-	[CreatedBy] [varchar](200) NOT NULL DEFAULT CURRENT_USER,
-	[UpdatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
-	[UpdatedBy] [varchar](200) NOT NULL DEFAULT CURRENT_USER,
+	[NodeID] [uniqueidentifier]  NULL FOREIGN KEY REFERENCES Node(ID) DEFAULT '00000000-0000-0000-0000-000000000000',
+	[CreatedOn] [datetime] NULL DEFAULT GETDATE(),
+	[CreatedBy] [varchar](200) NULL DEFAULT CURRENT_USER,
+	[UpdatedOn] [datetime] NULL DEFAULT GETDATE(),
+	[UpdatedBy] [varchar](200) NULL DEFAULT CURRENT_USER,
 )
 GO
 
@@ -151,19 +151,19 @@ GO
 CREATE TABLE [dbo].[ValueList](
 	[ID] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	[GroupID] [int] NOT NULL FOREIGN KEY REFERENCES ValueListGroup(ID),
-	[Key] [int] NOT NULL,
+	[Key] [int] NULL DEFAULT 0,
 	[Text] [varchar](200) NULL,
 	[AltText1] [varchar](200) NULL,
 	[AltText2] [varchar](200) NULL,
 	[Abbreviation] [varchar](12) NULL,
 	[Value] [int] NULL,
-	[Flag] [bit] NOT NULL,
+	[Flag] [bit] NULL DEFAULT 0,
 	[Description] [varchar](max) NULL,
 	[SortOrder] [int] NULL,
-	[IsDefault] [bit] NOT NULL,
-	[Hidden] [bit] NOT NULL,
-	[Enabled] [bit] NOT NULL,
-	[CreatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+	[IsDefault] [bit] NULL DEFAULT 0,
+	[Hidden] [bit] NULL DEFAULT 0,
+	[Enabled] [bit] NULL DEFAULT 1,
+	[CreatedOn] [datetime] NULL DEFAULT GETDATE(),
 )
 GO
 

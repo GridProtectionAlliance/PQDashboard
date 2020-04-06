@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  LocationController.cs - Gbtc
+//  TableDataController.cs - Gbtc
 //
 //  Copyright © 2020, Grid Protection Alliance.  All Rights Reserved.
 //
@@ -16,10 +16,11 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  03/27/2020 - Billy Ernest
+//  03/30/2020 - Billy Ernest
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+
 
 using System;
 using System.Collections.Generic;
@@ -28,28 +29,23 @@ using System.Linq;
 using System.Web.Http;
 using GSF.Data;
 using GSF.Data.Model;
+using GSF.Collections;
 using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
 {
-    public class LocationController<T> : ApiController where T : class, new()
+    public class TableDataController<T> : ApiController where T : class, new()
     {
         #region [ Members ]
-        public class Locations
-        {
-            public DataTable Data;
-            public Dictionary<string, string> Colors;
-        }
 
-        public class LocationsForm
+        public class DetailtsForSitesForm
         {
-            public string targetDateFrom { get; set; }
-            public string targetDateTo { get; set; }
-            public string meterIds { get; set; }
+            public string siteId { get; set; }
+            public string targetDate { get; set; }
+            public string colorScale { get; set; }
             public string context { get; set; }
         }
-
         #endregion
 
         #region [ Properties ]
@@ -58,52 +54,26 @@ namespace PQDashboard.Controllers
 
         #endregion
 
+
         [Route(""), HttpPost]
-        public IHttpActionResult Post(LocationsForm form)
+        public IHttpActionResult Post(DetailtsForSitesForm form)
         {
             try
             {
-                Locations meters = new Locations();
-
                 using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
                 using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
                 {
-                    DateTime startDate;
-                    DateTime endDate;
-
-                    if (form.context == "day")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddDays(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "hour")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddHours(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "minute")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddMinutes(1).AddSeconds(-1);
-                    }
-                    else if (form.context == "second")
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = startDate.AddSeconds(1).AddMilliseconds(-1);
-                    }
-                    else
-                    {
-                        startDate = DateTime.Parse(form.targetDateFrom).ToUniversalTime();
-                        endDate = DateTime.Parse(form.targetDateTo).ToUniversalTime();
-                    }
-
-                    DataTable table = XDAconnection.RetrieveData(Query, startDate, endDate, form.meterIds, form.context);
+                    DateTime date = DateTime.Parse(form.targetDate).ToUniversalTime();
+                    DataTable table = XDAconnection.RetrieveData(Query, date, form.siteId, form.context, form.colorScale);
 
                     IEnumerable<ValueList> chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = ( SELECT ID FROM ValueListGroup WHERE Name = 'Chart." + Tab + "')");
                     int groupID = connection.ExecuteScalar<int>($"SELECT ID FROM ValueListGroup WHERE Name = 'Chart.{Tab}'");
 
-                    List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
+                    List<string> skipColumns;
+                    if (Tab == "Events" || Tab == "Disturbances") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
+                    else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
                     List<string> columnsToRemove = new List<string>();
+
                     foreach (DataColumn column in table.Columns)
                     {
                         if (skipColumns.Contains(column.ColumnName)) continue;
@@ -134,19 +104,18 @@ namespace PQDashboard.Controllers
                         }
 
                     }
+
                     foreach (string columnName in columnsToRemove)
                     {
                         table.Columns.Remove(columnName);
                     }
 
-                    meters.Colors = chartSettings.ToDictionary(x => x.Text, x => x.AltText1);
-                    meters.Data = table;
-                    return Ok(meters);
+
+                    return Ok(table);
 
                 }
-
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return InternalServerError(ex);
             }

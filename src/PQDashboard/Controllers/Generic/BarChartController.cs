@@ -111,7 +111,7 @@ namespace PQDashboard.Controllers
                     DataTable table = XDAconnection.RetrieveData(Query, eventSet.StartDate, eventSet.EndDate, form.siteID, form.context);
 
                     IEnumerable<ValueList> chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = ( SELECT ID FROM ValueListGroup WHERE Name = 'Chart." + Tab + "')");
-                    int groupID = connection.ExecuteScalar<int>($"SELECT ID FROM ValueListGroup WHERE Name = 'Charts.{Tab}'");
+                    int groupID = connection.ExecuteScalar<int>($"SELECT ID FROM ValueListGroup WHERE Name = 'Chart.{Tab}'");
 
 
                     // remove disabled columns from set and create settings for columns that do not have settings
@@ -138,8 +138,8 @@ namespace PQDashboard.Controllers
                             chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = ( SELECT ID FROM ValueListGroup WHERE Name = 'Chart." + Tab + "')");
                         }
 
-                        ValueList setting = chartSettings.First(x => x.Text == column.ColumnName);
-                        if (setting.Enabled)
+                        ValueList setting = chartSettings.FirstOrDefault(x => x.Text == column.ColumnName);
+                        if (setting != null && setting.Enabled == true)
                         {
                             if (eventSet.Types.All(x => x.Name != column.ColumnName))
                             {
@@ -157,7 +157,7 @@ namespace PQDashboard.Controllers
                         {
                             if (column.ColumnName == "thedate") continue;
 
-                            if (chartSettings.First(x => x.Text == column.ColumnName).Enabled)
+                            if (chartSettings.First(x => x.Text == column.ColumnName).Enabled == true)
                             {
                                 eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
                             }
