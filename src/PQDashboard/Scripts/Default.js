@@ -3506,7 +3506,7 @@ function buildPage() {
         activate: function (event, ui) {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
             if(newTab === "Event Search") {
-                window.open(homePath + "Main/Home2/EventSearch");
+                window.open(seBrowserInstance + "Home/Home/EventSearch");
 
                 $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
                 return;
