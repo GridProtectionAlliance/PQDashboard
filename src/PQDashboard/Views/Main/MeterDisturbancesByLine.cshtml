@@ -39,13 +39,16 @@
 
     using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
-            ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
-            ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
-            ViewBag.StartTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
+        ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
+        ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
+        ViewBag.StartTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
 
-            severityCodes = connection.RetrieveData("select Distinct SeverityCode from DisturbanceSeverity").Select().Select(x => x["SeverityCode"].ToString()).ToArray();
+        severityCodes = connection.RetrieveData("select Distinct SeverityCode from DisturbanceSeverity").Select().Select(x => x["SeverityCode"].ToString()).ToArray();
     }
-
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+    {
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
+    }
 }
 
 <!DOCTYPE html>
@@ -114,7 +117,7 @@
 </div>
 
 <script>
-
+    var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
     var postedMeterId = "@ViewBag.MeterID";
     var postedDate = "@ViewBag.StartTime";
     var postedMeterName = "@ViewBag.MeterName";
@@ -229,7 +232,7 @@
         };
 
         if (!childWindows[title] || childWindows[title].closed)
-            window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id + "&faultcurves=1", title);
+            window.open(openSEEInstance + "?eventid=" + id + "&faultcurves=1", title);
         else
             childWindows[title].UpdateMarkings();
 

@@ -2060,7 +2060,7 @@ function buildMagDurChart(data, thediv) {
 
         $('#'+ thediv).off('plotly_click');
         $('#'+ thediv).on('plotly_click', function (event, data) {
-            window.open(homePath + "Main/OpenSEE?eventid=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
+            window.open(openSEEInstance + "?eventid=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
         });
     });
 

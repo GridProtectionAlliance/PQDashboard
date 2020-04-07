@@ -441,10 +441,6 @@
       <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Content Include="FaultLocation.aspx.cs">
-      <DependentUpon>FaultLocation.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
     <Content Include="FaultSpecifics.aspx.cs">
       <DependentUpon>FaultSpecifics.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -493,12 +489,9 @@
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\MeterEventsByLine.js" />
-    <Content Include="Scripts\PQDashboard.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
-    <Content Include="Shared\Scripts\flot\LICENSE.txt" />
-    <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
     <Content Include="Views\Email\Message.cshtml" />
     <Content Include="Views\Email\Verify.cshtml" />
@@ -517,8 +510,6 @@
     <Content Include="Content\ICFDetails.css" />
     <Content Include="Content\MeterEventsByLine.css" />
     <Content Include="Content\ModbusData.css" />
-    <Content Include="Content\OpenSEE.css" />
-    <Content Include="Content\OpenSEEStack.css" />
     <Content Include="Content\OpenSTE.css" />
     <Content Include="Content\prettify.css" />
     <Content Include="Content\primeui-all.css" />
@@ -531,7 +522,6 @@
     <Content Include="CSAService.aspx" />
     <Content Include="EASServiceTemplate.aspx" />
     <Content Include="eventService.asmx" />
-    <Content Include="FaultLocation.aspx" />
     <Content Include="FaultSpecifics.aspx" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />
@@ -697,7 +687,6 @@
     <Content Include="Scripts\PrimeUI\images\loadingbar.gif" />
     <Content Include="Scripts\PrimeUI\images\password-meter.png" />
     <Content Include="Scripts\PrimeUI\images\rating.png" />
-    <Content Include="Scripts\overview.js" />
     <Content Include="Scripts\PrimeUI\plugins\cursorposition.js" />
     <Content Include="Scripts\PrimeUI\plugins\jquery.mousewheel.js" />
     <Content Include="Scripts\PrimeUI\plugins\mustache.min.js" />
@@ -1323,7 +1312,6 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="KML\" />
-    <Folder Include="Shared\Content\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Project_Readme.html" />

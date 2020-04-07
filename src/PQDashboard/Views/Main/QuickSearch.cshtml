@@ -33,7 +33,9 @@
     string timeWindow;
     using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
         xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
-        timeWindow = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "January 1";
+        timeWindow = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "10";
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
+
     }
 }
 <!DOCTYPE html>
@@ -216,7 +218,7 @@
     </div>
 
     <script>
-
+    var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     var disabledList = $.jStorage.get('disabledList');
     var disabledArray = Object.keys(disabledList.Events).map(function(o){ if(!disabledList.Events[o]) return o}).filter(function(val) { return val !== undefined; });
@@ -435,12 +437,12 @@
     }
 
     function OpenWindowToOpenSEE(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
+        var popup = window.open(openSEEInstance + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
         return false;
     }
 
     function OpenWindowToOpenSEEBreaker(id, breaker) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&breakerdigitals=1" + "&breakeroperationid=" + breaker, id + "openSEE");
+        var popup = window.open(openSEEInstance + "?eventid=" + id + "&breakerdigitals=1" + "&breakeroperationid=" + breaker, id + "openSEE");
         return false;
     }
 

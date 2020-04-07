@@ -1,7 +1,7 @@
 ﻿//******************************************************************************************************
-//  OpenSEEController.cs - Gbtc
+//  PQDashboardController.cs - Gbtc
 //
-//  Copyright © 2018, Grid Protection Alliance.  All Rights Reserved.
+//  Copyright © 2020, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
@@ -16,12 +16,11 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  04/17/2018 - Billy Ernest
+//  04/07/2020 - Billy Ernest
 //       Generated original version of source code.
-//  08/22/2019 - Christoph Lackner
-//       Added TCE Filter.
 //
 //******************************************************************************************************
+
 using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;

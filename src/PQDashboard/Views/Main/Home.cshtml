@@ -47,8 +47,13 @@
         ViewBag.Tab = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.Tab' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Events";
         ViewBag.MapGrid =  connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.MapGrid' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Grid";
         ViewBag.AssetGroup = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.AssetGroup' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "1";
+        ViewBag.xdaInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'XDAInstance'");
+        ViewBag.scInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'SCInstance'");
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
+        ViewBag.seBrowserInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'SEBrowserInstance'");
 
     }
+
     using(DataContext dataContext = new DataContext("dbOpenXDA")) {
         historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
         assetGroups = dataContext.Table<AssetGroup>().QueryRecords();
@@ -94,7 +99,10 @@
         var mg = @defaulAssetGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var historianConnection = '@historianConnection';
-        var xdaInstance = '@xdaInstance';
+        var xdaInstance = '@Html.Raw(ViewBag.xdaInstance)';
+        var scInstance = '@Html.Raw(ViewBag.scInstance)';
+        var seBrowserInstance = '@Html.Raw(ViewBag.seBrowserInstance)';
+        var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
         var yearBegin = '@yearBegin';
         var userId = '@ViewBag.usersid';
         var defaultView = { DateRange: @Html.Raw(ViewBag.DateRange), Tab: '@Html.Raw(ViewBag.Tab)', MapGrid: '@Html.Raw(ViewBag.MapGrid)', AssetGroup: @Html.Raw(ViewBag.AssetGroup)};
@@ -463,7 +471,7 @@
 
 
     function OpenWindowToOpenSEE(id, breaker) {
-        var url = "@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id;
+        var url = openSEEInstance + "?eventid=" + id;
 
         if (currentTab === "Breakers")
             url += "&breakeroperation=" + breaker + "&breakerdigitals=1";

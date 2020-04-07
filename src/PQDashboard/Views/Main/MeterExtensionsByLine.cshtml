@@ -50,6 +50,7 @@
 
     using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
         xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
     }
 
     string context = parameters["context"] ?? "day";
@@ -108,6 +109,7 @@
 </div>
 
 <script>
+    var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
 
     var postedMeterId = "@ViewBag.MeterID";
     var postedDate = "@ViewBag.StartTime";
@@ -222,7 +224,7 @@
     }
 
     function OpenWindowToOpenSEE(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
+        var popup = window.open(openSEEInstance + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
         return false;
     }
 
