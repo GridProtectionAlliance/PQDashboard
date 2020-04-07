@@ -2026,6 +2026,9 @@ function buildMagDurChart(data, thediv) {
         mode: 'markers'
     }];
     $.each(data, function (i, d) {
+        if (disabledList[currentTab][d.SeverityCode.toString()])
+            return;
+
         companyTrace[0].x.push(d.DurationSeconds);
         companyTrace[0].y.push(d.PerUnitMagnitude * 100);
         companyTrace[0].text.push(d.EventID)
