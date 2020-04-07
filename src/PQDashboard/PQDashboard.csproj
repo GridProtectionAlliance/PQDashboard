@@ -1389,7 +1389,6 @@
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
     <Content Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\FFTTable.tsx" />
-    <Content Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchEsriMap.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayPerformanceTrend.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReport.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportNavBar.tsx" />
