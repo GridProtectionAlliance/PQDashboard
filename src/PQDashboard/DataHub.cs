@@ -40,13 +40,10 @@ using GSF.Identity;
 using GSF.Web.Hubs;
 using GSF.Web.Model;
 using GSF.Web.Security;
-using PQDashboard.Model;
-using openHistorian.XDALink;
 using Newtonsoft.Json;
 using EventView = openXDA.Model.EventView;
 using AlarmRangeLimit = openXDA.Model.AlarmRangeLimit;
 using Meter = openXDA.Model.Meter;
-using DefaultAlarmRangeLimit = openXDA.Model.DefaultAlarmRangeLimit;
 using Event = openXDA.Model.Event;
 using openXDA.Model;
 
@@ -164,872 +161,6 @@ namespace PQDashboard
 
         #endregion
 
-        // Client-side script functionality
-
-        #region [ Graph Data Operations]
-        public class EventSet
-        {
-            public DateTime StartDate;
-            public DateTime EndDate;
-            public class EventDetail
-            {
-                public string Name;
-                public List<Tuple<DateTime, int>> Data;
-                public string Color;
-                public EventDetail()
-                {
-                    Data = new List<Tuple<DateTime, int>>();
-                } 
-            }
-            public List<EventDetail> Types; 
-
-            public EventSet()
-            {
-                Types = new List<EventDetail>();
-            }
-        }
-
-        public class TrendingData
-        {
-            public string Date;
-            public double Minimum;
-            public double Maximum;
-            public double Average;
-        }
-
-        public EventSet GetDataForPeriod(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab, string context)
-        {
-            EventSet eventSet = new EventSet();
-            string contextWord = "";
-            if(context == "day")
-            {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
-                contextWord = "Hour";
-            }
-            else if (context == "hour")
-            {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddHours(1).AddSeconds(-1);
-                contextWord = "Minute";
-            }
-            else if (context == "minute" || context =="second")
-            {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddMinutes(1).AddSeconds(-1);
-                contextWord = "Seconds";
-            }
-            else
-            {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = DateTime.Parse(targetDateTo).ToUniversalTime();
-                contextWord = "DateRange";
-            }
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            Random r = new Random(DateTime.UtcNow.Millisecond);
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
-            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            foreach (var color in colorSettings)
-            {
-                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
-                if (index >= 0)
-                {
-                    color.Value = userColorSettings[index].Value;
-                }
-
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.select" + tab + "ForMeterIDbyDateRange" ;
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter eventDateFrom = sc.CreateParameter();
-                eventDateFrom.ParameterName = "@EventDateFrom";
-                eventDateFrom.Value = eventSet.StartDate;
-                IDbDataParameter eventDateTo = sc.CreateParameter();
-                eventDateTo.ParameterName = "@EventDateTo";
-                eventDateTo.Value = eventSet.EndDate;
-                sc.Parameters.Add(eventDateFrom);
-                sc.Parameters.Add(eventDateTo);
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
-                if (tabList.Contains(tab))
-                {
-                    IDbDataParameter param5 = sc.CreateParameter();
-                    param5.ParameterName = "@context";
-                    param5.Value = context;
-                    sc.Parameters.Add(param5);
-                }
-
-                IDataReader rdr = sc.ExecuteReader();
-                DataTable table = new DataTable();
-                table.Load(rdr);
-
-                try
-                {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors",column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
-                                    }
-                                }
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
-                            }
-                        }
-                    }
-
-                    if (!eventSet.Types.Any())
-                    {
-                        foreach (DataColumn column in table.Columns)
-                        {
-                            if (column.ColumnName != "thedate" && !disabledFileds.ContainsKey(column.ColumnName))
-                            {
-                                disabledFileds.Add(column.ColumnName, true);
-                                DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
-                            }
-
-                            if (column.ColumnName != "thedate" && disabledFileds[column.ColumnName])
-                            {
-                                if (eventSet.Types.All(x => x.Name != column.ColumnName))
-                                {
-                                    eventSet.Types.Add(new EventSet.EventDetail());
-                                    eventSet.Types[eventSet.Types.Count - 1].Name = column.ColumnName;
-                                    if (colors.ContainsKey(column.ColumnName))
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = colors[column.ColumnName];
-                                    else
-                                    {
-                                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.ColumnName + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-            }
-            return eventSet;
-        }
-
-        public EventSet GetDataForPeriodTrending(string siteID, string targetDateFrom, string targetDateTo, string userName, string tab, string context)
-        {
-            EventSet eventSet = new EventSet();
-            eventSet.Types.Add(new EventSet.EventDetail() { Name = "Normal", Color = "" , Data = new List<Tuple<DateTime, int>>() });
-            eventSet.Types.Add(new EventSet.EventDetail() { Name = "OffNormal", Color = "", Data = new List<Tuple<DateTime, int>>() });
-
-            string contextWord = "";
-            if (context == "day")
-            {
-                eventSet.StartDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                eventSet.EndDate = eventSet.StartDate.AddDays(1).AddSeconds(-1);
-                for(int i = 0; i < 24; ++i)
-                {
-                    eventSet.Types[0].Data.Add(Tuple.Create( eventSet.StartDate.AddHours(i), 0));
-                    eventSet.Types[1].Data.Add(Tuple.Create(eventSet.StartDate.AddHours(i), 0));
-                }
-            }
-            else
-            {
-                return GetDataForPeriod(siteID, targetDateFrom, targetDateTo, userName, tab, context);
-            }
-
-            string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
-            IEnumerable<Channel> channelIds = DataContext.Table<Channel>().QueryRecordsWhere("MeterID IN (SELECT * FROM String_To_Int_Table({0}, ','))", siteID);
-
-            DateTime epoch = new DateTime(1970, 1, 1);
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-            Random r = new Random(DateTime.UtcNow.Millisecond);
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
-            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            foreach (var color in colorSettings)
-            {
-                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
-                if (index >= 0)
-                {
-                    color.Value = userColorSettings[index].Value;
-                }
-
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-
-            foreach (EventSet.EventDetail column in eventSet.Types)
-            {
-                if (!disabledFileds.ContainsKey(column.Name))
-                {
-                    disabledFileds.Add(column.Name, true);
-                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.Name, true);
-                }
-
-                if (disabledFileds[column.Name])
-                {
-                    if (colors.ContainsKey(column.Name))
-                        eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.Name)].Color = colors[column.Name];
-                    else
-                    {
-                        eventSet.Types[eventSet.Types.Count - 1].Color = "#" + r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                        DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.Name + "," + eventSet.Types[eventSet.Types.Count - 1].Color, true);
-                    }
-
-                }
-            }
-            IEnumerable<AlarmRangeLimit> alarmLimits = DataContext.Table<AlarmRangeLimit>().QueryRecordsWhere("ChannelID IN ({0})", string.Join(",", channelIds.Select(x => x.ToString())));
-            IEnumerable<DefaultAlarmRangeLimit> defaultAlarmLimits = DataContext.Table<DefaultAlarmRangeLimit>().QueryRecords();
-
-            using (Historian historian = new Historian(historianServer, historianInstance))
-            {
-                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIds.Select(x => x.ID), eventSet.StartDate, eventSet.EndDate))
-                {
-                    Channel channel = channelIds.First(x => x.ID == point.ChannelID);
-
-                    if (point.SeriesID == SeriesID.Average) {
-                        if (alarmLimits.Where(x => x.ChannelID == point.ChannelID).Any())
-                        {
-                            AlarmRangeLimit limit = alarmLimits.Where(x => x.ChannelID == point.ChannelID).First();
-                            if (CheckAlarm(channel, point, limit))
-                            {
-                                //eventSet.Types[eventSet.Types.IndexOf(x => x.Name == "Alarm")].Data.First(x => x.Item1 >= point.Timestamp && x.Item1 < point)
-                            }
-                        }
-                        else
-                        {
-                            int measurmentTypeID = channel.MeasurementTypeID;
-                            int measurementCharacteristicID = channel.MeasurementCharacteristicID;
-
-                            if (defaultAlarmLimits.Where(x => x.MeasurementTypeID == measurmentTypeID && x.MeasurementCharacteristicID == measurementCharacteristicID).Any())
-                            {
-                                DefaultAlarmRangeLimit limit = defaultAlarmLimits.Where(x => x.MeasurementTypeID == measurmentTypeID && x.MeasurementCharacteristicID == measurementCharacteristicID).First();
-
-                            }
-                        }
-                    }
-                }
-            }
-
-            return eventSet;
-        }
-        public List<TrendingData> GetTrendingDataForPeriod(string siteID, string colorScale, string targetDateFrom, string targetDateTo, string userName)
-        {
-            List<TrendingData> eventSet = new List<TrendingData>();
-            DateTime thedatefrom = DateTime.Parse(targetDateFrom);
-            DateTime thedateto = DateTime.Parse(targetDateTo);
-
-            int duration = thedateto.Subtract(thedatefrom).Days + 1;
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectTrendingDataByChannelByDate";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter param1 = sc.CreateParameter();
-                param1.ParameterName = "@StartDate";
-                param1.Value = targetDateFrom;
-                IDbDataParameter param2 = sc.CreateParameter();
-                param2.ParameterName = "@EndDate";
-                param2.Value = targetDateTo;
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@MeterID";
-                param3.Value = siteID;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-                IDbDataParameter param5 = sc.CreateParameter();
-                param5.ParameterName = "@colorScale";
-                param5.Value = colorScale;
-    
-
-                sc.Parameters.Add(param1);
-                sc.Parameters.Add(param2);
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-                sc.Parameters.Add(param5);
-
-                IDataReader rdr = sc.ExecuteReader();
-                try
-                {
-                    while (rdr.Read())
-                    {
-                        TrendingData td = new TrendingData();
-                        td.Date = Convert.ToString(rdr["Date"]);
-                        td.Maximum = Convert.ToDouble(rdr["Maximum"]);
-                        td.Minimum = Convert.ToDouble(rdr["Minimum"]);
-                        td.Average = Convert.ToDouble(rdr["Average"]);
-
-                        eventSet.Add(td);
-                    }
-                }
-                finally
-                {
-                    if (!rdr.IsClosed)
-                    {
-                        rdr.Close();
-                    }
-                }
-            }
-
-            return (eventSet);
-        }
-
-        public class MagDurData
-        {
-            public int EventID { get; set; }
-            public double DurationSeconds { get; set; }
-            public double PerUnitMagnitude { get; set; }
-        }
-
-        public IEnumerable<MagDurData> GetVoltageMagnitudeData(string meterIds,string startDate, string endDate, string context)
-        {
-
-            DateTime beginDate;
-            DateTime finishDate;
-            if (context == "day")
-            {
-                beginDate = DateTime.Parse(startDate).ToUniversalTime();
-                finishDate = beginDate.AddDays(1).AddSeconds(-1);
-            }
-            else if (context == "hour")
-            {
-                beginDate = DateTime.Parse(startDate).ToUniversalTime();
-                finishDate = beginDate.AddHours(1).AddSeconds(-1);
-            }
-            else if (context == "minute")
-            {
-                beginDate = DateTime.Parse(startDate).ToUniversalTime();
-                finishDate = beginDate.AddMinutes(1).AddSeconds(-1);
-            }
-            else
-            {
-                beginDate = DateTime.Parse(startDate).ToUniversalTime();
-                finishDate = DateTime.Parse(endDate).ToUniversalTime();
-            }
-
-            DataTable table = DataContext.Connection.RetrieveData(
-                @" SELECT Disturbance.EventID, 
-                          Disturbance.DurationSeconds,
-                          Disturbance.PerUnitMagnitude
-                  FROM Disturbance JOIN 
-                       Event ON Event.ID = Disturbance.EventID JOIN
-			           DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
-			           Phase ON Phase.ID = Disturbance.PhaseID JOIN
-			           VoltageEnvelope ON VoltageEnvelope.ID = DisturbanceSeverity.VoltageEnvelopeID	               
-                 WHERE PhaseID IN (SELECT ID FROM Phase WHERE Name = 'Worst') AND
-			           VoltageEnvelope.Name = COALESCE((SELECT TOP 1 Value FROM Setting WHERE Name = 'DefaultVoltageEnvelope'), 'ITIC') AND 
-                       (Event.MeterID IN (Select * FROM String_To_Int_Table({0},','))) AND
-                       Event.StartTime >= {1} AND Event.StartTime <= {2}  ", meterIds, beginDate, finishDate);
-            return table.Select().Select(row => new MagDurData() {
-                EventID = int.Parse(row["EventID"].ToString()),
-                DurationSeconds = double.Parse(row["DurationSeconds"].ToString()),
-                PerUnitMagnitude = double.Parse(row["PerUnitMagnitude"].ToString())
-            });
-        }
-
-        public IEnumerable<WorkbenchVoltageCurveView> GetCurves()
-        {
-            return DataContext.Table<WorkbenchVoltageCurveView>().QueryRecords("ID, LoadOrder");
-        }
-
-        #endregion
-
-        #region [ Table Data ]
-
-        /// <summary>
-        /// getDetailsForSite
-        /// </summary>
-        /// <param name="siteId"></param>
-        /// <param name="targetDate"></param>
-        /// <param name="userName"></param>
-        /// <param name="tab"></param>
-        /// <returns></returns>
-        public string GetDetailsForSites(string siteId, string targetDate, string userName, string tab, string colorScale, string context)
-        {
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-            DateTime date = DateTime.Parse(targetDate).ToUniversalTime();
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            string thedata = "";
-            DataTable table = new DataTable();
-
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectSites" + tab + "DetailsByDate";
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter eventDateFrom = sc.CreateParameter();
-                eventDateFrom.ParameterName = "@EventDate";
-                eventDateFrom.Value = date;
-                sc.Parameters.Add(eventDateFrom);
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@meterID";
-                param3.Value = siteId;
-                IDbDataParameter param4 = sc.CreateParameter();
-                param4.ParameterName = "@username";
-                param4.Value = userName;
-                sc.Parameters.Add(param3);
-                sc.Parameters.Add(param4);
-
-                // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
-                if (tabList.Contains(tab))
-                {
-                    IDbDataParameter param5 = sc.CreateParameter();
-                    param5.ParameterName = "@context";
-                    param5.Value = context;
-                    sc.Parameters.Add(param5);
-                }
-                else if(tab == "TrendingData")
-                {
-                    IDbDataParameter param5 = sc.CreateParameter();
-                    param5.ParameterName = "@colorScaleName";
-                    param5.Value = colorScale;
-                    sc.Parameters.Add(param5);
-                }
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-            }
-
-
-            List<string> skipColumns;
-            if (tab == "Events" || tab == "Disturbances") skipColumns = new List<string>() { "EventID", "MeterID", "Site" };
-            else skipColumns = table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
-
-
-            List<string> columnsToRemove = new List<string>();
-            foreach (DataColumn column in table.Columns)
-            {
-                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                {
-                    disabledFileds.Add(column.ColumnName, true);
-                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
-                }
-
-
-                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                {
-                    columnsToRemove.Add(column.ColumnName);
-                }
-
-            }
-            foreach (string columnName in columnsToRemove)
-            {
-                table.Columns.Remove(columnName);
-            }
-
-
-            thedata = DataTable2JSON(table);
-            table.Dispose();
-
-            return thedata;
-        }
-
-        /// <summary>
-        /// GetSiteLinesDetailsByDate
-        /// </summary>
-        /// <param name="siteID"></param>
-        /// <param name="targetDate"></param>
-        /// <param name="context"></param>
-        /// <param name="tab"></param>
-
-        /// <returns>JSON string</returns>
-        public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
-        {
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                DataTable table = new DataTable();
-                sc.CommandText = "dbo.selectSiteLines" + tab + "DetailsByDate";
-                sc.CommandType = CommandType.StoredProcedure;
-
-
-                IDbDataParameter date = sc.CreateParameter();
-                date.ParameterName = "@EventDate";
-                date.Value = targetDate;
-                sc.Parameters.Add(date);
-
-                IDbDataParameter meter = sc.CreateParameter();
-                meter.ParameterName = "@MeterID";
-                meter.Value = siteID;
-                sc.Parameters.Add(meter);
-
-
-                IDbDataParameter window = sc.CreateParameter();
-                window.ParameterName = "@context";
-                window.Value = context;
-                sc.Parameters.Add(window);
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-                return table;
-            }
-        }
-
-
-        #endregion
-
-        #region [ Map/Grip Data Operations]
-
-        public class MeterLocations
-        {
-            public string Data;
-            public Dictionary<string, string> Colors; 
-        }
-
-        /// <summary>
-        /// getLocationsEvents 
-        /// </summary>
-        /// <param name="targetDateFrom">Start Date</param>
-        /// <param name="targetDateTo">End Date</param>
-        /// <param name="meterIds">comma separated list of meterIds</param>
-        /// <param name="tab">Current PQDashboard Tab</param>
-        /// <param name="userName">Current PQDashboard user</param>
-        /// <returns>Object with list of meters and counts for tab.</returns> 
-        public MeterLocations GetMeterLocations(string targetDateFrom, string targetDateTo, string meterIds, string tab, string userName, string context)
-        {
-            MeterLocations meters = new MeterLocations();
-            DataTable table = new DataTable();
-
-            Dictionary<string, string> colors = new Dictionary<string, string>();
-
-            IEnumerable<DashSettings> dashSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart'"));
-            List<UserDashSettings> userDashSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "Chart' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            Dictionary<string, bool> disabledFileds = new Dictionary<string, bool>();
-            foreach (DashSettings setting in dashSettings)
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-
-                if (!disabledFileds.ContainsKey(setting.Value))
-                    disabledFileds.Add(setting.Value, setting.Enabled);
-
-            }
-
-            IEnumerable<DashSettings> colorSettings = DataContext.Table<DashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND Enabled = 1"));
-            List<UserDashSettings> userColorSettings = DataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("Name = '" + tab + "ChartColors' AND UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", userName)).ToList();
-
-            foreach (var color in colorSettings)
-            {
-                var index = userColorSettings.IndexOf(x => x.Name == color.Name && x.Value.Split(',')?[0] == color.Value.Split(',')?[0]);
-                if (index >= 0)
-                {
-                    color.Value = userColorSettings[index].Value;
-                }
-
-                if (colors.ContainsKey(color.Value.Split(',')[0]))
-                    colors[color.Value.Split(',')[0]] = color.Value.Split(',')[1];
-                else
-                    colors.Add(color.Value.Split(',')[0], color.Value.Split(',')[1]);
-            }
-            DateTime startDate;
-            DateTime endDate;
-
-            if (context == "day")
-            {
-                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                endDate = startDate.AddDays(1).AddSeconds(-1);
-            }
-            else if (context == "hour")
-            {
-                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                endDate = startDate.AddHours(1).AddSeconds(-1);
-            }
-            else if (context == "minute")
-            {
-                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                endDate = startDate.AddMinutes(1).AddSeconds(-1);
-            }
-            else if (context == "second")
-            {
-                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                endDate = startDate.AddSeconds(1).AddMilliseconds(-1);
-            }
-            else
-            {
-                startDate = DateTime.Parse(targetDateFrom).ToUniversalTime();
-                endDate = DateTime.Parse(targetDateTo).ToUniversalTime();
-            }
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectMeterLocations" + tab;
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter eventDateFrom = sc.CreateParameter();
-                eventDateFrom.ParameterName = "@EventDateFrom";
-                eventDateFrom.Value = startDate;
-                IDbDataParameter eventDateTo = sc.CreateParameter();
-                eventDateTo.ParameterName = "@EventDateTo";
-                eventDateTo.Value = endDate;
-                sc.Parameters.Add(eventDateFrom);
-                sc.Parameters.Add(eventDateTo);
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@meterIds";
-                param3.Value = meterIds;
-                sc.Parameters.Add(param3);
-                sc.CommandTimeout = 60;
-
-                // Use next two fields only on Event based tabs that allow context picking.
-                List<string> tabList = new List<string> { "Events", "Disturbances", "Faults", "Breakers", "Extensions" };
-                if (tabList.Contains(tab))
-                {
-                    IDbDataParameter param4 = sc.CreateParameter();
-                    param4.ParameterName = "@username";
-                    param4.Value = userName;
-                    IDbDataParameter param5 = sc.CreateParameter();
-                    param5.ParameterName = "@context";
-                    param5.Value = context;
-                    sc.Parameters.Add(param4);
-                    sc.Parameters.Add(param5);
-                }
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-            }
-
-            List<string> skipColumns = new List<string>() { "ID", "Name", "Longitude", "Latitude", "Count", "ExpectedPoints", "GoodPoints", "LatchedPoints", "UnreasonablePoints", "NoncongruentPoints", "DuplicatePoints" };
-            List<string> columnsToRemove = new List<string>();
-            foreach (DataColumn column in table.Columns)
-            {
-                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds.ContainsKey(column.ColumnName))
-                {
-                    disabledFileds.Add(column.ColumnName, true);
-                    DataContext.Table<DashSettings>().GetOrAdd(tab + "Chart", column.ColumnName, true);
-                }
-
-                if (!skipColumns.Contains(column.ColumnName) && !colors.ContainsKey(column.ColumnName))
-                {
-                    Random r = new Random(DateTime.UtcNow.Millisecond);
-                    string color = r.Next(256).ToString("X2") + r.Next(256).ToString("X2") + r.Next(256).ToString("X2");
-                    colors.Add(column.ColumnName, color);
-                    DataContext.Table<DashSettings>().GetOrAdd(tab + "ChartColors", column.ColumnName + "," + color, true);
-                }
-
-
-                if (!skipColumns.Contains(column.ColumnName) && !disabledFileds[column.ColumnName])
-                {
-                    columnsToRemove.Add(column.ColumnName);
-                }
-
-            }
-            foreach (string columnName in columnsToRemove)
-            {
-                table.Columns.Remove(columnName);
-            }
-
-            meters.Colors = colors;
-            meters.Data = DataTable2JSON(table);
-            return meters;
-        }
-
-        /// <summary>
-        /// getLocationsHeatmapSags 
-        /// </summary>
-        /// <param name="targetDateFrom"></param>
-        /// <param name="targetDateTo"></param>
-        /// <param name="userName"></param>
-        /// <returns></returns>
-        public MeterLocations GetLocationsHeatmap(string targetDateFrom, string targetDateTo, string meterIds, string type)
-        {
-            SqlConnection conn = null;
-            MeterLocations meters = new MeterLocations();
-            DataTable table = new DataTable();
-
-            using (IDbCommand sc = DataContext.Connection.Connection.CreateCommand())
-            {
-                sc.CommandText = "dbo.selectMeterLocations" + type;
-                sc.CommandType = CommandType.StoredProcedure;
-                IDbDataParameter eventDateFrom = sc.CreateParameter();
-                eventDateFrom.ParameterName = "@EventDateFrom";
-                eventDateFrom.Value = targetDateFrom;
-                IDbDataParameter eventDateTo = sc.CreateParameter();
-                eventDateTo.ParameterName = "@EventDateTo";
-                eventDateTo.Value = targetDateTo;
-                sc.Parameters.Add(eventDateFrom);
-                sc.Parameters.Add(eventDateTo);
-                IDbDataParameter param3 = sc.CreateParameter();
-                param3.ParameterName = "@meterIds";
-                param3.Value = meterIds;
-                sc.Parameters.Add(param3);
-
-                IDataReader rdr = sc.ExecuteReader();
-                table.Load(rdr);
-            }
-            meters.Colors = null;
-            meters.Data = DataTable2JSON(table);
-
-            return meters;
-        }
-
-        /// <summary>
-        /// getLocationsTrendingData 
-        /// </summary>
-        /// <param name="targetDateFrom"></param>
-        /// <param name="measurementType"></param>
-        /// <param name="targetDateTo"></param>
-        /// <param name="userName"></param>
-        /// <returns></returns>
-        public ContourInfo GetLocationsTrendingData(ContourQuery contourQuery)
-        {
-            List<TrendingDataLocation> locations = new List<TrendingDataLocation>();
-            DataTable colorScale;
-
-            using (AdoDataConnection conn = new AdoDataConnection(connectionstring, typeof(SqlConnection), typeof(SqlDataAdapter)))
-            using (IDbCommand cmd = conn.Connection.CreateCommand())
-            {
-
-                cmd.Parameters.Add(new SqlParameter("@EventDateFrom", contourQuery.GetStartDate()));
-                cmd.Parameters.Add(new SqlParameter("@EventDateTo", contourQuery.GetEndDate()));
-                cmd.Parameters.Add(new SqlParameter("@colorScaleName", contourQuery.ColorScaleName));
-                cmd.Parameters.Add(new SqlParameter("@meterIds", contourQuery.MeterIds));
-                cmd.CommandText = "dbo.selectMeterLocationsTrendingData";
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = 300;
-
-                using (IDataReader rdr = cmd.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        TrendingDataLocation ourStatus = new TrendingDataLocation();
-                        ourStatus.Latitude = (double)rdr["Latitude"];
-                        ourStatus.Longitude = (double)rdr["Longitude"];
-                        ourStatus.Name = (string)rdr["Name"];
-                        ourStatus.Average = (rdr.IsDBNull(rdr.GetOrdinal("Average")) ? (double?)null : (double)rdr["Average"]);
-                        ourStatus.Maximum = (rdr.IsDBNull(rdr.GetOrdinal("Maximum")) ? (double?)null : (double)rdr["Maximum"]);
-                        ourStatus.Minimum = (rdr.IsDBNull(rdr.GetOrdinal("Minimum")) ? (double?)null : (double)rdr["Minimum"]);
-                        ourStatus.ID = (int)rdr["id"];
-                        ourStatus.Data.Add(ourStatus.Average);
-                        ourStatus.Data.Add(ourStatus.Maximum);
-                        ourStatus.Data.Add(ourStatus.Minimum);
-                        locations.Add(ourStatus);
-                    }
-                }
-
-                string query =
-                    "SELECT " +
-                    "    ContourColorScalePoint.Value, " +
-                    "    ContourColorScalePoint.Color " +
-                    "FROM " +
-                    "    ContourColorScale JOIN " +
-                    "    ContourColorScalePoint ON ContourColorScalePoint.ContourColorScaleID = ContourColorScale.ID " +
-                    "WHERE ContourColorScale.Name = {0} " +
-                    "ORDER BY ContourColorScalePoint.OrderID";
-
-                colorScale = conn.RetrieveData(query, contourQuery.ColorScaleName);
-            }
-
-            double[] colorDomain = colorScale
-                .Select()
-                .Select(row => row.ConvertField<double>("Value"))
-                .ToArray();
-
-            double[] colorRange = colorScale
-                .Select()
-                .Select(row => (double)(uint)row.ConvertField<int>("Color"))
-                .ToArray();
-
-            return new ContourInfo()
-            {
-                Locations = locations,
-                ColorDomain = colorDomain,
-                ColorRange = colorRange,
-                DateTo = contourQuery.EndDate,
-                DateFrom = contourQuery.StartDate
-            };
-        }
-
-        #endregion
-
         #region [ Fault Notes ]
 
         public IEnumerable<FaultNote> GetNotesForFault(int id)
@@ -1129,22 +260,208 @@ namespace PQDashboard
 
         #region [ MeterEventsByLine Operations ]
 
+        public DataTable GetSiteLinesDetailsByDate(string siteID, string targetDate, string context, string tab = "")
+        {
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                DataTable table = XDAconnection.RetrieveData(@"
+					DECLARE @EventDate DATETIME2 = {0}
+                    DECLARE @context as nvarchar(20) = {1}
+					DECLARE @MeterID INT = {2}
+
+                    DECLARE @startDate DATETIME = @EventDate
+                    DECLARE @endDate DATETIME
+
+
+                    IF @context = '180d'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, -180, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '90d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -90, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '30d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -30, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '7d'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, -7, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = '24h'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, -24, @EventDate)
+                        SET @endDate = @EventDate
+                    END
+
+                    IF @context = 'day'
+                    BEGIN
+                        SET @startDate = DATEADD(DAY, DATEDIFF(DAY, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(DAY, 1, @startDate)
+                    END
+
+                    if @context = 'hour'
+                    BEGIN
+                        SET @startDate = DATEADD(HOUR, DATEDIFF(HOUR, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(HOUR, 1, @startDate)
+                    END
+
+                    if @context = 'minute'
+                    BEGIN
+                        SET @startDate = DATEADD(MINUTE, DATEDIFF(MINUTE, 0, @EventDate), 0)
+                        SET @endDate = DATEADD(MINUTE, 1, @startDate)
+                    END
+
+                    if @context = 'second'
+                    BEGIN
+                        DECLARE @tempDate DATETIME = DATEADD(DAY, DATEDIFF(DAY, 0, @EventDate), 0)
+                        SET @startDate = DATEADD(SECOND, DATEDIFF(SECOND, @tempDate, @EventDate), @tempDate)
+                        SET @endDate = DATEADD(SECOND, 1, @startDate)
+                    END
+
+
+                DECLARE @simStartDate DATETIME = DATEADD(SECOND, -5, @startDate)
+                    DECLARE @simEndDate DATETIME = DATEADD(SECOND, 5, @endDate)
+                    print @simStartDate
+                    print @simEndDate
+                    DECLARE @localEventDate DATE = CAST(@EventDate AS DATE)
+                    DECLARE @localMeterID INT = CAST(@MeterID AS INT)
+                    DECLARE @timeWindow int = {3}
+
+	                SELECT
+		                Event.ID,
+		                Event.AssetID,
+		                EventType.Name AS EventType,
+		                Event.StartTime,
+		                Asset.AssetName as LineName,
+		                Asset.AssetKey AS LineKey,
+		                Asset.VoltageKV AS LineVoltage,
+		                FaultSummary.FaultType,
+		                Disturbance.Type AS DisturbanceType,
+		                FaultSummary.Distance AS FaultDistance,
+		                Event.UpdatedBy
+	                INTO #event
+                    FROM
+                        Event JOIN
+                        EventType ON Event.EventTypeID = EventType.ID OUTER APPLY
+		                (
+			                SELECT TOP 1
+				                Disturbance.*,
+				                Phase.Name AS Type
+			                FROM
+				                Disturbance JOIN
+				                Phase ON Disturbance.PhaseID = Phase.ID
+			                WHERE
+				                EventID = Event.ID AND
+				                Phase.Name <> 'Worst'
+			                ORDER BY
+				                CASE EventType.Name
+					                WHEN 'Sag' THEN PerUnitMagnitude
+					                WHEN 'Swell' THEN -PerUnitMagnitude
+					                WHEN 'Interruption' THEN PerUnitMagnitude
+					                WHEN 'Transient' THEN -PerUnitMagnitude
+				                END,
+				                StartTime
+		                ) Disturbance OUTER APPLY
+		                (
+			                SELECT TOP 1 *
+			                FROM FaultSummary
+			                WHERE EventID = Event.ID
+			                ORDER BY IsSelectedAlgorithm DESC, IsSuppressed, IsValid DESC, Inception
+		                ) FaultSummary JOIN
+                        Meter ON Meter.ID = @MeterID JOIN
+                        Asset ON Event.AssetID = Asset.ID JOIN
+                        MeterAsset ON MeterAsset.MeterID = @MeterID AND MeterAsset.AssetID = Asset.ID
+                    WHERE
+                        Event.StartTime >= @startDate AND Event.StartTime < @endDate AND
+                        Event.MeterID = @localMeterID
+
+	                SELECT
+                        AssetID AS thelineid,
+                        ID AS theeventid,
+                        EventType AS theeventtype,
+                        CAST(StartTime AS VARCHAR(26)) AS theinceptiontime,
+                        LineName + ' ' + LineKey AS thelinename,
+                        LineVoltage AS voltage,
+                        COALESCE(FaultType, DisturbanceType, '') AS thefaulttype,
+                        CASE WHEN FaultDistance = '-1E308' THEN 'NaN' ELSE COALESCE(CAST(CAST(FaultDistance AS DECIMAL(16, 4)) AS NVARCHAR(19)), '') END AS thecurrentdistance,
+                        dbo.EventHasImpactedComponents(ID) AS pqiexists,
+                        StartTime,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.StartTime BETWEEN DateAdd(SECOND, -5, Event.StartTime) and  DateAdd(SECOND, 5, Event.StartTime)) as SimultaneousCount,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND EventCount.StartTime BETWEEN DateAdd(SECOND, -@timeWindow, Event.StartTime) and  DateAdd(SECOND, @timeWindow, Event.StartTime)) as SimultaneousFAndSCount,
+                        (SELECT COUNT(*) FROM Event as EventCount WHERE EventCount.AssetID = Event.AssetID AND EventCount.StartTime BETWEEN DateAdd(Day, -60, Event.StartTime) and  Event.StartTime) as SixtyDayCount,
+                        UpdatedBy,
+                        (SELECT COUNT(*) FROM EventNote WHERE EventID = Event.ID) as Note
+	                INTO #temp
+	                FROM #event Event
+
+                    DECLARE @sql NVARCHAR(MAX)
+                    SELECT @sql = COALESCE(@sql + ',dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName, 'dbo.' + HasResultFunction + '(theeventid) AS ' + ServiceName)
+                    FROM EASExtension
+
+                    DECLARE @serviceList NVARCHAR(MAX)
+                    SELECT @serviceList = COALESCE(@serviceList + ',' + ServiceName, ServiceName)
+                    FROM EASExtension
+                    Set @serviceList = '''' + @serviceList + ''''
+
+
+                    SET @sql = COALESCE('SELECT *,' + @sql + ', '+ @ServiceList +'as ServiceList FROM #temp', 'SELECT *, '''' AS ServiceList FROM #temp')
+                    print @sql
+                    EXEC sp_executesql @sql
+
+                    DROP TABLE #temp
+	                DROP TABLE #event
+                ", targetDate, context, siteID, timeWindow);
+
+                return table;
+            }
+
+        }
         public IEnumerable<EventView> GetSimultaneousEvents(int eventId, double window, int timeUnit)
         {
-            DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", -{0}, {1}) and  DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", {0}, {1})", window, time);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+
+                DateTime time = XDAconnection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
+                return new TableOperations<EventView>(XDAconnection).QueryRecordsWhere("StartTime BETWEEN DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", -{0}, {1}) and  DateAdd(" + ((TimeUnits)timeUnit).ToString() + ", {0}, {1})", window, time);
+            }
         }
 
         public IEnumerable<EventView> GetSimultaneousFaultsAndSags(int eventId)
         {
-            DateTime time = DataContext.Connection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) and  DateAdd(SECOND, cast((SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow') as int), {0}) AND ID != {1}", time, eventId);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                DateTime time = XDAconnection.ExecuteScalar<DateTime>("SELECT StartTime From Event WHERE ID = {0}", eventId);
+                return new TableOperations<EventView>(XDAconnection).QueryRecordsWhere("EventTypeID IN (SELECT ID FROM EventType WHERE Name = 'Sag' OR Name = 'Fault') AND StartTime BETWEEN DateAdd(SECOND, -1*{2}, {0}) and  DateAdd(SECOND, {2}, {0}) AND ID != {1}", time, eventId, timeWindow);
+
+            }
         }
 
         public IEnumerable<EventView> GetEventsForLineLastSixtyDays(int eventId)
         {
-            Event record = DataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventId);
-            return DataContext.Table<EventView>().QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND LineID = {1}", record.StartTime, record.LineID);
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+
+                Event record = new TableOperations<Event>(XDAconnection).QueryRecordWhere("ID = {0}", eventId);
+                return new TableOperations<EventView>(XDAconnection).QueryRecordsWhere("StartTime BETWEEN DateAdd(Day, -60, {0}) and  {0} AND AssetID = {1}", record.StartTime, record.AssetID);
+            }
         }
 
         #endregion
@@ -1153,23 +470,28 @@ namespace PQDashboard
 
         public DataTable GetEvents(DateTime date, int minuteWindow, int timeUnit)
         {
-            string query = @"
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            {
+                int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+
+                string query = @"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
 
                     DECLARE @localEventDate DATE = CAST({1} AS DATE)
-	                DECLARE @timeWindow int = (SELECT Value FROM DashSettings WHERE Name = 'System.TimeWindow')
+	                DECLARE @timeWindow int = {2}
                     
                     ; WITH cte AS
                     (
                     SELECT
-                        Event.LineID AS thelineid, 
+                        Event.AssetID AS thelineid, 
                         Event.ID AS theeventid, 
                         EventType.Name AS theeventtype,
                         CAST(Event.StartTime AS VARCHAR(26)) AS theinceptiontime,
-                        MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
-                        Line.VoltageKV AS voltage,
+                        Asset.AssetName AS thelinename,
+                        Asset.VoltageKV AS voltage,
                         COALESCE(FaultSummary.FaultType, Phase.Name, '') AS thefaulttype,
                         CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE COALESCE(CAST(CAST(FaultSummary.Distance AS DECIMAL(16, 4)) AS NVARCHAR(19)), '') END AS thecurrentdistance,
                         Event.StartTime,
@@ -1188,8 +510,8 @@ namespace PQDashboard
                         FaultSummary ON FaultSummary.EventID = Event.ID  LEFT OUTER JOIN
                         Phase ON Disturbance.PhaseID = Phase.ID JOIN
                         Meter ON Meter.ID = Event.MeterID JOIN
-                        Line ON Event.LineID = Line.ID JOIN
-                        MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+                        Asset ON Event.AssetID = Asset.ID JOIN
+                        MeterAsset ON MeterAsset.MeterID = Meter.ID AND MeterAsset.AssetID = Asset.ID
                     WHERE
                         Event.StartTime >= @startDate AND Event.StartTime < @endDate AND (Phase.ID IS NULL OR Phase.Name <> 'Worst')
                     )
@@ -1197,7 +519,8 @@ namespace PQDashboard
                     ORDER BY StartTime
 
             ";
-            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+                return XDAconnection.RetrieveData(query, minuteWindow, date, timeWindow);
+            }
         }
 
         public DataTable GetDisturbances(DateTime date, int minuteWindow, int timeUnit)
@@ -1210,7 +533,7 @@ namespace PQDashboard
                     DECLARE @voltageEnvelope varchar(max) = (SELECT TOP 1 Value FROM Setting WHERE Name = 'DefaultVoltageEnvelope')
 
                     SELECT 
-	                    Event.LineID AS thelineid, 
+	                    Event.AssetID AS thelineid, 
 	                    Event.ID AS theeventid, 
 	                    Disturbance.ID as disturbanceid,
 	                    EventType.Name AS disturbancetype,
@@ -1227,8 +550,8 @@ namespace PQDashboard
                         dbo.DateDiffTicks('1970-01-01', Disturbance.StartTime) / 10000.0 AS startmillis,
                         dbo.DateDiffTicks('1970-01-01', Disturbance.EndTime) / 10000.0 AS endmillis,
 	                    DisturbanceSeverity.SeverityCode,
-	                    MeterLine.LineName + ' ' + [Line].[AssetKey] AS thelinename,
-	                    Line.VoltageKV AS voltage,
+	                    Asset.AssetName as thelinename,
+	                    Asset.VoltageKV AS voltage,
 		                (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as Note
                     FROM
 	                    Event JOIN
@@ -1241,8 +564,8 @@ namespace PQDashboard
 	                    Phase ON Disturbance.PhaseID = Phase.ID JOIN
 	                    DisturbanceSeverity ON Disturbance.ID = DisturbanceSeverity.DisturbanceID JOIN
 	                    Meter ON Meter.ID = Event.MeterID JOIN
-	                    Line ON Event.LineID = Line.ID JOIN
-	                    MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID JOIN
+	                    Asset ON Event.AssetID = Asset.ID JOIN
+	                    MeterAsset ON MeterAsset.MeterID = Meter.ID AND MeterAsset.AssetID = Asset.ID JOIN
 	                    VoltageEnvelope ON VoltageEnvelope.ID = DisturbanceSeverity.VoltageEnvelopeID	
                     WHERE
 	                    Event.StartTime >= @startDate AND Event.StartTime < @endDate AND 
@@ -1371,97 +694,6 @@ namespace PQDashboard
             }
             return dt.Rows.Count;
 
-        }
-
-        #endregion
-
-        #region [OpenSEE Operations]
-        public List<SignalCode.FlotSeries> GetFlotData(int eventID, List<int> seriesIndexes)
-        {
-            SignalCode sc = new SignalCode();
-            return sc.GetFlotData(eventID, seriesIndexes);
-        }
-        #endregion
-
-        #region [OpenSTE Operations]
-
-
-
-        public TrendingDataSet GetTrendsForChannelIDDate(string ChannelID, string targetDate)
-        {
-            string historianServer = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-            string historianInstance = DataContext.Connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
-            IEnumerable<int> channelIDs = new List<int>() { Convert.ToInt32(ChannelID) };
-            DateTime startDate = Convert.ToDateTime(targetDate);
-            DateTime endDate = startDate.AddDays(1);
-            TrendingDataSet trendingDataSet = new TrendingDataSet();
-            DateTime epoch = new DateTime(1970, 1, 1);
-
-            using (Historian historian = new Historian(historianServer, historianInstance))
-            {
-                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIDs, startDate, endDate))
-                {
-                    if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
-                    {
-                        trendingDataSet.ChannelData.Add(new openXDA.Model.TrendingDataPoint());
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
-                    }
-
-                    if (point.SeriesID.ToString() == "Average")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Average = point.Value;
-                    else if (point.SeriesID.ToString() == "Minimum")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Minimum = point.Value;
-                    else if (point.SeriesID.ToString() == "Maximum")
-                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Maximum = point.Value;
-
-                }
-            }
-            IEnumerable<DataRow> table = Enumerable.Empty<DataRow>();
-
-            table = DataContext.Connection.RetrieveData(" Select {0} AS thedatefrom, " +
-                                                        "        DATEADD(DAY, 1, {0}) AS thedateto, " +
-                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.High * PerUnitValue ELSE AlarmRangeLimit.High END AS alarmlimithigh," +
-                                                        "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.Low * PerUnitValue ELSE AlarmRangeLimit.Low END AS alarmlimitlow " +
-                                                        " FROM   AlarmRangeLimit JOIN " +
-                                                        "        Channel ON AlarmRangeLimit.ChannelID = Channel.ID " +
-                                                        "WHERE   AlarmRangeLimit.AlarmTypeID = (SELECT ID FROM AlarmType where Name = 'Alarm') AND " +
-                                                        "        AlarmRangeLimit.ChannelID = {1}", startDate, Convert.ToInt32(ChannelID)).Select();
-
-            foreach (DataRow row in table)
-            {
-                trendingDataSet.AlarmLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("alarmlimithigh"), Low = row.Field<double?>("alarmlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
-            }
-
-            table = Enumerable.Empty<DataRow>();
-
-            table = DataContext.Connection.RetrieveData(" DECLARE @dayOfWeek INT = DATEPART(DW, {0}) - 1 " +
-                                                        " DECLARE @hourOfWeek INT = @dayOfWeek * 24 " +
-                                                        " ; WITH HourlyIndex AS" +
-                                                        " ( " +
-                                                        "   SELECT @hourOfWeek AS HourOfWeek " +
-                                                        "   UNION ALL " +
-                                                        "   SELECT HourOfWeek + 1 " +
-                                                        "   FROM HourlyIndex" +
-                                                        "   WHERE (HourOfWeek + 1) < @hourOfWeek + 24" +
-                                                        " ) " +
-                                                        " SELECT " +
-                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek, {0}) AS thedatefrom, " +
-                                                        "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek + 1, {0}) AS thedateto, " +
-                                                        "        HourOfWeekLimit.High AS offlimithigh, " +
-                                                        "        HourOfWeekLimit.Low AS offlimitlow " +
-                                                        " FROM " +
-                                                        "        HourlyIndex LEFT OUTER JOIN " +
-                                                        "        HourOfWeekLimit ON HourOfWeekLimit.HourOfWeek = HourlyIndex.HourOfWeek " +
-                                                        " WHERE " +
-                                                        "        HourOfWeekLimit.ChannelID IS NULL OR " +
-                                                        "        HourOfWeekLimit.ChannelID = {1} ", startDate, Convert.ToInt32(ChannelID)).Select();
-
-            foreach (DataRow row in table)
-            {
-                trendingDataSet.OffNormalLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("offlimithigh"), Low = row.Field<double?>("offlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
-            }
-
-            return trendingDataSet;
         }
 
         #endregion
