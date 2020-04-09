@@ -22,19 +22,19 @@
 //******************************************************************************************************
 
 using System.Collections.Generic;
+using GSF.Data;
 using GSF.Data.Model;
-using GSF.Web.Model;
 using openXDA.Model;
 
 namespace PQDashboard
 {
     public static class WebExtensions
     {
-        public static Dictionary<string, string> LoadDatabaseSettings(this DataContext dataContext, string scope)
+        public static Dictionary<string, string> LoadDatabaseSettings(AdoDataConnection connnection, string scope)
         {
             Dictionary<string, string> settings = new Dictionary<string, string>();
 
-            foreach (Setting setting in dataContext.Table<Setting>().QueryRecords("Name", new RecordRestriction("Scope = {0}", scope)))
+            foreach (Setting setting in new TableOperations<Setting>(connnection).QueryRecords("Name", new RecordRestriction("Scope = {0}", scope)))
             {
                 if (!string.IsNullOrEmpty(setting.Name))
                     settings.Add(setting.Name, setting.Value);

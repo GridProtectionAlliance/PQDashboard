@@ -22,6 +22,7 @@
     //*****************************************************************************************************@
 @using GSF.Collections;
 @using GSF.Data.Model
+@using GSF.Data
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using Newtonsoft.Json
@@ -29,46 +30,23 @@
 @model AppModel
 @{
     Layout = "";
-    List<DashSettings> dashSettings;
-    List<UserDashSettings> userDashSettings;
     int meterCount;
-    IEnumerable<DashSettings> kml;
 
-    using (DataContext dataContext = new DataContext("systemSettings")) {
-        dashSettings = dataContext.Table<DashSettings>().QueryRecords().ToList();
+    IEnumerable<ValueList> kml;
+    IEnumerable<ValueList> tabs;
+    IEnumerable<ValueList> systemSettings;
+    IEnumerable<ValueListGroup> chartGroups;
+    IEnumerable<ValueList> chartSettings;
 
-       userDashSettings = dataContext.Table<UserDashSettings>().QueryRecords(restriction: new RecordRestriction("UserAccountID IN (SELECT ID FROM UserAccount WHERE Name = {0})", ViewBag.usersid)).ToList();
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        tabs = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs')");
+        systemSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        kml = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'KML')");
+        chartGroups = new TableOperations<ValueListGroup>(connection).QueryRecordsWhere("Name LIKE 'Chart.%'");
+        chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID IN (SELECT ID FROM ValueListGroup WHERE Name LIKE 'Chart.%')");
+    }
+    using (DataContext dataContext = new DataContext("dbOpenXDA")) {
         meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
-        foreach (DashSettings setting in dashSettings)
-        {
-            if (setting.Name == "DashTab" || setting.Name == "KML" || setting.Name.EndsWith("Chart"))
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value == setting.Value);
-                if (index >= 0)
-                {
-                    setting.Enabled = userDashSettings[index].Enabled;
-                }
-            }
-            else if (setting.Name.EndsWith("Colors") )
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name && x.Value.Split(',')[0] == setting.Value.Split(',')[0]);
-                if (index >= 0)
-                {
-                    setting.Value = userDashSettings[index].Value;
-                }
-            }
-            else if (setting.Name.Contains("System."))
-            {
-                var index = userDashSettings.IndexOf(x => x.Name == setting.Name);
-                if (index >= 0)
-                {
-                    setting.Value = userDashSettings[index].Value;
-                }
-            }
-        }
-
-        kml = dashSettings.Where(x => x.Name == "KML");
-
     }
 
 
@@ -90,18 +68,15 @@
                 </ul>
                 <div class="tab-content">
                     <div id="config" class="tab-pane fade" style="overflow-y:auto; max-height: 750px">
-                        <h3 class="modal-title"><img src="~/Images/ConfigImages/tools.png" style="height:30px" />&nbsp;&nbsp;Settings for @ViewBag.username</h3>
-                        <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately or not.</em>
+                        <h3 class="modal-title"><img src="~/Images/ConfigImages/tools.png" style="height:30px" />&nbsp;&nbsp;Settings</h3>
+                        <em>Settings are automatically udpated after a change is made.  To see results the browser must be refreshed. Click below to refresh immediately.</em>
 
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#systemSettings" data-toggle="tab">System</a></li>
                             <li><a href="#tabs" data-toggle="tab">Tabs</a></li>
-                            @foreach (DashSettings setting in dashSettings)
+                            @foreach (ValueListGroup setting in chartGroups)
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
-                                {
-                                    <li><a href="#@setting.Value.Substring(5).ToLower()" data-toggle="tab">@setting.Value.Substring(5)</a></li>
-                                }
+                                <li><a href="#@setting.Name.ToLower().Replace(".","_")" data-toggle="tab">@setting.Name.Replace("Chart.", "")</a></li>
                             }
                             <li><a href="#kml" data-toggle="tab">KML</a></li>
                         </ul>
@@ -115,14 +90,14 @@
                                                 <th>Value</th>
                                             </tr>
                                         </thead>
-                                        @foreach (DashSettings setting in dashSettings.Where(x => x.Name.Contains("System.")))
+                                        @foreach (ValueList setting in systemSettings)
                                         {
                                             <tr>
                                                 <td>
-                                                    @setting.Name
+                                                    @setting.Text
                                                 </td>
                                                 <td>
-                                                    <input type="text" onchange="updateSystemSetting(this, @JsonConvert.SerializeObject(setting))" value="@setting.Value"/>
+                                                    <input type="text" onchange="updateSystemSetting(this, @JsonConvert.SerializeObject(setting))" value="@setting.AltText1"/>
                                                 </td>
                                             </tr>
                                         }
@@ -139,14 +114,14 @@
                                                 <th>Enabled</th>
                                             </tr>
                                         </thead>
-                                        @foreach (DashSettings setting in dashSettings.Where(x => x.Name == "DashTab"))
+                                        @foreach (ValueList tab in tabs)
                                         {
                                                 <tr>
                                                     <td>
-                                                        @setting.Value
+                                                        @tab.Text
                                                     </td>
                                                     <td>
-                                                        <input id="tab@(setting.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                        <input id="tab@(tab.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(tab))" @(tab.Enabled == true ? "checked='checked'" : "") />
                                                     </td>
                                                 </tr>
                                         }
@@ -154,11 +129,9 @@
                                 </div>
                             </div>
 
-                            @foreach (DashSettings setting in dashSettings)
+                            @foreach (ValueListGroup chartGroup in chartGroups)
                             {
-                                if (setting.Name == "DashTab" && setting.Enabled && (new List<string>() { "#tabsMeterActivity", "#tabsOverviewToday", "#tabsOverviewYesterday", "#tabsTrendingData", "#tabsModbusData", "#tabsHistorianData" }).IndexOf(setting.Value) < 0)
-                                {
-                                    <div id="@setting.Value.Substring(5).ToLower()" class="tab-pane fade">
+                                    <div id="@chartGroup.Name.ToLower().Replace(".","_")" class="tab-pane fade">
                                         <div class="well">
                                             <table class="table table-responsive">
                                                 <thead>
@@ -168,30 +141,23 @@
                                                         <th>Enabled</th>
                                                     </tr>
                                                 </thead>
-                                                @foreach (DashSettings innerSetting in dashSettings)
+                                                @foreach (ValueList setting in chartSettings.Where(x=> x.GroupID == chartGroup.ID))
                                                 {
-                                                    if (setting.Value.Substring(5) + "Chart" == innerSetting.Name)
-                                                    {
-                                                        <tr>
-                                                            <td>
-                                                                @innerSetting.Value
-                                                            </td>
-                                                            <td>
-                                                                @{
-                                                                    DashSettings color = dashSettings.Where(x => x.Name.Contains(setting.Value.Substring(5) + "ChartColors") && string.Compare(innerSetting.Value, x.Value.Split(',')[0]) == 0)?.FirstOrDefault();
-                                                                }
-                                                                <input id="color@(color.ID)" style="background-color: @(color?.Value.Split(',')?[1])" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(color))" value="@(color?.Value.Split(',')?[1] ?? "")" />
-                                                            </td>
-                                                            <td>
-                                                                <input id="enable@(innerSetting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(innerSetting))" type="checkbox" @(innerSetting.Enabled ? "checked='checked'" : "") />
-                                                            </td>
-                                                        </tr>
-                                                    }
+                                                    <tr>
+                                                        <td>
+                                                            @setting.Text
+                                                        </td>
+                                                        <td>
+                                                            <input id="color@(setting.ID)" style="background-color: @(setting.AltText1)" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(setting))" value="@(setting.AltText1)" />
+                                                        </td>
+                                                        <td>
+                                                            <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled== true  ? "checked='checked'" : "") />
+                                                        </td>
+                                                    </tr>
                                                 }
                                             </table>
                                         </div>
                                     </div>
-                                }
                             }
 
                             <div id="kml" class="tab-pane fade">
@@ -203,14 +169,14 @@
                                                 <th>Enabled</th>
                                             </tr>
                                         </thead>
-                                        @foreach (DashSettings setting in kml)
+                                        @foreach (ValueList setting in kml)
                                         {
                                             <tr>
                                                 <td>
-                                                    @setting.Value
+                                                    @setting.Text
                                                 </td>
                                                 <td>
-                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled== true  ? "checked='checked'" : "") />
                                                 </td>
                                             </tr>
                                         }
@@ -288,59 +254,19 @@
                         </table>
 
                         <br /><br />
-                        @*<h4><b>FAQs</b></h4>
-                        <p>
-                            <b>What if I need more help than I can find online?</b><br />
-                            &nbsp;&nbsp; You can always ask a question in the <a href="http://discussions.gridprotectionalliance.org/" target="_blank" style="color: blue;">GPA user forum.</a>
-                        </p>
-                        <p>
-                            <b>What’s the difference between the “events” and “faults” tab</b> <br />
-                            &nbsp;&nbsp; Not all events are faults. Only faults show up in the faults tab, all events show up in the events tab.
-                        </p>
-                        <p>
-                            <b>Why do I sometimes see the same event more than once?</b><br />
-                            &nbsp;&nbsp; Not sure.
-                        </p>
-                        <p>
-                            <b>Why can’t I see trending data?</b><br />
-                            &nbsp;&nbsp; Not sure. Maybe you don’t have trending data?
-                        </p>
-                        <p>
-                            <b>Why do most events seem to be classified as a “swell”?</b><br />
-                            &nbsp;&nbsp; That’s the default way of classifying things.
-                        </p>
-                        <p>
-                            <b>Why are there no events for some sites?</b><br />
-                            &nbsp;&nbsp; Maybe you need to pick a different time range to see events for it??
-                        </p>
-                        <p>
-                            <b>Do I need to do anything to configure the PQ Dashboard as new monitors are added to openXDA?</b><br />
-                            &nbsp;&nbsp; I don’t think so, not sure though???
-                        </p>
-                        <p>
-                            <b>How can I add new charts and displays to the dashboard?</b><br />
-                            &nbsp;&nbsp; PQDashboard is open source and is <a href="https://github.com/GridProtectionAlliance/PQDashboard" target="_blank" style="color:blue;">posted on GitHub</a>, you are welcome to add more things there. <br />
-                            &nbsp;&nbsp; Please follow the guidelines in the <a href="https://www.gridprotectionalliance.org/docs/GPA_Coding_Guidelines_2011_03.pdf" target="_blank" style="color:blue;">contributing guide.</a>
-                        </p>
-                        <p>
-                            <b>Why do some waveforms identified as “faults” in the COMTRADE file not show up as faults in the dashboard?</b><br />
-                            &nbsp;&nbsp; Because PQDashboard/openXDA implements its own logic for classifying faults, which may be different than your specific DFR.
-                        </p>*@
                     </div>
                 </div>
             </div>
 
             <div class="modal-footer">
                 <button type="button" id="configApply" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>
-                <button type="button" id="configDefaults" class="btn btn-primary" onclick="resetDefaults()">Restore Defaults</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 <script>
-    var dashSettings = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(dashSettings))');
-    var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x =>x.Enabled).FirstOrDefault()));
+    var kmlData = @Html.Raw(JsonConvert.SerializeObject(kml.Where(x => x.Enabled == true ).FirstOrDefault()));
     var pendingUpdates = {};
 
     function refresh() {
@@ -351,63 +277,51 @@
         });
     }
 
-    function resetDefaults() {
-        $.get(homePath + 'api/PQDashboard/ResetDefaultSettings', function () {
-             refresh();
-        });
-    }
-
-    function updateDashSettings(key, setting) {
+    function updateSetting(key, valueList) {
         var pendingUpdate = pendingUpdates[key];
         var deferred = $.Deferred();
         pendingUpdates[key] = deferred;
 
-        function callUpdateDashSettings() {
-            var form = {
-                ID: setting.ID,
-                Name: setting.Name,
-                Value: setting.Value,
-                Enabled: setting.Enabled,
-                UserId: userId
-            };
-            $.post(homePath + 'api/PQDashboard/UpdateDashSettings', form, function () { }).always(deferred.resolve);
+        function callUpdateSettings() {
+            $.post(homePath + 'api/Settings', valueList, function () { }).always(deferred.resolve);
         }
 
         if (pendingUpdate)
-            pendingUpdate.done(callUpdateDashSettings);
+            pendingUpdate.done(callUpdateSettings);
         else
-            callUpdateDashSettings();
+            callUpdateSettings();
     }
 
+
     function updateTabSetting(input, setting) {
-        var key = setting.Name + setting.Value;
+        var key = setting.Text + input.checked;
         setting.Enabled = input.checked;
-        updateDashSettings(key, setting);
+        updateSetting(key, setting);
     }
   
     function updateSystemSetting(input, setting) {
-        var key = setting.Name;
-        setting.Value = input.value;
-        updateDashSettings(key, setting);
+        var key = setting.Text;
+        setting.AltText1 = input.value;
+        updateSetting(key, setting);
     }
 
     function updateColorSetting(input, setting) {
-        var key = setting.Name + setting.Value.split(',')[0];
+        var key = setting.Text + setting.AltText1;
         $(input).css('background-color', input.value);
-        setting.Value = setting.Value.split('#')[0] + input.value;
-        updateDashSettings(key, setting);
+        setting.AltText1 = input.value;
+        updateSetting(key, setting);
     }
 
     function updateEnableSetting(input, setting) {
-        var key = setting.Name + setting.Value;
+        var key = setting.Text + setting.Value;
         setting.Enabled = input.checked;
-        updateDashSettings(key, setting);
+        updateSetting(key, setting);
     }
 
     function updateKMLSetting(input, setting) {
-        var key = setting.Name + setting.Value;
+        var key = setting.Text + setting.Value;
         setting.Enabled = input.checked;
-        updateDashSettings(key, setting);
+        updateSetting(key, setting);
     }
 
 </script>

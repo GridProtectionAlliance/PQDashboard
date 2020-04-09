@@ -100,81 +100,6 @@ namespace PQDashboard.Controllers
             }
         }
 
-        public ActionResult Home2()
-        {
-            using (DataContext dataContext = new DataContext("systemSettings"))
-            {
-
-                m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
-
-                try
-                {
-                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
-
-                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
-                    {
-                        ViewBag.username = "External";
-                        ViewBag.usersid = "External";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ViewBag.username = "";
-                }
-
-                return View();
-            }
-        }
-
-
-
-        public ActionResult Help()
-        {
-            m_appModel.ConfigureView(Url.RequestContext, "Help", ViewBag);
-            return View();
-        }
-
-        public ActionResult GraphMeasurements()
-        {
-            m_appModel.ConfigureView(Url.RequestContext, "GraphMeasurements", ViewBag);
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            m_appModel.ConfigureView(Url.RequestContext, "Contact", ViewBag);
-            ViewBag.Message = "Contacting the Grid Protection Alliance";
-            return View();
-        }
-
-        public ActionResult DisplayPDF()
-        {
-            // Using route ID, i.e., /Main/DisplayPDF/{id}, as page name of PDF load
-            string routeID = Url.RequestContext.RouteData.Values["id"] as string ?? "UndefinedPageName";
-            m_appModel.ConfigureView(Url.RequestContext, routeID, ViewBag);
-
-            return View();
-        }
-
-        public ActionResult OpenSEE()
-        {
-            using (DataContext dataContext = new DataContext("systemSettings"))
-            {
-                ViewBag.EnableLightningQuery = dataContext.Connection.ExecuteScalar<bool>("SELECT Value FROM Setting WHERE Name = 'OpenSEE.EnableLightningQuery'");
-
-                ViewBag.IsAdmin = ValidateAdminRequest();
-                int eventID = int.Parse(Request.QueryString["eventid"]);
-                Event evt = dataContext.Table<Event>().QueryRecordWhere("ID = {0}", eventID);
-                ViewBag.EventID = eventID;
-                ViewBag.EventStartTime = evt.StartTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-                ViewBag.EventEndTime = evt.EndTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
-                ViewBag.SamplesPerCycle = evt.SamplesPerCycle;
-                ViewBag.Cycles = Math.Floor((evt.EndTime - evt.StartTime).TotalSeconds * 60.0D); 
-                return View();
-            }
-        }
-
         public ActionResult OpenSTE()
         {
             return View();
@@ -306,21 +231,6 @@ namespace PQDashboard.Controllers
                 if (isAdmin) return true;
                 else return false;
             }
-
-            //string username = User.Identity.Name;
-            //ISecurityProvider securityProvider = SecurityProviderUtility.CreateProvider(username);
-            //securityProvider.PassthroughPrincipal = User;
-
-            //if (!securityProvider.Authenticate())
-            //    return false;
-
-            //SecurityIdentity approverIdentity = new SecurityIdentity(securityProvider);
-            //SecurityPrincipal approverPrincipal = new SecurityPrincipal(approverIdentity);
-
-            //if (!approverPrincipal.IsInRole("Administrator"))
-            //    return false;
-
-            //return true;
         }
 
     }

@@ -14,8 +14,7 @@ namespace PQDashboard
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/others").Include(
-                "~/Scripts/site.js",
-                "~/Scripts/overview.js"
+                "~/Scripts/site.js"
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
@@ -94,9 +93,6 @@ namespace PQDashboard
                 "~/Scripts/PrimeUI/primeui.min.css"
             ));
 
-            bundles.Add(new ScriptBundle("~/Scripts/OpenSEE").Include(
-                "~/Scripts/OpenSEE.js"
-            ));
             bundles.Add(new ScriptBundle("~/Scripts/PQDashboard").Include(
                 "~/Scripts/PQdashboard.js"
             ));

@@ -1,15 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
-using System.EnterpriseServices;
-using System.Globalization;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using GSF.Configuration;
 using GSF.Data;
 using GSF.Data.Model;
 using openXDA.Model;
