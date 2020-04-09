@@ -96,41 +96,41 @@
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Communication, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Communication.2.3.199-beta\lib\net46\GSF.Communication.dll</HintPath>
+    <Reference Include="GSF.Communication, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Communication.2.3.285-beta\lib\net46\GSF.Communication.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.COMTRADE, Version=2.3.195.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.COMTRADE.2.3.195-beta\lib\net46\GSF.COMTRADE.dll</HintPath>
+    <Reference Include="GSF.COMTRADE, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.COMTRADE.2.3.285-beta\lib\net46\GSF.COMTRADE.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Core, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Core.2.3.199-beta\lib\net46\GSF.Core.dll</HintPath>
+    <Reference Include="GSF.Core, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Core.2.3.285-beta\lib\net46\GSF.Core.dll</HintPath>
     </Reference>
     <Reference Include="GSF.Geo">
       <HintPath>..\Dependencies\GSF.Geo.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PhasorProtocols, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PhasorProtocols.2.3.199-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
+    <Reference Include="GSF.PhasorProtocols, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PhasorProtocols.2.3.285-beta\lib\net46\GSF.PhasorProtocols.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.PQDIF, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.199-beta\lib\net46\GSF.PQDIF.dll</HintPath>
+    <Reference Include="GSF.PQDIF, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.PQDIF.2.3.285-beta\lib\net46\GSF.PQDIF.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Security, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Security.2.3.199-beta\lib\net46\GSF.Security.dll</HintPath>
+    <Reference Include="GSF.Security, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Security.2.3.285-beta\lib\net46\GSF.Security.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceModel, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceModel.2.3.199-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
+    <Reference Include="GSF.ServiceModel, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceModel.2.3.285-beta\lib\net46\GSF.ServiceModel.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.ServiceProcess, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.ServiceProcess.2.3.199-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
+    <Reference Include="GSF.ServiceProcess, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.ServiceProcess.2.3.285-beta\lib\net46\GSF.ServiceProcess.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.TimeSeries, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.TimeSeries.2.3.199-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
+    <Reference Include="GSF.TimeSeries, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.TimeSeries.2.3.285-beta\lib\net46\GSF.TimeSeries.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Web, Version=2.3.199.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.Web.2.3.199-beta\lib\net46\GSF.Web.dll</HintPath>
+    <Reference Include="GSF.Web, Version=2.3.285.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GSF.Web.2.3.285-beta\lib\net46\GSF.Web.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zlib, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
-      <HintPath>..\packages\GSF.PQDIF.2.3.199-beta\lib\net46\Ionic.Zlib.dll</HintPath>
+      <HintPath>..\packages\GSF.PQDIF.2.3.285-beta\lib\net46\Ionic.Zlib.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\Dependencies\log4net.dll</HintPath>
@@ -314,16 +314,50 @@
       <DependentUpon>ChannelDataQuality.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="Controllers\Breakers\TableDataController.cs" />
+    <Compile Include="Controllers\Breakers\BarChartController.cs" />
+    <Compile Include="Controllers\Breakers\LocationController.cs" />
+    <Compile Include="Controllers\Completeness\BarChartController.cs" />
+    <Compile Include="Controllers\Completeness\DetailsByDateController.cs" />
+    <Compile Include="Controllers\Completeness\LocationController.cs" />
+    <Compile Include="Controllers\Completeness\TableDataController.cs" />
+    <Compile Include="Controllers\Correctness\BarChartController.cs" />
+    <Compile Include="Controllers\Correctness\DetailsByDateController.cs" />
+    <Compile Include="Controllers\Correctness\LocationController.cs" />
+    <Compile Include="Controllers\Correctness\TableDataController.cs" />
+    <Compile Include="Controllers\Disturbances\MagDurChartController.cs" />
+    <Compile Include="Controllers\Disturbances\BarChartController.cs" />
+    <Compile Include="Controllers\Disturbances\LocationController.cs" />
+    <Compile Include="Controllers\Disturbances\DetailsByDateController.cs" />
+    <Compile Include="Controllers\Disturbances\TableDataController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\EmailController.cs" />
+    <Compile Include="Controllers\Events\BarChartController.cs" />
+    <Compile Include="Controllers\Events\DetailsByDateController.cs" />
+    <Compile Include="Controllers\Events\LocationController.cs" />
+    <Compile Include="Controllers\Events\MaximumSwellHeatmapController.cs" />
+    <Compile Include="Controllers\Events\MinimumSagsHeatmapController.cs" />
+    <Compile Include="Controllers\Events\TableDataController.cs" />
+    <Compile Include="Controllers\Extensions\BarChartController.cs" />
+    <Compile Include="Controllers\Extensions\DetailsByDateController.cs" />
+    <Compile Include="Controllers\Extensions\LocationController.cs" />
+    <Compile Include="Controllers\Extensions\TableDataController.cs" />
+    <Compile Include="Controllers\Faults\BarChartController.cs" />
+    <Compile Include="Controllers\Faults\LocationController.cs" />
+    <Compile Include="Controllers\Faults\TableDataController.cs" />
+    <Compile Include="Controllers\Generic\BarChartController.cs" />
+    <Compile Include="Controllers\Generic\LocationController.cs" />
+    <Compile Include="Controllers\Generic\TableDataController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OpenSTE\TrendingDataController.cs" />
     <Compile Include="Controllers\PQDashboardController.cs" />
-    <Compile Include="Controllers\OpenSEEController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\AllBreakersReportController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\IndividualBreakerReportController.cs" />
-    <Compile Include="Controllers\SEDashboard\BreakerReport\MaximoBreakersController.cs" />
-    <Compile Include="Controllers\SEDashboard\MeterActivity\MeterActivityController.cs" />
-    <Compile Include="Controllers\SEDashboard\RelayReport\RelayReportController.cs" />
+    <Compile Include="Controllers\Settings\SettingsController.cs" />
+    <Compile Include="Controllers\TrendingData\ErrorBarChartController.cs" />
+    <Compile Include="Controllers\TrendingData\LocationController.cs" />
+    <Compile Include="Controllers\TrendingData\TableDataController.cs" />
+    <Compile Include="Controllers\Trending\BarChartController.cs" />
+    <Compile Include="Controllers\Trending\LocationController.cs" />
+    <Compile Include="Controllers\Trending\TableDataController.cs" />
     <Compile Include="DataHub.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css" />
     <Content Include="Content\bootstrap4-datetimepicker.css" />
@@ -402,12 +436,9 @@
     <Content Include="Content\themes\redmond\jquery-ui.css" />
     <Content Include="Content\themes\redmond\jquery-ui.min.css" />
     <Content Include="Content\themes\redmond\theme.css" />
+    <Content Include="Data\PQDashboard.sql" />
     <Content Include="EASServiceTemplate.aspx.cs">
       <DependentUpon>EASServiceTemplate.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
-    <Content Include="FaultLocation.aspx.cs">
-      <DependentUpon>FaultLocation.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
     <Content Include="FaultSpecifics.aspx.cs">
@@ -422,15 +453,13 @@
       <DependentUpon>ICFService.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
+    <Compile Include="GlobalSettings.cs" />
     <Compile Include="Model\AppModel.cs" />
     <Content Include="Images\2-Line - 500.png" />
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
     <Content Include="Images\PQDashboardLogo II w-GPA_600.png" />
     <Content Include="Images\PQI.png" />
-    <Content Include="Images\SE Browser - Spelled out %28for dark bg%29.png" />
-    <Content Include="Images\SE Browser - Spelled out - 111 high.png" />
     <Content Include="Images\SE Dashboard with GPA 200 high.png" />
-    <Content Include="Images\SEB Logo 400.png" />
     <Content Include="PQI.aspx" />
     <Content Include="PQIByEvent.aspx.cs">
       <DependentUpon>PQIByEvent.aspx</DependentUpon>
@@ -440,22 +469,16 @@
       <DependentUpon>PQI.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Content>
-    <Compile Include="OpenSEEComtradeDownload.ashx.cs">
-      <DependentUpon>OpenSEEComtradeDownload.ashx</DependentUpon>
-    </Compile>
     <Compile Include="BreakerReportCSVDownload.ashx.cs">
       <DependentUpon>BreakerReportCSVDownload.ashx</DependentUpon>
     </Compile>
-    <Compile Include="OpenSEECSVDownload.ashx.cs">
-      <DependentUpon>OpenSEECSVDownload.ashx</DependentUpon>
-    </Compile>
+    <Compile Include="Model\ValueList.cs" />
+    <Compile Include="Model\ValueListGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignalCode.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="WebExtensions.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
-    <Content Include="OpenSEECSVDownload.ashx" />
-    <Content Include="OpenSEEComtradeDownload.ashx" />
     <Content Include="BreakerReportCSVDownload.ashx" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
@@ -465,24 +488,13 @@
     <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
-    <Content Include="Scripts\openSEE-lightning-query.js" />
-    <Content Include="Scripts\OpenSEE.js" />
-    <Content Include="Scripts\OpenSEE2.js" />
-    <Content Include="Scripts\PQDashboard.js" />
+    <Content Include="Scripts\MeterEventsByLine.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
-    <Content Include="Shared\Content\Images\ui-icons_444444_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_555555_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_777620_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_777777_256x240.png" />
-    <Content Include="Shared\Content\Images\ui-icons_cc0000_256x240.png" />
-    <Content Include="Shared\Scripts\flot\LICENSE.txt" />
-    <Content Include="Views\Main\MeterActivity.cshtml" />
     <Content Include="Views\Email\UpdateSettings.cshtml" />
     <Content Include="Views\Email\Message.cshtml" />
     <Content Include="Views\Email\Verify.cshtml" />
-    <Content Include="Views\Main\Home2.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
@@ -498,8 +510,6 @@
     <Content Include="Content\ICFDetails.css" />
     <Content Include="Content\MeterEventsByLine.css" />
     <Content Include="Content\ModbusData.css" />
-    <Content Include="Content\OpenSEE.css" />
-    <Content Include="Content\OpenSEEStack.css" />
     <Content Include="Content\OpenSTE.css" />
     <Content Include="Content\prettify.css" />
     <Content Include="Content\primeui-all.css" />
@@ -512,7 +522,6 @@
     <Content Include="CSAService.aspx" />
     <Content Include="EASServiceTemplate.aspx" />
     <Content Include="eventService.asmx" />
-    <Content Include="FaultLocation.aspx" />
     <Content Include="FaultSpecifics.aspx" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />
@@ -595,7 +604,6 @@
     <Content Include="Scripts\flot\README.md" />
     <Content Include="Scripts\ChannelDataCompleteness.js" />
     <Content Include="Scripts\ChannelDataQuality.js" />
-    <Content Include="Scripts\CustomGoogleMapMarker.js" />
     <Content Include="Scripts\D3\d3-color.v1.js" />
     <Content Include="Scripts\D3\d3-interpolate.v1.js" />
     <Content Include="Scripts\D3\d3-scale.v1.js" />
@@ -668,9 +676,6 @@
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\OpenLayersDraggable.js" />
-    <Content Include="Scripts\OpenSEEold.js" />
-    <Content Include="Scripts\OpenSEEveryold.js" />
-    <Content Include="Scripts\OpenSTE.js" />
     <Content Include="Scripts\plotly-latest.min.js" />
     <Content Include="Scripts\PQIByEvent.js" />
     <Content Include="Scripts\prettify.js" />
@@ -682,7 +687,6 @@
     <Content Include="Scripts\PrimeUI\images\loadingbar.gif" />
     <Content Include="Scripts\PrimeUI\images\password-meter.png" />
     <Content Include="Scripts\PrimeUI\images\rating.png" />
-    <Content Include="Scripts\overview.js" />
     <Content Include="Scripts\PrimeUI\plugins\cursorposition.js" />
     <Content Include="Scripts\PrimeUI\plugins\jquery.mousewheel.js" />
     <Content Include="Scripts\PrimeUI\plugins\mustache.min.js" />
@@ -1297,7 +1301,6 @@
     <Content Include="Views\Shared\SecurityError.cshtml" />
     <Content Include="Views\Shared\_ErrorLayout.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Main\OpenSEEold.cshtml" />
     <Content Include="Views\Main\OpenSTE.cshtml" />
     <Content Include="Views\Main\MeterEventsByLine.cshtml" />
     <Content Include="Views\Main\MeterDisturbancesByLine.cshtml" />
@@ -1305,7 +1308,6 @@
     <Content Include="Views\Main\Settings.cshtml" />
     <Content Include="Views\Main\QuickSearch.cshtml" />
     <None Include="tsconfig.json" />
-    <Content Include="Views\Main\OpenSEE.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -1318,82 +1320,11 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FaultLocation.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\HarmonicSpectrum.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\OverlappingWaveform.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Frequency.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\ClippedWaveforms.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FFT.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\SpecifiedHarmonic.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\THD.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\RapidVoltageChange.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Rectifier.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Unbalance.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\SymmetricalComponents.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\HighPassFilter.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\About.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\BarChartAnalyticBase.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Voltage.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Current.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\LineChartAnalyticBase.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\LowPassFilter.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\MissingVoltage.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\RemoveCurrent.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\FirstDerivative.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Power.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Analytics\Impedance.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\RadioselectWindow.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\MultiselectWindow.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\OpenSEENavbar.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\OpenSEENoteModal.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Digital.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\AccumulatedPoints.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\HarmonicStats.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\PolarChart.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\ScalarStats.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TimeCorrelatedSags.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\TooltipWithDelta.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\Tooltip.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Graphs\Legend.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\openSee.d.ts" />
-    <None Include="Scripts\TSX\OpenSEE\openSEE.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\Components\Menu.tsx" />
-    <None Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\LightningData.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\About.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReport.d.ts" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReport.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\BreakerReport\BreakerReportNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearch.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetFaultSegments.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchCorrelatedSags.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchRelayPerformance.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetHistory.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchAssetVoltageDisturbances.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchList.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchListedEventsNoteWindow.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchNoteWindow.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchPreviewPane.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\MeterActivity.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\PQDashboardNavbar.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\Components\Table.tsx" />
-    <None Include="Scripts\TSX\PQDashboard\PQDashboard.d.ts" />
-    <None Include="Scripts\TSX\PQDashboard\PQDashboard.tsx" />
-    <None Include="Scripts\TS\Services\OpenSEE.ts" />
-    <None Include="Scripts\TS\Services\PQDashboard.ts" />
-    <None Include="Scripts\TS\Services\SEDashboard\BreakerReport.ts" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\TSX\OpenSEE\Graphs\TCE.tsx" />
-    <Content Include="Scripts\TSX\OpenSEE\jQueryUI Widgets\FFTTable.tsx" />
-    <Content Include="Scripts\TSX\PQDashboard\Components\EventSearch\EventSearchEsriMap.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayPerformanceTrend.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReport.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportNavBar.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\PQDashboard\Components\RelayReport\RelayReportPane.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\MeterEventsByLine.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Table.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -1414,7 +1345,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>51414</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:51414/</IISUrl>
+          <IISUrl>http://localhost:51415/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
@@ -1430,9 +1361,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets'))" />
+    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets'))" />
   </Target>
-  <Import Project="..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.199-beta\build\GSF.PQDIF.targets')" />
+  <Import Project="..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.285-beta\build\GSF.PQDIF.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

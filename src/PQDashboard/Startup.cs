@@ -25,7 +25,10 @@ using GSF.Web.Security;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Owin;
+using System.Collections.Generic;
 using System.Web.Http;
+using System.Web.Http.Controllers;
+using System.Web.Http.Routing;
 
 [assembly: OwinStartupAttribute(typeof(PQDashboard.Startup))]
 namespace PQDashboard
@@ -34,8 +37,12 @@ namespace PQDashboard
     {
         public void Configuration(IAppBuilder app)
         {
-            // Load security hub in application domain before establishing SignalR hub configuration
-            //GlobalHost.DependencyResolver.Register(typeof(SecurityHub), () => new SecurityHub(new DataContext("securityProvider", exceptionHandler: MvcApplication.LogException), MvcApplication.LogStatusMessage, MvcApplication.LogException));
+            app.Use<AuthenticationMiddleware>(new AuthenticationOptions()
+            {
+                SessionToken = "session",
+                AuthFailureRedirectResourceExpression = "(?!)",
+                AnonymousResourceExpression = "(?!)"
+            });
 
             HubConfiguration hubConfig = new HubConfiguration();
 
@@ -48,34 +55,23 @@ namespace PQDashboard
             // Configure Web API for self-host. 
             HttpConfiguration config = new HttpConfiguration();
 
-            ////  Enable attribute based routing
-            ////Map custom API controllers
-            //config.Routes.MapHttpRoute(
-            //    name: "OpenSEE",
-            //    routeTemplate: "api/OpenSEE/{action}",
-            //    defaults: new
-            //    {
-            //        controller = "OpenSEE"
-            //    }
-            //);
-
-            ////  Enable attribute based routing
-            ////Map custom API controllers
-            //config.Routes.MapHttpRoute(
-            //    name: "PQDashboard",
-            //    routeTemplate: "api/PQDashboard/{action}",
-            //    defaults: new
-            //    {
-            //        controller = "PQDashboard"
-            //    }
-            //);
-
-
             // Set configuration to use reflection to setup routes
-            config.MapHttpAttributeRoutes();
+            config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
 
             app.UseWebApi(config);
         }
     }
+
+
+    public class CustomDirectRouteProvider : DefaultDirectRouteProvider
+    {
+        protected override IReadOnlyList<IDirectRouteFactory>
+        GetActionRouteFactories(HttpActionDescriptor actionDescriptor)
+        {
+            return actionDescriptor.GetCustomAttributes<IDirectRouteFactory>
+            (inherit: true);
+        }
+    }
+
 }

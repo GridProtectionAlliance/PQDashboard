@@ -36,19 +36,23 @@
     NameValueCollection parameters = Request.QueryString;
 
     int postedEventId = int.Parse(parameters["eventid"] ?? "-1");
-    EventView theEvent;
     string xdaInstance;
     string[] extensions;
 
-    using (DataContext dataContext = new DataContext("systemSettings"))
+    using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
 
-        theEvent = dataContext.Table<EventView>().QueryRecord(new RecordRestriction("ID = {0}", postedEventId));
-        xdaInstance = dataContext.Connection.ExecuteScalar<string>("SELECT Value FROM DashSettings WHERE Name = 'System.XDAInstance'");
-        extensions = dataContext.Connection.RetrieveData("select Distinct ServiceName from DisturbanceSeverity").Select().Select(x => x["ServiceName"].ToString()).ToArray();
-
-
+        ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
+        ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
+        ViewBag.StartTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
+        extensions = connection.RetrieveData("select Distinct ServiceName from EASExtension").Select().Select(x => x["ServiceName"].ToString()).ToArray();
     }
+
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings")) {
+        xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
+    }
+
     string context = parameters["context"] ?? "day";
 }
 
@@ -86,20 +90,17 @@
 
     <script type="text/javascript" src="~/Scripts/jquery-3.3.1.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery-ui.js"></script>
-    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
     <script type="text/javascript" src="~/Scripts/jquery.blockUI.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap-3.3.2.min.js"></script>
     <script type="text/javascript" src="~/Scripts/PrimeUI/primeui.js"></script>
-    <script src="~/signalr/hubs"></script>
     <script type="text/javascript" src="~/Scripts/jquery.jspanel.js"></script>
     <script type="text/javascript" src="~/Scripts/moment.min.js"></script>
-    <script type="text/javascript" src="~/Scripts/Site.js"></script>
     <script type="text/javascript" src="~/Scripts/jstorage.js"></script>
 
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Events for @theEvent.MeterName for @theEvent.StartTime.ToString("MM/dd/yyyy")</center>
+<div class="gridheader"><center>Events for @ViewBag.MeterName for @ViewBag.StartTime.ToString("MM/dd/yyyy")</center>
 </div>
 
 
@@ -108,10 +109,11 @@
 </div>
 
 <script>
+    var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
 
-    var postedMeterId = "@theEvent.MeterID";
-    var postedDate = "@theEvent.StartTime";
-    var postedMeterName = "@theEvent.MeterName";
+    var postedMeterId = "@ViewBag.MeterID";
+    var postedDate = "@ViewBag.StartTime";
+    var postedMeterName = "@ViewBag.MeterName";
     var context = "@context";
     var userId = "@HttpUtility.JavaScriptStringEncode(ViewBag.username)"
     reconnectHub = false;
@@ -127,10 +129,7 @@
 
 
     $(document).ready(function () {
-        $(window).on('hubConnected', function () {
-            populateMeterEventsDivWithGrid('getSiteLinesDetailsByDate', "MeterDetailsByDate", postedMeterName, postedMeterId, postedDate);
-        })
-
+        populateMeterEventsDivWithGrid();
     });
 
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
@@ -141,8 +140,15 @@
 
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
-    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-        dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, "Extension").done(function (data) {
+    function populateMeterEventsDivWithGrid() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Content("~/")api/Extensions/DetailsByDate/@postedEventId/' + context,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        }).done(function (data) {
 
             var json = data;
 
@@ -153,7 +159,7 @@
                     filterList.push(element);
             });
 
-            $('#' + thediv).puidatatable({
+            $('#MeterDetailsByDate').puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
@@ -165,7 +171,7 @@
                           }
                     },
                     { field: 'ServiceType', headerText: 'Type', headerStyle: 'width: 20%', bodyStyle: 'width: 20%; height: 20px', sortable: true },
-                    { field: 'LineName', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
+                    { field: 'AssetName', headerText: 'Line Name', headerStyle: 'width: 20%', bodyStyle: 'width:  20%; height: 20px', sortable: true },
                     { field: 'Voltage', headerText: 'Line KV', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { field: 'Confidence', headerText: 'Confidence', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
                     { headerStyle: 'width: 60px', content: function (data) { return makeOpenSEEButton_html(data); }},
@@ -218,7 +224,7 @@
     }
 
     function OpenWindowToOpenSEE(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))" + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
+        var popup = window.open(openSEEInstance + "?eventid=" + id + "&faultcurves=1", id + "openSEE");
         return false;
     }
 

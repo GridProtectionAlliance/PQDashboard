@@ -392,7 +392,7 @@ function selectsitesincharts() {
     selectiontimeout = null;
 
     if (cache_Last_Date !== null) {
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), cache_Last_Date);
+        getTableDivData(meterList.selectedIdsString(), cache_Last_Date);
     } else {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
@@ -405,8 +405,8 @@ function selectsitesincharts() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
-function getTableDivData(thedatasource, thediv, siteID, theDate) {
-    $.post(homePath + 'api/PQDashboard/GetDetailsForSites', { siteId: siteID, targetDate: theDate, userName: userId, tab: currentTab, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
+function getTableDivData(siteID, theDate) {
+    $.post(homePath + 'api/'+currentTab+'/TableData', { siteId: siteID, targetDate: theDate, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
         cache_Table_Data = data;
 
         var filterString = [];
@@ -458,7 +458,8 @@ function populateFaultsDivWithGrid(data) {
             }
         });
 
-        columns.push({ field: 'thelinename', headerText: 'Line', headerStyle: 'width: 40%', bodyStyle: 'width: 40%; height: 20px', sortable: true });
+        columns.push({ field: 'AssetName', headerText: 'Asset', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true });
+        columns.push({ field: 'AssetType', headerText: 'Asset Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
 
         if (includeCauseCode)
             columns.push({ field: 'causecode', headerText: 'Cause', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
@@ -955,7 +956,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
     var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
 
-    $.post(homePath + "api/PQDashboard/GetDataForPeriod", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: userId, tab: currentTab, context: context}, function (data) {
+    $.post(homePath + "api/"+currentTab+"/BarChart", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, context: context}, function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
@@ -995,7 +996,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     
 
     if (currentTab == "Disturbances") {
-        $.post(homePath + "api/PQDashboard/GetVoltageMagnitudeData", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
+        $.post(homePath + "api/Disturbances/MagDur", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
             cache_MagDur_Data = data;
             buildMagDurChart(data, thediv + "MagDur")
         });
@@ -1826,8 +1827,8 @@ function deepCopy(o) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-function populateDivWithErrorBarChart(thedatasource, thediv, siteID, thedatefrom, thedateto) {
-    $.post(homePath + 'api/PQDashboard/GetTrendingDataForPeriod', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto, userName: userId }, function (data) {
+function populateDivWithErrorBarChart(thediv, siteID, thedatefrom, thedateto) {
+    $.post(homePath + 'api/TrendingData/ErrorBarChart', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto}, function (data) {
         cache_ErrorBar_Data = data;
         buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
     }).fail(function (msg) {
@@ -2026,9 +2027,6 @@ function buildMagDurChart(data, thediv) {
         mode: 'markers'
     }];
     $.each(data, function (i, d) {
-        if (disabledList[currentTab][d.SeverityCode.toString()])
-            return;
-
         companyTrace[0].x.push(d.DurationSeconds);
         companyTrace[0].y.push(d.PerUnitMagnitude * 100);
         companyTrace[0].text.push(d.EventID)
@@ -2062,7 +2060,7 @@ function buildMagDurChart(data, thediv) {
 
         $('#'+ thediv).off('plotly_click');
         $('#'+ thediv).on('plotly_click', function (event, data) {
-            window.open(homePath + "Main/OpenSEE?eventid=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
+            window.open(openSEEInstance + "?eventid=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
         });
     });
 
@@ -2098,7 +2096,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     }
 
     if (currentTab != 'TrendingData') {
-        $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext}, function (data) {
+        $.post(homePath + 'api/'+currentTab +'/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: globalContext}, function (data) {
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
@@ -2108,7 +2106,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
         });
     }
     else {
-        $.post(homePath + 'api/PQDashboard/GetLocationsTrendingData', thedatasent.contourQuery, function (data) {
+        $.post(homePath + 'api/TrendingData/Location', thedatasent.contourQuery, function (data) {
             cache_Map_Matrix_Data_Date_From = data.DateFrom;
             cache_Map_Matrix_Data_Date_To = data.DateTo;
             cache_Map_Matrix_Data = data;
@@ -2950,7 +2948,7 @@ function plotMapPoints(data, thedatefrom, thedateto) {
 
 function showHeatmap(thecontrol) {
     if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        $.post(homePath + 'api/PQDashboard/GetLocationHeatmap', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), type: $(thecontrol).val() }, function (data) {
+        $.post(homePath + 'api/Events/' + $(thecontrol).val(), { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString() }, function (data) {
             LoadHeatmapLeaflet(data);
         });
     }
@@ -2959,7 +2957,7 @@ function showHeatmap(thecontrol) {
             LoadHeatmapLeaflet(cache_Map_Matrix_Data);
         else {
             if (currentTab != "TrendingData") {
-                $.post(homePath + 'api/PQDashboard/GetMeterLocations', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), tab: currentTab, userName: userId, context: globalContext }, function (data) {
+                $.post(homePath + 'api/'+currentTab+'/Location', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), context: globalContext }, function (data) {
                     LoadHeatmapLeaflet(data);
                 });
             }
@@ -3046,7 +3044,7 @@ function ManageLocationClick(siteID) {
     if ((thedatefrom == "") || (thedateto == "")) return;
 
     if (currentTab == "TrendingData")
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+        populateDivWithErrorBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
     else
     {
         populateDivWithBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
@@ -3097,7 +3095,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     if(currentTab != "TrendingData")
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), barChartStartDate, thedateto);
     else
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
+        populateDivWithErrorBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
 }
 
@@ -3112,7 +3110,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
 
     setMapHeaderDate(thedatefrom, thedateto);
 
-    getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), thedatefrom);
+    getTableDivData(meterList.selectedIdsString(), thedatefrom);
     if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
@@ -3414,33 +3412,7 @@ $(document).ready(function () {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadSettingsAndApply() {
-        // Turn Off Features
-
-        applicationsettings = dashSettings;
-
-        $.each(dashSettings, (function (key, value) {
-            if (value.Name == "DashTab") {
-                if (value.Enabled == true) {
-                    $(value.Value).show();
-                } else {
-                    $(value.Value).hide();
-                }
-            }
-
-
-            if (value.Name == "DashImage") {
-
-            }
-
-        }));
-}
-  
-//////////////////////////////////////////////////////////////////////////////////////////////
-
 function buildPage() {
-
-    loadSettingsAndApply();
 
     $(document).bind('contextmenu', function (e) { return false; });
 
@@ -3528,46 +3500,13 @@ function buildPage() {
     else
         $.jStorage.set("disabledList", disabledList)
 
-        $('#filterExpressionHelp').mouseenter(function (e) {
-        $.jsPanel({
-            paneltype: {
-                tooltip: true,
-                mode: 'semisticky',
-                connector: true
-            },
-            position: {
-                my: 'center-bottom',
-                at: 'center-top',
-                of: e.target
-            },
-            contentSize: { width: 400, height: 400 },
-            theme: 'blue',
-            headerTitle: 'Filter Expression Help',
-            callback: function (panel) {
-                panel.content.css('padding', '10px');
-                panel.css('z-index','2000')
-                if ($(window).scrollTop() > parseInt(panel.css('top'))) {
-                    panel.reposition({ my: 'center-top', at: 'center-bottom', of: e.target });
-                }
-
-                var content = "<p>Filter expressions can be used to limit the number of monitors for a monitor (meter) group.  The syntax is like a SQL WHERE expression.  The operators are:</p><ul><li><code>=</code> operator to equate an attribute</li><li> the <code>LIKE</code> operator to do a compare</li><li> the <code>%</code> or <code>*</code> operator are used as a wild card</li></ul> " +
-                              "<p>The available fields for filtering are associted with a monitor (meter) are: </p><ul><li>Name</li><li>Alias</li><li>ShortName</li><li>AssetKey</li><li>MeterLocationID</li></ul>" +
-                              "<p>Examples:</p> <ul><li><code>Alias = 'Greenville'</code></li><li><code>Name LIKE 'DFR%'</code></li><li><code>ShortName LIKE '%ville'</code></li></ul>"
-
-                panel.content.append(content)
-
-            }
-        });
-    });
-
     $("#application-tabs").tabs({
         heightStyle: "100%",
         widthStyle: "99%",
-
         activate: function (event, ui) {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
             if(newTab === "Event Search") {
-                window.open(homePath + "Main/Home2/EventSearch");
+                window.open(seBrowserInstance + "Home/Home/EventSearch");
 
                 $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
                 return;
@@ -3590,8 +3529,6 @@ function buildPage() {
                 loadDataForDate();
                 updateUrlParams('tab', newTab);
             }
-
-
         }
     });
 

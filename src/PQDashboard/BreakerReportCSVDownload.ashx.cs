@@ -20,23 +20,12 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-
-
-
-using FaultData.DataAnalysis;
-using GSF.Collections;
-using GSF.Data;
-using GSF.Data.Model;
 using GSF.Threading;
-using Newtonsoft.Json;
-using OpenSEE.Controller;
-using openXDA.Model;
 using openXDA.Reports;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net.Http;

@@ -64,7 +64,7 @@ using GSF.Collections;
 [System.Web.Script.Services.ScriptService]
 public class mapService : WebService
 {
-    private static string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+    private static string connectionstring = ConfigurationFile.Current.Settings["dbOpenXDA"]["ConnectionString"].Value;
 
     public class siteGeocoordinates
     {
@@ -106,108 +106,6 @@ public class mapService : WebService
         } 
     }
 
-    //public class TrendingDataLocation
-    //{
-    //    public int ID;
-    //    public string Name;
-    //    public double Latitude;
-    //    public double Longitude;
-    //    public double? Maximum;
-    //    public double? Minimum;
-    //    public double? Average;
-    //    public List<double?> Data;
-
-    //    public TrendingDataLocation()
-    //    {
-    //        Data = new List<double?>();
-    //    }
-
-    //    public void Aggregate(double average)
-    //    {
-    //        m_sum += average;
-    //        m_count++;
-    //    }
-
-    //    public double? GetAverage()
-    //    {
-    //        return (m_count > 0)
-    //            ? m_sum / m_count
-    //            : (double?)null;
-    //    }
-
-    //    private double m_sum;
-    //    private int m_count;
-    //}
-
-    //public class ContourQuery
-    //{
-    //    public string ColorScaleName { get; set; }
-    //    public string Meters { get; set; }
-    //    public string StartDate { get; set; }
-    //    public string EndDate { get; set; }
-    //    public string DataType { get; set; }
-    //    public string UserName { get; set; }
-    //    public int Resolution { get; set; }
-    //    public int StepSize { get; set; }
-    //    public bool IncludeWeather { get; set; }
-    //    public string MeterIds { get; set; }
-    //    private Lazy<DateTime> m_startDate;
-    //    private Lazy<DateTime> m_endDate;
-
-    //    public ContourQuery()
-    //    {
-    //        DateTimeStyles styles = DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal;
-    //        m_startDate = new Lazy<DateTime>(() => DateTime.SpecifyKind(DateTime.Parse(StartDate, null, styles), DateTimeKind.Unspecified));
-    //        m_endDate = new Lazy<DateTime>(() => DateTime.SpecifyKind(DateTime.Parse(EndDate, null, styles), DateTimeKind.Unspecified));
-    //        Resolution = -1;
-    //        StepSize = -1;
-    //    }
-
-    //    public DateTime GetStartDate()
-    //    {
-    //        return m_startDate.Value;
-    //    }
-
-    //    public DateTime GetEndDate()
-    //    {
-    //        return m_endDate.Value;
-    //    }
-    //}
-
-    //public class ContourAnimationInfo
-    //{
-    //    public int AnimationID { get; set; }
-    //    public List<ContourInfo> Infos { get; set; }
-    //    public double[] ColorDomain { get; set; }
-    //    public double[] ColorRange { get; set; }
-    //    public double MinLatitude { get; set; }
-    //    public double MaxLatitude { get; set; }
-    //    public double MinLongitude { get; set; }
-    //    public double MaxLongitude { get; set; }
-    //}
-
-    //public class ContourInfo
-    //{
-    //    public List<TrendingDataLocation> Locations { get; set; }
-    //    public string URL { get; set; }
-    //    public string Date { get; set; }
-    //    public double[] ColorDomain { get; set; }
-    //    public double[] ColorRange { get; set; }
-    //}
-
-    //private class ContourTileData
-    //{
-    //    public ManualResetEvent WaitHandle;
-
-    //    public double MinLatitude { get; set; }
-    //    public double MaxLatitude { get; set; }
-    //    public double MinLongitude { get; set; }
-    //    public double MaxLongitude { get; set; }
-
-    //    public IDWFunc IDWFunction { get; set; }
-    //    public Func<double, double> ColorFunction { get; set; }
-    //}
-
     public class MeterLocations
     {
         public string Data;
@@ -245,95 +143,6 @@ public class mapService : WebService
     private static CoordinateReferenceSystem s_crs = new EPSG3857();
     private static LongSynchronizedOperation s_cleanUpAnimationOperation = new LongSynchronizedOperation(CleanUpAnimation);
 
-    [WebMethod]
-    public List<MeterID> getMeters(string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        List<MeterID> meterIDs = new List<MeterID>();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeters", conn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-            cmd.CommandTimeout = 300;
-            rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-            {
-                MeterID metersId = new MeterID();
-                metersId.name = (string)rdr["name"];
-                metersId.id = (int)rdr["id"];
-                meterIDs.Add(metersId);
-            }
-        }
-        finally
-        {
-            if (conn != null)
-                conn.Close();
-
-            if (rdr != null)
-                rdr.Close();
-        }
-        return (meterIDs);
-    }
-
-    /// <summary>
-    /// getMeterIDsForArea (Dragged Rect on Map)
-    /// </summary>
-    /// <param name="ax"></param>
-    /// <param name="ay"></param>
-    /// <param name="bx"></param>
-    /// <param name="by"></param>
-    /// <param name="userName"></param>
-    /// <returns></returns>
-
-    [WebMethod]
-    public List<string> getMeterIDsForArea(double ax, double ay, double bx, double by, string userName)
-    {
-        SqlConnection conn = null;
-        SqlDataReader rdr = null;
-        List<String> theMeterIDs = new List<String>();
-
-        try
-        {
-            conn = new SqlConnection(connectionstring);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("dbo.selectMeterIDsForArea", conn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.Add(new SqlParameter("@ax", ax));
-            cmd.Parameters.Add(new SqlParameter("@ay", ay));
-            cmd.Parameters.Add(new SqlParameter("@bx", bx));
-            cmd.Parameters.Add(new SqlParameter("@by", by));
-            cmd.Parameters.Add(new SqlParameter("@username", userName));
-
-            rdr = cmd.ExecuteReader();
-            if (rdr.HasRows)
-            {
-                while (rdr.Read())
-                {
-                    theMeterIDs.Add((String)rdr["TheMeterID"].ToString());
-                }
-            }
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                conn.Close();
-            }
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-        }
-
-        return (theMeterIDs);
-    }
 
     [WebMethod]
     public void getContourTile()
