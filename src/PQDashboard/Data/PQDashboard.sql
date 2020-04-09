@@ -276,6 +276,7 @@ BEGIN
 
     DROP TABLE #DeleteCascade
 END
+GO
 
 INSERT [dbo].[ValueListGroup] ([Name], [Description], [Enabled]) VALUES ( N'System', N'Used to set system wide settings.',1)
 GO
