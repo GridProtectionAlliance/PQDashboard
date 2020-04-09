@@ -30,7 +30,7 @@ function populateMeterEventsDivWithGrid(thedatasource, thediv, eventId) {
 
     $.ajax({
         type: "POST",
-        url: './eventService.asmx/' + thedatasource,
+        url: './eventService.asmx/getPQIDetailsByEventID',
         data: thedatasent,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',

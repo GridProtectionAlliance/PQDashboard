@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
+    <Product Id="{61FB944A-6989-4451-A3A5-23B69550454A}" Name="PQ Dashboard" Language="1033" Version="!(bind.FileVersion.fil8A20DABB41240431B350E6A65A81B384)" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <PropertyRef Id="WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED"/>
+        <Condition Message='This setup requires Microsoft .NET Framework 4.6 or greater - this will need to be installed before installation can continue.'>
+            <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED]]>
+        </Condition>
+
+        <Feature Id="AllSites" Title="All Websites" Level="1" Display="expand" Description="All websites in the PQ Dashboard installation.">
+            <!-- PQ Dashboard -->
+            <Feature Id="PQDashboardFeature" Title="PQ Dashboard" AllowAdvertise="no" Description="Installs the PQ Dashboard website for visualization of power quality data." ConfigurableDirectory="PQDASHFOLDER">
+                <ComponentGroupRef Id="PQDashboardGroup" />
+            </Feature>
+			<!-- OpenSEE -->
+            <Feature Id="OpenSEEFeature" Title="OpenSEE" AllowAdvertise="no" Description="Installs the OpenSEE website for visualization of waveform data." ConfigurableDirectory="OPENSEEFOLDER">
+                <ComponentGroupRef Id="OpenSEEGroup" />
+            </Feature>
+			<!-- SEBrowser -->
+            <Feature Id="SEBrowserFeature" Title="SEBrowser" AllowAdvertise="no" Description="Installs the SEBrowser website for visualization of waveform data." ConfigurableDirectory="SEBROWSERFOLDER">
+                <ComponentGroupRef Id="SEBrowserGroup" />
+            </Feature>
+
+        </Feature>
+        <Property Id="INSTALLPQDASHFEATURE" Secure="yes" />
+        <Property Id="INSTALLOPENSEEFEATURE" Secure="yes" />
+        <Property Id="INSTALLSEBROWSERFEATURE" Secure="yes" />
+
+        <Property Id="PQDASHSERVERNAME" Value="localhost" Secure="yes"/>
+        <Property Id="OPENSEESERVERNAME" Value="localhost" Secure="yes"/>
+        <Property Id="SEBROWSERSERVERNAME" Value="localhost" Secure="yes"/>
+
+        <Property Id="PQDASHWINDOWSAUTH" Value="1" Secure="yes"/>
+        <Property Id="OPENSEEWINDOWSAUTH" Value="1" Secure="yes"/>
+        <Property Id="SEBROWSERWINDOWSAUTH" Value="1" Secure="yes"/>
+
+        <Property Id="DATAPROVIDERSTRING" Value="AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089};; ConnectionType=System.Data.SqlClient.SqlConnection;; AdapterType=System.Data.SqlClient.SqlDataAdapter" Secure="yes" />
+        <Property Id="PQDASHDATABASENAME" Value="PQDashboard" Secure="yes" />
+        <Property Id="OPENSEEDATABASENAME" Value="OpenSEE" Secure="yes"/>
+        <Property Id="SEBROWSERDATABASENAME" Value="SEBrowser" Secure="yes"/>
+
+        <!--<SetProperty Id="PQDASHSCRIPTPATH" Value="[INSTALLFOLDER]\PQ Dashboard\Data\PQDashboard.sql" After="LaunchConditions" Sequence="execute" />
+        <SetProperty Id="OPENSEESCRIPTPATH" Value="[INSTALLFOLDER]\OpenSEE\Data\OpenSEE.sql" After="LaunchConditions" Sequence="execute" />
+        <SetProperty Id="SEBROWSERSCRIPTPATH" Value="[INSTALLFOLDER]\SEBrowser\Data\SEBrowser.sql" After="LaunchConditions" Sequence="execute" />-->
+
+        <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard/" Before="CreateShortcuts" Sequence="execute" />
+
+        <UI>
+          <!-- User Interface -->
+		      <UIRef Id="WixUI_FeatureTree" />
+          <UIRef Id="WixUI_ErrorProgressText" />
+          <DialogRef Id="PQDashDatabaseConnectionDialog" />
+          <DialogRef Id="OpenSEEDatabaseConnectionDialog" />
+          <DialogRef Id="SEBrowserDatabaseConnectionDialog" />
+
+          <!--<Publish Dialog="CustomizeDlg" Control="Next" Property="PQDASHSERVERNAME" Value="localhost" Order="1">1</Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="OPENSEESERVERNAME" Value="localhost" Order="1">1</Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="SEBROWSERSERVERNAME" Value="localhost" Order="1">1</Publish>-->
+
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLPQDASHFEATURE" Value="1" Order="1"><![CDATA[&PQDashboardFeature=3]]></Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLPQDASHFEATURE" Order="3"><![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLOPENSEEFEATURE" Value="1" Order="1"><![CDATA[&OpenSEEFeature=3]]></Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLOPENSEEFEATURE" Order="3"><![CDATA[NOT(&OpenSEEFeature=3)]]></Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLSEBROWSERFEATURE" Value="1" Order="1"><![CDATA[&SEBrowserFeature=3]]></Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLSEBROWSERFEATURE" Order="1"><![CDATA[NOT(&SEBrowserFeature=3)]]></Publish>
+
+          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="PQDashDatabaseConnectionDialog" Order="4">INSTALLPQDASHFEATURE</Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND INSTALLOPENSEEFEATURE</Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND NOT INSTALLOPENSEEFEATURE AND INSTALLSEBROWSERFEATURE</Publish>
+
+          <!--<Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE</Publish>
+          <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE</Publish>
+          <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>-->
+
+          <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+          <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog">INSTALLSEBROWSERFEATURE</Publish>
+          <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+          <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+
+          <ProgressText Action="PQDashboard.CreateDatabase">Creating database [PQDASHDATABASENAME]...</ProgressText>
+          <ProgressText Action="PQDashboard.AlterDatabase">Setting database as trustworthy...</ProgressText>
+          <ProgressText Action="PQDashboard.CreateDBLogin">Creating login [PQDASHDBLOGIN]...</ProgressText>
+          <ProgressText Action="PQDashboard.AlterDBLogin">Setting password for login [PQDASHDBLOGIN]...</ProgressText>
+          <ProgressText Action="PQDashboard.CreateDBUser">Granting privileges to login [PQDASHDBLOGIN]...</ProgressText>
+          <ProgressText Action="PQDashboard.GrantDBPermissions">Granting privileges to login [PQDASHDBLOGIN]...</ProgressText>
+          <!--<ProgressText Action="PQDashboard.sql">Setting up PQDashboard database...</ProgressText>-->
+
+          <ProgressText Action="OpenSEE.CreateDatabase">Creating database [OPENSEEDATABASENAME]...</ProgressText>
+          <ProgressText Action="OpenSEE.AlterDatabase">Setting database as trustworthy...</ProgressText>
+          <ProgressText Action="OpenSEE.CreateDBLogin">Creating login [OPENSEEDBLOGIN]...</ProgressText>
+          <ProgressText Action="OpenSEE.AlterDBLogin">Setting password for login [OPENSEEDBLOGIN]...</ProgressText>
+          <ProgressText Action="OpenSEE.CreateDBUser">Granting privileges to login [OPENSEEDBLOGIN]...</ProgressText>
+          <ProgressText Action="OpenSEE.GrantDBPermissions">Granting privileges to login [OPENSEEDBLOGIN]...</ProgressText>
+          <!--<ProgressText Action="OpenSEE.sql">Setting up OpenSEE database...</ProgressText>-->
+
+          <ProgressText Action="SEBrowser.CreateDatabase">Creating database [SEBROWSERDATABASENAME]...</ProgressText>
+          <ProgressText Action="SEBrowser.AlterDatabase">Setting database as trustworthy...</ProgressText>
+          <ProgressText Action="SEBrowser.CreateDBLogin">Creating login [SEBROWSERDBLOGIN]...</ProgressText>
+          <ProgressText Action="SEBrowser.AlterDBLogin">Setting password for login [SEBROWSERDBLOGIN]...</ProgressText>
+          <ProgressText Action="SEBrowser.CreateDBUser">Granting privileges to login [SEBROWSERDBLOGIN]...</ProgressText>
+          <ProgressText Action="SEBrowser.GrantDBPermissions">Granting privileges to login [SEBROWSERDBLOGIN]...</ProgressText>
+          <!--<ProgressText Action="SEBrowser.sql">Setting up SEBrowser database...</ProgressText>-->
+
+        </UI>
+        
+        <Icon Id="PQDashboard.ico" SourceFile="src/PQD.ico" />
+        
+        <Property Id="WWWROOTDIR">
+            <RegistrySearch Id="FindInetPubFolder" Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Name="PathWWWRoot" Type="directory" />
+        </Property>
+
+        <WixVariable Id="WixUIBannerBmp" Value="src\PQ Dashboard SetupLogo.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="src\InstallWelcome.bmp" />
+        <WixVariable Id="WixUILicenseRtf" Value="src\INSTALL_LICENSE.rtf" />
+        
+      <!-- Web Site -->
+      <iis:WebSite Id="DefaultWebSite" Description="Default Web Site" Directory="WWWROOTDIR">
+          <iis:WebAddress Id="AllUnassigned" Port="80" />
+      </iis:WebSite>
+    
+      <!-- Add/Remove Programs Properties -->
+      <Property Id="ARPPRODUCTICON" Value="PQDashboard.ico" />
+        
+      <!-- Custom Actions -->
+      <Binary Id="InstallerActions" SourceFile="src\GSF.InstallerActions.CA.dll" />
+      <CustomAction Id="BrowseFileAction" BinaryKey="InstallerActions" DllEntry="BrowseFileAction" Execute="immediate" />
+      <CustomAction Id="CheckFileExistenceAction" BinaryKey="InstallerActions" DllEntry="CheckFileExistenceAction" Execute="immediate" />
+        
+      <CustomAction Id="PasswordGenerationAction" BinaryKey="InstallerActions" DllEntry="PasswordGenerationAction" Execute="immediate" />
+      <CustomAction Id="TestDatabaseConnectionAction" BinaryKey="InstallerActions" DllEntry="TestDatabaseConnectionAction" Execute="immediate" />
+
+      <!--<CustomAction Id="PQDashboard.CreateDatabase.SetProperty" Property="CreateDatabase" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[SERVERCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[CREATEDBQUERY]" />
+      <CustomAction Id="PQDashboard.CreateDatabase" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="PQDashboard.AlterDatabase.SetProperty" Property="AlterDatabase" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[SERVERCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[ALTERDBQUERY]" />
+      <CustomAction Id="PQDashboard.AlterDatabase" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />-->
+      <CustomAction Id="PQDashboard.ConnectionString.SetProperty" Property="CONNECTIONSTRING" Value="[PQDASHDBCONNECTIONSTRING]" />
+      <CustomAction Id="PQDashboard.CreateDBLogin.SetProperty" Property="PQDashboard.CreateDBLogin" Value="SERVICENAME=PQDashboard;CONNECTIONSTRING=[PQDASHDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[PQDASHCREATEDBLOGINQUERY]" />
+      <CustomAction Id="PQDashboard.CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="PQDashboard.AlterDBLogin.SetProperty" Property="PQDashboard.AlterDBLogin" Value="SERVICENAME=PQDashboard;CONNECTIONSTRING=[PQDASHDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[PQDASHALTERDBLOGINQUERY]" />
+      <CustomAction Id="PQDashboard.AlterDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="PQDashboard.CreateDBUser.SetProperty" Property="PQDashboard.CreateDBUser" Value="SERVICENAME=PQDashboard;CONNECTIONSTRING=[PQDASHDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[PQDASHCREATEDBUSERQUERY]" />
+      <CustomAction Id="PQDashboard.CreateDBUser" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="PQDashboard.GrantDBPermissions.SetProperty" Property="PQDashboard.GrantDBPermissions" Value="SERVICENAME=PQDashboard;CONNECTIONSTRING=[PQDASHDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[PQDASHDBPERMISSIONSQUERY]" />
+      <CustomAction Id="PQDashboard.GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <!--<CustomAction Id="PQDashboard.sql.SetProperty" Property="PQDashboard.sql" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[DBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];SCRIPTPATH=[#openXDA.sql]" />
+      <CustomAction Id="PQDashboard.sql" BinaryKey="InstallerActions" DllEntry="DatabaseScriptAction" Execute="deferred" Impersonate="yes" />-->
+
+      <CustomAction Id="OpenSEE.CreateDBLogin.SetProperty" Property="OpenSEE.CreateDBLogin" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEECREATEDBLOGINQUERY]" />
+      <CustomAction Id="OpenSEE.CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="OpenSEE.AlterDBLogin.SetProperty" Property="OpenSEE.AlterDBLogin" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEEALTERDBLOGINQUERY]" />
+      <CustomAction Id="OpenSEE.AlterDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="OpenSEE.CreateDBUser.SetProperty" Property="OpenSEE.CreateDBUser" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEECREATEDBUSERQUERY]" />
+      <CustomAction Id="OpenSEE.CreateDBUser" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="OpenSEE.GrantDBPermissions.SetProperty" Property="OpenSEE.GrantDBPermissions" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEEDBPERMISSIONSQUERY]" />
+      <CustomAction Id="OpenSEE.GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+
+      <CustomAction Id="SEBrowser.CreateDBLogin.SetProperty" Property="SEBrowser.CreateDBLogin" Value="SERVICENAME=SEBrowser;CONNECTIONSTRING=[SEBROWSERDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[SEBROWSERCREATEDBLOGINQUERY]" />
+      <CustomAction Id="SEBrowser.CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="SEBrowser.AlterDBLogin.SetProperty" Property="SEBrowser.AlterDBLogin" Value="SERVICENAME=SEBrowser;CONNECTIONSTRING=[SEBROWSERDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[SEBROWSERALTERDBLOGINQUERY]" />
+      <CustomAction Id="SEBrowser.AlterDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="SEBrowser.CreateDBUser.SetProperty" Property="SEBrowser.CreateDBUser" Value="SERVICENAME=SEBrowser;CONNECTIONSTRING=[SEBROWSERDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[SEBROWSERCREATEDBUSERQUERY]" />
+      <CustomAction Id="SEBrowser.CreateDBUser" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="SEBrowser.GrantDBPermissions.SetProperty" Property="SEBrowser.GrantDBPermissions" Value="SERVICENAME=SEBrowser;CONNECTIONSTRING=[SEBROWSERDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[SEBROWSERDBPERMISSIONSQUERY]" />
+      <CustomAction Id="SEBrowser.GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+
+      <InstallExecuteSequence>
+        <!--<Custom Action="PQDashboard.CreateDatabase.SetProperty" After="InstallFiles">INSTALLDATABASEFEATURE</Custom>
+        <Custom Action="PQDashboard.CreateDatabase" After="PQDashboard.CreateDatabase.SetProperty">INSTALLDATABASEFEATURE</Custom>
+        <Custom Action="PQDashboard.AlterDatabase.SetProperty" After="PQDashboard.CreateDatabase">INSTALLDATABASEFEATURE</Custom>
+        <Custom Action="PQDashboard.AlterDatabase" After="PQDashboard.AlterDatabase.SetProperty">INSTALLDATABASEFEATURE</Custom>-->
+        <Custom Action="PQDashboard.CreateDBLogin.SetProperty" After="InstallFiles">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.CreateDBLogin" After="PQDashboard.CreateDBLogin.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.AlterDBLogin.SetProperty" After="PQDashboard.CreateDBLogin">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.AlterDBLogin" After="PQDashboard.AlterDBLogin.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.CreateDBUser.SetProperty" After="PQDashboard.AlterDBLogin">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.CreateDBUser" After="PQDashboard.CreateDBUser.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.GrantDBPermissions.SetProperty" After="PQDashboard.CreateDBUser">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.GrantDBPermissions" After="PQDashboard.GrantDBPermissions.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <!--<Custom Action="PQDashboard.sql.SetProperty" After="PQDashboard.GrantDBPermissions">INSTALLPQDASHFEATURE</Custom>
+        <Custom Action="PQDashboard.sql" After="PQDashboard.sql.SetProperty">INSTALLPQDASHFEATURE</Custom>-->
+
+        <Custom Action="OpenSEE.CreateDBLogin.SetProperty" After="PQDashboard.GrantDBPermissions">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.CreateDBLogin" After="OpenSEE.CreateDBLogin.SetProperty">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.AlterDBLogin.SetProperty" After="OpenSEE.CreateDBLogin">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.AlterDBLogin" After="OpenSEE.AlterDBLogin.SetProperty">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.CreateDBUser.SetProperty" After="OpenSEE.AlterDBLogin">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.CreateDBUser" After="OpenSEE.CreateDBUser.SetProperty">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.GrantDBPermissions.SetProperty" After="OpenSEE.CreateDBUser">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+        <Custom Action="OpenSEE.GrantDBPermissions" After="OpenSEE.GrantDBPermissions.SetProperty">INSTALLOPENSEEFEATURE AND OPENSEEWINDOWSAUTH</Custom>
+
+        <Custom Action="SEBrowser.CreateDBLogin.SetProperty" After="OpenSEE.GrantDBPermissions">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.CreateDBLogin" After="SEBrowser.CreateDBLogin.SetProperty">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.AlterDBLogin.SetProperty" After="SEBrowser.CreateDBLogin">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.AlterDBLogin" After="SEBrowser.AlterDBLogin.SetProperty">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.CreateDBUser.SetProperty" After="SEBrowser.AlterDBLogin">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.CreateDBUser" After="SEBrowser.CreateDBUser.SetProperty">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.GrantDBPermissions.SetProperty" After="SEBrowser.CreateDBUser">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+        <Custom Action="SEBrowser.GrantDBPermissions" After="SEBrowser.GrantDBPermissions.SetProperty">INSTALLSEBROWSERFEATURE AND SEBROWSERWINDOWSAUTH</Custom>
+
+      </InstallExecuteSequence>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="INETPUBDIR" Name="inetpub">
+                <Directory Id="WWWROOTDIR" Name="wwwroot">
+                    <Directory Id="PQDASHFOLDER" Name="PQDashboard" />
+					<Directory Id="OPENSEEFOLDER" Name="OpenSEE" />
+                    <Directory Id="SEBROWSERFOLDER" Name="SEBrowser" />
+                </Directory>
+            </Directory>
+
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="PQDashboard" />
+            </Directory>
+        </Directory>
+    </Fragment>
+    
+    <Fragment>
+        <DirectoryRef Id="PQDASHFOLDER">
+            <Component Id="PQDashboardConnectionString" Guid="{0369FEA2-33FF-4D99-8835-494B080FDAFB}" KeyPath="yes">
+                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[PQDASHDBCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
+            </Component>
+            
+            <Component Id="InstallPQDashboardSite" Guid="{C73A8977-9C77-41A4-9656-38E0934CC5B4}" KeyPath="yes">
+                <iis:WebVirtualDir Id="PQDashboardVirtualDir" Alias="PQDashboard" Directory="PQDASHFOLDER" WebSite="DefaultWebSite">
+                    <iis:WebApplication Id="PQDashboardApplication" Name="PQ Dashboard" />
+                    <iis:WebDirProperties Id="PQDashboardProperties" AnonymousAccess="no" WindowsAuthentication="yes" />
+                </iis:WebVirtualDir>
+            </Component>
+            
+            <Component Id="PQDashboardShortcutComponent" Guid="{A3F0BFE7-A72E-4D78-8A28-CA49056E14BB}">
+                <Shortcut Id="PQDashboardStartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PQ Dashboard" Icon="PQDashboard.ico" Description="URL to the PQ Dashboard website." Target="[PQDASHURL]" />
+                <RegistryValue Root="HKLM" Key="SOFTWARE\EPRI\PQDashboard" Name="PQDashShortcut" Type="string" Value="" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+		
+		<DirectoryRef Id="OPENSEEFOLDER">
+            <Component Id="OpenSEEConnectionString" Guid="{9E71A619-3BBB-4FFF-88C3-293AF8F7332E}" KeyPath="yes">
+                <util:XmlFile Id="SetOpenSEEConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[OPENSEEDBCONNECTIONSTRING]" File="[#fil29A7EC3B592F6FC3477C64C423776E14]" SelectionLanguage="XPath" Sequence="1" />
+            </Component>
+            
+            <Component Id="InstallOpenSEESite" Guid="{E9C13908-3748-4C2B-9AF1-05039F310C40}" KeyPath="yes">
+                <iis:WebVirtualDir Id="OpenSEEVirtualDir" Alias="OpenSEE" Directory="OPENSEEFOLDER" WebSite="DefaultWebSite">
+                    <iis:WebApplication Id="OpenSEEApplication" Name="OpenSEE" />
+                    <iis:WebDirProperties Id="OpenSEEProperties" AnonymousAccess="no" WindowsAuthentication="yes" />
+                </iis:WebVirtualDir>
+            </Component>            
+        </DirectoryRef>
+
+		<DirectoryRef Id="SEBROWSERFOLDER">
+            <Component Id="SEBrowserConnectionString" Guid="{88A5E495-219A-404D-AE66-4DF6AA7FBD7A}" KeyPath="yes">
+                <util:XmlFile Id="SetSEBrowserConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[SEBROWSERDBCONNECTIONSTRING]" File="[#fil38F0661E6B0937688D8D86BA4C1036DB]" SelectionLanguage="XPath" Sequence="1" />
+            </Component>
+            
+            <Component Id="InstallSEBrowserSite" Guid="{1A77B3D4-E8B9-4AC5-B132-A6A098BA746C}" KeyPath="yes">
+                <iis:WebVirtualDir Id="SEBrowserVirtualDir" Alias="SEBrowser" Directory="SEBROWSERFOLDER" WebSite="DefaultWebSite">
+                    <iis:WebApplication Id="SEBrowserApplication" Name="SEBrowser" />
+                    <iis:WebDirProperties Id="SEBrowserProperties" AnonymousAccess="no" WindowsAuthentication="yes" />
+                </iis:WebVirtualDir>
+            </Component>            
+        </DirectoryRef>
+
+
+    </Fragment>
+    
+    <Fragment>
+        <ComponentGroup Id="PQDashboardGroup">
+            <ComponentGroupRef Id="PQDashboardFiles" />
+            <ComponentRef Id="PQDashboardConnectionString" />
+            <ComponentRef Id="InstallPQDashboardSite" />
+            <ComponentRef Id="PQDashboardShortcutComponent" />
+            <ComponentGroupRef Id="Cleanup" />
+        </ComponentGroup>
+        
+		<ComponentGroup Id="OpenSEEGroup">
+            <ComponentGroupRef Id="OpenSEEFiles" />
+            <ComponentRef Id="OpenSEEConnectionString" />
+            <ComponentRef Id="InstallOpenSEESite" />
+        </ComponentGroup>
+
+        <ComponentGroup Id="SEBrowserGroup">
+            <ComponentGroupRef Id="SEBrowserFiles" />
+            <ComponentRef Id="SEBrowserConnectionString" />
+            <ComponentRef Id="InstallSEBrowserSite" />
+        </ComponentGroup>
+
+        <ComponentGroup Id="Cleanup" Directory="PQDASHFOLDER">
+            <Component Id="Cleanup" Guid="{0A8DEA19-E4E4-4C1E-99CE-219066040DC0}">
+                <CreateFolder />
+                <RemoveFolder Id="ApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+
+    <!-- Custom Dialogs -->
+    <Fragment>
+      <UI>
+        <!-- Database Connection Dialog -->
+        <Dialog Id="PQDashDatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
+            <Control Id="PQDashBannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+            <Control Id="PQDashTitle" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+                <Text>{\WixUI_Font_Title}Database Connection</Text>
+            </Control>
+            <Control Id="PQDashDescription" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+                <Text>Configure the PQ Dashboard database connection.</Text>
+            </Control>
+            <Control Id="PQDashBannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+            <Control Id="PQDashServerNameLabel" Type="Text" X="95" Y="53" Width="100" Height="13" TabSkip="no" Text="&amp;Server name:" />
+            <Control Id="PQDashServerNameEdit" Type="Edit" X="95" Y="65" Width="170" Height="18" Property="PQDASHSERVERNAME" Text="{80}" />
+            <Control Id="PQDashDatabaseNameLabel" Type="Text" X="95" Y="88" Width="100" Height="13" TabSkip="no" Text="&amp;Database name:" />
+            <Control Id="PQDashDatabaseNameEdit" Type="Edit" X="95" Y="100" Width="170" Height="18" Property="PQDASHDATABASENAME" Text="{80}" />
+            <Control Id="PQDashWindowsAuthenticationCheckBox" Type="CheckBox" X="85" Y="125" Width="200" Height="17" Property="PQDASHWINDOWSAUTH" CheckBoxValue="1" Text="Use Windows Authentication" />
+            <Control Id="PQDashUsernameLabel" Type="Text" X="95" Y="143" Width="100" Height="13" TabSkip="no" Text="&amp;Username:">
+                <Condition Action="enable">NOT PQDASHWINDOWSAUTH</Condition>
+                <Condition Action="disable">PQDASHWINDOWSAUTH</Condition>
+            </Control>
+            <Control Id="PQDashUsernameEdit" Type="Edit" X="95" Y="155" Width="170" Height="18" Property="PQDASHDBUSERNAME" Text="{80}">
+                <Condition Action="enable">NOT PQDASHWINDOWSAUTH</Condition>
+                <Condition Action="disable">PQDASHWINDOWSAUTH</Condition>
+            </Control>
+            <Control Id="PQDashPasswordLabel" Type="Text" X="95" Y="178" Width="100" Height="13" TabSkip="no" Text="&amp;Password:">
+                <Condition Action="enable">NOT PQDASHWINDOWSAUTH</Condition>
+                <Condition Action="disable">PQDASHWINDOWSAUTH</Condition>
+            </Control>
+            <Control Id="PQDashPasswordEdit" Type="Edit" X="95" Y="190" Width="170" Height="18" Property="PQDASHDBPASSWORD" Text="{80}" Password="yes">
+                <Condition Action="enable">NOT PQDASHWINDOWSAUTH</Condition>
+                <Condition Action="disable">PQDASHWINDOWSAUTH</Condition>
+            </Control>
+            <Control Id="PQDashBottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+            <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+                <Publish Event="NewDialog" Value="CustomizeDlg">1</Publish>
+            </Control>
+            <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+                <!-- Set up the authentication part of the connection string based on user input. -->
+                <Publish Property="PQDASHAUTHSTRING" Value="Integrated Security=SSPI">PQDASHWINDOWSAUTH</Publish>
+                <Publish Property="PQDASHAUTHSTRING" Value="User Id=[PQDASHDBUSERNAME];;Password=[PQDASHDBPASSWORD]">NOT PQDASHWINDOWSAUTH</Publish>
+                    
+                <!-- Set up the queries to create the database user. -->
+                <Publish Property="PQDASHGENPASSWORDLENGTH" Value="20">1</Publish>
+                <Publish Event="DoAction" Value="PasswordGenerationAction">NOT PQDASHDBPASSWORD</Publish>
+                <Publish Property="PQDASHDBLOGIN" Value="PQDashboard">1</Publish>
+                <Publish Property="GENEREATEDPQDASHDBPASSWORD" Value="[GENERATEDPASSWORD]">NOT PQDASHDBPASSWORD</Publish>
+                <Publish Property="PQDASHCREATEDBLOGINQUERY" Value="IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = '[PQDASHDBLOGIN]') CREATE LOGIN [\[][PQDASHDBLOGIN][\]] WITH PASSWORD = '[XDASERVICEPASSWORD]', CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF">1</Publish>
+                <Publish Property="PQDASHALTERDBLOGINQUERY" Value="ALTER LOGIN [\[][PQDASHDBLOGIN][\]] WITH PASSWORD = '[PQDASHDBPASSWORD]'">1</Publish>
+                <Publish Property="PQDASHCREATEDBUSERQUERY" Value="IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '[PQDASHDBLOGIN]') CREATE USER [\[][PQDASHDBLOGIN][\]] FOR LOGIN [\[][PQDASHDBLOGIN][\]]">1</Publish>
+                <Publish Property="PQDASHDBPERMISSIONSQUERY" Value="EXEC sp_addrolemember N'db_owner', N'[PQDASHDBLOGIN]'">1</Publish>
+                    
+                <!-- Set up connection strings for connecting to server and database. -->
+                <Publish Property="PQDASHSERVERCONNECTIONSTRING" Value="Data Source=[PQDASHSERVERNAME];;[PQDASHAUTHSTRING]">1</Publish>
+                <Publish Property="PQDASHDBCONNECTIONSTRING" Value="Data Source=[PQDASHSERVERNAME];;Initial Catalog=[PQDASHDATABASENAME];;[PQDASHAUTHSTRING]">1</Publish>
+                <Publish Property="PQDASHCONNECTIONSTRING" Value="Data Source=[PQDASHSERVERNAME];Initial Catalog=[PQDASHDATABASENAME];User Id=[PQDASHDBLOGIN];Password=[PQDASHDBPASSWORD]">WINDOWSAUTH</Publish>
+                <Publish Property="PQDASHCONNECTIONSTRING" Value="Data Source=[PQDASHSERVERNAME];Initial Catalog=[PQDASHDATABASENAME];User Id=[PQDASHDBUSERNAME];Password=[GENEREATEDPQDASHDBPASSWORD]">NOT WINDOWSAUTH</Publish>
+                    
+                <!-- Determine whether we can connect to the database server. -->
+                <Publish Property="CONNECTIONSTRING" Value="[PQDASHSERVERCONNECTIONSTRING]">1</Publish>
+                <Publish Event="DoAction" Value="TestDatabaseConnectionAction">1</Publish>
+                <Publish Property="PQDASHDBSERVERCONNECTS">NOT DATABASECONNECTED</Publish>
+                <Publish Property="PQDASHDBSERVERCONNECTS" Value="1">DATABASECONNECTED</Publish>
+                <Publish Property="ERRORMESSAGE" Value="Unable to connect to the database server. Please verify the connection configuration and try again.">NOT PQDASHDBSERVERCONNECTS</Publish>
+                <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT PQDASHDBSERVERCONNECTS</Publish>
+                    
+                <!-- Determine whether the database already exists on the server. -->
+                <Publish Property="CONNECTIONSTRING" Value="[PQDASHDBCONNECTIONSTRING]">PQDASHDBSERVERCONNECTS</Publish>
+                <Publish Event="DoAction" Value="TestDatabaseConnectionAction">PQDASHDBSERVERCONNECTS</Publish>
+                <Publish Property="PQDASHDBEXISTS">NOT DATABASECONNECTED</Publish>
+                <Publish Property="PQDASHDBEXISTS" Value="1">DATABASECONNECTED</Publish>
+                <Publish Property="ERRORMESSAGE" Value="Database [PQDASHDATABASENAME] does not exist on the server. Enter the name of an existing database, then try again.">PQDASHDBSERVERCONNECTS AND NOT PQDASHDBEXISTS</Publish>
+                <Publish Event="SpawnDialog" Value="ModalErrorDialog">PQDASHDBSERVERCONNECTS AND NOT PQDASHDBEXISTS</Publish>
+
+                <!-- Move to the next dialog if the validation checks out. -->
+              <Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">PQDASHDBSERVERCONNECTS AND PQDASHDBEXISTS AND INSTALLOPENSEEFEATURE</Publish>
+              <Publish Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog">PQDASHDBSERVERCONNECTS AND PQDASHDBEXISTS AND NOT INSTALLOPENSEEFEATURE AND INSTALLSEBROWSERFEATURE</Publish>
+              <Publish Event="NewDialog" Value="VerifyReadyDlg">PQDASHDBSERVERCONNECTS AND PQDASHDBEXISTS AND NOT INSTALLOPENSEEFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+            </Control>
+            <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+                <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+            </Control>
+        </Dialog>
+
+        <Dialog Id="OpenSEEDatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
+          <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+          <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>{\WixUI_Font_Title}Database Connection</Text>
+          </Control>
+          <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>Configure the OpenSEE database connection.</Text>
+          </Control>
+          <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+          <Control Id="ServerNameLabel" Type="Text" X="95" Y="53" Width="100" Height="13" TabSkip="no" Text="&amp;Server name:" />
+          <Control Id="ServerNameEdit" Type="Edit" X="95" Y="65" Width="170" Height="18" Property="OPENSEESERVERNAME" Text="{80}" />
+          <Control Id="DatabaseNameLabel" Type="Text" X="95" Y="88" Width="100" Height="13" TabSkip="no" Text="&amp;Database name:" />
+          <Control Id="DatabaseNameEdit" Type="Edit" X="95" Y="100" Width="170" Height="18" Property="OPENSEEDATABASENAME" Text="{80}" />
+          <Control Id="WindowsAuthenticationCheckBox" Type="CheckBox" X="85" Y="125" Width="200" Height="17" Property="OPENSEEWINDOWSAUTH" CheckBoxValue="1" Text="Use Windows Authentication" />
+          <Control Id="UsernameLabel" Type="Text" X="95" Y="143" Width="100" Height="13" TabSkip="no" Text="&amp;Username:">
+            <Condition Action="enable">NOT OPENSEEWINDOWSAUTH</Condition>
+            <Condition Action="disable">OPENSEEWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="UsernameEdit" Type="Edit" X="95" Y="155" Width="170" Height="18" Property="OPENSEEDBUSERNAME" Text="{80}">
+            <Condition Action="enable">NOT OPENSEEWINDOWSAUTH</Condition>
+            <Condition Action="disable">OPENSEEWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordLabel" Type="Text" X="95" Y="178" Width="100" Height="13" TabSkip="no" Text="&amp;Password:">
+            <Condition Action="enable">NOT OPENSEEWINDOWSAUTH</Condition>
+            <Condition Action="disable">OPENSEEWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordEdit" Type="Edit" X="95" Y="190" Width="170" Height="18" Property="OPENSEEDBPASSWORD" Text="{80}" Password="yes">
+            <Condition Action="enable">NOT OPENSEEWINDOWSAUTH</Condition>
+            <Condition Action="disable">OPENSEEWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+          <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+            <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">INSTALLPQDASHFEATURE</Publish>
+            <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLPQDASHFEATURE</Publish>
+          </Control>
+          <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+            <!-- Set up the authentication part of the connection string based on user input. -->
+            <Publish Property="OPENSEEAUTHSTRING" Value="Integrated Security=SSPI">OPENSEEWINDOWSAUTH</Publish>
+            <Publish Property="OPENSEEAUTHSTRING" Value="User Id=[OPENSEEDBUSERNAME];;Password=[OPENSEEDBPASSWORD]">NOT OPENSEEWINDOWSAUTH</Publish>
+
+            <!-- Set up the queries to create the database user. -->
+            <Publish Property="OPENSEEGENPASSWORDLENGTH" Value="20">1</Publish>
+            <Publish Event="DoAction" Value="PasswordGenerationAction">NOT OPENSEEDBPASSWORD</Publish>
+            <Publish Property="OPENSEEDBLOGIN" Value="OpenSEE">1</Publish>
+            <Publish Property="GENEREATEDOPENSEEDBPASSWORD" Value="[GENERATEDPASSWORD]">NOT OPENSEEDBPASSWORD</Publish>
+            <Publish Property="OPENSEECREATEDBLOGINQUERY" Value="IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = '[OPENSEEDBLOGIN]') CREATE LOGIN [\[][OPENSEEDBLOGIN][\]] WITH PASSWORD = '[XDASERVICEPASSWORD]', CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF">1</Publish>
+            <Publish Property="OPENSEEALTERDBLOGINQUERY" Value="ALTER LOGIN [\[][OPENSEEDBLOGIN][\]] WITH PASSWORD = '[OPENSEEDBPASSWORD]'">1</Publish>
+            <Publish Property="OPENSEECREATEDBUSERQUERY" Value="IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '[OPENSEEDBLOGIN]') CREATE USER [\[][OPENSEEDBLOGIN][\]] FOR LOGIN [\[][OPENSEEDBLOGIN][\]]">1</Publish>
+            <Publish Property="OPENSEEDBPERMISSIONSQUERY" Value="EXEC sp_addrolemember N'db_owner', N'[OPENSEEDBLOGIN]'">1</Publish>
+
+            <!-- Set up connection strings for connecting to server and database. -->
+            <Publish Property="OPENSEESERVERCONNECTIONSTRING" Value="Data Source=[OPENSEESERVERNAME];;[OPENSEEAUTHSTRING]">1</Publish>
+            <Publish Property="OPENSEEDBCONNECTIONSTRING" Value="Data Source=[OPENSEESERVERNAME];;Initial Catalog=[OPENSEEDATABASENAME];;[OPENSEEAUTHSTRING]">1</Publish>
+            <Publish Property="OPENSEECONNECTIONSTRING" Value="Data Source=[OPENSEESERVERNAME];Initial Catalog=[OPENSEEDATABASENAME];User Id=[OPENSEEDBLOGIN];Password=[OPENSEEDBPASSWORD]">WINDOWSAUTH</Publish>
+            <Publish Property="OPENSEECONNECTIONSTRING" Value="Data Source=[OPENSEESERVERNAME];Initial Catalog=[OPENSEEDATABASENAME];User Id=[OPENSEEDBUSERNAME];Password=[GENEREATEDOPENSEEDBPASSWORD]">NOT WINDOWSAUTH</Publish>
+
+            <!-- Determine whether we can connect to the database server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[OPENSEESERVERCONNECTIONSTRING]">1</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">1</Publish>
+            <Publish Property="OPENSEEDBSERVERCONNECTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="OPENSEEDBSERVERCONNECTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Unable to connect to the database server. Please verify the connection configuration and try again.">NOT OPENSEEDBSERVERCONNECTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT OPENSEEDBSERVERCONNECTS</Publish>
+
+            <!-- Determine whether the database already exists on the server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[OPENSEEDBCONNECTIONSTRING]">OPENSEEDBSERVERCONNECTS</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">OPENSEEDBSERVERCONNECTS</Publish>
+            <Publish Property="OPENSEEDBEXISTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="OPENSEEDBEXISTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Database [OPENSEEDATABASENAME] does not exist on the server. Enter the name of an existing database, then try again.">OPENSEEDBSERVERCONNECTS AND NOT OPENSEEDBEXISTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">OPENSEEDBSERVERCONNECTS AND NOT OPENSEEDBEXISTS</Publish>
+
+            <!-- Move to the next dialog if the validation checks out. -->
+            <Publish Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog">PQDASHDBSERVERCONNECTS AND PQDASHDBEXISTS AND INSTALLSEBROWSERFEATURE</Publish>
+            <Publish Event="NewDialog" Value="VerifyReadyDlg">PQDASHDBSERVERCONNECTS AND PQDASHDBEXISTS AND NOT INSTALLSEBROWSERFEATURE</Publish>
+          </Control>
+          <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+            <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+          </Control>
+        </Dialog>
+
+        <Dialog Id="SEBrowserDatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
+          <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+          <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>{\WixUI_Font_Title}Database Connection</Text>
+          </Control>
+          <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>Configure the SE Browser database connection.</Text>
+          </Control>
+          <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+          <Control Id="ServerNameLabel" Type="Text" X="95" Y="53" Width="100" Height="13" TabSkip="no" Text="&amp;Server name:" />
+          <Control Id="ServerNameEdit" Type="Edit" X="95" Y="65" Width="170" Height="18" Property="SEBROWSERSERVERNAME" Text="{80}" />
+          <Control Id="DatabaseNameLabel" Type="Text" X="95" Y="88" Width="100" Height="13" TabSkip="no" Text="&amp;Database name:" />
+          <Control Id="DatabaseNameEdit" Type="Edit" X="95" Y="100" Width="170" Height="18" Property="SEBROWSERDATABASENAME" Text="{80}" />
+          <Control Id="WindowsAuthenticationCheckBox" Type="CheckBox" X="85" Y="125" Width="200" Height="17" Property="SEBROWSERWINDOWSAUTH" CheckBoxValue="1" Text="Use Windows Authentication" />
+          <Control Id="UsernameLabel" Type="Text" X="95" Y="143" Width="100" Height="13" TabSkip="no" Text="&amp;Username:">
+            <Condition Action="enable">NOT SEBROWSERWINDOWSAUTH</Condition>
+            <Condition Action="disable">SEBROWSERWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="UsernameEdit" Type="Edit" X="95" Y="155" Width="170" Height="18" Property="SEBROWSERDBUSERNAME" Text="{80}">
+            <Condition Action="enable">NOT SEBROWSERWINDOWSAUTH</Condition>
+            <Condition Action="disable">SEBROWSERWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordLabel" Type="Text" X="95" Y="178" Width="100" Height="13" TabSkip="no" Text="&amp;Password:">
+            <Condition Action="enable">NOT SEBROWSERWINDOWSAUTH</Condition>
+            <Condition Action="disable">SEBROWSERWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordEdit" Type="Edit" X="95" Y="190" Width="170" Height="18" Property="SEBROWSERDBPASSWORD" Text="{80}" Password="yes">
+            <Condition Action="enable">NOT SEBROWSERWINDOWSAUTH</Condition>
+            <Condition Action="disable">SEBROWSERWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+          <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+            <Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE</Publish>
+            <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE</Publish>
+            <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE</Publish>
+          </Control>
+          <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+            <!-- Set up the authentication part of the connection string based on user input. -->
+            <Publish Property="SEBROWSERAUTHSTRING" Value="Integrated Security=SSPI">SEBROWSERWINDOWSAUTH</Publish>
+            <Publish Property="SEBROWSERAUTHSTRING" Value="User Id=[SEBROWSERDBUSERNAME];;Password=[SEBROWSERDBPASSWORD]">NOT SEBROWSERWINDOWSAUTH</Publish>
+
+            <!-- Set up the queries to create the database user. -->
+            <Publish Property="SEBROWSERGENPASSWORDLENGTH" Value="20">1</Publish>
+            <Publish Event="DoAction" Value="PasswordGenerationAction">NOT SEBROWSERDBPASSWORD</Publish>
+            <Publish Property="SEBROWSERDBLOGIN" Value="SEBrowser">1</Publish>
+            <Publish Property="GENEREATEDSEBROWSERDBPASSWORD" Value="[GENERATEDPASSWORD]">NOT SEBROWSERDBPASSWORD</Publish>
+            <Publish Property="SEBROWSERCREATEDBLOGINQUERY" Value="IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = '[SEBROWSERDBLOGIN]') CREATE LOGIN [\[][SEBROWSERDBLOGIN][\]] WITH PASSWORD = '[XDASERVICEPASSWORD]', CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF">1</Publish>
+            <Publish Property="SEBROWSERALTERDBLOGINQUERY" Value="ALTER LOGIN [\[][SEBROWSERDBLOGIN][\]] WITH PASSWORD = '[SEBROWSERDBPASSWORD]'">1</Publish>
+            <Publish Property="SEBROWSERCREATEDBUSERQUERY" Value="IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '[SEBROWSERDBLOGIN]') CREATE USER [\[][SEBROWSERDBLOGIN][\]] FOR LOGIN [\[][SEBROWSERDBLOGIN][\]]">1</Publish>
+            <Publish Property="SEBROWSERDBPERMISSIONSQUERY" Value="EXEC sp_addrolemember N'db_owner', N'[SEBROWSERDBLOGIN]'">1</Publish>
+
+            <!-- Set up connection strings for connecting to server and database. -->
+            <Publish Property="SEBROWSERSERVERCONNECTIONSTRING" Value="Data Source=[SEBROWSERSERVERNAME];;[SEBROWSERAUTHSTRING]">1</Publish>
+            <Publish Property="SEBROWSERDBCONNECTIONSTRING" Value="Data Source=[SEBROWSERSERVERNAME];;Initial Catalog=[SEBROWSERDATABASENAME];;[SEBROWSERAUTHSTRING]">1</Publish>
+            <Publish Property="SEBROWSERCONNECTIONSTRING" Value="Data Source=[SEBROWSERSERVERNAME];Initial Catalog=[SEBROWSERDATABASENAME];User Id=[SEBROWSERDBLOGIN];Password=[SEBROWSERDBPASSWORD]">WINDOWSAUTH</Publish>
+            <Publish Property="SEBROWSERCONNECTIONSTRING" Value="Data Source=[SEBROWSERSERVERNAME];Initial Catalog=[SEBROWSERDATABASENAME];User Id=[SEBROWSERDBUSERNAME];Password=[GENEREATEDSEBROWSERDBPASSWORD]">NOT WINDOWSAUTH</Publish>
+
+            <!-- Determine whether we can connect to the database server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[SEBROWSERSERVERCONNECTIONSTRING]">1</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">1</Publish>
+            <Publish Property="SEBROWSERDBSERVERCONNECTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="SEBROWSERDBSERVERCONNECTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Unable to connect to the database server. Please verify the connection configuration and try again.">NOT SEBROWSERDBSERVERCONNECTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT SEBROWSERDBSERVERCONNECTS</Publish>
+
+            <!-- Determine whether the database already exists on the server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[SEBROWSERDBCONNECTIONSTRING]">SEBROWSERDBSERVERCONNECTS</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">SEBROWSERDBSERVERCONNECTS</Publish>
+            <Publish Property="SEBROWSERDBEXISTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="SEBROWSERDBEXISTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Database [SEBROWSERDATABASENAME] does not exist on the server. Enter the name of an existing database, then try again.">SEBROWSERDBSERVERCONNECTS AND NOT SEBROWSERDBEXISTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">SEBROWSERDBSERVERCONNECTS AND NOT SEBROWSERDBEXISTS</Publish>
+
+            <!-- Move to the next dialog if the validation checks out. -->
+            <Publish Event="NewDialog" Value="VerifyReadyDlg">SEBROWSERDBSERVERCONNECTS AND SEBROWSERDBEXISTS</Publish>
+          </Control>
+          <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+            <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+          </Control>
+        </Dialog>
+
+        <!-- Modal dialog to display error messages. -->
+        <Dialog Id="ModalErrorDialog" Width="220" Height="100" Title="Database Connection Error">
+            <Control Id="ErrorMessageLabel" Type="Text" X="30" Y="15" Width="160" Height="40" TabSkip="no" Text="[ERRORMESSAGE]" />
+            <Control Id="OKButton" Type="PushButton" X="82" Y="70" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;OK">
+                <Publish Event="EndDialog" Value="Return">1</Publish>
+            </Control>
+        </Dialog>
+      </UI>
+    </Fragment>
+</Wix>

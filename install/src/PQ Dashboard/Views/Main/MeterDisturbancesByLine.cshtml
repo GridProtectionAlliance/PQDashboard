@@ -22,7 +22,7 @@
 //*******************************************************************************************************@
 
 @using System.Collections.Specialized
-@using GSF.Data.Model
+@using GSF.Data
 @using GSF.Web.Model
 @using PQDashboard.Model
 @using EventView = openXDA.Model.EventView
@@ -37,13 +37,18 @@
     string context = parameters["context"] ?? "day";
     string[] severityCodes;
 
-    EventView theEvent;
-    using (DataContext dataContext = new DataContext("systemSettings"))
+    using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
     {
-            theEvent = dataContext.Table<EventView>().QueryRecords(restriction: new RecordRestriction("ID = {0}", postedEventId)).First();
-            severityCodes = dataContext.Connection.RetrieveData("select Distinct SeverityCode from DisturbanceSeverity").Select().Select(x => x["SeverityCode"].ToString()).ToArray();
-    }
+        ViewBag.MeterID = connection.ExecuteScalar<int>("SELECT MeterID FROM Event WHERE ID = {0}", postedEventId);
+        ViewBag.MeterName = connection.ExecuteScalar<string>("SELECT Name FROM Meter WHERE ID = {0}", ViewBag.MeterID);
+        ViewBag.StartTime = connection.ExecuteScalar<DateTime>("SELECT StartTime FROM Event WHERE ID = {0}", postedEventId);
 
+        severityCodes = connection.RetrieveData("select Distinct SeverityCode from DisturbanceSeverity").Select().Select(x => x["SeverityCode"].ToString()).ToArray();
+    }
+    using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+    {
+        ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
+    }
 }
 
 <!DOCTYPE html>
@@ -78,7 +83,7 @@
 </head>
 
 <body style="height: 100%;">
-<div class="gridheader"><center>Disturbances for @theEvent.MeterName for @theEvent.StartTime</center>
+<div class="gridheader"><center>Disturbances for @ViewBag.MeterName for @ViewBag.StartTime</center>
 </div>
 
 
@@ -112,10 +117,10 @@
 </div>
 
 <script>
-
-    var postedMeterId = "@theEvent.MeterID";
-    var postedDate = "@theEvent.StartTime";
-    var postedMeterName = "@theEvent.MeterName";
+    var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
+    var postedMeterId = "@ViewBag.MeterID";
+    var postedDate = "@ViewBag.StartTime";
+    var postedMeterName = "@ViewBag.MeterName";
     var context = "@context";
     var severityCodes = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(severityCodes))')
 
@@ -131,10 +136,7 @@
     reconnectHub = false;
 
     $(document).ready(function () {
-        $(window).on('hubConnected', function () {
-            populateMeterEventsDivWithGrid('getSiteLinesDetailsByDate', "MeterDetailsByDate", postedMeterName, postedMeterId, postedDate);
-        })
-
+        populateMeterEventsDivWithGrid();
     });
 
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
@@ -145,8 +147,15 @@
 
     var columnsrenderer = function (value) { return '<div style="text-align: center; margin-top: 5px;">' + value + '</div>'; };
 
-    function populateMeterEventsDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-        dataHub.getSiteLinesDetailsByDate(siteID, theDate, context, 'Disturbance').done(function (data) {
+    function populateMeterEventsDivWithGrid() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Content("~/")api/Disturbances/DetailsByDate/@postedEventId/' + context,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            cache: true,
+            async: true
+        }).done(function (data) {
             json = data;
 
             $.each(json, function (_, obj) {
@@ -169,7 +178,7 @@
             });
 
 
-            $('#' + thediv).puidatatable({
+            $('#MeterDetailsByDate').puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
                 scrollWidth: '100%',
@@ -223,7 +232,7 @@
         };
 
         if (!childWindows[title] || childWindows[title].closed)
-            window.open("@Html.Raw(Url.Content("~/Main/OpenSEE"))?eventid=" + id + "&faultcurves=1", title);
+            window.open(openSEEInstance + "?eventid=" + id + "&faultcurves=1", title);
         else
             childWindows[title].UpdateMarkings();
 
