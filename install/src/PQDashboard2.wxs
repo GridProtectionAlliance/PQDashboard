@@ -1,53 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
     <Product Id="{61FB944A-6989-4451-A3A5-23B69550454A}" Name="PQ Dashboard" Language="1033" Version="!(bind.FileVersion.fil8A20DABB41240431B350E6A65A81B384)" Manufacturer="Grid Protection Alliance" UpgradeCode="{A39ED5D7-B6CC-419B-9EFA-73D786FAF75D}">
-        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+      <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
-        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-        <MediaTemplate EmbedCab="yes" />
+      <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+      <MediaTemplate EmbedCab="yes" />
 
-        <PropertyRef Id="WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED"/>
-        <Condition Message='This setup requires Microsoft .NET Framework 4.6 or greater - this will need to be installed before installation can continue.'>
-            <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED]]>
-        </Condition>
+      <PropertyRef Id="WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED"/>
+      <Condition Message='This setup requires Microsoft .NET Framework 4.6 or greater - this will need to be installed before installation can continue.'>
+          <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_46_OR_LATER_INSTALLED]]>
+      </Condition>
 
-        <Feature Id="AllSites" Title="All Websites" Level="1" Display="expand" Description="All websites in the PQ Dashboard installation.">
-            <!-- PQ Dashboard -->
-            <Feature Id="PQDashboardFeature" Title="PQ Dashboard" AllowAdvertise="no" Description="Installs the PQ Dashboard website for visualization of power quality data." ConfigurableDirectory="PQDASHFOLDER">
-                <ComponentGroupRef Id="PQDashboardGroup" />
-            </Feature>
-			<!-- OpenSEE -->
-            <Feature Id="OpenSEEFeature" Title="OpenSEE" AllowAdvertise="no" Description="Installs the OpenSEE website for visualization of waveform data." ConfigurableDirectory="OPENSEEFOLDER">
-                <ComponentGroupRef Id="OpenSEEGroup" />
-            </Feature>
-			<!-- SEBrowser -->
-            <Feature Id="SEBrowserFeature" Title="SEBrowser" AllowAdvertise="no" Description="Installs the SEBrowser website for visualization of waveform data." ConfigurableDirectory="SEBROWSERFOLDER">
-                <ComponentGroupRef Id="SEBrowserGroup" />
-            </Feature>
+      <Feature Id="AllSites" Title="All Websites" Level="1" Display="expand" Description="All websites in the PQ Dashboard installation.">
+          <!-- PQ Dashboard -->
+          <Feature Id="PQDashboardFeature" Title="PQ Dashboard" AllowAdvertise="no" Description="Installs the PQ Dashboard website for visualization of power quality data." ConfigurableDirectory="PQDASHFOLDER">
+              <ComponentGroupRef Id="PQDashboardGroup" />
+          </Feature>
+		<!-- OpenSEE -->
+          <Feature Id="OpenSEEFeature" Title="OpenSEE" AllowAdvertise="no" Description="Installs the OpenSEE website for visualization of waveform data." ConfigurableDirectory="OPENSEEFOLDER">
+              <ComponentGroupRef Id="OpenSEEGroup" />
+          </Feature>
+		<!-- SEBrowser -->
+          <Feature Id="SEBrowserFeature" Title="SEBrowser" AllowAdvertise="no" Description="Installs the SEBrowser website for visualization of waveform data." ConfigurableDirectory="SEBROWSERFOLDER">
+              <ComponentGroupRef Id="SEBrowserGroup" />
+          </Feature>
 
-        </Feature>
-        <Property Id="INSTALLPQDASHFEATURE" Secure="yes" />
-        <Property Id="INSTALLOPENSEEFEATURE" Secure="yes" />
-        <Property Id="INSTALLSEBROWSERFEATURE" Secure="yes" />
+      </Feature>
+      <Property Id="INSTALLPQDASHFEATURE" Secure="yes" />
+      <Property Id="INSTALLOPENSEEFEATURE" Secure="yes" />
+      <Property Id="INSTALLSEBROWSERFEATURE" Secure="yes" />
 
-        <Property Id="PQDASHSERVERNAME" Value="localhost" Secure="yes"/>
-        <Property Id="OPENSEESERVERNAME" Value="localhost" Secure="yes"/>
-        <Property Id="SEBROWSERSERVERNAME" Value="localhost" Secure="yes"/>
+      <Property Id="PQDASHSERVERNAME" Value="localhost" Secure="yes"/>
+      <Property Id="XDASERVERNAME" Value="localhost" Secure="yes"/>
+      <Property Id="OPENSEESERVERNAME" Value="localhost" Secure="yes"/>
+      <Property Id="SEBROWSERSERVERNAME" Value="localhost" Secure="yes"/>
 
-        <Property Id="PQDASHWINDOWSAUTH" Value="1" Secure="yes"/>
-        <Property Id="OPENSEEWINDOWSAUTH" Value="1" Secure="yes"/>
-        <Property Id="SEBROWSERWINDOWSAUTH" Value="1" Secure="yes"/>
+      <Property Id="PQDASHWINDOWSAUTH" Value="1" Secure="yes"/>
+      <Property Id="XDAWINDOWSAUTH" Value="1" Secure="yes"/>
+      <Property Id="OPENSEEWINDOWSAUTH" Value="1" Secure="yes"/>
+      <Property Id="SEBROWSERWINDOWSAUTH" Value="1" Secure="yes"/>
 
-        <Property Id="DATAPROVIDERSTRING" Value="AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089};; ConnectionType=System.Data.SqlClient.SqlConnection;; AdapterType=System.Data.SqlClient.SqlDataAdapter" Secure="yes" />
-        <Property Id="PQDASHDATABASENAME" Value="PQDashboard" Secure="yes" />
-        <Property Id="OPENSEEDATABASENAME" Value="OpenSEE" Secure="yes"/>
-        <Property Id="SEBROWSERDATABASENAME" Value="SEBrowser" Secure="yes"/>
+      <Property Id="DATAPROVIDERSTRING" Value="AssemblyName={System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089};; ConnectionType=System.Data.SqlClient.SqlConnection;; AdapterType=System.Data.SqlClient.SqlDataAdapter" Secure="yes" />
+      <Property Id="PQDASHDATABASENAME" Value="PQDashboard" Secure="yes" />
+      <Property Id="XDADATABASENAME" Value="OpenXDA" Secure="yes" />
+      <Property Id="OPENSEEDATABASENAME" Value="OpenSEE" Secure="yes"/>
+      <Property Id="SEBROWSERDATABASENAME" Value="SEBrowser" Secure="yes"/>
 
-        <!--<SetProperty Id="PQDASHSCRIPTPATH" Value="[INSTALLFOLDER]\PQ Dashboard\Data\PQDashboard.sql" After="LaunchConditions" Sequence="execute" />
-        <SetProperty Id="OPENSEESCRIPTPATH" Value="[INSTALLFOLDER]\OpenSEE\Data\OpenSEE.sql" After="LaunchConditions" Sequence="execute" />
-        <SetProperty Id="SEBROWSERSCRIPTPATH" Value="[INSTALLFOLDER]\SEBrowser\Data\SEBrowser.sql" After="LaunchConditions" Sequence="execute" />-->
+      <!--<SetProperty Id="PQDASHSCRIPTPATH" Value="[INSTALLFOLDER]\PQ Dashboard\Data\PQDashboard.sql" After="LaunchConditions" Sequence="execute" />
+      <SetProperty Id="OPENSEESCRIPTPATH" Value="[INSTALLFOLDER]\OpenSEE\Data\OpenSEE.sql" After="LaunchConditions" Sequence="execute" />
+      <SetProperty Id="SEBROWSERSCRIPTPATH" Value="[INSTALLFOLDER]\SEBrowser\Data\SEBrowser.sql" After="LaunchConditions" Sequence="execute" />-->
 
-        <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard/" Before="CreateShortcuts" Sequence="execute" />
+      <SetProperty Id="PQDASHURL" Value="http://localhost/PQDashboard/" Before="CreateShortcuts" Sequence="execute" />
 
         <UI>
           <!-- User Interface -->
@@ -56,10 +59,7 @@
           <DialogRef Id="PQDashDatabaseConnectionDialog" />
           <DialogRef Id="OpenSEEDatabaseConnectionDialog" />
           <DialogRef Id="SEBrowserDatabaseConnectionDialog" />
-
-          <!--<Publish Dialog="CustomizeDlg" Control="Next" Property="PQDASHSERVERNAME" Value="localhost" Order="1">1</Publish>
-          <Publish Dialog="CustomizeDlg" Control="Next" Property="OPENSEESERVERNAME" Value="localhost" Order="1">1</Publish>
-          <Publish Dialog="CustomizeDlg" Control="Next" Property="SEBROWSERSERVERNAME" Value="localhost" Order="1">1</Publish>-->
+          <DialogRef Id="XDADatabaseConnectionDialog" />
 
           <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLPQDASHFEATURE" Value="1" Order="1"><![CDATA[&PQDashboardFeature=3]]></Publish>
           <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLPQDASHFEATURE" Order="3"><![CDATA[NOT(&PQDashboardFeature=3)]]></Publish>
@@ -68,18 +68,21 @@
           <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLSEBROWSERFEATURE" Value="1" Order="1"><![CDATA[&SEBrowserFeature=3]]></Publish>
           <Publish Dialog="CustomizeDlg" Control="Next" Property="INSTALLSEBROWSERFEATURE" Order="1"><![CDATA[NOT(&SEBrowserFeature=3)]]></Publish>
 
-          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="PQDashDatabaseConnectionDialog" Order="4">INSTALLPQDASHFEATURE</Publish>
-          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND INSTALLOPENSEEFEATURE</Publish>
-          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND NOT INSTALLOPENSEEFEATURE AND INSTALLSEBROWSERFEATURE</Publish>
-
-          <!--<Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE</Publish>
-          <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE</Publish>
-          <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>-->
+          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="XDADatabaseConnectionDialog" Order="4">1</Publish>
+          <!--<Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND INSTALLOPENSEEFEATURE</Publish>
+          <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog" Order="4">NOT INSTALLPQDASHFEATURE AND NOT INSTALLOPENSEEFEATURE AND INSTALLSEBROWSERFEATURE</Publish>-->
 
           <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
           <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog">INSTALLSEBROWSERFEATURE</Publish>
           <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
           <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+
+          <ProgressText Action="XDA.CreateDatabase">Creating database [XDADATABASENAME]...</ProgressText>
+          <ProgressText Action="XDA.AlterDatabase">Setting database as trustworthy...</ProgressText>
+          <ProgressText Action="XDA.CreateDBLogin">Creating login [XDADBLOGIN]...</ProgressText>
+          <ProgressText Action="XDA.AlterDBLogin">Setting password for login [XDADBLOGIN]...</ProgressText>
+          <ProgressText Action="XDA.CreateDBUser">Granting privileges to login [XDADBLOGIN]...</ProgressText>
+          <ProgressText Action="XDA.GrantDBPermissions">Granting privileges to login [XDADBLOGIN]...</ProgressText>
 
           <ProgressText Action="PQDashboard.CreateDatabase">Creating database [PQDASHDATABASENAME]...</ProgressText>
           <ProgressText Action="PQDashboard.AlterDatabase">Setting database as trustworthy...</ProgressText>
@@ -149,6 +152,15 @@
       <!--<CustomAction Id="PQDashboard.sql.SetProperty" Property="PQDashboard.sql" Value="SERVICENAME=[SERVICENAME];CONNECTIONSTRING=[DBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];SCRIPTPATH=[#openXDA.sql]" />
       <CustomAction Id="PQDashboard.sql" BinaryKey="InstallerActions" DllEntry="DatabaseScriptAction" Execute="deferred" Impersonate="yes" />-->
 
+      <CustomAction Id="XDA.CreateDBLogin.SetProperty" Property="XDA.CreateDBLogin" Value="SERVICENAME=XDA;CONNECTIONSTRING=[XDADBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[XDACREATEDBLOGINQUERY]" />
+      <CustomAction Id="XDA.CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="XDA.AlterDBLogin.SetProperty" Property="XDA.AlterDBLogin" Value="SERVICENAME=XDA;CONNECTIONSTRING=[XDADBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[XDAALTERDBLOGINQUERY]" />
+      <CustomAction Id="XDA.AlterDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="XDA.CreateDBUser.SetProperty" Property="XDA.CreateDBUser" Value="SERVICENAME=XDA;CONNECTIONSTRING=[XDADBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[XDACREATEDBUSERQUERY]" />
+      <CustomAction Id="XDA.CreateDBUser" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+      <CustomAction Id="XDA.GrantDBPermissions.SetProperty" Property="XDA.GrantDBPermissions" Value="SERVICENAME=XDA;CONNECTIONSTRING=[XDADBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[XDADBPERMISSIONSQUERY]" />
+      <CustomAction Id="XDA.GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
+
       <CustomAction Id="OpenSEE.CreateDBLogin.SetProperty" Property="OpenSEE.CreateDBLogin" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEECREATEDBLOGINQUERY]" />
       <CustomAction Id="OpenSEE.CreateDBLogin" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
       <CustomAction Id="OpenSEE.AlterDBLogin.SetProperty" Property="OpenSEE.AlterDBLogin" Value="SERVICENAME=OpenSEE;CONNECTIONSTRING=[OPENSEEDBCONNECTIONSTRING];DATAPROVIDERSTRING=[DATAPROVIDERSTRING];DBQUERY=[OPENSEEALTERDBLOGINQUERY]" />
@@ -168,11 +180,21 @@
       <CustomAction Id="SEBrowser.GrantDBPermissions" BinaryKey="InstallerActions" DllEntry="DatabaseQueryAction" Execute="deferred" Impersonate="yes" />
 
       <InstallExecuteSequence>
+        <Custom Action="XDA.CreateDBLogin.SetProperty" After="InstallFiles">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.CreateDBLogin" After="XDA.CreateDBLogin.SetProperty">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.AlterDBLogin.SetProperty" After="XDA.CreateDBLogin"> (INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.AlterDBLogin" After="XDA.AlterDBLogin.SetProperty">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.CreateDBUser.SetProperty" After="XDA.AlterDBLogin">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.CreateDBUser" After="XDA.CreateDBUser.SetProperty">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.GrantDBPermissions.SetProperty" After="XDA.CreateDBUser">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+        <Custom Action="XDA.GrantDBPermissions" After="XDA.GrantDBPermissions.SetProperty">(INSTALLPQDASHFEATURE OR INSTALLOPENSEEFEATURE OR INSTALLSEBROWSERFEATURE) AND XDAWINDOWSAUTH</Custom>
+
+
         <!--<Custom Action="PQDashboard.CreateDatabase.SetProperty" After="InstallFiles">INSTALLDATABASEFEATURE</Custom>
         <Custom Action="PQDashboard.CreateDatabase" After="PQDashboard.CreateDatabase.SetProperty">INSTALLDATABASEFEATURE</Custom>
         <Custom Action="PQDashboard.AlterDatabase.SetProperty" After="PQDashboard.CreateDatabase">INSTALLDATABASEFEATURE</Custom>
         <Custom Action="PQDashboard.AlterDatabase" After="PQDashboard.AlterDatabase.SetProperty">INSTALLDATABASEFEATURE</Custom>-->
-        <Custom Action="PQDashboard.CreateDBLogin.SetProperty" After="InstallFiles">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
+        <Custom Action="PQDashboard.CreateDBLogin.SetProperty" After="XDA.GrantDBPermissions">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
         <Custom Action="PQDashboard.CreateDBLogin" After="PQDashboard.CreateDBLogin.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
         <Custom Action="PQDashboard.AlterDBLogin.SetProperty" After="PQDashboard.CreateDBLogin">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
         <Custom Action="PQDashboard.AlterDBLogin" After="PQDashboard.AlterDBLogin.SetProperty">INSTALLPQDASHFEATURE AND PQDASHWINDOWSAUTH</Custom>
@@ -223,10 +245,13 @@
     <Fragment>
         <DirectoryRef Id="PQDASHFOLDER">
             <Component Id="PQDashboardConnectionString" Guid="{0369FEA2-33FF-4D99-8835-494B080FDAFB}" KeyPath="yes">
-                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[PQDASHDBCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
+                <util:XmlFile Id="SetPQDashboardConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[PQDASHCONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
             </Component>
-            
-            <Component Id="InstallPQDashboardSite" Guid="{C73A8977-9C77-41A4-9656-38E0934CC5B4}" KeyPath="yes">
+          <Component Id="XDAConnectionString" Guid="{91EDA898-2281-4D02-9400-32107898EE01}" KeyPath="yes">
+            <util:XmlFile Id="SetXDAConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/dbOpenXDA/add[\[]@name='ConnectionString'[\]]/@value" Value="[XDACONNECTIONSTRING]" File="[#filC6471F25B8C838F7719FA3B96A0EFAB2]" SelectionLanguage="XPath" Sequence="1" />
+          </Component>
+
+          <Component Id="InstallPQDashboardSite" Guid="{C73A8977-9C77-41A4-9656-38E0934CC5B4}" KeyPath="yes">
                 <iis:WebVirtualDir Id="PQDashboardVirtualDir" Alias="PQDashboard" Directory="PQDASHFOLDER" WebSite="DefaultWebSite">
                     <iis:WebApplication Id="PQDashboardApplication" Name="PQ Dashboard" />
                     <iis:WebDirProperties Id="PQDashboardProperties" AnonymousAccess="no" WindowsAuthentication="yes" />
@@ -241,7 +266,7 @@
 		
 		<DirectoryRef Id="OPENSEEFOLDER">
             <Component Id="OpenSEEConnectionString" Guid="{9E71A619-3BBB-4FFF-88C3-293AF8F7332E}" KeyPath="yes">
-                <util:XmlFile Id="SetOpenSEEConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[OPENSEEDBCONNECTIONSTRING]" File="[#fil29A7EC3B592F6FC3477C64C423776E14]" SelectionLanguage="XPath" Sequence="1" />
+                <util:XmlFile Id="SetOpenSEEConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[OPENSEECONNECTIONSTRING]" File="[#fil29A7EC3B592F6FC3477C64C423776E14]" SelectionLanguage="XPath" Sequence="1" />
             </Component>
             
             <Component Id="InstallOpenSEESite" Guid="{E9C13908-3748-4C2B-9AF1-05039F310C40}" KeyPath="yes">
@@ -254,7 +279,7 @@
 
 		<DirectoryRef Id="SEBROWSERFOLDER">
             <Component Id="SEBrowserConnectionString" Guid="{88A5E495-219A-404D-AE66-4DF6AA7FBD7A}" KeyPath="yes">
-                <util:XmlFile Id="SetSEBrowserConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[SEBROWSERDBCONNECTIONSTRING]" File="[#fil38F0661E6B0937688D8D86BA4C1036DB]" SelectionLanguage="XPath" Sequence="1" />
+                <util:XmlFile Id="SetSEBrowserConnectionString" Action="setValue" ElementPath="/configuration/categorizedSettings/systemSettings/add[\[]@name='ConnectionString'[\]]/@value" Value="[SEBROWSERCONNECTIONSTRING]" File="[#fil38F0661E6B0937688D8D86BA4C1036DB]" SelectionLanguage="XPath" Sequence="1" />
             </Component>
             
             <Component Id="InstallSEBrowserSite" Guid="{1A77B3D4-E8B9-4AC5-B132-A6A098BA746C}" KeyPath="yes">
@@ -272,6 +297,7 @@
         <ComponentGroup Id="PQDashboardGroup">
             <ComponentGroupRef Id="PQDashboardFiles" />
             <ComponentRef Id="PQDashboardConnectionString" />
+            <ComponentRef Id="XDAConnectionString" />
             <ComponentRef Id="InstallPQDashboardSite" />
             <ComponentRef Id="PQDashboardShortcutComponent" />
             <ComponentGroupRef Id="Cleanup" />
@@ -301,6 +327,88 @@
     <Fragment>
       <UI>
         <!-- Database Connection Dialog -->
+        <Dialog Id="XDADatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
+          <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+          <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>{\WixUI_Font_Title}Database Connection</Text>
+          </Control>
+          <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+            <Text>Configure the OpenXDA database connection.</Text>
+          </Control>
+          <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+          <Control Id="ServerNameLabel" Type="Text" X="95" Y="53" Width="100" Height="13" TabSkip="no" Text="&amp;Server name:" />
+          <Control Id="ServerNameEdit" Type="Edit" X="95" Y="65" Width="170" Height="18" Property="XDASERVERNAME" Text="{80}" />
+          <Control Id="DatabaseNameLabel" Type="Text" X="95" Y="88" Width="100" Height="13" TabSkip="no" Text="&amp;Database name:" />
+          <Control Id="DatabaseNameEdit" Type="Edit" X="95" Y="100" Width="170" Height="18" Property="XDADATABASENAME" Text="{80}" />
+          <Control Id="WindowsAuthenticationCheckBox" Type="CheckBox" X="85" Y="125" Width="200" Height="17" Property="XDAWINDOWSAUTH" CheckBoxValue="1" Text="Use Windows Authentication" />
+          <Control Id="UsernameLabel" Type="Text" X="95" Y="143" Width="100" Height="13" TabSkip="no" Text="&amp;Username:">
+            <Condition Action="enable">NOT XDAWINDOWSAUTH</Condition>
+            <Condition Action="disable">XDAWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="UsernameEdit" Type="Edit" X="95" Y="155" Width="170" Height="18" Property="XDADBUSERNAME" Text="{80}">
+            <Condition Action="enable">NOT XDAWINDOWSAUTH</Condition>
+            <Condition Action="disable">XDAWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordLabel" Type="Text" X="95" Y="178" Width="100" Height="13" TabSkip="no" Text="&amp;Password:">
+            <Condition Action="enable">NOT XDAWINDOWSAUTH</Condition>
+            <Condition Action="disable">XDAWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="PasswordEdit" Type="Edit" X="95" Y="190" Width="170" Height="18" Property="XDADBPASSWORD" Text="{80}" Password="yes">
+            <Condition Action="enable">NOT XDAWINDOWSAUTH</Condition>
+            <Condition Action="disable">XDAWINDOWSAUTH</Condition>
+          </Control>
+          <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+          <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+            <Publish Event="NewDialog" Value="CustomizeDlg">1</Publish>
+          </Control>
+          <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+            <!-- Set up the authentication part of the connection string based on user input. -->
+            <Publish Property="XDAAUTHSTRING" Value="Integrated Security=SSPI">XDAWINDOWSAUTH</Publish>
+            <Publish Property="XDAAUTHSTRING" Value="User Id=[XDADBUSERNAME];;Password=[XDADBPASSWORD]">NOT XDAWINDOWSAUTH</Publish>
+
+            <!-- Set up the queries to create the database user. -->
+            <Publish Property="XDAGENPASSWORDLENGTH" Value="20">1</Publish>
+            <Publish Event="DoAction" Value="PasswordGenerationAction">NOT XDADBPASSWORD</Publish>
+            <Publish Property="XDADBLOGIN" Value="OpenXDA">1</Publish>
+            <Publish Property="GENEREATEDXDADBPASSWORD" Value="[GENERATEDPASSWORD]">NOT XDADBPASSWORD</Publish>
+            <Publish Property="XDACREATEDBLOGINQUERY" Value="IF NOT EXISTS (SELECT * FROM master.dbo.syslogins WHERE loginname = '[XDADBLOGIN]') CREATE LOGIN [\[][XDADBLOGIN][\]] WITH PASSWORD = '[XDASERVICEPASSWORD]', CHECK_EXPIRATION = OFF, CHECK_POLICY = OFF">1</Publish>
+            <Publish Property="XDAALTERDBLOGINQUERY" Value="ALTER LOGIN [\[][XDADBLOGIN][\]] WITH PASSWORD = '[XDADBPASSWORD]'">1</Publish>
+            <Publish Property="XDACREATEDBUSERQUERY" Value="IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '[XDADBLOGIN]') CREATE USER [\[][XDADBLOGIN][\]] FOR LOGIN [\[][XDADBLOGIN][\]]">1</Publish>
+            <Publish Property="XDADBPERMISSIONSQUERY" Value="EXEC sp_addrolemember N'db_owner', N'[XDADBLOGIN]'">1</Publish>
+
+            <!-- Set up connection strings for connecting to server and database. -->
+            <Publish Property="XDASERVERCONNECTIONSTRING" Value="Data Source=[XDASERVERNAME];;[XDAAUTHSTRING]">1</Publish>
+            <Publish Property="XDADBCONNECTIONSTRING" Value="Data Source=[XDASERVERNAME];;Initial Catalog=[XDADATABASENAME];;[XDAAUTHSTRING]">1</Publish>
+            <Publish Property="XDACONNECTIONSTRING" Value="Data Source=[XDASERVERNAME];Initial Catalog=[XDADATABASENAME];User Id=[XDADBLOGIN];Password=[XDADBPASSWORD]">WINDOWSAUTH</Publish>
+            <Publish Property="XDACONNECTIONSTRING" Value="Data Source=[XDASERVERNAME];Initial Catalog=[XDADATABASENAME];User Id=[XDADBUSERNAME];Password=[GENEREATEDXDADBPASSWORD]">NOT WINDOWSAUTH</Publish>
+
+            <!-- Determine whether we can connect to the database server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[XDASERVERCONNECTIONSTRING]">1</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">1</Publish>
+            <Publish Property="XDADBSERVERCONNECTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="XDADBSERVERCONNECTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Unable to connect to the database server. Please verify the connection configuration and try again.">NOT XDADBSERVERCONNECTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">NOT XDADBSERVERCONNECTS</Publish>
+
+            <!-- Determine whether the database already exists on the server. -->
+            <Publish Property="CONNECTIONSTRING" Value="[XDADBCONNECTIONSTRING]">XDADBSERVERCONNECTS</Publish>
+            <Publish Event="DoAction" Value="TestDatabaseConnectionAction">XDADBSERVERCONNECTS</Publish>
+            <Publish Property="XDADBEXISTS">NOT DATABASECONNECTED</Publish>
+            <Publish Property="XDADBEXISTS" Value="1">DATABASECONNECTED</Publish>
+            <Publish Property="ERRORMESSAGE" Value="Database [XDADATABASENAME] does not exist on the server. Enter the name of an existing database, then try again.">XDADBSERVERCONNECTS AND NOT XDADBEXISTS</Publish>
+            <Publish Event="SpawnDialog" Value="ModalErrorDialog">XDADBSERVERCONNECTS AND NOT XDADBEXISTS</Publish>
+
+            <!-- Move to the next dialog if the validation checks out. -->
+            <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">XDADBSERVERCONNECTS AND XDADBEXISTS AND INSTALLPQDASHFEATURE</Publish>
+            <Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">XDADBSERVERCONNECTS AND XDADBEXISTS AND NOT INSTALLPQDASHFEATURE AND INSTALLOPENSEEFEATURE</Publish>
+            <Publish Event="NewDialog" Value="SEBrowserDatabaseConnectionDialog">XDADBSERVERCONNECTS AND XDADBEXISTS AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLOPENSEEFEATURE AND INSTALLSEBROWSERFEATURE</Publish>
+            <Publish Event="NewDialog" Value="VerifyReadyDlg">XDADBSERVERCONNECTS AND XDADBEXISTS AND NOT INSTALLPQDASHFEATURE AND NOT INSTALLOPENSEEFEATURE AND NOT INSTALLSEBROWSERFEATURE</Publish>
+          </Control>
+          <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+            <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+          </Control>
+        </Dialog>
+
         <Dialog Id="PQDashDatabaseConnectionDialog" Width="370" Height="270" Title="[ProductName] Setup">
             <Control Id="PQDashBannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
             <Control Id="PQDashTitle" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
@@ -333,7 +441,7 @@
             </Control>
             <Control Id="PQDashBottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
             <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
-                <Publish Event="NewDialog" Value="CustomizeDlg">1</Publish>
+                <Publish Event="NewDialog" Value="XDADatabaseConnectionDialog">1</Publish>
             </Control>
             <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
                 <!-- Set up the authentication part of the connection string based on user input. -->
@@ -415,7 +523,7 @@
           <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
           <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
             <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">INSTALLPQDASHFEATURE</Publish>
-            <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLPQDASHFEATURE</Publish>
+            <Publish Event="NewDialog" Value="XDADatabaseConnectionDialog">NOT INSTALLPQDASHFEATURE</Publish>
           </Control>
           <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
             <!-- Set up the authentication part of the connection string based on user input. -->
@@ -497,7 +605,7 @@
           <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
             <Publish Event="NewDialog" Value="OpenSEEDatabaseConnectionDialog">INSTALLOPENSEEFEATURE</Publish>
             <Publish Event="NewDialog" Value="PQDashDatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND INSTALLPQDASHFEATURE</Publish>
-            <Publish Event="NewDialog" Value="CustomizeDlg">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE</Publish>
+            <Publish Event="NewDialog" Value="XDADatabaseConnectionDialog">NOT INSTALLOPENSEEFEATURE AND NOT INSTALLPQDASHFEATURE</Publish>
           </Control>
           <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
             <!-- Set up the authentication part of the connection string based on user input. -->
