@@ -456,6 +456,7 @@
     <Compile Include="GlobalSettings.cs" />
     <Compile Include="Model\AppModel.cs" />
     <Content Include="Images\2-Line - 500.png" />
+    <Content Include="Images\map-icon.png" />
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
     <Content Include="Images\PQDashboardLogo II w-GPA_600.png" />
     <Content Include="Images\PQI.png" />
@@ -481,6 +482,7 @@
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
     <Content Include="BreakerReportCSVDownload.ashx" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
+    <None Include="Properties\PublishProfiles\tva6a.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap-fullscreen-select.js" />

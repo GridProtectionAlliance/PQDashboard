@@ -430,6 +430,7 @@ function populateFaultsDivWithGrid(data) {
 
     var filteredData = [];
     var includeCauseCode = false;
+    var includeFTT = false;
     if (data != null) {
 
         $.each(data, function (i, d) {
@@ -438,6 +439,9 @@ function populateFaultsDivWithGrid(data) {
 
                 if (d.causecode !== undefined)
                     includeCauseCode = true;
+
+                if (d.ftt !== undefined)
+                    includeFTT = true;
             }
         });
 
@@ -469,6 +473,10 @@ function populateFaultsDivWithGrid(data) {
         columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
         columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
         columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html });
+
+        if (includeFTT)
+            columns.push({ field: 'ftt', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFTTButton_html });
+
         columns.push({ field: 'FaultSpecifics', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeFaultSpecificsButton_html });
         columns.push({ headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."></span></button>'; } });
 
