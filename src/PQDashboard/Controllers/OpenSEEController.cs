@@ -437,7 +437,10 @@ namespace OpenSEE.Controller
             "SELECT " +
             "    Event.ID AS EventID, " +
             "    EventType.Name AS EventType, " +
-            "    FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') AS SagMagnitudePercent, " +
+            "    CASE Sag.PerUnitMagnitude " +
+            "        WHEN -1E308 THEN '' " +
+            "        ELSE FORMAT(Sag.PerUnitMagnitude * 100.0, '0.#') " +
+            "    END AS SagMagnitudePercent, " +
             "    FORMAT(Sag.DurationSeconds * 1000.0, '0') AS SagDurationMilliseconds, " +
             "    FORMAT(Sag.DurationCycles, '0.##') AS SagDurationCycles, " +
             "    Event.StartTime, " +
@@ -468,6 +471,9 @@ namespace OpenSEE.Controller
             "            Disturbance.EndTime >= {0} " +
             "        ORDER BY PerUnitMagnitude DESC " +
             "    ) Sag " +
+            "WHERE " +
+            "    Event.StartTime <= {1} AND " +
+            "    Event.EndTime >= {0} " +
             "ORDER BY " +
             "    Sag.PerUnitMagnitude, " +
             "    Event.StartTime";
