@@ -170,7 +170,7 @@ export default class EventSearchList extends React.Component<IProps, { sortField
                 }}
                 onClick={(item) => this.props.stateSetter({ eventid: item.row.EventID })}
                 theadStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
-                tbodyStyle={{ display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight - 314 }}
+                tbodyStyle={{ display: 'block', overflowY: 'scroll', maxHeight: window.innerHeight - 353 }}
                 rowStyle={{ display: 'table', tableLayout: 'fixed', width: 'calc(100%)'}}
                 selected={(item) => {
                     if (item.EventID == this.props.eventid) return true;
