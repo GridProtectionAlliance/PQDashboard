@@ -101,7 +101,7 @@ export default class EventSearch extends React.Component<IProps, IState>{
         return (
             <div style={{ width: '100%', height: '100%' }}>
                 <EventSearchNavbar {...this.state}/>
-                <div style={{ width: '100%', height: 'calc( 100% - 210px)' }}>
+                <div style={{ width: '100%', height: 'calc( 100% - 250px)' }}>
                     <div style={{ width: '50%', height: '100%', maxHeight: '100%', position: 'relative', float: 'left', overflowY: 'hidden' }}>
                         <div style={{width: 'calc(100% - 120px)', padding: 10, float: 'left'}}>
                             <input className='form-control' type='text' placeholder='Search...' value={this.state.searchText} onChange={(evt) => this.setState({searchText: evt.target.value})}/>

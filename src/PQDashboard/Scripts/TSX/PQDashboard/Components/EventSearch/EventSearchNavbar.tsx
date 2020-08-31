@@ -112,7 +112,7 @@ export default class EventSearchNavbar extends React.Component<EventSearchNavbar
         return (
             <nav className="navbar navbar-expand-lg navbar-light bg-light">
 
-                <div className="collapse navbar-collapse" id="navbarSupportedContent" style={{ width: '100%' }}>
+                <div className="collapse navbar-collapse" id="navbarSupportedContent" style={{ width: '100%', fontSize:'small' }}>
                     <ul className="navbar-nav mr-auto" style={{ width: '100%' }}>
                         <li className="nav-item" style={{ width: '35%', paddingRight: 10 }}>
                             <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
@@ -218,7 +218,7 @@ export default class EventSearchNavbar extends React.Component<EventSearchNavbar
                             <fieldset className="border" style={{ padding: '10px', height: '100%' }}>
                                 <legend className="w-auto" style={{ fontSize: 'large' }}>Voltage Class:</legend>
                                 <form>
-                                    <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                    <ul style={{ listStyleType: 'none', padding: 0, maxHeight: 162, overflowY: 'auto' }}>
                                         <li><label><input type="checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                             var value = e.target.checked;
                                             this.props.stateSetter({
@@ -232,19 +232,19 @@ export default class EventSearchNavbar extends React.Component<EventSearchNavbar
 
                                         <li><label><input type="checkbox" onChange={() => {
                                             this.props.stateSetter({ g200: !this.props.g200 });
-                                        }} checked={this.props.g200} />{'EHV/Trans - >200kV'}</label></li>
+                                        }} checked={this.props.g200} />{/*'EHV/Trans -*/ '>200kV'}</label></li>
                                         <li><label><input type="checkbox" onChange={() => {
                                             this.props.stateSetter({ one00to200: !this.props.one00to200 });
-                                        }} checked={this.props.one00to200} />{'HV/Trans - >100kV & <=200kV'}</label></li>
+                                        }} checked={this.props.one00to200} />{/*'HV/Trans -*/ '>100kV & <=200kV'}</label></li>
                                         <li><label><input type="checkbox" onChange={() => {
                                             this.props.stateSetter({ thirty5to100: !this.props.thirty5to100 });
-                                        }} checked={this.props.thirty5to100} />{'MV/Subtrans - >35kV & <=100kV'}</label></li>
+                                        }} checked={this.props.thirty5to100} />{/*'MV/Subtrans -*/' >35kV & <=100kV'}</label></li>
                                         <li><label><input type="checkbox" onChange={() => {
                                             this.props.stateSetter({ oneTo35: !this.props.oneTo35 });
-                                        }} checked={this.props.oneTo35} />{'MV/Dist - >1kV & <=35kV'}</label></li>
+                                        }} checked={this.props.oneTo35} />{/*'MV/Dist - */'>1kV & <=35kV'}</label></li>
                                         <li><label><input type="checkbox" onChange={() => {
                                             this.props.stateSetter({ l1: !this.props.l1 });
-                                        }} checked={this.props.l1} />{'LV - <=1kV'}</label></li>
+                                        }} checked={this.props.l1} />{/*'LV -*/'<=1kV'}</label></li>
                                     </ul>
                                 </form>
                             </fieldset>
