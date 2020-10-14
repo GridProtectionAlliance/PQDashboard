@@ -56,7 +56,7 @@
 
     using(DataContext dataContext = new DataContext("dbOpenXDA")) {
         historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
-        assetGroups = dataContext.Table<AssetGroup>().QueryRecords();
+        assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("DisplayDashboard = 1");
         meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
     }
 

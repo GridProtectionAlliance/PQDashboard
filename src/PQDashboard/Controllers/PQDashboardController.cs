@@ -152,7 +152,7 @@ namespace PQDashboard.Controllers
             using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA")) {
                 data.ParentAssetGroupID = connection.ExecuteScalar<int?>("SELECT TOP 1 ParentAssetGroupID FROM AssetGroupAssetGroup where ChildAssetGroupID = {0}", form.deviceFilter);
                 data.Meters = new TableOperations<Meter>(connection).QueryRecordsWhere("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID = {0})", form.deviceFilter);
-                var assetGroups = new TableOperations<AssetGroup>(connection).QueryRecordsWhere("ID IN (SELECT ChildAssetGroupID FROM AssetGroupAssetGroup WHERE ParentAssetGroupID = {0})", form.deviceFilter);
+                var assetGroups = new TableOperations<AssetGroup>(connection).QueryRecordsWhere("ID IN (SELECT ChildAssetGroupID FROM AssetGroupAssetGroup WHERE ParentAssetGroupID = {0}) AND DisplayDashboard = 1", form.deviceFilter);
 
                 data.AssetGroups = new List<AssetGroupWithSubIDs>();
                 foreach(var assetGroup in assetGroups)
