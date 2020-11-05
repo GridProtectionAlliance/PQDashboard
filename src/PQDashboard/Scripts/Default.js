@@ -380,8 +380,9 @@ function selectmapgrid(thecontrol) {
             //$("#ContoursControlsTrending").hide();
             $("#theMap" + currentTab).show();
             $("#theMatrix" + currentTab).hide();
-            resizeMapAndMatrix(currentTab);
         }
+        resizeMapAndMatrix(currentTab);
+
     }
 }
 
@@ -3186,9 +3187,17 @@ function resizeDocklet(theparent, chartheight) {
 function resizeMapAndMatrix(newTab) {
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
-    $("#theMap" + newTab).css("height", columnheight);
+    var mapOrGrid = $('#mapEventsGrid').val()
+    if (mapOrGrid == 'Map') {
+        $("#theMap" + newTab).css("height", columnheight);
+        $("#theMatrix" + newTab).css("height", 0);
 
-    $("#theMatrix" + newTab).css("height", columnheight);
+    }
+    else {
+        $("#theMap" + newTab).css("height", 0);
+        $("#theMatrix" + newTab).css("height", columnheight);
+
+    }
 
     var theuncollapsedcount = $("#Portlet1" + currentTab).closest(".column").children().children().find('.ui-icon-minusthick').length;
 
