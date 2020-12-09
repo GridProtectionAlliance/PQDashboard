@@ -1056,7 +1056,7 @@ namespace OpenSEE.Controller
             });
 
             if (s_memoryCache.Add(target, dataGroupTask, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) }))
-                dataGroupTask.Start();
+                dataGroupTask.RunSynchronously();
 
             dataGroupTask = (Task<DataGroup>)s_memoryCache.Get(target);
 
@@ -1081,7 +1081,7 @@ namespace OpenSEE.Controller
             });
 
             if (s_memoryCache.Add(target, dataGroupTask, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) }))
-                dataGroupTask.Start();
+                dataGroupTask.RunSynchronously();
 
             dataGroupTask = (Task<DataGroup>)s_memoryCache.Get(target);
 
@@ -1103,7 +1103,7 @@ namespace OpenSEE.Controller
             });
 
             if (s_memoryCache.Add(target, viCycleDataGroupTask, new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(10.0D) }))
-                viCycleDataGroupTask.Start();
+                viCycleDataGroupTask.RunSynchronously();
 
             viCycleDataGroupTask = (Task<VICycleDataGroup>)s_memoryCache.Get(target);
 
@@ -1394,43 +1394,40 @@ namespace OpenSEE.Controller
 
         #region [ FFT ]
         [Route("GetFFTData"),HttpGet]
-        public Task<FFTReturn> GetFFTData(CancellationToken cancellationToken)
+        public FFTReturn GetFFTData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
+                double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667;
+                DataGroup dataGroup = QueryDataGroup(eventId, meter);
+
+                Dictionary<string, FFTSeries> dict = GetFFTLookup(dataGroup, startTime, endTime);
+                if (dict.Count == 0) return null;
+
+                List<FFTSeries> returnList = new List<FFTSeries>();
+                foreach (string key in dict.Keys)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-
-
-                    double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
-                    double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667;
-                    DataGroup dataGroup = QueryDataGroup(eventId, meter);
-
-                    Dictionary<string, FFTSeries> dict = GetFFTLookup(dataGroup, startTime, endTime);
-                    if (dict.Count == 0) return null;
-
-                    List<FFTSeries> returnList = new List<FFTSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FFTSeries series = new FFTSeries();
-                        series = dict[key];
-                        series.DataPoints = dict[key].DataPoints;
-                        returnList.Add(series);
-                    }
-                    FFTReturn returnDict = new FFTReturn();
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = startTime;
-                    returnDict.CalculationEnd = endTime;
-
-                    return returnDict;
+                    FFTSeries series = new FFTSeries();
+                    series = dict[key];
+                    series.DataPoints = dict[key].DataPoints;
+                    returnList.Add(series);
                 }
+                FFTReturn returnDict = new FFTReturn();
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = startTime;
+                returnDict.CalculationEnd = endTime;
 
-            }, cancellationToken);
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FFTSeries> GetFFTLookup(DataGroup dataGroup, double startTime, double endTime)
@@ -1496,66 +1493,63 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ First Derivative ]
-        [Route("GetFirstDerivativeData"),HttpGet]
-        public Task<JsonReturn> GetFirstDerivativeData(CancellationToken cancellationToken)
+        [Route("GetFirstDerivativeData"), HttpGet]
+        public JsonReturn GetFirstDerivativeData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventId, meter);
+                    VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetFirstDerivativeLookup(dataGroup, viCycleDataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventId, meter);
-                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetFirstDerivativeLookup(dataGroup, viCycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FlotSeries> GetFirstDerivativeLookup(DataGroup dataGroup, VICycleDataGroup viCycleDataGroup)
@@ -1637,67 +1631,64 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Impedance ]
-        [Route("GetImpedanceData"),HttpGet]
-        public Task<JsonReturn> GetImpedanceData(CancellationToken cancellationToken)
+        [Route("GetImpedanceData"), HttpGet]
+        public JsonReturn GetImpedanceData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetImpedanceLookup(viCycleDataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        VICycleDataGroup viCycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetImpedanceLookup(viCycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetImpedanceLookup(VICycleDataGroup vICycleDataGroup)
@@ -1752,69 +1743,65 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Remove Current ]
-        [Route("GetRemoveCurrentData"),HttpGet]
-        public Task<JsonReturn> GetRemoveCurrentData(CancellationToken cancellationToken)
+        [Route("GetRemoveCurrentData"), HttpGet]
+        public JsonReturn GetRemoveCurrentData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
 
+                    Dictionary<string, FlotSeries> temp = GetRemoveCurrentLookup(dataGroup);
 
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-
-                        Dictionary<string, FlotSeries> temp = GetRemoveCurrentLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
 
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetRemoveCurrentLookup(DataGroup dataGroup)
@@ -1882,68 +1869,65 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Power ]
-        [Route("GetPowerData"),HttpGet]
-        public Task<JsonReturn> GetPowerData(CancellationToken cancellationToken)
+        [Route("GetPowerData"), HttpGet]
+        public JsonReturn GetPowerData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
 
+                    Dictionary<string, FlotSeries> temp = GetPowerLookup(vICycleDataGroup);
 
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-
-                        Dictionary<string, FlotSeries> temp = GetPowerLookup(vICycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetPowerLookup(VICycleDataGroup vICycleDataGroup)
@@ -2022,67 +2006,64 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Missing Voltage ]
-        [Route("GetMissingVoltageData"),HttpGet]
-        public Task<JsonReturn> GetMissingVoltageData(CancellationToken cancellationToken)
+        [Route("GetMissingVoltageData"), HttpGet]
+        public JsonReturn GetMissingVoltageData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetMissingVoltageLookup(dataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetMissingVoltageLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetMissingVoltageLookup(DataGroup dataGroup)
@@ -2150,65 +2131,62 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Clipped Waveforms ]
-        [Route("GetClippedWaveformsData"),HttpGet]
-        public Task<JsonReturn> GetClippedWaveformsData(CancellationToken cancellationToken)
+        [Route("GetClippedWaveformsData"), HttpGet]
+        public JsonReturn GetClippedWaveformsData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetClippedWaveformsLookup(dataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetClippedWaveformsLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FlotSeries> GetClippedWaveformsLookup(DataGroup dataGroup)
@@ -2327,46 +2305,43 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Harmonic Spectrum ]
-        [Route("GetHarmonicSpectrumData"),HttpGet]
-        public Task<FFTReturn> GetHarmonicSpectrumData(CancellationToken cancellationToken)
+        [Route("GetHarmonicSpectrumData"), HttpGet]
+        public FFTReturn GetHarmonicSpectrumData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                int cycles = int.Parse(query["cycles"]);
+
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
+                double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667 * cycles;
+                DataGroup dataGroup = QueryDataGroup(eventId, meter);
+
+                Dictionary<string, FFTSeries> dict = GetHarmonicSpectrumLookup(dataGroup, startTime, endTime, systemFrequency, cycles);
+                if (dict.Count == 0) return null;
+
+                List<FFTSeries> returnList = new List<FFTSeries>();
+                foreach (string key in dict.Keys)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    int cycles = int.Parse(query["cycles"]);
-
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-
-
-                    double startTime = query.ContainsKey("startDate") ? double.Parse(query["startDate"]) : evt.StartTime.Subtract(m_epoch).TotalMilliseconds;
-                    double endTime = query.ContainsKey("endDate") ? double.Parse(query["endDate"]) : startTime + 16.666667*cycles;
-                    DataGroup dataGroup = QueryDataGroup(eventId, meter);
-
-                    Dictionary<string, FFTSeries> dict = GetHarmonicSpectrumLookup(dataGroup, startTime, endTime, systemFrequency, cycles);
-                    if (dict.Count == 0) return null;
-
-                    List<FFTSeries> returnList = new List<FFTSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FFTSeries series = new FFTSeries();
-                        series = dict[key];
-                        series.DataPoints = dict[key].DataPoints;
-                        returnList.Add(series);
-                    }
-                    FFTReturn returnDict = new FFTReturn();
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = startTime;
-                    returnDict.CalculationEnd = endTime;
-
-                    return returnDict;
+                    FFTSeries series = new FFTSeries();
+                    series = dict[key];
+                    series.DataPoints = dict[key].DataPoints;
+                    returnList.Add(series);
                 }
+                FFTReturn returnDict = new FFTReturn();
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = startTime;
+                returnDict.CalculationEnd = endTime;
 
-            }, cancellationToken);
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FFTSeries> GetHarmonicSpectrumLookup(DataGroup dataGroup, double startTime, double endTime, double systemFrequency, int cycles)
@@ -2425,70 +2400,67 @@ namespace OpenSEE.Controller
 
 
         #region [ LowPassFilter ]
-        [Route("GetLowPassFilterData"),HttpGet]
-        public Task<JsonReturn> GetLowPassFilterData(CancellationToken cancellationToken)
+        [Route("GetLowPassFilterData"), HttpGet]
+        public JsonReturn GetLowPassFilterData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+
+                int filterOrder = int.Parse(query["filter"]);
+                int eventId = int.Parse(query["eventId"]);
+
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetLowPassFilterLookup(dataGroup, filterOrder);
 
-                    int filterOrder = int.Parse(query["filter"]);
-                    int eventId = int.Parse(query["eventId"]);
-
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
-
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetLowPassFilterLookup(dataGroup, filterOrder);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetLowPassFilterLookup(DataGroup dataGroup, int order)
@@ -2580,70 +2552,67 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ High Pass Filter ]
-        [Route("GetHighPassFilterData"),HttpGet]
-        public Task<JsonReturn> GetHighPassFilterData(CancellationToken cancellationToken)
+        [Route("GetHighPassFilterData"), HttpGet]
+        public JsonReturn GetHighPassFilterData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int filterOrder = int.Parse(query["filter"]);
+                int eventId = int.Parse(query["eventId"]);
+
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int filterOrder = int.Parse(query["filter"]);
-                    int eventId = int.Parse(query["eventId"]);
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
 
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    Dictionary<string, FlotSeries> temp = GetHighPassFilterLookup(dataGroup, filterOrder);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-
-                        Dictionary<string, FlotSeries> temp = GetHighPassFilterLookup(dataGroup, filterOrder);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetHighPassFilterLookup(DataGroup dataGroup, int order)
@@ -2735,62 +2704,59 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Overlapping Waveform ]
-        [Route("GetOverlappingWaveformData"),HttpGet]
-        public Task<OverlapReturn> GetOverlappingWaveformData(CancellationToken cancellationToken)
+        [Route("GetOverlappingWaveformData"), HttpGet]
+        public OverlapReturn GetOverlappingWaveformData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+
+                DataTable table;
+
+                Dictionary<string, OverlapSeries> dict = new Dictionary<string, OverlapSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, OverlapSeries> temp = GetOverlappingWaveformLookup(dataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-
-                    DataTable table;
-
-                    Dictionary<string, OverlapSeries> dict = new Dictionary<string, OverlapSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, OverlapSeries> temp = GetOverlappingWaveformLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-
-                    List<OverlapSeries> returnList = new List<OverlapSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        OverlapSeries series = new OverlapSeries();
-                        series = dict[key];
-                        series.DataPoints = dict[key].DataPoints;
-                        returnList.Add(series);
-                    }
-                    OverlapReturn returnDict = new OverlapReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+
+                List<OverlapSeries> returnList = new List<OverlapSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    OverlapSeries series = new OverlapSeries();
+                    series = dict[key];
+                    series.DataPoints = dict[key].DataPoints;
+                    returnList.Add(series);
+                }
+                OverlapReturn returnDict = new OverlapReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, OverlapSeries> GetOverlappingWaveformLookup(DataGroup dataGroup)
@@ -2858,67 +2824,64 @@ namespace OpenSEE.Controller
 
 
         #region [ Rapid Voltage Change ]
-        [Route("GetRapidVoltageChangeData"),HttpGet]
-        public Task<JsonReturn> GetRapidVoltageChangeData(CancellationToken cancellationToken)
+        [Route("GetRapidVoltageChangeData"), HttpGet]
+        public JsonReturn GetRapidVoltageChangeData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetRapidVoltageChangeLookup(vICycleDataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetRapidVoltageChangeLookup(vICycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetRapidVoltageChangeLookup(VICycleDataGroup vICycleDataGroup)
@@ -2969,65 +2932,62 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Frequency ]
-        [Route("GetFrequencyData"),HttpGet]
-        public Task<JsonReturn> GetFrequencyData(CancellationToken cancellationToken)
+        [Route("GetFrequencyData"), HttpGet]
+        public JsonReturn GetFrequencyData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetFrequencyLookup(dataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetFrequencyLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    //double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = 0;
-                    returnDict.CalculationEnd = 0 + 1000 / systemFrequency;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                //double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = 0;
+                returnDict.CalculationEnd = 0 + 1000 / systemFrequency;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FlotSeries> GetFrequencyLookup(DataGroup dataGroup)
@@ -3156,68 +3116,65 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Symmetrical Components  ]
-        [Route("GetSymmetricalComponentsData"),HttpGet]
-        public Task<JsonReturn> GetSymmetricalComponentsData(CancellationToken cancellationToken)
+        [Route("GetSymmetricalComponentsData"), HttpGet]
+        public JsonReturn GetSymmetricalComponentsData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
 
+                    Dictionary<string, FlotSeries> temp = GetSymmetricalComponentsLookup(vICycleDataGroup);
 
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-
-                        Dictionary<string, FlotSeries> temp = GetSymmetricalComponentsLookup(vICycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetSymmetricalComponentsLookup(VICycleDataGroup vICycleDataGroup)
@@ -3325,67 +3282,64 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Unbalance ]
-        [Route("GetUnbalanceData"),HttpGet]
-        public Task<JsonReturn> GetUnbalanceData(CancellationToken cancellationToken)
+        [Route("GetUnbalanceData"), HttpGet]
+        public JsonReturn GetUnbalanceData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetUnbalanceLookup(vICycleDataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        VICycleDataGroup vICycleDataGroup = QueryVICycleDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetUnbalanceLookup(vICycleDataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetUnbalanceLookup(VICycleDataGroup vICycleDataGroup)
@@ -3467,68 +3421,65 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Rectifier ]
-        [Route("GetRectifierData"),HttpGet]
-        public Task<JsonReturn> GetRectifierData(CancellationToken cancellationToken)
+        [Route("GetRectifierData"), HttpGet]
+        public JsonReturn GetRectifierData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                double TRC = double.Parse(query["Trc"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    double TRC = double.Parse(query["Trc"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup, systemFrequency, TRC);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetRectifierLookup(dataGroup, systemFrequency,TRC);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
-
-
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+
+
+            }
         }
 
         private Dictionary<string, FlotSeries> GetRectifierLookup(DataGroup dataGroup, double systemFrequency, double RC)
@@ -3593,65 +3544,62 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ THD ]
-        [Route("GetTHDData"),HttpGet]
-        public Task<JsonReturn> GetTHDData(CancellationToken cancellationToken)
+        [Route("GetTHDData"), HttpGet]
+        public JsonReturn GetTHDData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
+                    Dictionary<string, FlotSeries> temp = GetTHDLookup(dataGroup);
 
-
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-                        Dictionary<string, FlotSeries> temp = GetTHDLookup(dataGroup);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FlotSeries> GetTHDLookup(DataGroup dataGroup)
@@ -3716,67 +3664,64 @@ namespace OpenSEE.Controller
         #endregion
 
         #region [ Specified Harmonic ]
-        [Route("GetSpecifiedHarmonicData"),HttpGet]
-        public Task<JsonReturn> GetSpecifiedHarmonicData(CancellationToken cancellationToken)
+        [Route("GetSpecifiedHarmonicData"), HttpGet]
+        public JsonReturn GetSpecifiedHarmonicData()
         {
-            return Task.Run(() => {
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            {
+                Dictionary<string, string> query = Request.QueryParameters();
+                int eventId = int.Parse(query["eventId"]);
+                Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
+                Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
+                int specifiedHarmonic = int.Parse(query["specifiedHarmonic"]);
+                meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
+                int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
+                double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+
+
+                DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
+                DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
+                int pixels = int.Parse(query["pixels"]);
+                DataTable table;
+
+                Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
+                table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
+                foreach (DataRow row in table.Rows)
                 {
-                    Dictionary<string, string> query = Request.QueryParameters();
-                    int eventId = int.Parse(query["eventId"]);
-                    Event evt = new TableOperations<Event>(connection).QueryRecordWhere("ID = {0}", eventId);
-                    Meter meter = new TableOperations<Meter>(connection).QueryRecordWhere("ID = {0}", evt.MeterID);
-                    int specifiedHarmonic = int.Parse(query["specifiedHarmonic"]);
-                    meter.ConnectionFactory = () => new AdoDataConnection("systemSettings");
-                    int calcCycle = connection.ExecuteScalar<int?>("SELECT CalculationCycle FROM FaultSummary WHERE EventID = {0} AND IsSelectedAlgorithm = 1", evt.ID) ?? -1;
-                    double systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0;
+                    int eventID = row.ConvertField<int>("ID");
+                    DataGroup dataGroup = QueryDataGroup(eventID, meter);
 
+                    Dictionary<string, FlotSeries> temp = GetSpecifiedHarmonicLookup(dataGroup, specifiedHarmonic);
 
-                    DateTime startTime = (query.ContainsKey("startDate") ? DateTime.Parse(query["startDate"]) : evt.StartTime);
-                    DateTime endTime = (query.ContainsKey("endDate") ? DateTime.Parse(query["endDate"]) : evt.EndTime);
-                    int pixels = int.Parse(query["pixels"]);
-                    DataTable table;
-
-                    Dictionary<string, FlotSeries> dict = new Dictionary<string, FlotSeries>();
-                    table = connection.RetrieveData("select ID, StartTime from Event WHERE StartTime <= {0} AND EndTime >= {1} and MeterID = {2} AND LineID = {3}", ToDateTime2(connection, endTime), ToDateTime2(connection, startTime), evt.MeterID, evt.LineID);
-                    foreach (DataRow row in table.Rows)
+                    foreach (string key in temp.Keys)
                     {
-                        int eventID = row.ConvertField<int>("ID");
-                        DataGroup dataGroup = QueryDataGroup(eventID, meter);
-
-                        Dictionary<string, FlotSeries> temp = GetSpecifiedHarmonicLookup(dataGroup, specifiedHarmonic);
-
-                        foreach (string key in temp.Keys)
-                        {
-                            if (dict.ContainsKey(key))
-                                dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
-                            else
-                                dict.Add(key, temp[key]);
-                        }
+                        if (dict.ContainsKey(key))
+                            dict[key].DataPoints = dict[key].DataPoints.Concat(temp[key].DataPoints).ToList();
+                        else
+                            dict.Add(key, temp[key]);
                     }
-                    if (dict.Count == 0) return null;
-
-                    double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
-
-                    List<FlotSeries> returnList = new List<FlotSeries>();
-                    foreach (string key in dict.Keys)
-                    {
-                        FlotSeries series = new FlotSeries();
-                        series = dict[key];
-                        series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
-                        returnList.Add(series);
-                    }
-                    JsonReturn returnDict = new JsonReturn();
-                    returnDict.StartDate = evt.StartTime;
-                    returnDict.EndDate = evt.EndTime;
-                    returnDict.Data = returnList;
-                    returnDict.CalculationTime = calcTime;
-                    returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
-
-                    return returnDict;
                 }
+                if (dict.Count == 0) return null;
 
-            }, cancellationToken);
+                double calcTime = (calcCycle >= 0 ? dict.First().Value.DataPoints[calcCycle][0] : 0);
+
+                List<FlotSeries> returnList = new List<FlotSeries>();
+                foreach (string key in dict.Keys)
+                {
+                    FlotSeries series = new FlotSeries();
+                    series = dict[key];
+                    series.DataPoints = Downsample(dict[key].DataPoints.OrderBy(x => x[0]).ToList(), pixels, new Range<DateTime>(startTime, endTime));
+                    returnList.Add(series);
+                }
+                JsonReturn returnDict = new JsonReturn();
+                returnDict.StartDate = evt.StartTime;
+                returnDict.EndDate = evt.EndTime;
+                returnDict.Data = returnList;
+                returnDict.CalculationTime = calcTime;
+                returnDict.CalculationEnd = calcTime + 1000 / systemFrequency;
+
+                return returnDict;
+            }
         }
 
         private Dictionary<string, FlotSeries> GetSpecifiedHarmonicLookup(DataGroup dataGroup, int specifiedHarmonic)
