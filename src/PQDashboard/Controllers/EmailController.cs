@@ -360,7 +360,7 @@ namespace PQDashboard.Controllers
                     phoneAddress = $"{sanitizedPhone}@{carrier}";
                 }
 
-                if (phoneAddress is null)
+                if (phoneAddress == null)
                 {
                     userAccount.Phone = null;
                     userAccount.PhoneConfirmed = false;
