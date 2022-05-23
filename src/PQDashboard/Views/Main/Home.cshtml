@@ -252,7 +252,6 @@
                                             <option value="All">All Sites</option>
                                             <option value="RecievedData">Recieved Data</option>
                                             <option value="NoData">No Data</option>
-                                            <option value="SelectedSites">Selected Sites</option>
                                             <option value="None">None</option>
                                         </select>
                                         <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
@@ -337,7 +336,6 @@
                                         <option value="All">All Sites</option>
                                         <option value="Events">@(tab.Text == "Events" ? "" : tab.Text.Trim('s') + " ")Events</option>
                                         <option value="NoEvents">No @(tab.Text == "Events" ? "" : tab.Text.Trim('s') + " ")Events</option>
-                                        <option value="SelectedSites">Selected Sites</option>
                                         <option value="None">None</option>
                                     </select>
                                     @if (tab.Text == "Events")
