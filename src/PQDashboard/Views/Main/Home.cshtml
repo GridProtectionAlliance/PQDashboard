@@ -145,7 +145,7 @@
             <tr>
                 <td width="250px" align="left" style="z-index: 999; padding-left: 5px;" nowrap>
                     Asset Group:
-                    <select id="meterGroupSelect" class="smallbutton" style="height: 20px; width: 140px" onchange="selectMeterGroup(this);" >
+                    <select id="meterGroupSelect" class="smallbutton" style="height: 20px; width: 140px" onchange="selectMeterGroup(this);">
                         @foreach (AssetGroup mg in assetGroups)
                         {
                             <option value="@mg.ID">@mg.Name</option>
@@ -162,7 +162,7 @@
                             <button type="button" class="btn btn-sm btn-default" onclick="moveDateBackward()" title="Move 1 step back in time"><span class="glyphicon glyphicon-backward"></span></button>
                         </div>
                         <div class="col-md-8">
-                        
+
                             <div id="dateRange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 215px">
 
                                 <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
@@ -186,11 +186,16 @@
                 </td>
                 @if (ViewBag.username != "External")
                 {
-                    <td width="35px" align="right" style="z-index: 999; padding-right: 5px;" >
+                    <td width="35px" align="right" style="z-index: 999; padding-right: 5px;">
                         <button type="button" title="View page settings" data-toggle="modal" data-target="#settingsModal"><span class="glyphicon glyphicon-cog"></span></button>
                     </td>
                 }
-
+                @if (ViewBag.username == "External")
+                {
+                    <td width="35px" align="right" style="z-index: 999; padding-right: 5px;">
+                        <button type="button" disabled title="View page settings" data-toggle="modal" data-target="#settingsModal"><span class="glyphicon glyphicon-cog"></span></button>
+                    </td>
+                }
             </tr>
         </table>
     </div>
