@@ -28,6 +28,7 @@ using System.Data;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Web.Http;
+using GSF;
 using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;
@@ -919,8 +920,14 @@ namespace PQDashboard.Controllers
                     if (point.SeriesID != seriesFilter)
                         continue;
 
+                    // Round to the nearest minute to work around device issues
+                    long ticks = point.Timestamp.Ticks;
+                    long halfMinute = Ticks.PerMinute / 2L;
+                    long roundedTicks = (ticks + halfMinute) / Ticks.PerMinute * Ticks.PerMinute;
+                    DateTime roundedTimestamp = new DateTime(roundedTicks);
+
                     // Use ceiling to sort data into the next nearest frame.
-                    int frameIndex = (int)Math.Ceiling((point.Timestamp - startDate).TotalMinutes / stepSize);
+                    int frameIndex = (int)Math.Ceiling((roundedTimestamp - startDate).TotalMinutes / stepSize);
 
                     double nominal = getNominalValue(point.ChannelID);
                     double value = point.Value / nominal;
