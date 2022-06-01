@@ -3212,7 +3212,7 @@ function resizeMapAndMatrix(newTab) {
             leafletMap[currentTab].invalidateSize(true);
         }
         catch(ex){
-
+            
         }
         leafletMap[currentTab].off('resize', onResize);
         onResize();
@@ -3487,7 +3487,7 @@ function buildPage() {
     $(".portlet-toggle").click(function () {
         var icon = $(this);
         icon.toggleClass("ui-icon-minusthick ui-icon-plusthick");
-        icon.closest(".portlet").find(".portlet-content").slideToggle(0, function () { resizeMapAndMatrix(newTab);});
+        icon.closest(".portlet").find(".portlet-content").slideToggle(function () { 0, resizeMapAndMatrix(currentTab); });
         return (true);
     });
 
