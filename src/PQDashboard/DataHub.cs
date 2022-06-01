@@ -188,55 +188,81 @@ namespace PQDashboard
 
         #region [ Event Notes ]
 
-        public IEnumerable<EventNote> GetNotesForEvent(int id)
+        public DataTable GetNotesForEvent(int id)
         {
-            return DataContext.Table<EventNote>().QueryRecords(restriction: new RecordRestriction("EventID = {0}", id));
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+                DataTable table = XDAconnection.RetrieveData(@"
+                    SELECT Note, UserAccount from Note WHERE ReferenceTableID = {0}
+                ", id);
+                return table;
+            }
         }
 
         public void SaveNoteForEvent(int id, string note, string userId)
         {
-            if (note.Trim().Length > 0)
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
             {
-                DataContext.Table<EventNote>().AddNewRecord(new EventNote()
-                {
-                    EventID = id,
-                    Note = note,
-                    UserAccount = userId,
-                    Timestamp = DateTime.UtcNow
-                });
+                XDAconnection.ExecuteNonQuery(@"
+                    INSERT INTO
+                        Note(NoteApplicationID, NoteTagID, NoteTypeID, ReferenceTableID, Note, UserAccount)
+                        VALUES(
+                            (SELECT ID FROM NoteApplication WHERE Name='PQDashboard'),
+                            (SELECT ID FROM NoteTag WHERE Name='General'),
+                            (SELECT ID FROM NoteType WHERE Name='Event'),
+                            {0},
+                            {1},
+                            {2}
+                        )
+                ", id, note, userId);
             }
+
         }
 
         public void SaveMultiNoteForEvent(List<int> ids, string note, string userId)
         {
-            if (note.Trim().Length > 0)
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
             {
-
-                foreach (int evt in ids) {
-                    DataContext.Table<EventNote>().AddNewRecord(new EventNote()
-                    {
-                        EventID = evt,
-                        Note = note,
-                        UserAccount = userId,
-                        Timestamp = DateTime.UtcNow
-                    });
+                foreach (int id in ids) 
+                {
+                    XDAconnection.ExecuteNonQuery(@"
+                        INSERT INTO
+                            Note(NoteAppplicationID, NoteTagID, NoteTypeID, ReferenceTableID, Note, UserAccount)
+                            VALUES(
+                                (SELECT ID FROM NoteApplication WHERE Name='PQDashboard'),
+                                (SELECT ID FROM NoteTag WHERE NAME='General'),
+                                (SELECT ID FROM NoteType WHERE Name='Event'),
+                                {0},
+                                {1},
+                                {2}
+                            )
+                    ", id, note, userId);
                 }
             }
         }
 
         public void SaveMultiNoteForAllEvents(List<int> ids, string note, string userId)
         {
-            if (note.Trim().Length > 0)
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
             {
                 foreach (int id in ids)
                 {
-                    DataContext.Table<EventNote>().AddNewRecord(new EventNote()
-                    {
-                        EventID = id,
-                        Note = note,
-                        UserAccount = userId,
-                        Timestamp = DateTime.UtcNow
-                    });
+                    XDAconnection.ExecuteNonQuery(@"
+                        INSERT INTO
+                            Note(NoteAppplicationID, NoteTagID, NoteTypeID, ReferenceTableID, Note, UserAccount)
+                            VALUES(
+                                (SELECT ID FROM NoteApplication WHERE Name='PQDashboard'),
+                                (SELECT ID FROM NoteTag WHERE NAME='General'),
+                                (SELECT ID FROM NoteType WHERE Name='Event'),
+                                {0},
+                                {1},
+                                {2}
+                            )
+                    ", id, note, userId);
                 }
             }
         }
@@ -244,7 +270,13 @@ namespace PQDashboard
 
         public void RemoveEventNote(int id)
         {
-            DataContext.Table<EventNote>().DeleteRecord(restriction: new RecordRestriction("ID = {0}", id));
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA")) 
+            {
+                XDAconnection.ExecuteNonQuery(@"
+                        DELETE FROM Note WHERE ID = {0}
+                     ", id);
+            }
         }
 
 
