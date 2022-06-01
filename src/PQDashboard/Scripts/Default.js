@@ -150,7 +150,6 @@ var cache_Map_Matrix_Data_Date_To = null;
 var cache_Graph_Data = null;
 var cache_ErrorBar_Data = null;
 var cache_Table_Data = null;
-var cache_Contour_Data = null;
 var cache_Sparkline_Data = null; 
 var brush = null;
 var cache_Last_Date = null;
@@ -166,8 +165,6 @@ function updateUrlParams(param, value) {
 
 var leafletMap = {'MeterActivity': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
 var markerGroup = null;
-var contourLayer = null;
-var contourOverlay = null;
 var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: [], Extensions: []};
 var currentTab = null;
 var disabledList = {
@@ -251,6 +248,29 @@ Array.prototype.remove = function (from, to) {
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+function getContextTimeRange() {
+    var format = "YYYY-MM-DDTHH:mm:ss";
+    var start;
+    var end;
+
+    if (globalContext === "custom") {
+        var dateRangePicker = $("#dateRange").data("daterangepicker");
+        start = dateRangePicker.startDate.format(format);
+        end = dateRangePicker.endDate.clone().startOf("day").add(1, 'd').format(format);
+    } else {
+        var startMoment = moment(contextfromdate).utc().startOf(globalContext);
+        start = startMoment.format(format);
+        end = startMoment.add(1, globalContext[0]).format(format);
+    }
+
+    return {
+        Start: start,
+        End: end
+    };
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -377,7 +397,7 @@ function selectmapgrid(thecontrol) {
                 updateGridWithSelectedSites();
         }
         else if (thecontrol.selectedIndex === 0) {
-            //$("#ContoursControlsTrending").hide();
+            //$("#AnimationControlTrending").hide();
             $("#theMap" + currentTab).show();
             $("#theMatrix" + currentTab).hide();
             resizeMapAndMatrix(currentTab);
@@ -1951,13 +1971,13 @@ function buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     $('#' + thediv).unbind("plotclick");
     $('#' + thediv).bind("plotclick", function (event, pos, item) {
-        if (item) {            
-            $('.contourControl').show();
-            cache_Contour_Data = null;
+        if (item) {
+            unloadMapMetricAnimation(false);
             var thedate = getFormattedDate($.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y"));
+            contextfromdate = thedate;
+            contexttodate = thedate;
             manageTabsByDateForClicks(currentTab,thedate, thedate, null);
             cache_Last_Date = thedate;
-
         }
     });
 
@@ -2095,7 +2115,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             contourQuery: {
                 StartDate: datefrom,
                 EndDate: dateto,
-                DataType: $('#trendingDataTypeSelection').val(),
+                DataType: "All",
                 ColorScaleName: $('#contourColorScaleSelect').val(),
                 UserName: userId,
                 MeterIds: meterList.selectedIdsString()
@@ -2634,7 +2654,7 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
                 }
 
-                $.each(meterList, function (i, item) {
+                $.each(meterList.Meters, function (i, item) {
                     if (item.ID == data.ID) {
                         item.Selected = true;
                     }
@@ -2670,16 +2690,6 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
             if(markerGroup.getBounds().isValid())
                 leafletMap[currentTab].fitBounds(markerGroup.getBounds());
             leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -270), L.latLng(180, 270)));
-            $('#contourAnimationResolutionSelect').val(leafletMap[currentTab].getZoom())
-
-        }
-        
-        if(currentTab == "TrendingData"){
-            leafletMap["TrendingData"].off('zoomend');
-            leafletMap["TrendingData"].on('zoomend', function (event) {
-                if (leafletMap["TrendingData"] != null)
-                    $('#contourAnimationResolutionSelect').val(leafletMap["TrendingData"].getZoom())
-            });
         }
 
         var timeoutVal;
@@ -2715,7 +2725,9 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
 
     //}
     showSiteSet($('#selectSiteSet' + currentTab)[0]);
-    plotMapPoints(locationdata, thedatefrom, thedateto);
+
+    var timeRange = getContextTimeRange();
+    queryAndPlotMapMetrics(timeRange.Start, timeRange.End);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2723,8 +2735,12 @@ function getColorsForTab(dataPoint, colors) {
     var color = '#000000';
 
     if (currentTab === "TrendingData") {
-        color = 'rgb(0,255,0)'; // green
-        if (dataPoint[$('#trendingDataTypeSelection').val()] === null) color = '#000000'  // black  
+        var isBlack =
+            dataPoint.Average === null &&
+            dataPoint.Maximum === null &&
+            dataPoint.Minimum === null;
+
+        color = isBlack ? "#000000" : "rgb(0, 255, 0)";
     }
     else if (currentTab === "Correctness") {
         var percentage = (parseFloat(dataPoint.GoodPoints) / (parseFloat(dataPoint.GoodPoints) + parseFloat(dataPoint.LatchedPoints) + parseFloat(dataPoint.UnreasonablePoints) + parseFloat(dataPoint.NoncongruentPoints)) * 100).toFixed(2);
@@ -2858,169 +2874,183 @@ function getLeafletLocationPopup(dataPoint) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function plotMapPoints(data, thedatefrom, thedateto) {
-    $('.contourControl').hide();
-    var thedatasent;
+var mapMetricData = {};
+var mapMetricRanges = {};
+var updateMapMetricSizeRange = true;
+var updateMapMetricColorRange = true;
+var mapMetricAnimationLoaded = false;
 
-    if (currentTab === "TrendingData") {
+function queryAndPlotMapMetrics(thedatefrom, thedateto) {
+    if (currentTab === "TrendingData" && globalContext === "day")
+        $(".animationControl").show();
+    else
+        unloadMapMetricAnimation(true);
 
-        if (data.URL)
-            loadContourOverlay(data);
-        else {
-            thedatasent = {
-                contourQuery: {
-                    Meters: getBase64MeterSelection(),
-                    StartDate: thedatefrom,
-                    EndDate: thedateto,
-                    DataType: $('#trendingDataTypeSelection').val(),
-                    ColorScaleName: $('#contourColorScaleSelect').val(),
-                    UserName: userId,
-                    MeterIds: 0
-                }
-            };
+    var tab = $("#tabs-" + currentTab);
+    var sizeMetricType = tab.find(".mapMetricSizeType").val();
+    var colorMetricType = tab.find(".mapMetricColorType").val();
 
-            loadContourLayer(thedatasent.contourQuery);
-
-        }
-        if (thedatefrom === thedateto)
-            $('.contourControl').show();
-
-    }
-
-    $('.info.legend.leaflet-control').remove();
-    var legend = L.control({ position: 'bottomright' });
-
-    legend.onAdd = function (map) {
-
-        var div = L.DomUtil.create('div', 'info legend'),
-            labels = [];
-        div.innerHTML += "<h4><button class='btn btn-link' style='padding: 0;'data-toggle='collapse' data-target='#innerLegend'><u>Legend</u></button></h4>" +
-            "<div id='innerLegend' class='collapse'></div>";
-        // loop through our density intervals and generate a label with a colored square for each interval
-        return div;
+    var query = {
+        meterIDs: meterList.selectedIds(),
+        startTime: thedatefrom,
+        endTime: thedateto,
+        sizeMetricType: sizeMetricType,
+        colorMetricType: colorMetricType
     };
 
-    legend.addTo(leafletMap[currentTab]);
+    $.ajax({
+        type: "POST",
+        url: homePath + 'api/PQDashboard/GetMapMetrics',
+        data: JSON.stringify(query),
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        cache: true,
+        success: function (data) {
+            mapMetricData = data;
 
-    if (currentTab === "TrendingData") {
-        for (var i = data.ColorDomain.length - 2; i >= 1; i -= 1) {
-            if (i === data.ColorDomain.length - 2) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> >' + data.ColorDomain[i].toFixed(2) + '</div>');
+            if (updateMapMetricSizeRange) {
+                mapMetricRanges.Largest = data.Largest;
+                mapMetricRanges.Smallest = data.Smallest;
             }
-            else if (i == 1) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> <' + data.ColorDomain[i].toFixed(2) + '</div>');
+
+            if (updateMapMetricColorRange) {
+                mapMetricRanges.Red = data.Red;
+                mapMetricRanges.Green = data.Green;
             }
-            else if (i % 2 !== 0) {
-                $('#innerLegend').append('<div class="row"><i style="background: #' + data.ColorRange[i].toString(16).slice(2) + '"></i> ' + data.ColorDomain[i - 1].toFixed(2) + '&ndash;' + data.ColorDomain[i + 1].toFixed(2) + '</div>');
-            }
+
+            updateMapMetrics(data.MapMetrics, mapMetricRanges);
+            updateMapLegend(mapMetricRanges);
+        },
+        failure: function (msg) {
+            console.error.log(msg);
+        },
+        global: false,
+        async: true
+    });
+}
+
+function updateMapMetrics(mapMetrics, mapMetricRanges) {
+    var id = "CircleLayer";
+    var map = leafletMap[currentTab];
+
+    map.eachLayer(function (layer) {
+        if (layer.options.id && layer.options.id === id)
+            map.removeLayer(layer);
+    });
+
+    var mapMatrix = $("#MapMatrix" + currentTab);
+    var width = mapMatrix.width();
+    var height = mapMatrix.height();
+
+    var minRadius = 10;
+    var maxRadius = Math.min(width, height) / 20;
+
+    var radiusFactory = d3.scaleLinear()
+        .domain([mapMetricRanges.Smallest, mapMetricRanges.Largest])
+        .range([minRadius, maxRadius])
+        .clamp(true);
+
+    var hueFactory = d3.scaleLinear()
+        .domain([mapMetricRanges.Green, mapMetricRanges.Red])
+        .range([120, 0])
+        .clamp(true);
+
+    $.each(mapMetrics, function (_, metric) {
+        if (metric.SizeValue === null)
+            return;
+
+        var lat = metric.Latitude;
+        var lng = metric.Longitude;
+        var radius = radiusFactory(metric.SizeValue);
+        var color = "gray";
+
+        if (metric.ColorValue !== null) {
+            var hue = hueFactory(metric.ColorValue);
+            color = "hsl(" + hue + ", 80%, 50%)";
         }
-    }
-    else if (currentTab === "Breakers") {
-        $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Breaker Events</div>');
-        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Breaker Events</div>');
-    }
-    else if (currentTab === "Faults") {
-        $('#innerLegend').append('<div class="row"><i style="background: #CC3300"></i> Faults</div>');
-        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i> No Faults</div>');
-    }
-    else {
-        $.each(Object.keys(data.Colors), function(i, key){
-            $('#innerLegend').append('<div class="row"><i style="background: ' + data.Colors[key]+ '"></i> ' + key + '</div>');
-        });
-        $('#innerLegend').append('<div class="row"><i style="background: #0E892C"></i>None</div>');
-        LoadHeatmapLeaflet(data);
-    }
 
-    legend.getContainer().addEventListener('mouseover', function () {
-        leafletMap[currentTab].dragging.disable();
-        leafletMap[currentTab].doubleClickZoom.disable();
-        leafletMap[currentTab].touchZoom.disable();
-        leafletMap[currentTab].scrollWheelZoom.disable();
-        leafletMap[currentTab].boxZoom.disable();
-        leafletMap[currentTab].keyboard.disable();
+        var options = {
+            id: id,
+            radius: radius,
+            stroke: false,
+            fillColor: color,
+            fillOpacity: 0.5,
+            interactive: false
+        };
+
+        var circle = L.circleMarker([lat, lng], options);
+        circle.addTo(map);
     });
+}
 
-    legend.getContainer().addEventListener('mouseout', function () {
-        leafletMap[currentTab].dragging.enable();
-        leafletMap[currentTab].doubleClickZoom.enable();
-        leafletMap[currentTab].touchZoom.enable();
-        leafletMap[currentTab].scrollWheelZoom.enable();
-        leafletMap[currentTab].boxZoom.enable();
-        leafletMap[currentTab].keyboard.enable();
-    });
+function updateMapLegend(mapMetricRanges) {
+    var tab = $("#tabs-" + currentTab);
+    var largestInput = tab.find(".mapMetricLargest");
+    var smallestInput = tab.find(".mapMetricSmallest");
+    largestInput.val(mapMetricRanges.Largest);
+    smallestInput.val(mapMetricRanges.Smallest);
 
+    var redInput = tab.find(".mapMetricRed");
+    var greenInput = tab.find(".mapMetricGreen");
+    redInput.val(mapMetricRanges.Red);
+    greenInput.val(mapMetricRanges.Green);
+}
 
+function mapMetricTypeChanged(source) {
+    var element = $(source);
+
+    if (element.hasClass("mapMetricSizeType"))
+        updateMapMetricSizeRange = true;
+
+    if (element.hasClass("mapMetricColorType"))
+        updateMapMetricColorRange = true;
+
+    var timeRange = getContextTimeRange();
+    queryAndPlotMapMetrics(timeRange.Start, timeRange.End);
+}
+
+function mapMetricRangeChanged(source) {
+    var element = $(source);
+    var value = Number(element.val());
+
+    if (isNaN(value))
+        return;
+
+    if (element.hasClass("mapMetricLargest")) {
+        mapMetricRanges.Largest = value;
+        updateMapMetricSizeRange = false;
+    }
+
+    if (element.hasClass("mapMetricSmallest")) {
+        mapMetricRanges.Smallest = value;
+        updateMapMetricSizeRange = false;
+    }
+
+    if (element.hasClass("mapMetricRed")) {
+        mapMetricRanges.Red = value;
+        updateMapMetricColorRange = false;
+    }
+
+    if (element.hasClass("mapMetricGreen")) {
+        mapMetricRanges.Green = value;
+        updateMapMetricColorRange = false;
+    }
+
+    updateMapMetrics(mapMetricData.MapMetrics, mapMetricRanges);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function showHeatmap(thecontrol) {
-    if ($(thecontrol).val() == "MinimumSags" || $(thecontrol).val() == "MaximumSwell") {
-        $.post(homePath + 'api/Events/' + $(thecontrol).val(), { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString() }, function (data) {
-            LoadHeatmapLeaflet(data);
-        });
-    }
-    else {
-        if(cache_Map_Matrix_Data != null)
-            LoadHeatmapLeaflet(cache_Map_Matrix_Data);
-        else {
-            if (currentTab != "TrendingData") {
-                $.post(homePath + 'api/'+currentTab+'/Location', { targetDateFrom: contextfromdate, targetDateTo: contexttodate, meterIds: meterList.selectedIdsString(), context: globalContext }, function (data) {
-                    LoadHeatmapLeaflet(data);
-                });
-            }
-            else {
-
-            }
-        }
-    }
-
-}
-
-function LoadHeatmapLeaflet(thedata) {
-    var GLOBE_WIDTH = 256; // a constant in Google's map projection
-    var west = (markerGroup.getBounds()._southWest != undefined? markerGroup.getBounds()._southWest.lng: 84.3880);
-    var east = (markerGroup.getBounds()._northEast != undefined ? markerGroup.getBounds()._northEast.lng : 84.3880);
-    var angle = east - west;
-    if (angle < 0) {
-        angle += 360;
-    }
-
-    var zoom = Math.round(Math.log(($('#theMap' + currentTab).width() < 500 ? 500 : $('#theMap' + currentTab).width()) * 360 / angle / GLOBE_WIDTH) / Math.LN2);
-    var cfg = {
-        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
-        // if scaleRadius is false it will be the constant radius used in pixels
-        "radius": 50 / Math.pow(2, (zoom > 13 ? 13 : zoom )),
-        "maxOpacity": .5,
-        // scales the radius based on map zoom
-        "scaleRadius": true,
-        // if set to false the heatmap uses the global maximum for colorization
-        // if activated: uses the data maximum within the current map boundaries 
-        //   (there will always be a red spot with useLocalExtremas true)
-        "useLocalExtrema": true,
-        // which field name in your data represents the latitude - default "lat"
-        latField: 'Latitude',
-        // which field name in your data represents the longitude - default "lng"
-        lngField: 'Longitude',
-        // which field name in your data represents the data value - default "value"
-        valueField: 'status'
-    };
-
-    
-    $(leafletMap[currentTab].getPanes().overlayPane).children().remove();
-    try {
-        var testData = { data: thedata.Data.filter(function (currentValue, index, array) { return currentValue.Count > 0; }), min: 1, max: 100 };
-        var heatmapLayer = new HeatmapOverlay(cfg);
-        var heatmap = L.layerGroup().addLayer(heatmapLayer).addTo(leafletMap[currentTab]);
-        heatmapLayer.setData(testData);
-        L.control.layers().addOverlay(heatmap, "Heatmap layer");
-    }
-    catch (ex) { }
-}
-
 function ManageLocationClick(siteID) {
     var thedatefrom;
     var thedateto;
+
+    if (currentTab == "TrendingData") {
+        thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
+        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+        return;
+    }
 
     if (globalContext == "custom") {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -3051,13 +3081,7 @@ function ManageLocationClick(siteID) {
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
-    if (currentTab == "TrendingData")
-        populateDivWithErrorBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
-    else
-    {
-        populateDivWithBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
-    }
-
+    populateDivWithBarChart('Overview' + currentTab, siteID, thedatefrom, thedateto);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3291,40 +3315,54 @@ function initializeDatePickers(datafromdate , datatodate) {
 }
 
 function moveDateBackward() {
-    var startDate = $('#dateRange').data('daterangepicker').startDate.clone().startOf('day');
-    var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
+    var dateRangePicker = $("#dateRange").data("daterangepicker");
+    var startDate = dateRangePicker.startDate.clone();
+    var endDate = dateRangePicker.endDate.clone().startOf("day").add(1, "days");
     var duration = moment.duration(endDate.diff(startDate));
 
     // Move global context back to custom range
     for (var i = 0; i < 5; ++i)
         setGlobalContext(false);
 
-    $('#dateRange').data('daterangepicker').setEndDate(startDate);
-    $('#dateRange').data('daterangepicker').setStartDate(startDate.subtract(duration.asDays() - 1, 'days'));
-    updateUrlParams('startDate', $('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY'));
-    updateUrlParams('endDate', $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    var newEndExclusive = dateRangePicker.startDate;
+    var newStartDate = newEndExclusive.clone().subtract(duration.asDays(), "days");
+    var newEndDate = newEndExclusive.clone().subtract(1, "days").endOf("day");
+    dateRangePicker.setStartDate(newStartDate);
+    dateRangePicker.setEndDate(newEndDate);
 
-    $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
-    $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
+    var formattedStartDate = dateRangePicker.startDate.format('MM/DD/YYYY');
+    var formattedEndDate = dateRangePicker.endDate.format('MM/DD/YYYY');
+    updateUrlParams('startDate', formattedStartDate);
+    updateUrlParams('endDate', formattedEndDate);
+
+    $('#dateRangeSpan').html(formattedStartDate + ' - ' + formattedEndDate);
+    dateRangePicker.chosenLabel = 'Custom Range';
     loadDataForDate();
 }
 
 function moveDateForward() {
-    var startDate = $('#dateRange').data('daterangepicker').startDate.clone().startOf('day');
-    var endDate = $('#dateRange').data('daterangepicker').endDate.clone().endOf('day');
+    var dateRangePicker = $("#dateRange").data("daterangepicker");
+    var startDate = dateRangePicker.startDate.clone().startOf("day");
+    var endDate = dateRangePicker.endDate.clone().startOf("day").add(1, "days");
     var duration = moment.duration(endDate.diff(startDate));
 
     // Move global context back to custom range
     for (var i = 0; i < 5; ++i)
         setGlobalContext(false);
 
-    $('#dateRange').data('daterangepicker').setStartDate(endDate);
-    $('#dateRange').data('daterangepicker').setEndDate(endDate.add(duration.asDays() - 1, 'days'));
-    $('#dateRange').data('daterangepicker').chosenLabel = 'Custom Range'
-    updateUrlParams('startDate', $('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY'));
-    updateUrlParams('endDate', $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    var newStartInclusive = dateRangePicker.endDate.clone().startOf("day").add(1, "days");
+    var newStartDate = newStartInclusive.clone();
+    var newEndDate = newStartInclusive.clone().add(duration.asDays() - 1, "days").endOf("day");
+    dateRangePicker.setStartDate(newStartDate);
+    dateRangePicker.setEndDate(newEndDate);
 
-    $('#dateRangeSpan').html($('#dateRange').data('daterangepicker').startDate.format('MM/DD/YYYY') + ' - ' + $('#dateRange').data('daterangepicker').endDate.format('MM/DD/YYYY'));
+    var formattedStartDate = dateRangePicker.startDate.format('MM/DD/YYYY');
+    var formattedEndDate = dateRangePicker.endDate.format('MM/DD/YYYY');
+    updateUrlParams('startDate', formattedStartDate);
+    updateUrlParams('endDate', formattedEndDate);
+
+    $('#dateRangeSpan').html(formattedStartDate + ' - ' + formattedEndDate);
+    dateRangePicker.chosenLabel = 'Custom Range';
     loadDataForDate();
 }
 
@@ -3621,7 +3659,6 @@ function buildPage() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function loadLeafletMap(theDiv) {
-
     if (leafletMap[currentTab] === null) {
         leafletMap[currentTab] = L.map(theDiv, {
             center: [35.0456, -85.3097],
@@ -3681,43 +3718,50 @@ function loadLeafletMap(theDiv) {
             });
         }
 
+        var animationControl = L.control({ position: 'bottomleft' });
 
-        var contourControl = L.control({ position: 'bottomleft' });
-
-        contourControl.onAdd = function (map) {
-
-            var div = L.DomUtil.create('div', 'info contourControl'),
-                labels = [];
+        animationControl.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info animationControl');
+            
             div.innerHTML =
-                '<div id="ContoursControlsTrending">' +
+                '<div id="AnimationControlTrending">' +
                     '<div class="row" style="width: 100%; margin: auto">' +
                         '<div class="" style="float: left; margin-right: 4px;">' +
                             '<table>' +
                                 '<tr>' +
+                                    '<td colspan="1">Size Metric</td>' +
                                     '<td colspan="1">' +
-                                        '<div class="checkbox"><label><input type="checkbox" id="weatherCheckbox"/>Weather</label></div>' +
+                                        '<select class="animationSizeMetricType form-control" style="width: 100%">' +
+                                            '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
+                                            '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
+                                            '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
+                                            '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
+                                            '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
+                                            '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
+                                            '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
+                                            '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
+                                            '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
+                                        '</select>' +
                                     '</td>' +
+                                '</tr>' +
+                                '<tr>' +
+                                    '<td colspan="1">Color Metric</td>' +
                                     '<td colspan="1">' +
-                                        '<select class="form-control" id="contourAnimationResolutionSelect">' +
-                                            '<option value="15">(High Res)15</option>' +
-                                            '<option value="14">14</option>' +
-                                            '<option value="13">13</option>' +
-                                            '<option value="12">12</option>' +
-                                            '<option value="11">11</option>' +
-                                            '<option value="10">10</option>' +
-                                            '<option value="9">9</option>' +
-                                            '<option value="8">8</option>' +
-                                            '<option value="7">7</option>' +
-                                            '<option selected="selected" value="6">6</option>' +
-                                            '<option value="5">5</option>' +
-                                            '<option value="4">4</option>' +
-                                            '<option value="3">3</option>' +
-                                            '<option value="2">(Low Res)2</option>' +
+                                        '<select class="animationColorMetricType form-control" style="width: 100%">' +
+                                            '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
+                                            '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
+                                            '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
+                                            '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
+                                            '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
+                                            '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
+                                            '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
+                                            '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
+                                            '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
                                         '</select>' +
                                     '</td>' +
                                 '</tr>' +
                                 '<tr><td colspan="2">' +
-                                    '<select class="form-control" id="contourAnimationStepSelect" onchange="stepSelectionChange(this);">' +
+                                    '<select class="form-control" id="animationStepSelect" onchange="stepSelectionChange(this);">' +
                                         '<option value="60">60 min</option>' +
                                         '<option value="30">30 min</option>' +
                                         '<option value="20">20 min</option>' +
@@ -3727,21 +3771,17 @@ function loadLeafletMap(theDiv) {
                                         '<option value="1">1 min</option>' +
                                     '</select>' +
                                 '</td></tr>' +
-                                '<tr>' +
-                                        '<td colspan="2">' +
-                                        '<div id="time-range">' +
-                                            '<div class="sliders_step1">' +
-                                                '&nbsp;<div class="slider-range"></div> ' +
-                                            '</div>' +
-                                            '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">11:59 PM</span></p>' +
+                                '<tr><td colspan="2">' +
+                                    '<div id="time-range">' +
+                                        '<div class="sliders_step1">' +
+                                            '&nbsp;<div class="slider-range"></div> ' +
                                         '</div>' +
-                                    '</td>' +
-                                '</tr>' +
-                                '<tr>' +
-                                    '<td colspan="2">' +
-                                        '<button class="btn btn-default form-control" onclick="loadContourAnimationData()">Load Data</button>' +
-                                    '</td>' +
-                                '</tr>' +
+                                        '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">12:00 AM</span></p>' +
+                                    '</div>' +
+                                '</td></tr>' +
+                                '<tr><td colspan="2">' +
+                                    '<button class="btn btn-default form-control" onclick="loadMapMetricAnimation()">Load Data</button>' +
+                                '</td></tr>' +
                             '</table>' +
                         '</div>' +
                         '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
@@ -3750,12 +3790,12 @@ function loadLeafletMap(theDiv) {
                                 '<tr><td>&nbsp;</td></tr>' +
                                 '<tr><td><span id="progressDate"></span></td></tr>' +
                                 '<tr><td style="width: 100%">' +
-                                        '<progress id="contourProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
+                                        '<progress id="animationProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
                                 '</td></tr>' +
                                 '<tr><td>&nbsp;</td></tr>' +
                                 '<tr><td>&nbsp;</td></tr>' +
                                 '<tr><td style="width: 100%; text-align: center">' +
-                                            '<div class="player text-center" id="contourPlayerButtons">' +
+                                            '<div class="player text-center" id="animationPlayerButtons">' +
                                                 '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>' +
                                                 '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
                                                 '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
@@ -3769,15 +3809,15 @@ function loadLeafletMap(theDiv) {
                     '</div>' +
                 '</div>';
 
-            
+
             return div;
         };
 
-        contourControl.addTo(leafletMap[currentTab]);
+        animationControl.addTo(leafletMap[currentTab]);
         initiateTimeRangeSlider();
 
-        $('.contourControl').hide();
-        contourControl.getContainer().addEventListener('mouseover', function () {
+        $('.animationControl').hide();
+        animationControl.getContainer().addEventListener('mouseover', function () {
             leafletMap[currentTab].dragging.disable();
             leafletMap[currentTab].doubleClickZoom.disable();
             leafletMap[currentTab].touchZoom.disable();
@@ -3787,7 +3827,7 @@ function loadLeafletMap(theDiv) {
 
         });
 
-        contourControl.getContainer().addEventListener('mouseout', function () {
+        animationControl.getContainer().addEventListener('mouseout', function () {
             leafletMap[currentTab].dragging.enable();
             leafletMap[currentTab].doubleClickZoom.enable();
             leafletMap[currentTab].touchZoom.enable();
@@ -3796,7 +3836,130 @@ function loadLeafletMap(theDiv) {
             leafletMap[currentTab].keyboard.enable();
 
         });
+
+        addMapLegend();
     }
+}
+
+function addMapLegend() {
+    var legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        var selectedMetric = "EventCount";
+
+        if (currentTab === "Disturbances")
+            selectedMetric = "SagMinimum";
+
+        var trendingTabs = [
+            "Trending",
+            "TrendingData",
+            "Completeness",
+            "Correctness"
+        ];
+
+        if (trendingTabs.indexOf(currentTab) >= 0)
+            selectedMetric = "AverageVoltageRMS";
+
+        function selectedState(metric) {
+            if (metric === selectedMetric)
+                return "selected";
+        }
+
+        // Inserting whitespace between any of these three
+        // divs would unintentionally add horizontal space,
+        // causing the renderer to word-wrap them
+        // instead of placing them side-by-side
+        var circleSizeDiv =
+            "<div style='width: calc(50% - 5px); display: inline-block'>" +
+            "    <div class='row'>" +
+            "        <select class='mapMetricSizeType smallbutton' style='width: 100%' onchange='mapMetricTypeChanged(this)'>" +
+            "            <option value='EventCount' " + selectedState("EventCount") + ">Event Count</option>" +
+            "            <option value='SagCount' " + selectedState("SagCount") + ">Sag Count</option>" +
+            "            <option value='SwellCount' " + selectedState("SwellCount") + ">Swell Count</option>" +
+            "            <option value='InterruptionCount' " + selectedState("InterruptionCount") + ">Interruption Count</option>" +
+            "            <option value='SagMinimum' " + selectedState("SagMinimum") + ">Sag Minimum</option>" +
+            "            <option value='SwellMaximum' " + selectedState("SwellMaximum") + ">Swell Maximum</option>" +
+            "            <option value='MaximumVoltageRMS' " + selectedState("MaximumVoltageRMS") + ">Maximum Voltage RMS</option>" +
+            "            <option value='MinimumVoltageRMS' " + selectedState("MinimumVoltageRMS") + ">Minimum Voltage RMS</option>" +
+            "            <option value='AverageVoltageRMS' " + selectedState("AverageVoltageRMS") + ">Average Voltage RMS</option>" +
+            "            <option value='MaximumVoltageTHD' " + selectedState("MaximumVoltageTHD") + ">Maximum Voltage THD</option>" +
+            "            <option value='MinimumVoltageTHD' " + selectedState("MinimumVoltageTHD") + ">Minimum Voltage THD</option>" +
+            "            <option value='AverageVoltageTHD' " + selectedState("AverageVoltageTHD") + ">Average Voltage THD</option>" +
+            "            <option value='MaximumShortTermFlicker' " + selectedState("MaximumShortTermFlicker") + ">Maximum Short Term Flicker</option>" +
+            "            <option value='MinimumShortTermFlicker' " + selectedState("MinimumShortTermFlicker") + ">Minimum Short Term Flicker</option>" +
+            "            <option value='AverageShortTermFlicker' " + selectedState("AverageShortTermFlicker") + ">Average Short Term Flicker</option>" +
+            "        </select>" +
+            "    </div>" +
+            "    <div class='row'><input class='mapMetricLargest' type='textbox' style='width: 100%' onchange='mapMetricRangeChanged(this)'></div>" +
+            "    <div class='row'>" +
+            "        <svg width='10' height='40' style='margin: 3px 10px; display: block'>" +
+            "            <circle class='mapLegendCircle' cx='5' cy='5' r='5' />" +
+            "            <circle class='mapLegendCircle' cx='5' cy='15' r='4' />" +
+            "            <circle class='mapLegendCircle' cx='5' cy='25' r='3' />" +
+            "            <circle class='mapLegendCircle' cx='5' cy='35' r='2' />" +
+            "        </svg>" +
+            "    </div>" +
+            "    <div class='row'><input class='mapMetricSmallest' type='textbox' style='width: 100%' onchange='mapMetricRangeChanged(this)'></div>" +
+            "</div>";
+
+        var circleSpacerDiv =
+            "<div style='width: 10px; display: inline-block'></div>";
+
+        var circleColorDiv =
+            "<div style='width: calc(50% - 5px); display: inline-block'>" +
+            "    <div class='row'>" +
+            "        <select class='mapMetricColorType smallbutton' style='width: 100%' onchange='mapMetricTypeChanged(this)'>" +
+            "            <option value='EventCount' " + selectedState("EventCount") + ">Event Count</option>" +
+            "            <option value='SagCount' " + selectedState("SagCount") + ">Sag Count</option>" +
+            "            <option value='SwellCount' " + selectedState("SwellCount") + ">Swell Count</option>" +
+            "            <option value='InterruptionCount' " + selectedState("InterruptionCount") + ">Interruption Count</option>" +
+            "            <option value='SagMinimum' " + selectedState("SagMinimum") + ">Sag Minimum</option>" +
+            "            <option value='SwellMaximum' " + selectedState("SwellMaximum") + ">Swell Maximum</option>" +
+            "            <option value='MaximumVoltageRMS' " + selectedState("MaximumVoltageRMS") + ">Maximum Voltage RMS</option>" +
+            "            <option value='MinimumVoltageRMS' " + selectedState("MinimumVoltageRMS") + ">Minimum Voltage RMS</option>" +
+            "            <option value='AverageVoltageRMS' " + selectedState("AverageVoltageRMS") + ">Average Voltage RMS</option>" +
+            "            <option value='MaximumVoltageTHD' " + selectedState("MaximumVoltageTHD") + ">Maximum Voltage THD</option>" +
+            "            <option value='MinimumVoltageTHD' " + selectedState("MinimumVoltageTHD") + ">Minimum Voltage THD</option>" +
+            "            <option value='AverageVoltageTHD' " + selectedState("AverageVoltageTHD") + ">Average Voltage THD</option>" +
+            "            <option value='MaximumVoltageShortTermFlicker' " + selectedState("MaximumVoltageShortTermFlicker") + ">Maximum Short Term Flicker</option>" +
+            "            <option value='MinimumVoltageShortTermFlicker' " + selectedState("MinimumVoltageShortTermFlicker") + ">Minimum Short Term Flicker</option>" +
+            "            <option value='AverageVoltageShortTermFlicker' " + selectedState("AverageVoltageShortTermFlicker") + ">Average Short Term Flicker</option>" +
+            "        </select>" +
+            "    </div>" +
+            "    <div class='row'><input class='mapMetricRed' type='textbox' style='width: 100%' onchange='mapMetricRangeChanged(this)'></div>" +
+            "    <div class='row'><div style='width: 10px; height: 40px; margin: 3px 10px; background: linear-gradient(red, yellow, green)'></div></div>" +
+            "    <div class='row'><input class='mapMetricGreen' type='textbox' style='width: 100%' onchange='mapMetricRangeChanged(this)'></div>" +
+            "</div>";
+
+        var innerLegendID = currentTab + "-innerLegend";
+
+        div.innerHTML +=
+            "<h4><button class='btn btn-link' style='padding: 0;' data-toggle='collapse' data-target='#" + innerLegendID + "'><u>Legend</u></button></h4>" +
+            "<div id='" + innerLegendID + "' class='collapse'>" + circleSizeDiv + circleSpacerDiv + circleColorDiv + "</div>";
+
+        return div;
+    };
+
+    legend.addTo(leafletMap[currentTab]);
+
+    legend.getContainer().addEventListener('mouseover', function () {
+        leafletMap[currentTab].dragging.disable();
+        leafletMap[currentTab].doubleClickZoom.disable();
+        leafletMap[currentTab].touchZoom.disable();
+        leafletMap[currentTab].scrollWheelZoom.disable();
+        leafletMap[currentTab].boxZoom.disable();
+        leafletMap[currentTab].keyboard.disable();
+    });
+
+    legend.getContainer().addEventListener('mouseout', function () {
+        leafletMap[currentTab].dragging.enable();
+        leafletMap[currentTab].doubleClickZoom.enable();
+        leafletMap[currentTab].touchZoom.enable();
+        leafletMap[currentTab].scrollWheelZoom.enable();
+        leafletMap[currentTab].boxZoom.enable();
+        leafletMap[currentTab].keyboard.enable();
+    });
 }
 
 function loadDoc(file, callback) {
@@ -3810,243 +3973,103 @@ function loadDoc(file, callback) {
     xhttp.send();
 }
 
-function loadContourLayer(contourQuery) {
-    var tileURL = homePath + 'mapService.asmx/getContourTile?x={x}&y={y}&zoom={z}';
-
-    $.each(contourQuery, function (key, value) {
-        tileURL += '&' + key + '=' + encodeURIComponent(value);
-    });
-
-    if (contourOverlay) {
-        leafletMap[currentTab].removeLayer(contourOverlay);
-        contourOverlay = null;
-    }
-
-    if (contourLayer)
-        contourLayer.setUrl(tileURL);
-    else
-        contourLayer = L.tileLayer(tileURL, { m: getBase64MeterSelection() }).addTo(leafletMap[currentTab]);
-}
-
-function loadContourOverlay(contourInfo) {
-    var bounds = [[contourInfo.MaxLatitude, contourInfo.MinLongitude], [contourInfo.MinLatitude, contourInfo.MaxLongitude]];
-
-    if (contourLayer) {
-        leafletMap[currentTab].removeLayer(contourLayer);
-        contourLayer = null;
-    }
-
-    if (contourOverlay)
-        contourOverlay.setUrl(homePath + contourInfo.URL);
-    else
-        contourOverlay = L.imageOverlay(homePath + contourInfo.URL, bounds).addTo(leafletMap[currentTab]);
-}
-
 function showType(thecontrol) {
-    plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To, null);
+    plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
 }
 
 function initiateTimeRangeSlider() {
-    $('#tabs-' + currentTab + " .slider-range").slider({
+    $("#tabs-TrendingData .slider-range").slider({
         range: true,
         min: 0,
         max: 1440,
         step: 15,
         values: [0, 1440],
         slide: function (e, ui) {
-            var hours1 = Math.floor(ui.values[0] / 60);
-            var minutes1 = ui.values[0] - (hours1 * 60);
-
-            if (hours1.length == 1) hours1 = '0' + hours1;
-            if (minutes1.length == 1) minutes1 = '0' + minutes1;
-            if (minutes1 == 0) minutes1 = '00';
-            if (hours1 >= 12) {
-                if (hours1 == 12) {
-                    hours1 = hours1;
-                    minutes1 = minutes1 + " PM";
-                } else {
-                    hours1 = hours1 - 12;
-                    minutes1 = minutes1 + " PM";
-                }
-            } else {
-                hours1 = hours1;
-                minutes1 = minutes1 + " AM";
-            }
-            if (hours1 == 0) {
-                hours1 = 12;
-                minutes1 = minutes1;
-            }
-
-
-
-            $('#tabs-' + currentTab + ' .slider-time').html(hours1 + ':' + minutes1);
-
-            var hours2 = Math.floor(ui.values[1] / 60);
-            var minutes2 = ui.values[1] - (hours2 * 60);
-
-            if (hours2.length == 1) hours2 = '0' + hours2;
-            if (minutes2.length == 1) minutes2 = '0' + minutes2;
-            if (minutes2 == 0) minutes2 = '00';
-            if (hours2 >= 12) {
-                if (hours2 == 12) {
-                    hours2 = hours2;
-                    minutes2 = minutes2 + " PM";
-                } else if (hours2 == 24) {
-                    hours2 = 11;
-                    minutes2 = "59 PM";
-                } else {
-                    hours2 = hours2 - 12;
-                    minutes2 = minutes2 + " PM";
-                }
-            } else {
-                hours2 = hours2;
-                minutes2 = minutes2 + " AM";
-            }
-
-            $('#tabs-' + currentTab + ' .slider-time2').html(hours2 + ':' + minutes2);
+            var startTime = moment.utc(0).add(ui.values[0], "minutes").format("hh:mm A");
+            var endTime = moment.utc(0).add(ui.values[1], "minutes").format("hh:mm A");
+            $("#tabs-TrendingData .slider-time").html(startTime);
+            $("#tabs-TrendingData .slider-time2").html(endTime);
         }
     });
 }
 
-function loadContourAnimationData() {
-    var dateFrom = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time').text() + ' UTC').toISOString();
-    var dateTo = new Date(moment(cache_Last_Date).utc().format("MM/DD/YYYY") + ' ' + $('#tabs-' + currentTab + ' .slider-time2').text() + ' UTC').toISOString();
-    var meters = "";
-    $.each(meterList.selectedIds(), function (index, data) {
-        if (index === 0)
-            meters = data;
-        else
-            meters += ',' + data;
-    });
+function loadMapMetricAnimation() {
+    var timeRange = getContextTimeRange();
+    var animationDate = moment.utc(timeRange.Start).startOf("day");
 
-    var xMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).x;
-    var xMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).x;
-    var yMax = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._southWest).y;
-    var yMin = leafletMap[currentTab].latLngToContainerPoint(markerGroup.getBounds()._northEast).y;
+    var slider = $("#tabs-TrendingData .slider-range");
+    var sliderTimeStart = slider.slider("values", 0);
+    var sliderTimeEnd = slider.slider("values", 1);
 
-    var pixels = (xMax - xMin) * (yMax - yMin);
-    var oneGigInPixels = 1024 * 1024 * 1024 * 4;
+    var interval = $("#animationStepSelect").val();
+    var startTime = animationDate.clone().add(sliderTimeStart, "minutes").toISOString();
+    var endTime = animationDate.clone().add(sliderTimeEnd, "minutes").toISOString();
+    var sizeMetricType = $(".animationSizeMetricType").val();
+    var colorMetricType = $(".animationColorMetricType").val();
 
-    if (pixels > oneGigInPixels) {
-        if(!confirm("Your image will exceed 1 GB and could fail. Would you like to continue?"))
-            return;
-    }
-
-    var thedatasent = {
-        contourQuery: {
-            Meters: getBase64MeterSelection(),
-            StartDate: dateFrom,
-            EndDate: dateTo,
-            DataType: $('#trendingDataTypeSelection').val(),
-            ColorScaleName: $('#contourColorScaleSelect').val(),
-            UserName: userId,
-            StepSize: $('#contourAnimationStepSelect').val(),
-            Resolution: $('#contourAnimationResolutionSelect').val(),
-            IncludeWeather: $('#weatherCheckbox:checked').length > 0,
-            MeterIds: 0
-        }
+    var query = {
+        animationInterval: interval,
+        meterIDs: meterList.selectedIds(),
+        startTime: startTime,
+        endTime: endTime,
+        sizeMetricType: sizeMetricType,
+        colorMetricType: colorMetricType
     };
-
-    $.blockUI({ message: '<div unselectable="on" class="wait_container"><div unselectable="on" class="wait">Please Wait. Loading...</div><br><div id="loadAnimationProgressBar" class="progressBar"><div id="loadAnimationProgressInnerBar" class="progressInnerBar"><div id="loadAnimationProgressLabel" class="progressBarLabel">0%</div></div></div><br><button class="btn btn-default btn-cancel">Cancel</button><br></div>' });
 
     $.ajax({
         type: "POST",
-        url: homePath + 'mapService.asmx/getContourAnimations',
-        data: JSON.stringify(thedatasent),
+        url: homePath + "api/PQDashboard/GetMapMetricAnimation",
+        data: JSON.stringify(query),
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
-        success: function (data) {
-            $('.btn-cancel').click(function () {
-                data.d.Cancelled = true;
-                cancelCall(data.d.AnimationID);
-            });
-
-            loopForAnimation(data.d);
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
+        success: function (data) { runMapMetricAnimation(data); },
+        failure: function (msg) { alert(msg); },
         global: false,
         async: true
     });
 }
 
-function loopForAnimation(animationData) {
-    var message = {
-        taskID: animationData.AnimationID
-    };
-
-    $.ajax({
-        type: "POST",
-        url: homePath + 'mapService.asmx/GetProgress',
-        data: JSON.stringify(message),
-        contentType: "application/json; charset=utf-8",
-        dataType: 'json',
-        cache: true,
-        success: function (data) {
-            $('#loadAnimationProgressInnerBar').css('width', data.d + '%');
-            $('#loadAnimationProgressLabel').text(data.d + '%');
-
-            if (data.d < 100 && !animationData.Cancelled) {
-                setTimeout(loopForAnimation, 100, animationData);
-            } else if (!animationData.Cancelled) {
-                $.unblockUI();
-                runContourAnimation(animationData);
-            }
-        },
-        failure: function (msg) {
-            alert(msg);
-        },
-        global: false,
-        async: true
-    });
-}
-
-function runContourAnimation(contourData) {
-    var d = new Date(contourData.Infos[0].Date + ' UTC');
-
-    $('#tabs-' + currentTab + ' .contourControl').css('width', '500px');
-    $('#tabs-' + currentTab + ' #progressBar').show();
-
-    $.each(contourData.Infos, function (_, info) {
-        info.ColorDomain = contourData.ColorDomain;
-        info.ColorRange = contourData.ColorRange;
-        info.MinLatitude = contourData.MinLatitude;
-        info.MaxLatitude = contourData.MaxLatitude;
-        info.MinLongitude = contourData.MinLongitude;
-        info.MaxLongitude = contourData.MaxLongitude;
-        info.JSON = info.Locations;
-    });
+function runMapMetricAnimation(animationData) {
+    $('#tabs-TrendingData .animationControl').css('width', '500px');
+    $('#tabs-TrendingData #progressBar').show();
 
     var index = 0
+    function update() {
+        var frame = animationData.Frames[index];
+
+        var progressBarIndex = Math.round(index / (animationData.Frames.length - 1) * 100);
+        $('#tabs-' + currentTab + ' #animationProgressBar').attr('value', progressBarIndex);
+        $('#tabs-' + currentTab + ' #progressDate').text(frame.Date);
+
+        mapMetricData = frame.MapMetrics;
+        updateMapMetrics(mapMetricData, mapMetricRanges);
+    }
+
+    mapMetricRanges.Largest = animationData.Largest;
+    mapMetricRanges.Smallest = animationData.Smallest;
+    mapMetricRanges.Red = animationData.Red;
+    mapMetricRanges.Green = animationData.Green;
+    updateMapLegend(mapMetricRanges);
     update();
 
-    function update() {
-        var info = contourData.Infos[index];
-        var progressBarIndex = Math.round(index / (contourData.Infos.length - 1) * 100);
-        $('#tabs-' + currentTab + ' #contourProgressBar').attr('value', progressBarIndex);
-        $('#tabs-' + currentTab + ' #progressDate').text(contourData.Infos[index].Date);
-        plotMapLocations(info, null, null, null, null);
-    }
     var interval;
-    $('#tabs-' + currentTab + ' #contourProgressBar').off('click');
-    $('#tabs-' + currentTab + ' #contourProgressBar').on('click', function (event) {
+    $('#tabs-TrendingData #animationProgressBar').off('click');
+    $('#tabs-TrendingData #animationProgressBar').on('click', function (event) {
         var progressBarindex = event.offsetX / $(this).width();
-        index = Math.round((contourData.Infos.length - 1) * progressBarindex);
+        index = Math.round((animationData.Frames.length - 1) * progressBarindex);
         update();
     });
-    $('#tabs-' + currentTab + ' #button_play').off('click');
-    $('#tabs-' + currentTab + ' #button_play').on('click', function () {
+    $('#tabs-TrendingData #button_play').off('click');
+    $('#tabs-TrendingData #button_play').on('click', function () {
         clearInterval(interval);
-        $('#trendingDataTypeSelection').on('change', function () { clearInterval(interval) });
         $('#contourColorScaleSelect').on('change', function () { clearInterval(interval) });
         $('#application-tabs a').on('click', function () { clearInterval(interval) });
 
         interval = setInterval(function () {
             index++;
 
-            if (index >= contourData.Infos.length) {
+            if (index >= animationData.Frames.length) {
                 index = 0;
                 update();
                 clearInterval(interval);
@@ -4057,42 +4080,65 @@ function runContourAnimation(contourData) {
         }, 1000);
     });
 
-    $('#tabs-' + currentTab + ' #button_stop').off('click');
-    $('#tabs-' + currentTab + ' #button_stop').on('click', function () {
+    $('#tabs-TrendingData #button_stop').off('click');
+    $('#tabs-TrendingData #button_stop').on('click', function () {
         clearInterval(interval);
     });
 
-    $('#tabs-' + currentTab + ' #button_bw').off('click');
-    $('#tabs-' + currentTab + ' #button_bw').on('click', function () {
+    $('#tabs-TrendingData #button_bw').off('click');
+    $('#tabs-TrendingData #button_bw').on('click', function () {
         if (index > 0) {
             --index;
             update();
         }
     });
 
-    $('#tabs-' + currentTab + ' #button_fbw').off('click');
-    $('#tabs-' + currentTab + ' #button_fbw').on('click', function () {
+    $('#tabs-TrendingData #button_fbw').off('click');
+    $('#tabs-TrendingData #button_fbw').on('click', function () {
         if (index > 0) {
             index = 0;
             update();
         }
     });
 
-    $('#tabs-' + currentTab + ' #button_fw').off('click');
-    $('#tabs-' + currentTab + ' #button_fw').on('click', function () {
-        if (index < contourData.Infos.length - 1) {
+    $('#tabs-TrendingData #button_fw').off('click');
+    $('#tabs-TrendingData #button_fw').on('click', function () {
+        if (index < animationData.Frames.length - 1) {
             ++index;
             update();
         }
     });
 
-    $('#tabs-' + currentTab + ' #button_ffw').off('click');
-    $('#tabs-' + currentTab + ' #button_ffw').on('click', function () {
-        if (index < contourData.Infos.length - 1) {
-            index = contourData.Infos.length - 1;
+    $('#tabs-TrendingData #button_ffw').off('click');
+    $('#tabs-TrendingData #button_ffw').on('click', function () {
+        if (index < animationData.Frames.length - 1) {
+            index = animationData.Frames.length - 1;
             update();
         }
     });
+
+    $(".mapMetricSizeType").hide();
+    $(".mapMetricColorType").hide();
+    mapMetricAnimationLoaded = true;
+}
+
+function unloadMapMetricAnimation(hideControl) {
+    var wasLoaded = mapMetricAnimationLoaded;
+
+    $('#tabs-TrendingData .animationControl').css('width', '');
+    $('#tabs-TrendingData #progressBar').hide();
+
+    if (hideControl)
+        $(".animationControl").hide();
+
+    $(".mapMetricSizeType").show();
+    $(".mapMetricColorType").show();
+    mapMetricAnimationLoaded = false;
+
+    if (wasLoaded) {
+        var timeRange = getContextTimeRange();
+        queryAndPlotMapMetrics(timeRange.Start, timeRange.End);
+    }
 }
 
 function stepSelectionChange(thecontrol) {
@@ -4119,29 +4165,14 @@ function initiateColorScale() {
 }
 
 function showColorScale(thecontrol) {
-    $('#tabs-' + currentTab + ' #progressBar').hide();
-    $('#tabs-' + currentTab + ' .contourControl').css('width', '165px');
+    unloadMapMetricAnimation(false);
 
     var mapormatrix = $("#map" + currentTab + "Grid")[0].value;
 
-    manageTabsByDate(currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
+    var timeRange = getContextTimeRange();
+    manageTabsByDate(currentTab, timeRange.Start, timeRange.End);
     $(".mapGrid").val(mapormatrix);
     selectmapgrid($("#map" + currentTab + "Grid")[0]);
-}
-
-function cancelCall(animationID) {
-    $.unblockUI();
-
-    $.ajax({
-        type: "POST",
-        data: { 'taskID': animationID },
-        url: homePath + 'mapService.asmx/CancelCall',
-        failure: function (msg) {
-            alert(msg);
-        },
-        global: false,
-        async: true
-    });
 }
 
 function getBase64MeterSelection() {

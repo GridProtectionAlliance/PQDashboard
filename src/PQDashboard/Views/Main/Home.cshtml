@@ -259,11 +259,6 @@
                                             <option value="NoData">No Data</option>
                                             <option value="None">None</option>
                                         </select>
-                                        <select class="smallbutton" id="trendingDataTypeSelection" onchange="showType(this);">
-                                            <option value="Average">Average</option>
-                                            <option value="Maximum">Maximum</option>
-                                            <option value="Minimum">Minimum</option>
-                                        </select>
                                         <select class="smallbutton" id="contourColorScaleSelect" onchange="showColorScale(this);">
                                         </select>
                                         <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
@@ -343,14 +338,6 @@
                                         <option value="NoEvents">No @(tab.Text == "Events" ? "" : tab.Text.Trim('s') + " ")Events</option>
                                         <option value="None">None</option>
                                     </select>
-                                    @if (tab.Text == "Events")
-                                    {
-                                    <select class="smallbutton" id="selectHeatmap@(tab.Text)" onchange="showHeatmap(this);">
-                                        <option value="EventCounts">Event Counts</option>
-                                        <option value="MinimumSags">Sag Minimum</option>
-                                        <option value="MaximumSwell">Swell Maximum</option>
-                                    </select>
-                                    }
                                     <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
                                 </div>
 
