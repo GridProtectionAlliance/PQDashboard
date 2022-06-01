@@ -216,33 +216,10 @@ namespace PQDashboard.Controllers
             PopulateMapMetric(query, query.ColorMapMetricType, updateColorMetric);
 
             List<MapMetric> mapMetrics = mapMetricLookup.Values.ToList();
-
-            Func<Func<MapMetric, double?>, IComparer<double>, double> max = (selector, comparer) =>
-            {
-                return mapMetrics
-                    .Select(selector)
-                    .Where(value => value != null)
-                    .Cast<double>()
-                    .DefaultIfEmpty(0.0D)
-                    .Max(comparer);
-            };
-
-            Func<Func<MapMetric, double?>, IComparer<double>, double> min = (selector, comparer) =>
-            {
-                return mapMetrics
-                    .Select(selector)
-                    .Where(value => value != null)
-                    .Cast<double>()
-                    .DefaultIfEmpty(0.0D)
-                    .Min(comparer);
-            };
-
-            Comparer<double> sizeMapMetricComparer = GetMapMetricComparer(query.SizeMapMetricType);
-            Comparer<double> colorMapMetricComparer = GetMapMetricComparer(query.ColorMapMetricType);
-            double largest = max(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
-            double smallest = min(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
-            double red = max(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
-            double green = min(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
+            double largest = GetMax(mapMetrics, query.SizeMapMetricType, mapMetric => mapMetric.SizeValue);
+            double smallest = GetMin(mapMetrics, query.SizeMapMetricType, mapMetric => mapMetric.SizeValue);
+            double red = GetMax(mapMetrics, query.ColorMapMetricType, mapMetric => mapMetric.ColorValue);
+            double green = GetMin(mapMetrics, query.ColorMapMetricType, mapMetric => mapMetric.ColorValue);
 
             return new MapMetricQueryResult()
             {
@@ -977,6 +954,84 @@ namespace PQDashboard.Controllers
             return Enumerable.Range(0, frameCount)
                 .Select(_ => toAggregateLookup(mapMetricLookup))
                 .ToList();
+        }
+
+        private double GetMax(List<MapMetric> mapMetrics, MapMetricType mapMetricType, Func<MapMetric, double?> mapMetricValueSelector)
+        {
+            switch (mapMetricType)
+            {
+                case MapMetricType.SagMinimum:
+                    return 0.0D;
+
+                case MapMetricType.SwellMaximum:
+                    return 2.0D;
+
+                default:
+                case MapMetricType.EventCount:
+                case MapMetricType.SagCount:
+                case MapMetricType.SwellCount:
+                case MapMetricType.InterruptionCount:
+                case MapMetricType.MaximumVoltageRMS:
+                case MapMetricType.MinimumVoltageRMS:
+                case MapMetricType.AverageVoltageRMS:
+                case MapMetricType.MaximumVoltageTHD:
+                case MapMetricType.MinimumVoltageTHD:
+                case MapMetricType.AverageVoltageTHD:
+                case MapMetricType.MaximumShortTermFlicker:
+                case MapMetricType.MinimumShortTermFlicker:
+                case MapMetricType.AverageShortTermFlicker:
+                    Comparer<double> mapMetricComparer = GetMapMetricComparer(mapMetricType);
+
+                    Func<Func<MapMetric, double?>, IComparer<double>, double> max = (selector, comparer) =>
+                    {
+                        return mapMetrics
+                            .Select(selector)
+                            .Where(value => value != null)
+                            .Cast<double>()
+                            .DefaultIfEmpty(0.0D)
+                            .Max(comparer);
+                    };
+
+                    return max(mapMetricValueSelector, mapMetricComparer);
+            }
+        }
+
+        private double GetMin(List<MapMetric> mapMetrics, MapMetricType mapMetricType, Func<MapMetric, double?> mapMetricValueSelector)
+        {
+            switch (mapMetricType)
+            {
+                case MapMetricType.SagMinimum:
+                case MapMetricType.SwellMaximum:
+                    return 1.0D;
+
+                default:
+                case MapMetricType.EventCount:
+                case MapMetricType.SagCount:
+                case MapMetricType.SwellCount:
+                case MapMetricType.InterruptionCount:
+                case MapMetricType.MaximumVoltageRMS:
+                case MapMetricType.MinimumVoltageRMS:
+                case MapMetricType.AverageVoltageRMS:
+                case MapMetricType.MaximumVoltageTHD:
+                case MapMetricType.MinimumVoltageTHD:
+                case MapMetricType.AverageVoltageTHD:
+                case MapMetricType.MaximumShortTermFlicker:
+                case MapMetricType.MinimumShortTermFlicker:
+                case MapMetricType.AverageShortTermFlicker:
+                    Comparer<double> mapMetricComparer = GetMapMetricComparer(mapMetricType);
+
+                    Func<Func<MapMetric, double?>, IComparer<double>, double> min = (selector, comparer) =>
+                    {
+                        return mapMetrics
+                            .Select(selector)
+                            .Where(value => value != null)
+                            .Cast<double>()
+                            .DefaultIfEmpty(0.0D)
+                            .Min(comparer);
+                    };
+
+                    return min(mapMetricValueSelector, mapMetricComparer);
+            }
         }
 
         private Comparer<double> GetMapMetricComparer(MapMetricType mapMetricType)
