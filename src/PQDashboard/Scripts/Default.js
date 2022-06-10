@@ -3666,65 +3666,7 @@ function buildPage() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function loadLeafletMap(theDiv) {
-    if (leafletMap[currentTab] === null) {
-        leafletMap[currentTab] = L.map(theDiv, {
-            center: [35.0456, -85.3097],
-            zoom: 6,
-            minZoom: 2,
-            maxZoom: 15,
-            zoomControl: false,
-            attributionControl: false
-        });
-
-        var mapLink =
-            '<a href="https://openstreetmap.org">OpenStreetMap</a>';
-
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            }).addTo(leafletMap[currentTab]);
-
-
-        var customLayer = L.geoJson(null, {
-            style: function (feature) {
-                // my custom filter function
-                return {
-                    color: '#' + feature.properties.stroke,
-                    weight: feature.properties['stroke-width'],
-                    opacity: feature.properties['stroke-opacity'],
-                    'fill-color': '#' + feature.properties.stroke
-                };
-            },
-            onEachFeature: function (feature, layer) {
-                var popupContent = feature.properties.name + ":<br>" + feature.properties.description;
-
-                layer.bindPopup(popupContent);
-            }
-        });
-
-        if (kmlData != null) {
-            loadDoc("/KML/" + kmlData.Value, function (data) {
-                if (data == null) return;
-
-                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().text()) {
-                    var legend = L.control({ position: 'topright' });
-
-                    legend.onAdd = function (map) {
-
-                        var div = L.DomUtil.create('div', 'info legend');
-
-                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().text();
-
-                        return div;
-                    };
-
-                    legend.addTo(leafletMap[currentTab]);
-                }
-                var myLayer = omnivore.kml.parse(data.responseText, null, customLayer).on('ready', function (data) { console.log(data) });
-                leafletMap[currentTab].addLayer(myLayer);
-
-            });
-        }
-
+    function addAnimationControl() {
         var animationControl = L.control({ position: 'bottomleft' });
 
         animationControl.onAdd = function (map) {
@@ -3831,7 +3773,6 @@ function loadLeafletMap(theDiv) {
             leafletMap[currentTab].scrollWheelZoom.disable();
             leafletMap[currentTab].boxZoom.disable();
             leafletMap[currentTab].keyboard.disable();
-
         });
 
         animationControl.getContainer().addEventListener('mouseout', function () {
@@ -3841,8 +3782,70 @@ function loadLeafletMap(theDiv) {
             leafletMap[currentTab].scrollWheelZoom.enable();
             leafletMap[currentTab].boxZoom.enable();
             leafletMap[currentTab].keyboard.enable();
-
         });
+    }
+
+    if (leafletMap[currentTab] === null) {
+        leafletMap[currentTab] = L.map(theDiv, {
+            center: [35.0456, -85.3097],
+            zoom: 6,
+            minZoom: 2,
+            maxZoom: 15,
+            zoomControl: false,
+            attributionControl: false
+        });
+
+        var mapLink =
+            '<a href="https://openstreetmap.org">OpenStreetMap</a>';
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            }).addTo(leafletMap[currentTab]);
+
+
+        var customLayer = L.geoJson(null, {
+            style: function (feature) {
+                // my custom filter function
+                return {
+                    color: '#' + feature.properties.stroke,
+                    weight: feature.properties['stroke-width'],
+                    opacity: feature.properties['stroke-opacity'],
+                    'fill-color': '#' + feature.properties.stroke
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                var popupContent = feature.properties.name + ":<br>" + feature.properties.description;
+
+                layer.bindPopup(popupContent);
+            }
+        });
+
+        if (kmlData != null) {
+            loadDoc("/KML/" + kmlData.Value, function (data) {
+                if (data == null) return;
+
+                if ($(data.responseXML.getElementsByTagName('description')[0]).contents().text()) {
+                    var legend = L.control({ position: 'topright' });
+
+                    legend.onAdd = function (map) {
+
+                        var div = L.DomUtil.create('div', 'info legend');
+
+                        div.innerHTML = $(data.responseXML.getElementsByTagName('description')[0]).contents().text();
+
+                        return div;
+                    };
+
+                    legend.addTo(leafletMap[currentTab]);
+                }
+                var myLayer = omnivore.kml.parse(data.responseText, null, customLayer).on('ready', function (data) { console.log(data) });
+                leafletMap[currentTab].addLayer(myLayer);
+
+            });
+        }
+
+        if (currentTab === "TrendingData")
+            addAnimationControl();
 
         addMapLegend();
     }
