@@ -293,6 +293,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XDAClient.cs" />
     <Content Include="App_Code\eventService.cs">
       <SubType>Component</SubType>
     </Content>

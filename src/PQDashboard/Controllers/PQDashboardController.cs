@@ -25,14 +25,22 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Caching;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
 using GSF;
 using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using openXDA.Model;
 
 namespace PQDashboard.Controllers
@@ -47,17 +55,15 @@ namespace PQDashboard.Controllers
 
         #endregion
 
-        #region [ Constructors ]
-        public PQDashboardController() : base() { }
-        #endregion
-
         #region [ Static ]
+
         private static MemoryCache s_memoryCache;
 
         static PQDashboardController()
         {
             s_memoryCache = new MemoryCache("PQDashboard");
         }
+
         #endregion
 
         #region [ Methods ]
@@ -232,7 +238,7 @@ namespace PQDashboard.Controllers
         }
 
         [Route("GetMapMetricAnimation"), HttpPost]
-        public MapMetricAnimationResult GetMapMetricAnimation([FromBody] MapMetricAnimationQuery query)
+        public async Task<MapMetricAnimationResult> GetMapMetricAnimation([FromBody] MapMetricAnimationQuery query, CancellationToken cancellationToken)
         {
             Dictionary<int, MapMetric> mapMetricLookup = new Dictionary<int, MapMetric>();
             PopulateMapMetricLookup(query, mapMetricLookup);
@@ -338,9 +344,9 @@ namespace PQDashboard.Controllers
             Action resetAggregates = () => allAggregates.ForEach(aggregate => aggregate.Reset());
 
             resetAggregates();
-            PopulateMapMetricAnimationFrames(query, query.SizeMapMetricType, populateSizeAction);
+            await PopulateMapMetricAnimationFramesAsync(query, query.SizeMapMetricType, populateSizeAction, cancellationToken);
             resetAggregates();
-            PopulateMapMetricAnimationFrames(query, query.ColorMapMetricType, populateColorAction);
+            await PopulateMapMetricAnimationFramesAsync(query, query.ColorMapMetricType, populateColorAction, cancellationToken);
 
             Func<Func<MapMetric, double?>, IComparer<double>, double> max = (selector, comparer) =>
             {
@@ -390,14 +396,14 @@ namespace PQDashboard.Controllers
                 "" +
                 "SELECT " +
                 "    Meter.ID MeterID, " +
-                "    MeterLocation.Longitude, " +
-                "    MeterLocation.Latitude " +
+                "    Location.Longitude, " +
+                "    Location.Latitude " +
                 "FROM " +
                 "    Meter JOIN " +
-                "    MeterLocation ON Meter.MeterLocationID = MeterLocation.ID " +
+                "    Location ON Meter.LocationID = Location.ID " +
                 "WHERE Meter.ID IN (SELECT * FROM #meterIDs)";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(SQLQuery, mapMetricQuery.MeterFilter, mapMetricQuery.StartTime, mapMetricQuery.EndTime))
             {
                 foreach (DataRow row in table.Rows)
@@ -499,7 +505,7 @@ namespace PQDashboard.Controllers
                 "    MeterID IN (SELECT * FROM #meterIDs) " +
                 "GROUP BY MeterID";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(SQLQuery, query.MeterFilter, query.StartTime, query.EndTime))
             {
                 foreach (DataRow row in table.Rows)
@@ -533,7 +539,7 @@ namespace PQDashboard.Controllers
                 "    MeterID IN (SELECT * FROM #meterIDs) " +
                 "GROUP BY MeterID";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(SQLQuery, query.MeterFilter, query.StartTime, query.EndTime, eventType))
             {
                 foreach (DataRow row in table.Rows)
@@ -570,7 +576,7 @@ namespace PQDashboard.Controllers
                 "    Disturbance.PerUnitMagnitude <> -1E38 " +
                 "GROUP BY Event.MeterID";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(SQLQuery, query.MeterFilter, query.StartTime, query.EndTime))
             {
                 foreach (DataRow row in table.Rows)
@@ -607,7 +613,7 @@ namespace PQDashboard.Controllers
                 "    Disturbance.PerUnitMagnitude <> -1E38 " +
                 "GROUP BY Event.MeterID";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(SQLQuery, query.MeterFilter, query.StartTime, query.EndTime))
             {
                 foreach (DataRow row in table.Rows)
@@ -723,7 +729,7 @@ namespace PQDashboard.Controllers
                 $"    Phase.Name IN ({phaseList})" +
                 $"GROUP BY Channel.MeterID";
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable table = connection.RetrieveData(sqlQuery, query.MeterFilter, startDate, endDate))
             {
                 foreach (DataRow row in table.Rows)
@@ -735,67 +741,67 @@ namespace PQDashboard.Controllers
             }
         }
 
-        private void PopulateMapMetricAnimationFrames(MapMetricAnimationQuery mapMetricQuery, MapMetricType mapMetricType, Action<int, int, double> populateAction)
+        private async Task PopulateMapMetricAnimationFramesAsync(MapMetricAnimationQuery mapMetricQuery, MapMetricType mapMetricType, Action<int, int, double> populateAction, CancellationToken cancellationToken)
         {
             switch (mapMetricType)
             {
                 case MapMetricType.MaximumVoltageRMS:
-                    PopulateMapMetricAnimationWithVoltageRMS(mapMetricQuery, "Maximum", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageRMSAsync(mapMetricQuery, "Maximum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.MinimumVoltageRMS:
-                    PopulateMapMetricAnimationWithVoltageRMS(mapMetricQuery, "Minimum", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageRMSAsync(mapMetricQuery, "Minimum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.AverageVoltageRMS:
-                    PopulateMapMetricAnimationWithVoltageRMS(mapMetricQuery, "Average", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageRMSAsync(mapMetricQuery, "Average", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.MaximumVoltageTHD:
-                    PopulateMapMetricAnimationWithVoltageTHD(mapMetricQuery, "Maximum", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageTHDAsync(mapMetricQuery, "Maximum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.MinimumVoltageTHD:
-                    PopulateMapMetricAnimationWithVoltageTHD(mapMetricQuery, "Minimum", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageTHDAsync(mapMetricQuery, "Minimum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.AverageVoltageTHD:
-                    PopulateMapMetricAnimationWithVoltageTHD(mapMetricQuery, "Average", populateAction);
+                    await PopulateMapMetricAnimationWithVoltageTHDAsync(mapMetricQuery, "Average", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.MaximumShortTermFlicker:
-                    PopulateMapMetricAnimationWithShortTermFlicker(mapMetricQuery, "Maximum", populateAction);
+                    await PopulateMapMetricAnimationWithShortTermFlickerAsync(mapMetricQuery, "Maximum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.MinimumShortTermFlicker:
-                    PopulateMapMetricAnimationWithShortTermFlicker(mapMetricQuery, "Minimum", populateAction);
+                    await PopulateMapMetricAnimationWithShortTermFlickerAsync(mapMetricQuery, "Minimum", populateAction, cancellationToken);
                     break;
 
                 case MapMetricType.AverageShortTermFlicker:
-                    PopulateMapMetricAnimationWithShortTermFlicker(mapMetricQuery, "Average", populateAction);
+                    await PopulateMapMetricAnimationWithShortTermFlickerAsync(mapMetricQuery, "Average", populateAction, cancellationToken);
                     break;
             }
         }
 
-        private void PopulateMapMetricAnimationWithVoltageRMS(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction)
+        private async Task PopulateMapMetricAnimationWithVoltageRMSAsync(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction, CancellationToken cancellationToken)
         {
             TrendingChannelDefinition channelDefinition = GetVoltageRMSChannelDefinition(aggregateType);
-            PopulateMapMetricAnimationFrames(mapMetricQuery, channelDefinition, populateAction);
+            await PopulateMapMetricAnimationFramesAsync(mapMetricQuery, channelDefinition, populateAction, cancellationToken);
         }
 
-        private void PopulateMapMetricAnimationWithVoltageTHD(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction)
+        private async Task PopulateMapMetricAnimationWithVoltageTHDAsync(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction, CancellationToken cancellationToken)
         {
             TrendingChannelDefinition channelDefinition = GetVoltageTHDChannelDefinition(aggregateType);
-            PopulateMapMetricAnimationFrames(mapMetricQuery, channelDefinition, populateAction);
+            await PopulateMapMetricAnimationFramesAsync(mapMetricQuery, channelDefinition, populateAction, cancellationToken);
         }
 
-        private void PopulateMapMetricAnimationWithShortTermFlicker(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction)
+        private async Task PopulateMapMetricAnimationWithShortTermFlickerAsync(MapMetricAnimationQuery mapMetricQuery, string aggregateType, Action<int, int, double> populateAction, CancellationToken cancellationToken)
         {
             TrendingChannelDefinition channelDefinition = GetShortTermFlickerChannelDefinition(aggregateType);
-            PopulateMapMetricAnimationFrames(mapMetricQuery, channelDefinition, populateAction);
+            await PopulateMapMetricAnimationFramesAsync(mapMetricQuery, channelDefinition, populateAction, cancellationToken);
         }
 
-        private void PopulateMapMetricAnimationFrames(MapMetricAnimationQuery mapMetricQuery, TrendingChannelDefinition channelDefinition, Action<int, int, double> parentAction)
+        private async Task PopulateMapMetricAnimationFramesAsync(MapMetricAnimationQuery mapMetricQuery, TrendingChannelDefinition channelDefinition, Action<int, int, double> parentAction, CancellationToken cancellationToken)
         {
             string meterIDList = string.Join(",", mapMetricQuery.MeterIDs);
             string measurementType = channelDefinition.MeasurementType;
@@ -819,18 +825,13 @@ namespace PQDashboard.Controllers
                 $"    MeasurementCharacteristic.Name = {{1}} AND " +
                 $"    Phase.Name IN ({phaseList})";
 
-            string historianServer;
-            string historianInstance;
-
             List<int> channels;
             Func<int, double> getNominalValue;
             Action<int, int, double> populateAction;
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             using (DataTable idTable = connection.RetrieveData(idQuery, measurementType, measurementCharacteristic))
             {
-                historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-                historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
 
                 channels = idTable
                     .AsEnumerable()
@@ -865,52 +866,40 @@ namespace PQDashboard.Controllers
                 };
             }
 
-            SeriesID seriesFilter = SeriesID.Average;
-            if (channelDefinition.AggregateType == "Maximum")
-                seriesFilter = SeriesID.Maximum;
-            if (channelDefinition.AggregateType == "Minimum")
-                seriesFilter = SeriesID.Minimum;
-
-            using (Historian historian = new Historian(historianServer, historianInstance))
+            var hidsQuery = new
             {
-                DateTime startDate = mapMetricQuery.StartTime;
-                DateTime endDate = mapMetricQuery.EndTime;
-                int stepSize = mapMetricQuery.AnimationInterval;
+                StartTime = mapMetricQuery.StartTime,
+                EndTime = mapMetricQuery.EndTime,
+                Channels = channels,
+                AggregateDuration = $"{mapMetricQuery.AnimationInterval}m"
+            };
 
-                // The frames to be included are those whose timestamps fall
-                // within the range which is specified by startDate and
-                // endDate. We start by aligning startDate and endDate with
-                // the nearest frame timestamps which fall within that range
-                int startTimeOffset = (int)Math.Ceiling((startDate - startDate.Date).TotalMinutes / stepSize);
-                DateTime readStart = startDate.Date.AddMinutes(startTimeOffset * stepSize);
-
-                int endTimeOffset = (int)Math.Floor((endDate - endDate.Date).TotalMinutes / stepSize);
-                DateTime readEnd = endDate.Date.AddMinutes(endTimeOffset * stepSize);
-
-                // Since each frame includes data from all timestamps between
-                // the previous frame's timestamp and its own timestamp, we
-                // must include one additional frame of data before startDate
-                readStart = readStart.AddMinutes(-stepSize);
-
-                foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channels, readStart, readEnd))
+            Func<HIDSPoint, double> getValue = new Func<Func<HIDSPoint, double>>(() =>
+            {
+                switch (channelDefinition.AggregateType)
                 {
-                    if (point.SeriesID != seriesFilter)
-                        continue;
-
-                    // Round to the nearest minute to work around device issues
-                    long ticks = point.Timestamp.Ticks;
-                    long halfMinute = Ticks.PerMinute / 2L;
-                    long roundedTicks = (ticks + halfMinute) / Ticks.PerMinute * Ticks.PerMinute;
-                    DateTime roundedTimestamp = new DateTime(roundedTicks);
-
-                    // Use ceiling to sort data into the next nearest frame.
-                    int frameIndex = (int)Math.Ceiling((roundedTimestamp - startDate).TotalMinutes / stepSize);
-
-                    double nominal = getNominalValue(point.ChannelID);
-                    double value = point.Value / nominal;
-                    populateAction(frameIndex, point.ChannelID, value);
+                    case "Maximum": return point => point.Maximum;
+                    case "Minimum": return point => point.Minimum;
+                    case "Average": return point => point.Average;
+                    default: return point => double.NaN;
                 }
-            }
+            })();
+
+            Action<HIDSPoint> processPoint = point =>
+            {
+                string tag = point.Tag;
+                DateTime timestamp = point.Timestamp;
+                double value = getValue(point);
+
+                int channelID = Convert.ToInt32(tag, 16);
+                DateTime startDate = mapMetricQuery.StartTime;
+                int stepSize = mapMetricQuery.AnimationInterval;
+                int frameIndex = (int)((timestamp - startDate).TotalMinutes / stepSize);
+                populateAction(frameIndex, channelID, value);
+            };
+
+            XDAClient xdaClient = new XDAClient(() => new AdoDataConnection("systemSettings"));
+            await xdaClient.QueryHIDSPointsAsync(hidsQuery, processPoint, cancellationToken);
         }
 
         private int GetFrameCount(MapMetricAnimationQuery mapMetricQuery)
