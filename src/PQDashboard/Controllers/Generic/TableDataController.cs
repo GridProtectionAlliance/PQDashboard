@@ -29,8 +29,6 @@ using System.Linq;
 using System.Web.Http;
 using GSF.Data;
 using GSF.Data.Model;
-using GSF.Collections;
-using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
@@ -39,24 +37,25 @@ namespace PQDashboard.Controllers
     {
         #region [ Members ]
 
-        public class DetailtsForSitesForm
+        public class DetailsForSitesForm
         {
             public string siteId { get; set; }
             public string targetDate { get; set; }
             public string colorScale { get; set; }
             public string context { get; set; }
         }
+
         #endregion
 
         #region [ Properties ]
+
         protected string Tab { get; set; }
         protected string Query { get; set; }
 
         #endregion
 
-
         [Route(""), HttpPost]
-        public IHttpActionResult Post(DetailtsForSitesForm form)
+        public IHttpActionResult Post(DetailsForSitesForm form)
         {
             try
             {

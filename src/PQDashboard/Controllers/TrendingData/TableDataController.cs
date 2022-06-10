@@ -22,23 +22,14 @@
 //******************************************************************************************************
 
 
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Web.Http;
-using GSF.Data;
-using GSF.Data.Model;
-using GSF.Collections;
 using openXDA.Model;
 
 namespace PQDashboard.Controllers
 {
-
     [RoutePrefix("api/TrendingData/TableData")]
     public class TrendingDataTableDataController : TableDataController<TrendingDataPoint>
     {
-        #region [ constructor ]
         public TrendingDataTableDataController()
         {
             Query = @"
@@ -71,12 +62,11 @@ namespace PQDashboard.Controllers
                             MeasurementCharacteristic ON Channel.MeasurementCharacteristicID = MeasurementCharacteristic.ID JOIN
                             MeasurementType ON Channel.MeasurementTypeID = MeasurementType.ID JOIN
                             Phase ON Channel.PhaseID = Phase.ID
-                        WHERE Meter.ID IN (SELECT * FROM @MeterIDs) AND Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = @colorScaleName) AND Date = @Date
+                        WHERE Meter.ID IN (SELECT * FROM @MeterIDs) AND Channel.ID IN (SELECT ChannelID FROM ContourChannel WHERE ContourColorScaleName = {3}) AND Date = @Date
                         GROUP BY Date, Meter.ID, Meter.Name, MeasurementCharacteristic.Name, MeasurementType.Name, Phase.Name, Channel.ID
                         ORDER BY Date
                 ";
             Tab = "TrendingData";
         }
-        #endregion
     }
 }
