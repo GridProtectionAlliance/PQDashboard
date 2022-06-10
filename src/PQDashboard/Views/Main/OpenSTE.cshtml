@@ -173,7 +173,7 @@
     $(document).ready(function () {
 
         postedchannelid = '@postedchannelid.ToString()';
-        posteddate = '@posteddate.ToString()';
+        posteddate = '@posteddate.ToString("yyyy-MM-dd")';
         postedmeterid = '@postedmeterid.ToString()';
         postedmeasurementtype = '@postedmeasurementtype';
         postedcharacteristic = '@postedcharacteristic';
@@ -215,8 +215,6 @@
                     ctx.lineTo(x - radius, y);
                     ctx.stroke();
                 }
-
-                data = data.d;
 
                 if (data == null)
                     return;

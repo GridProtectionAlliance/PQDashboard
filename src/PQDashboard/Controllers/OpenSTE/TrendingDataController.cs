@@ -25,10 +25,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
 using GSF.Collections;
 using GSF.Data;
-using openHistorian.XDALink;
 
 namespace PQDashboard.Controllers.OpenSTE
 {
@@ -66,12 +67,10 @@ namespace PQDashboard.Controllers.OpenSTE
     public class TrendingDataController : ApiController
     {
         [Route("{channelID:int}/{date}"), HttpGet]
-        public IHttpActionResult Get(int channelID, string date)
+        public async Task<IHttpActionResult> Get(int channelID, string date, CancellationToken cancellationToken)
         {
             try
             {
-                string historianServer;
-                string historianInstance;
                 IEnumerable<int> channelIDs = new List<int>() { channelID };
                 DateTime startDate = Convert.ToDateTime(date);
                 DateTime endDate = startDate.AddDays(1);
@@ -80,28 +79,30 @@ namespace PQDashboard.Controllers.OpenSTE
 
                 using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
-                    historianServer = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.Server'") ?? "127.0.0.1";
-                    historianInstance = connection.ExecuteScalar<string>("SELECT Value FROM Setting WHERE Name = 'Historian.InstanceName'") ?? "XDA";
+                    XDAClient xdaClient = new XDAClient(() => new AdoDataConnection("systemSettings"));
 
-                    using (Historian historian = new Historian(historianServer, historianInstance))
+                    var query = new
                     {
-                        foreach (openHistorian.XDALink.TrendingDataPoint point in historian.Read(channelIDs, startDate, endDate))
+                        Channels = channelIDs,
+                        StartTime = startDate,
+                        StopTime = endDate
+                    };
+
+                    Action<HIDSPoint> processHIDSPoint = point =>
+                    {
+                        if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
                         {
-                            if (!trendingDataSet.ChannelData.Exists(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds))
-                            {
-                                trendingDataSet.ChannelData.Add(new TrendingDataDatum());
-                                trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
-                            }
-
-                            if (point.SeriesID.ToString() == "Average")
-                                trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Average = point.Value;
-                            else if (point.SeriesID.ToString() == "Minimum")
-                                trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Minimum = point.Value;
-                            else if (point.SeriesID.ToString() == "Maximum")
-                                trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Maximum = point.Value;
-
+                            trendingDataSet.ChannelData.Add(new TrendingDataDatum());
+                            trendingDataSet.ChannelData[trendingDataSet.ChannelData.Count - 1].Time = point.Timestamp.Subtract(epoch).TotalMilliseconds;
                         }
-                    }
+
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Average = point.Average;
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Minimum = point.Minimum;
+                        trendingDataSet.ChannelData[trendingDataSet.ChannelData.IndexOf(x => x.Time == point.Timestamp.Subtract(epoch).TotalMilliseconds)].Maximum = point.Maximum;
+                    };
+
+                    await xdaClient.QueryHIDSPointsAsync(query, processHIDSPoint, cancellationToken);
+
                     IEnumerable<DataRow> table = Enumerable.Empty<DataRow>();
 
                     table = connection.RetrieveData(" Select {0} AS thedatefrom, " +
