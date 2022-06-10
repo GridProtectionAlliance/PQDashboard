@@ -1254,7 +1254,6 @@ namespace PQDashboard
             return UserInfo.UserNameToSID(Thread.CurrentPrincipal.Identity.Name);
         }
 
-
         /// <summary>
         /// DataTable2JSON
         /// </summary>
@@ -1264,33 +1263,6 @@ namespace PQDashboard
         {
             return JsonConvert.SerializeObject(dt);
         }
-
-        private bool CheckAlarm(Channel channel, openHistorian.XDALink.TrendingDataPoint trendingPoint, AlarmRangeLimit rangeLimit)
-        {
-            double perUnitValue;
-
-            double highLimit = 0.0D;
-            double lowLimit = 0.0D;
-            bool highValid = true;
-            bool lowValid = true;
-
-            perUnitValue = channel.PerUnitValue ?? 1.0D;
-
-            if (rangeLimit.High != null)
-            {
-                highLimit = Convert.ToBoolean(rangeLimit.PerUnit) ? (rangeLimit.High.GetValueOrDefault() * perUnitValue) : rangeLimit.High.GetValueOrDefault();
-                highValid = Convert.ToBoolean(rangeLimit.RangeInclusive) ^ (trendingPoint.Value <= highLimit);
-            }
-
-            if (rangeLimit.Low != null)
-            {
-                lowLimit = Convert.ToBoolean(rangeLimit.PerUnit) ? (rangeLimit.Low.GetValueOrDefault() * perUnitValue) : rangeLimit.Low.GetValueOrDefault();
-                lowValid = Convert.ToBoolean(rangeLimit.RangeInclusive) ^ (trendingPoint.Value >= lowLimit);
-            }
-
-            return !lowValid || !highValid;
-        }
-
 
         #endregion
     }

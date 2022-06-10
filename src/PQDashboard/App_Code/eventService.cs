@@ -23,23 +23,12 @@
 //
 //******************************************************************************************************
 
-using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Web.Services;
 using System.Web.Script.Serialization;
+using System.Web.Services;
 using GSF.Configuration;
-using GSF.Data;
-using GSF.Collections;
-using GSF.Data.Model;
-using GSF.Web.Model;
-using openHistorian.XDALink;
-using PQDashboard.Model;
-
 
 /// <summary>
 /// Summary description for MapService
@@ -49,10 +38,9 @@ using PQDashboard.Model;
 // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
 
 [System.Web.Script.Services.ScriptService]
-public class eventService : System.Web.Services.WebService {
+public class eventService : WebService {
 
     private string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
-
 
     /// <summary>
     /// getPQIDetailsByEventID
@@ -60,10 +48,9 @@ public class eventService : System.Web.Services.WebService {
     /// <param name="eventID"></param>
     /// <returns></returns>
     [WebMethod]
-    public String getPQIDetailsByEventID(string eventID)
+    public string getPQIDetailsByEventID(string eventID)
     {
-
-        String thedata = "";
+        string thedata = "";
         SqlConnection conn = null;
         SqlDataReader rdr = null;
 
@@ -97,8 +84,6 @@ public class eventService : System.Web.Services.WebService {
         return thedata;
     }
 
-
-
     /// <summary>
     /// DataTable2JSON
     /// </summary>
@@ -106,13 +91,13 @@ public class eventService : System.Web.Services.WebService {
     /// <returns></returns>
     public string DataTable2JSON(DataTable dt)
     {
-        List<Object> RowList = new List<Object>();
+        List<object> RowList = new List<object>();
         foreach (DataRow dr in dt.Rows)
         {
-            Dictionary<Object, Object> ColList = new Dictionary<Object, Object>();
+            Dictionary<object, object> ColList = new Dictionary<object, object>();
             foreach (DataColumn dc in dt.Columns)
             {
-                string t = (string)((string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString());
+                string t = (string.Empty == dr[dc].ToString()) ? null : dr[dc].ToString();
 
                 ColList.Add(dc.ColumnName, t);
             }
@@ -122,14 +107,4 @@ public class eventService : System.Web.Services.WebService {
         string JSON = js.Serialize(RowList);
         return JSON;
     }
-
-
-
-    private static DateTime Round(DateTime dateTime, TimeSpan interval)
-    {
-        var halfIntervelTicks = (interval.Ticks + 1) >> 1;
-
-        return dateTime.AddTicks(halfIntervelTicks - ((dateTime.Ticks + halfIntervelTicks) % interval.Ticks));
-    }
-
 }
