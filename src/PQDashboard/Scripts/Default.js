@@ -3558,7 +3558,7 @@ function buildPage() {
                 return;
             }
 
-            currentTab = newTab;
+            currentTab = newTab.replace(/\s/g, "");
             
             if (newTab.indexOf("Overview") > -1) {
                 $('#headerStrip').hide();
@@ -3573,7 +3573,7 @@ function buildPage() {
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
                 loadDataForDate();
-                updateUrlParams('tab', newTab);
+                updateUrlParams('tab', currentTab);
             }
         }
     });
@@ -3648,7 +3648,14 @@ function buildPage() {
         $('#headerStrip').show();
 
         $(window).one("meterSelectUpdated", function () {
-            $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
+            var tabSearchText = "tabs" + currentTab;
+
+            var tabIndex = $("#application-tabs li")
+                .map(function (_, a) { return $(a).attr("id").toLowerCase(); })
+                .get()
+                .indexOf(tabSearchText.toLowerCase());
+
+            $("#application-tabs").tabs("option", "active", tabIndex);
             selectmapgrid($("#map" + currentTab + "Grid")[0]);
             resizeMapAndMatrix(currentTab);
         });
