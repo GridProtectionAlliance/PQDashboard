@@ -21,64 +21,53 @@
 //
 //******************************************************************************************************
 
-
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Web.Http;
 using GSF.Data;
-using GSF.Data.Model;
-using GSF.Collections;
-using openXDA.Model;
 
 namespace PQDashboard.Controllers.Completeness
 {
-
     [RoutePrefix("api/Completeness/DetailsByDate")]
     public class CompletenessDetailsByDateController : ApiController
     {
         [Route("{siteID:int}/{month:int}/{day:int}/{year:int}"), HttpGet]
         public IHttpActionResult Get(int siteID, int month, int day, int year)
         {
-            try
+            const string QueryFormat =
+                "DECLARE @meterID AS INT = {0} " +
+                "DECLARE @queryDate AS DATETIME = {1} " +
+                "" +
+                "SELECT DISTINCT " +
+                "    Channel.ID AS channelid, " +
+                "    Channel.Name AS channelname, " +
+                "    @queryDate AS date, " +
+                "    Meter.ID AS meterid, " +
+                "    MeasurementType.Name as measurementtype, " +
+                "    MeasurementCharacteristic.Name AS characteristic, " +
+                "    Phase.Name AS phasename, " +
+                "    ChannelDataQualitySummary.ExpectedPoints AS expected, " +
+                "    DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount AS received, " +
+                "    COALESCE(CAST(DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount AS FLOAT) / ChannelDataQualitySummary.ExpectedPoints, 0) * 100 AS completeness " +
+                "FROM " +
+                "    ChannelDataQualitySummary JOIN " +
+                "    DailyTrendingSummary ON " +
+                "        ChannelDataQualitySummary.ChannelID = DailyTrendingSummary.ChannelID AND " +
+                "        ChannelDataQualitySummary.Date = DailyTrendingSummary.Date JOIN " +
+                "    Channel ON ChannelDataQualitySummary.ChannelID = Channel.ID JOIN " +
+                "    Meter ON Channel.MeterID = @meterID JOIN " +
+                "    MeasurementType ON MeasurementType.ID = Channel.MeasurementTypeID JOIN " +
+                "    MeasurementCharacteristic ON MeasurementCharacteristic.ID = Channel.MeasurementCharacteristicID JOIN " +
+                "    Phase ON Phase.ID = Channel.PhaseID " +
+                "WHERE " +
+                "    ChannelDataQualitySummary.Date = @queryDate AND " +
+                "    Meter.ID = @meterID";
+
+            using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
             {
-                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
-                {
-                    DataTable table = connection.RetrieveData(@"
-                        DECLARE @MeterID AS INT = {0}
-                        DECLARE @EventDate as DateTime = {1}
-
-                        select
-                        Distinct [dbo].[Channel].[ID] as channelid,
-                        [dbo].[Channel].[Name] as channelname,
-                        @EventDate as date,
-                        [dbo].[Meter].[ID] as meterid,
-                        [dbo].[MeasurementType].[Name] as measurementtype,
-                        [dbo].[MeasurementCharacteristic].[Name] as characteristic,
-                        [dbo].[Phase].[Name] as phasename,
-
-                        COALESCE(CAST( cast(LatchedPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Latched,
-                        COALESCE(CAST( cast(UnreasonablePoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Unreasonable,
-                        COALESCE(CAST( cast(NoncongruentPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as Noncongruent,
-                        COALESCE(CAST( cast(GoodPoints + LatchedPoints + UnreasonablePoints + NoncongruentPoints as float) / NULLIF(cast(expectedPoints as float),0) as float),0) * 100 as completeness
-
-                        from [dbo].[ChannelDataQualitySummary]
-                        join [dbo].[Channel] on [dbo].[ChannelDataQualitySummary].[ChannelID] = [dbo].[Channel].[ID]
-                        join [dbo].[Meter] on [dbo].[Channel].[MeterID] = @MeterID
-                        join [dbo].[MeasurementType] on [dbo].[MeasurementType].[ID] = [dbo].[Channel].[MeasurementTypeID]
-                        join [dbo].[MeasurementCharacteristic] on [dbo].[MeasurementCharacteristic].[ID] = [dbo].[Channel].[MeasurementCharacteristicID]
-                        join [dbo].[Phase] on [dbo].[Phase].[ID] = [dbo].[Channel].[PhaseID]
-                        where [dbo].[ChannelDataQualitySummary].[Date] = @EventDate and [dbo].[Meter].[ID] = @MeterID
-                    ", siteID, new DateTime(year, month, day));
-
-                    return Ok(table);
-
-                }
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
+                DateTime date = new DateTime(year, month, day);
+                DataTable table = connection.RetrieveData(QueryFormat, siteID, date);
+                return Ok(table);
             }
         }
     }

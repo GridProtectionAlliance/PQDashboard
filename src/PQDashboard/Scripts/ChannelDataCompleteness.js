@@ -1,10 +1,8 @@
-
 var postedMeterId = "";
 var postedDate = "";
 var postedMeterName = "";
 
 $(document).ready(function () {
-
     postedMeterId = $("#postedMeterId")[0].innerHTML;
     postedDate = $("#postedDate")[0].innerHTML;
     postedMeterName = $("#postedMeterName")[0].innerHTML;
@@ -46,9 +44,6 @@ var columnsrenderer = function (value) { return '<div style="text-align: center;
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
-
-    var thedatasent = "{'siteID':'" + siteID + "', 'targetDate':'" + theDate + "'}";
-
     $.ajax({
         type: "GET",
         url: './api/Completeness/DetailsByDate/' + siteID + '/' + theDate,
@@ -65,13 +60,12 @@ function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteN
                     { field: 'measurementtype', headerText: 'Type', headerStyle: 'width: 8%', bodyStyle: 'width: 8%; height: 20px', sortable: true },
                     { field: 'characteristic', headerText: 'Characteristic', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                     { field: 'phasename', headerText: 'Phase', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true },
-                    { field: 'Latched', headerText: 'Latched', headerStyle: 'width:  10%', bodyStyle: 'width:  15%; height: 20px; text-align: right', sortable: true, content: function (row) { return parseFloat(row.Latched).toFixed(0) + '%'; } },
-                    { field: 'Unreasonable', headerText: 'Unreasonable', headerStyle: 'width: 10%', bodyStyle: 'width: 15%; height: 20px; text-align: right', sortable: true, content: function (row) { return parseFloat(row.Unreasonable).toFixed(0) + '%'; } },
-                    { field: 'Noncongruent', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true, content: function (row) { return parseFloat(row.Noncongruent).toFixed(0) + '%'; } },
+                    { field: 'expected', headerText: 'Expected', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true },
+                    { field: 'received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true },
                     { field: 'completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true, content: function (row) { return parseFloat(row.completeness).toFixed(0) + '%'; } },
                     { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSTEButton_html }
                 ],
-                datasource: $.parseJSON(data.d)
+                datasource: data
             });
         }
     });

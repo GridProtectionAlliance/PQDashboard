@@ -53,13 +53,12 @@ var columnsrenderer = function (value) { return '<div style="text-align: center;
 function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteName, siteID, theDate) {
 
     $.ajax({
-        type: "POST",
+        type: "GET",
         url: './api/Correctness/DetailsByDate/' + siteID + '/' + theDate,
         contentType: "application/json; charset=utf-8",
         dataType: 'json',
         cache: true,
         success: function (data) {
-            json = $.parseJSON(data.d)
             $('#' + thediv).puidatatable({
                 scrollable: true,
                 scrollHeight: '100%',
@@ -69,15 +68,14 @@ function populateMeterChannelDataQualityDivWithGrid(thedatasource, thediv, siteN
                     { field: 'measurementtype', headerText: 'Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                     { field: 'characteristic', headerText: 'Characteristic', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px', sortable: true },
                     { field: 'phasename', headerText: 'Phase', headerStyle: 'width:  10%', bodyStyle: 'width:  10%; height: 20px', sortable: true },
-                    { field: 'ExpectedPoints', headerText: 'Expected', headerStyle: 'width:  10%', bodyStyle: 'width:  15%; height: 20px; text-align: right', sortable: true },
+                    { field: 'ReceivedPoints', headerText: 'Received', headerStyle: 'width:  10%', bodyStyle: 'width:  15%; height: 20px; text-align: right', sortable: true },
                     { field: 'GoodPoints', headerText: 'Good', headerStyle: 'width:  10%', bodyStyle: 'width:  15%; height: 20px; text-align: right', sortable: true },
                     { field: 'LatchedPoints', headerText: 'Latched', headerStyle: 'width:  10%', bodyStyle: 'width:  15%; height: 20px; text-align: right', sortable: true },
                     { field: 'UnreasonablePoints', headerText: 'Unreasonable', headerStyle: 'width: 15%', bodyStyle: 'width: 15%; height: 20px; text-align: right', sortable: true },
                     { field: 'NoncongruentPoints', headerText: 'Noncongruent', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true },
-                    { field: 'DuplicatePoints', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; padding: 0; height: 20px; text-align: right', sortable: true },
                     { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSTEButton_html }
                 ],
-                datasource: $.parseJSON(data.d)
+                datasource: data
             });
         }
     });

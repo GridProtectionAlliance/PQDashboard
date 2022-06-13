@@ -532,12 +532,12 @@
 
 
     function OpenWindowToChannelDataQuality(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/ChannelDataQuality.aspx"))?eventid=" + id, id + "ChannelDataQuality");
+        var popup = window.open("@Html.Raw(Url.Content("~/ChannelDataQuality.aspx"))?summaryid=" + id, id + "ChannelDataQuality");
         return false;
     }
 
     function OpenWindowToChannelDataCompleteness(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/ChannelDataCompleteness.aspx"))?eventid=" + id, id + "ChannelDataCompleteness");
+        var popup = window.open("@Html.Raw(Url.Content("~/ChannelDataCompleteness.aspx"))?summaryid=" + id, id + "ChannelDataCompleteness");
         return false;
     }
 

@@ -28,146 +28,49 @@ namespace PQDashboard.Controllers
     [RoutePrefix("api/Completeness/TableData")]
     public class CompletenessTableDataController : TableDataController<CompletenessBarChart>
     {
-        #region [ constructor ]
         public CompletenessTableDataController()
         {
-            Query = @"
-                        DECLARE @EventDate DATETIME = {0}
-                        DECLARE @MeterID AS varchar(max) = {1}
-                        DECLARE @context as nvarchar(20) = {2}
+            Query =
+                "DECLARE @eventDate DATETIME = {0} " +
+                "DECLARE @meterList AS varchar(max) = {1} " +
+                "DECLARE @context as nvarchar(20) = {2} " +
+                "" +
+                "SELECT " +
+                "	FirstSummary.ID theeventid, " +
+                "	Meter.ID themeterid, " +
+                "	Meter.Name thesite, " +
+                "	MeterDataQualitySummary.ExpectedPoints Expected, " +
+                "	DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount Received, " +
+                "	CONVERT(FLOAT, DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount) / MeterDataQualitySummary.ExpectedPoints * 100 Completeness " +
+                "FROM " +
+                "	Meter JOIN " +
+                "	MeterDataQualitySummary ON " +
+                "		MeterDataQualitySummary.MeterID = Meter.ID AND " +
+                "		MeterDataQualitySummary.Date = @eventDate JOIN " +
+                "	( " +
+                "		SELECT " +
+                "			Channel.MeterID, " +
+                "			DailyTrendingSummary.Date, " +
+                "			SUM(DailyTrendingSummary.ValidCount) ValidCount, " +
+                "			SUM(DailyTrendingSummary.InvalidCount) InvalidCount " +
+                "		FROM " +
+                "			DailyTrendingSummary JOIN " +
+                "			Channel ON DailyTrendingSummary.ChannelID = Channel.ID " +
+                "		GROUP BY " +
+                "			Channel.MeterID, " +
+                "			DailyTrendingSummary.Date " +
+                "	) DailyTrendingSummary ON " +
+                "		DailyTrendingSummary.MeterID = Meter.ID AND " +
+                "		DailyTrendingSummary.Date = MeterDataQualitySummary.Date CROSS APPLY " +
+                "	( " +
+                "		SELECT TOP 1 FirstSummary.ID " +
+                "		FROM MeterDataQualitySummary FirstSummary " +
+                "		WHERE " +
+                "			FirstSummary.MeterID = Meter.ID AND " +
+                "			FirstSummary.Date = MeterDataQualitySummary.Date " +
+                "	) FirstSummary";
 
-                        DECLARE @thedate DATE = CAST(@EventDate AS DATE)
-                        DECLARE @MeterIDs TABLE (ID INT);
-
-                        INSERT INTO @MeterIDs(ID)
-                        SELECT Value FROM dbo.String_to_int_table(@MeterID, ',')
-
-                        DECLARE @TempTable TABLE (themeterid INT, thesite VARCHAR(100), thecount FLOAT, thename VARCHAR(100));
-
-                        INSERT INTO @TempTable (themeterid, thesite , thecount , thename)
-                        SELECT
-                            Meter.ID AS meterid,
-                            Meter.Name AS thesite,
-                            (
-                                SELECT COALESCE((
-                                    SELECT CAST(CAST((GoodPoints + LatchedPoints + UnreasonablePoints + NoncongruentPoints) AS FLOAT) / NULLIF(CAST(expectedPoints AS FLOAT), 0) AS FLOAT) AS completenessPercentage
-                                    FROM MeterDataQualitySummary
-                                    WHERE
-                                        MeterID = Meter.ID AND
-                                        [Date] = @thedate
-                                )
-                            , 0)) AS thecount,
-                            'Completeness' as thename
-                        FROM
-                            MeterDataQualitySummary JOIN
-                            Meter ON Meter.ID = MeterDataQualitySummary.MeterID
-                        WHERE
-                            MeterID IN (SELECT * FROM @MeterIDs) AND
-                            CAST([Date] AS DATE) = @thedate
-
-                        INSERT INTO @TempTable (themeterid, thesite , thecount , thename)
-                        SELECT
-                            Meter.ID AS meterid,
-                            Meter.Name AS thesite,
-                            (
-                                SELECT COALESCE((
-                                    SELECT CAST(NULLIF(CAST(expectedPoints AS FLOAT), 0) AS FLOAT) AS completenessPercentage
-                                    FROM MeterDataQualitySummary
-                                    WHERE
-                                        MeterID = Meter.ID AND
-                                        [Date] = @thedate
-                                )
-                            , 0)) AS thecount,
-                            'Expected' AS thename
-                        FROM
-                            MeterDataQualitySummary JOIN
-                            Meter ON Meter.ID = MeterDataQualitySummary.MeterID
-                        WHERE
-                            MeterID IN (SELECT * FROM @MeterIDs) AND
-                            CAST([Date] AS DATE) = @thedate
-
-                        INSERT INTO @TempTable (themeterid, thesite , thecount , thename)
-                        SELECT
-                            Meter.ID AS meterid,
-                            Meter.Name AS thesite,
-                            (
-                                SELECT COALESCE((
-                                    SELECT CAST(CAST((GoodPoints + LatchedPoints + UnreasonablePoints + NoncongruentPoints + DuplicatePoints) AS FLOAT) / NULLIF(CAST(expectedPoints AS FLOAT), 0) AS FLOAT) AS completenessPercentage
-                                    FROM MeterDataQualitySummary
-                                    WHERE
-                                        MeterID = Meter.ID AND
-                                        [Date] = @theDate
-                                )
-                            , 0)) AS thecount,
-                            'Received' AS thename
-                        FROM
-                            MeterDataQualitySummary JOIN
-                            Meter ON Meter.ID = MeterDataQualitySummary.MeterID
-                        WHERE
-                            MeterID IN (SELECT * FROM @MeterIDs) AND
-                            CAST([Date] AS DATE) = @thedate
-
-                        INSERT INTO @TempTable (themeterid, thesite , thecount , thename)
-                        SELECT
-                            Meter.ID AS meterid,
-                            Meter.Name AS thesite,
-                            (
-                                SELECT COALESCE((
-                                    SELECT CAST(CAST((DuplicatePoints) AS FLOAT) / NULLIF(CAST(expectedPoints AS FLOAT), 0) AS FLOAT) AS completenessPercentage
-                                    FROM MeterDataQualitySummary
-                                    WHERE
-                                        MeterID = Meter.ID AND
-                                        [Date] = @thedate
-                                )
-                            , 0)) AS thecount,
-                            'Duplicate' AS thename
-                        FROM
-                            MeterDataQualitySummary JOIN
-                            Meter ON Meter.ID = MeterDataQualitySummary.MeterID
-                        WHERE
-                            MeterID IN (SELECT * FROM @MeterIDs) AND
-                            CAST([Date] AS DATE) = @thedate
-
-                        DECLARE @composite TABLE (theeventid INT, themeterid INT, thesite VARCHAR(100), Expected FLOAT, Received FLOAT, Duplicate FLOAT, Completeness FLOAT);
-
-                        DECLARE @sitename VARCHAR(100)
-                        DECLARE @themeterid INT
-                        DECLARE @theeventid INT
-
-                        DECLARE site_cursor CURSOR FOR SELECT DISTINCT themeterid, thesite FROM @TempTable
-
-                        OPEN site_cursor
-
-                        FETCH NEXT FROM site_cursor INTO @themeterid , @sitename
-
-                        WHILE @@FETCH_STATUS = 0
-                        BEGIN
-                            INSERT @composite VALUES(
-                                (
-                                    SELECT TOP 1 MeterDataQualitySummary.ID
-                                    FROM MeterDataQualitySummary
-                                    WHERE
-                                        MeterDataQualitySummary.MeterID = @themeterid AND
-                                        CAST([Date] as Date) = @thedate
-                                ),
-                                @themeterid,
-                                @sitename,
-                                (SELECT thecount * 100 FROM @TempTable WHERE thename = 'Expected' AND thesite = @sitename),
-                                (SELECT thecount * 100 FROM @TempTable WHERE thename = 'Received' AND thesite = @sitename),
-                                (SELECT thecount * 100 FROM @TempTable WHERE thename = 'Duplicate' AND thesite = @sitename),
-                                (SELECT thecount * 100 FROM @TempTable WHERE thename = 'Completeness' AND thesite = @sitename)
-                            )
-
-                            FETCH NEXT FROM site_cursor INTO @themeterid , @sitename
-                        END
-
-                        CLOSE site_cursor;
-                        DEALLOCATE site_cursor;
-
-                        SELECT * FROM @composite
-                ";
             Tab = "Completeness";
         }
-        #endregion
     }
 }

@@ -669,7 +669,7 @@ function populateCompletenessDivWithGrid(data) {
         });
 
 
-        fixNumbers(data, ['Expected', 'Received', 'Duplicate', 'Completeness']);
+        fixNumbers(data, ['Expected', 'Received', 'Completeness']);
 
         $('#Detail' + currentTab + "Table").puidatatable({
             scrollable: true,
@@ -677,8 +677,7 @@ function populateCompletenessDivWithGrid(data) {
             columns: [
                 { field: 'thesite', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
                 { field: 'Expected', headerText: 'Expected', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
-                { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Received.toFixed(0) + '%'; } },
-                { field: 'Duplicate', headerText: 'Duplicate', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return row.Duplicate.toFixed(0) + '%'; } },
+                { field: 'Received', headerText: 'Received', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
                 { field: 'Completeness', headerText: 'Complete', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return row.Completeness.toFixed(0) + '%'; } },
                 { field: 'ChannelCompleteness', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeChannelCompletenessButton_html }
             ],
