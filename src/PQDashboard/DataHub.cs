@@ -503,11 +503,11 @@ namespace PQDashboard
         public DataTable GetEvents(DateTime date, int minuteWindow, int timeUnit)
         {
             using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            using (AdoDataConnection XDAconnection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
             {
                 int timeWindow = connection.ExecuteScalar<int>("SELECT AltText1 FROM ValueList WHERE Text = 'TimeWindow' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
 
-                string query = @"
+                DataTable table = XDAconnection.RetrieveData(@"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
@@ -521,7 +521,7 @@ namespace PQDashboard
                         Event.AssetID AS thelineid, 
                         Event.ID AS theeventid, 
                         EventType.Name AS theeventtype,
-                        CAST(Event.StartTime AS VARCHAR(26)) AS theinceptiontime,
+                        CAST(.Event.StartTime AS VARCHAR(26)) AS theinceptiontime,
                         Asset.AssetName AS thelinename,
                         Asset.VoltageKV AS voltage,
                         COALESCE(FaultSummary.FaultType, Phase.Name, '') AS thefaulttype,
@@ -550,14 +550,17 @@ namespace PQDashboard
                     SELECT * FROM cte WHERE RowPriority = 1
                     ORDER BY StartTime
 
-            ";
-                return XDAconnection.RetrieveData(query, minuteWindow, date, timeWindow);
+                    ", minuteWindow, date, timeUnit);
+                return table; 
             }
         }
 
         public DataTable GetDisturbances(DateTime date, int minuteWindow, int timeUnit)
         {
-            string query = @"
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA")) 
+            {
+                DataTable table = XDAconnection.RetrieveData(@"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
@@ -579,8 +582,6 @@ namespace PQDashboard
                             ELSE CAST(CONVERT(DECIMAL(10,3), Disturbance.DurationSeconds) AS VARCHAR(40))
                         END AS duration,
 	                    CAST(Disturbance.StartTime AS VARCHAR(26)) AS theinceptiontime,
-                        dbo.DateDiffTicks('1970-01-01', Disturbance.StartTime) / 10000.0 AS startmillis,
-                        dbo.DateDiffTicks('1970-01-01', Disturbance.EndTime) / 10000.0 AS endmillis,
 	                    DisturbanceSeverity.SeverityCode,
 	                    Asset.AssetName as thelinename,
 	                    Asset.VoltageKV AS voltage,
@@ -606,13 +607,20 @@ namespace PQDashboard
 	                    VoltageEnvelope.Name = COALESCE(@voltageEnvelope, 'ITIC')
                     ORDER BY
 	                    Event.StartTime ASC
-            ";
-            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+                    ", minuteWindow, date);
+
+                return table;
+
+            }
         }
 
         public DataTable GetFaults(DateTime date, int minuteWindow, int timeUnit)
         {
-            string query = @"
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+                 DataTable table = XDAconnection.RetrieveData(@"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
@@ -623,11 +631,11 @@ namespace PQDashboard
                             FaultSummary.ID AS thefaultid,
                             Meter.Name AS thesite,
                             Meter.ShortName AS theshortsite,
-                            MeterLocation.ShortName AS locationname,
+                            Meter.ShortName AS locationname,
                             Meter.ID AS themeterid,
                             Line.ID AS thelineid,
                             Event.ID AS theeventid,
-                            MeterLine.LineName AS thelinename,
+                            Meter.Name AS thelinename,
                             Line.VoltageKV AS voltage,
                             CAST(CAST(Event.StartTime AS TIME) AS NVARCHAR(100)) AS theinceptiontime,
                             FaultSummary.FaultType AS thefaulttype,
@@ -639,9 +647,8 @@ namespace PQDashboard
                             Event ON FaultSummary.EventID = Event.ID JOIN
                             EventType ON Event.EventTypeID = EventType.ID JOIN
                             Meter ON Event.MeterID = Meter.ID JOIN
-                            MeterLocation ON Meter.MeterLocationID = MeterLocation.ID JOIN
-                            Line ON Event.LineID = Line.ID JOIN
-                            MeterLine ON MeterLine.MeterID = Meter.ID AND MeterLine.LineID = Line.ID
+                            Line ON Event.AssetID = Line.ID JOIN
+                            MeterAsset ON MeterAsset.MeterID = Meter.ID AND MeterAsset.AssetID = Line.ID
                         WHERE
                             EventType.Name = 'Fault' AND
                             Event.StartTime >= @startDate AND Event.StartTime < @endDate
@@ -649,13 +656,19 @@ namespace PQDashboard
                     SELECT *
                     FROM FaultDetail
                     WHERE rk = 1
-            ";
-            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+                    ", minuteWindow, date);
+
+                return table;
+            }
         }
 
         public DataTable GetBreakers(DateTime date, int minuteWindow, int timeUnit)
         {
-            string query = @"
+
+            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection XDAconnection = new AdoDataConnection("dbOpenXDA"))
+            {
+                DataTable table = XDAconnection.RetrieveData(@"
                     DECLARE @minuteWindow int = {0}
 	                DECLARE @startDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", -1*@minuteWindow, {1}) 
                     DECLARE @endDate DATETIME = DATEADD(" + ((TimeUnits)timeUnit).ToString() + @", @minuteWindow, {1}) 
@@ -667,7 +680,7 @@ namespace PQDashboard
                         BreakerOperation.ID AS breakeroperationid,
                         CAST(CAST(BreakerOperation.TripCoilEnergized AS TIME) AS NVARCHAR(100)) AS energized,
                         BreakerOperation.BreakerNumber AS breakernumber,
-                        MeterLine.LineName AS linename,
+                        Meter.Name AS linename,
                         Phase.Name AS phasename,
                         CAST(BreakerOperation.BreakerTiming AS DECIMAL(16,5)) AS timing,
                         CAST(BreakerOperation.StatusTiming AS DECIMAL(16,5)) AS statustiming,
@@ -681,14 +694,16 @@ namespace PQDashboard
                         Event ON BreakerOperation.EventID = Event.ID JOIN
                         EventType ON EventType.ID = Event.EventTypeID JOIN
                         Meter ON Meter.ID = Event.MeterID JOIN
-                        Line ON Line.ID = Event.LineID JOIN
-                        MeterLine ON MeterLine.LineID = Event.LineID AND MeterLine.MeterID = Meter.ID JOIN
+                        Line ON Line.ID = Event.AssetID JOIN
+                        MeterAsset ON MeterAsset.AssetID = Event.AssetID AND MeterAsset.ID = Meter.ID JOIN
                         BreakerOperationType ON BreakerOperation.BreakerOperationTypeID = BreakerOperationType.ID JOIN
                         Phase ON BreakerOperation.PhaseID = Phase.ID
                     WHERE
                         TripCoilEnergized >= @startDate AND TripCoilEnergized < @endDate
-                        ";
-            return DataContext.Connection.RetrieveData(query, minuteWindow, date);
+                    ", minuteWindow, date);
+
+                return table;
+            }
         }
 
         #endregion

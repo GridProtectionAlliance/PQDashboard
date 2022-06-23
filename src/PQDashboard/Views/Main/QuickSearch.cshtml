@@ -250,10 +250,20 @@
         $('#chartsDiv').append('<div style="display: inline-block" id="faultTable"></div>');
         $('#chartsDiv').append('<div style="display: inline-block" id="breakerTable"></div>');
 
-        $.each($('#charts').val(), function (i, value) {
-            window['get' + value](moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
-        })
+        $('#chartsDiv').find('div').each(function () {
+            if ($(this).attr('id') === 'eventTable')
+                window.getEvents(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+            if ($(this).attr('id') === 'disturbanceTable')
+                window.getDisturbances(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+            if ($(this).attr('id') === 'faultTable')
+                window.getFaults(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+            if ($(this).attr('id') === 'breakerTable')
+                window.getBreakers(moment.utc($("#datePicker").val(), "MM-DD-YYYY HH:mm:ss"), $('#minutes').val(), $('#timeUnits').val());
+        });
+
     }
+
+
     var floatrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 
         return '<div style="text-align: center; margin-top: 5px;">' + parseFloat(value).toFixed(4) + "m" + '</div>';
@@ -289,7 +299,6 @@
                 ],
                 datasource: data
             });
-
         });
     }
 
