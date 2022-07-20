@@ -233,55 +233,25 @@
                 }
 
                 var graphData = [
-                    { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit High', visible: true, type: 'lines' },
-                    { color: "orange", lines: dataPoints, data: [], label: 'Off Normal High', visible: true, type: 'lines' },
                     { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Max' },
                     { color: "#90ed7d", points: dataPoints, data: [], label: 'Average', visible: true, type: 'points' },
                     { color: "", points: { show: true, radius: 0.5 }, data: [], visible: false, label: 'Min' },
-                    { color: "orange", lines: dataPoints, data: [], label: 'Off Normal Low', visible: true, type: 'lines' },
-                    { color: "red", lines: dataPoints, data: [], label: 'Alarm Limit Low', visible: true, type: 'lines' },
                     { color: "black", points: errorBars, data: [], label: "Range", visible: true, type: 'errorbar' }
                 ];
 
                 $.each(data.ChannelData, function (_, point) {
                     var mid = (point.Maximum + point.Minimum) / 2;
-                    graphData[2].data.push([point.Time, point.Maximum]);
-                    graphData[3].data.push([point.Time, point.Average]);
-                    graphData[4].data.push([point.Time, point.Minimum]);
-                    graphData[7].data.push([point.Time, mid, mid - point.Minimum, point.Maximum - mid]);
+                    graphData[0].data.push([point.Time, point.Maximum]);
+                    graphData[1].data.push([point.Time, point.Average]);
+                    graphData[2].data.push([point.Time, point.Minimum]);
+                    graphData[3].data.push([point.Time, mid, mid - point.Minimum, point.Maximum - mid]);
                 });
 
                 $.each(data.AlarmLimits, function (_, limit) {
-                    if (limit.High !== null) {
-                        graphData[0].data.push([limit.TimeStart, limit.High]);
-                        graphData[0].data.push([limit.TimeEnd, limit.High]);
-                    }
-
-                    if (limit.Low !== null) {
-                        graphData[6].data.push([limit.TimeStart, limit.Low]);
-                        graphData[6].data.push([limit.TimeEnd, limit.Low]);
-                    }
-                });
-
-                $.each(data.OffNormalLimits, function (key, limit) {
-                    var nextKey = key + 1;
-                    var hasNextKey = nextKey < data.OffNormalLimits.length;
-
-                    if (limit.High !== null) {
-                        graphData[1].data.push([limit.TimeStart, limit.High]);
-                        graphData[1].data.push([limit.TimeEnd, limit.High]);
-                    } else if (hasNextKey && data.OffNormalLimits[nextKey].High !== null) {
-                        if (graphData[1].data.length > 0)
-                            graphData[1].data.push(null);
-                    }
-
-                    if (limit.Low !== null) {
-                        graphData[5].data.push([limit.TimeStart, limit.Low]);
-                        graphData[5].data.push([limit.TimeEnd, limit.Low]);
-                    } else if (hasNextKey && data.OffNormalLimits[nextKey].Low !== null) {
-                        if (graphData[5].data.length > 0)
-                            graphData[5].data.push(null);
-                    }
+                    var series = { color: "red", lines: dataPoints, data: [], label: limit.Name, visible: true, type: 'lines' };
+                    series.data.push([limit.TimeStart, limit.Value]);
+                    series.data.push([limit.TimeEnd, limit.Value]);
+                    graphData.push(series);
                 });
 
                 //Set mins and maxes
@@ -330,22 +300,23 @@
 
                 $("#WaveformTrending").bind("plothover", function (event, pos, item) {
                     if (!item) {
-                        $.each([graphData[0], graphData[6]], function (_, alarmSeries) {
-                            if (alarmSeries.visible && alarmSeries.data.length > 0) {
-                                var alarmLimit = alarmSeries.data[0];
-                                var alarmLimitOffset = plot.p2c({ x: pos.x, y: alarmLimit[1] });
-                                var plotOffset = plot.offset();
-                                var alarmPageX = alarmLimitOffset.left + plotOffset.left;
-                                var alarmPageY = alarmLimitOffset.top + plotOffset.top;
+                        $.each(graphData, function (i, alarmSeries) {
+                            if (i < 4 || !alarmSeries.visible || alarmSeries.data.length === 0)
+                                return;
 
-                                if (Math.abs(alarmPageY - pos.pageY) < 10) {
-                                    item = {
-                                        series: alarmSeries,
-                                        datapoint: [pos.x, alarmLimit[1]],
-                                        pageX: alarmPageX,
-                                        pageY: alarmPageY
-                                    };
-                                }
+                            var alarmLimit = alarmSeries.data[0];
+                            var alarmLimitOffset = plot.p2c({ x: pos.x, y: alarmLimit[1] });
+                            var plotOffset = plot.offset();
+                            var alarmPageX = alarmLimitOffset.left + plotOffset.left;
+                            var alarmPageY = alarmLimitOffset.top + plotOffset.top;
+
+                            if (Math.abs(alarmPageY - pos.pageY) < 10) {
+                                item = {
+                                    series: alarmSeries,
+                                    datapoint: [pos.x, alarmLimit[1]],
+                                    pageX: alarmPageX,
+                                    pageY: alarmPageY
+                                };
                             }
                         });
                     }
@@ -360,7 +331,6 @@
                     } else {
                         $("#tooltip").hide();
                     }
-
                 });
 
                 $("#WaveformTrending").bind("plotselected", function (event, ranges) {

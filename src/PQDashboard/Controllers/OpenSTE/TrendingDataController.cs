@@ -37,13 +37,11 @@ namespace PQDashboard.Controllers.OpenSTE
     {
         public List<TrendingDataDatum> ChannelData;
         public List<TrendingAlarmLimit> AlarmLimits;
-        public List<TrendingAlarmLimit> OffNormalLimits;
 
         public TrendingDataSet()
         {
             ChannelData = new List<TrendingDataDatum>();
             AlarmLimits = new List<TrendingAlarmLimit>();
-            OffNormalLimits = new List<TrendingAlarmLimit>();
         }
     }
 
@@ -57,10 +55,10 @@ namespace PQDashboard.Controllers.OpenSTE
 
     public class TrendingAlarmLimit
     {
+        public string Name;
         public double TimeStart;
         public double TimeEnd;
-        public double? High;
-        public double? Low;
+        public double Value;
     }
 
     [RoutePrefix("api/OpenSTE/TrendingData")]
@@ -103,53 +101,50 @@ namespace PQDashboard.Controllers.OpenSTE
 
                     await xdaClient.QueryHIDSPointsAsync(query, processHIDSPoint, cancellationToken);
 
-                    IEnumerable<DataRow> table = Enumerable.Empty<DataRow>();
+                    bool isWeekend =
+                        startDate.DayOfWeek == DayOfWeek.Saturday ||
+                        startDate.DayOfWeek == DayOfWeek.Sunday;
 
-                    table = connection.RetrieveData(" Select {0} AS thedatefrom, " +
-                                                                "        DATEADD(DAY, 1, {0}) AS thedateto, " +
-                                                                "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.High * PerUnitValue ELSE AlarmRangeLimit.High END AS alarmlimithigh," +
-                                                                "        CASE WHEN AlarmRangeLimit.PerUnit <> 0 AND Channel.PerUnitValue IS NOT NULL THEN AlarmRangeLimit.Low * PerUnitValue ELSE AlarmRangeLimit.Low END AS alarmlimitlow " +
-                                                                " FROM   AlarmRangeLimit JOIN " +
-                                                                "        Channel ON AlarmRangeLimit.ChannelID = Channel.ID " +
-                                                                "WHERE   AlarmRangeLimit.AlarmTypeID = (SELECT ID FROM AlarmType where Name = 'Alarm') AND " +
-                                                                "        AlarmRangeLimit.ChannelID = {1}", startDate, channelID).Select();
+                    string alarmDayName = startDate.DayOfWeek.ToString();
+                    string altAlarmDayName = isWeekend ? "Weekend" : "Weekday";
 
-                    foreach (DataRow row in table)
+                    const string QueryFormat =
+                        "SELECT " +
+                        "    AlarmGroup.Name, " +
+                        "    ActiveAlarmView.Value * AlarmValue.Value Value " +
+                        "FROM " +
+                        "    AlarmGroup JOIN " +
+                        "    ActiveAlarmView ON ActiveAlarmView.AlarmGroupID = AlarmGroup.ID JOIN " +
+                        "    AlarmValue ON AlarmValue.AlarmID = ActiveAlarmView.AlarmID JOIN " +
+                        "    Series ON ActiveAlarmView.SeriesID = Series.ID LEFT OUTER JOIN " +
+                        "    AlarmDay ON AlarmValue.AlarmDayID = AlarmDay.ID " +
+                        "WHERE " +
+                        "    Series.ChannelID = {0} AND " +
+                        "    ( " +
+                        "        AlarmDay.ID IS NULL OR " +
+                        "        AlarmDay.Name IN ({1}, {2}) " +
+                        "    )";
+
+                    using (DataTable table = connection.RetrieveData(QueryFormat, channelID, alarmDayName, altAlarmDayName))
                     {
-                        trendingDataSet.AlarmLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("alarmlimithigh"), Low = row.Field<double?>("alarmlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
+                        double timeStart = startDate.Subtract(epoch).TotalMilliseconds;
+                        double timeEnd = endDate.Subtract(epoch).TotalMilliseconds;
+
+                        foreach (DataRow row in table.Rows)
+                        {
+                            string name = row.ConvertField<string>("Name");
+                            double value = row.ConvertField<double>("Value");
+
+                            trendingDataSet.AlarmLimits.Add(new TrendingAlarmLimit()
+                            {
+                                Name = name,
+                                TimeStart = timeStart,
+                                TimeEnd = timeEnd,
+                                Value = value
+                            });
+                        }
                     }
-
-                    table = Enumerable.Empty<DataRow>();
-
-                    table = connection.RetrieveData(" DECLARE @dayOfWeek INT = DATEPART(DW, {0}) - 1 " +
-                                                                " DECLARE @hourOfWeek INT = @dayOfWeek * 24 " +
-                                                                " ; WITH HourlyIndex AS" +
-                                                                " ( " +
-                                                                "   SELECT @hourOfWeek AS HourOfWeek " +
-                                                                "   UNION ALL " +
-                                                                "   SELECT HourOfWeek + 1 " +
-                                                                "   FROM HourlyIndex" +
-                                                                "   WHERE (HourOfWeek + 1) < @hourOfWeek + 24" +
-                                                                " ) " +
-                                                                " SELECT " +
-                                                                "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek, {0}) AS thedatefrom, " +
-                                                                "        DATEADD(HOUR, HourlyIndex.HourOfWeek - @hourOfWeek + 1, {0}) AS thedateto, " +
-                                                                "        HourOfWeekLimit.High AS offlimithigh, " +
-                                                                "        HourOfWeekLimit.Low AS offlimitlow " +
-                                                                " FROM " +
-                                                                "        HourlyIndex LEFT OUTER JOIN " +
-                                                                "        HourOfWeekLimit ON HourOfWeekLimit.HourOfWeek = HourlyIndex.HourOfWeek " +
-                                                                " WHERE " +
-                                                                "        HourOfWeekLimit.ChannelID IS NULL OR " +
-                                                                "        HourOfWeekLimit.ChannelID = {1} ", startDate, channelID).Select();
-
-                    foreach (DataRow row in table)
-                    {
-                        trendingDataSet.OffNormalLimits.Add(new TrendingAlarmLimit() { High = row.Field<double?>("offlimithigh"), Low = row.Field<double?>("offlimitlow"), TimeEnd = row.Field<DateTime>("thedateto").Subtract(epoch).TotalMilliseconds, TimeStart = row.Field<DateTime>("thedatefrom").Subtract(epoch).TotalMilliseconds });
-                    }
-
                 }
-
 
                 return Ok(trendingDataSet);
             }

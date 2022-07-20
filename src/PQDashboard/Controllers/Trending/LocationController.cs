@@ -21,25 +21,14 @@
 //
 //******************************************************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Web.Http;
-using GSF;
-using GSF.Data;
-using GSF.Data.Model;
-using GSF.Identity;
-using GSF.Security;
-using GSF.Web.Model;
 using openXDA.Model;
-using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
 {
     [RoutePrefix("api/Trending/Location")]
     public class TrendingLocationController : LocationController<TrendingAlarmLimit>
     {
-        #region [ constructor ]
         public TrendingLocationController()
         {
             Query = @"
@@ -76,10 +65,9 @@ namespace PQDashboard.Controllers
                                     (
                                         SELECT
                                             Channel.MeterID,
-                                            AlarmType.Name
+                                            'Alarm' Name
                                         FROM
-                                            AlarmType JOIN
-                                            ChannelAlarmSummary ON ChannelAlarmSummary.AlarmTypeID = AlarmType.ID JOIN
+                                            ChannelAlarmSummary JOIN
                                             Channel ON Channel.ID = ChannelAlarmSummary.ChannelID
                                         WHERE ChannelAlarmSummary.Date BETWEEN @thedatefrom AND @thedateto
 
@@ -95,6 +83,5 @@ namespace PQDashboard.Controllers
                 ";
             Tab = "Trending";
         }
-        #endregion
     }
 }

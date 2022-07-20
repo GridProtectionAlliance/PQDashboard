@@ -26,11 +26,9 @@ using openXDA.Model;
 
 namespace PQDashboard.Controllers
 {
-
     [RoutePrefix("api/Trending/TableData")]
     public class TrendingTableDataController : TableDataController<TrendingAlarmLimit>
     {
-        #region [ constructor ]
         public TrendingTableDataController()
         {
             Query = @"
@@ -48,7 +46,7 @@ namespace PQDashboard.Controllers
                             Meter.ID as meterid,
                             Channel.ID as channelid,
                             Meter.Name as sitename,
-                            [dbo].[AlarmType].[Name] as eventtype,
+                            'Alarm' as eventtype,
                             [dbo].[MeasurementCharacteristic].[Name] as characteristic,
                             [dbo].[MeasurementType].[Name] as measurementtype,
                             [dbo].[Phase].[Name] as phasename,
@@ -60,19 +58,14 @@ namespace PQDashboard.Controllers
 
                             join ChannelAlarmSummary on ChannelAlarmSummary.ChannelID = Channel.ID and Date = @theDate
                             join Meter on Channel.MeterID = Meter.ID and [MeterID] in ( Select * from @MeterIDs)
-                            join [dbo].[AlarmType] on
-                                [dbo].[AlarmType].[ID] = ChannelAlarmSummary.AlarmTypeID and
-                                ([dbo].[AlarmType].[Name] = 'OffNormal' or [dbo].[AlarmType].[Name] = 'Alarm')
-
                             join [dbo].[MeasurementCharacteristic] on Channel.MeasurementCharacteristicID = [dbo].[MeasurementCharacteristic].[ID]
                             join [dbo].[MeasurementType] on Channel.MeasurementTypeID =  [dbo].[MeasurementType].ID
                             join [dbo].[Phase] on Channel.PhaseID = [dbo].[Phase].ID
 
-                            Group By Meter.ID , Channel.ID , Meter.Name , [dbo].[AlarmType].[Name], [MeasurementCharacteristic].[Name] , [MeasurementType].[Name] , [dbo].[Phase].[Name], Channel.HarmonicGroup
+                            Group By Meter.ID , Channel.ID , Meter.Name , [MeasurementCharacteristic].[Name] , [MeasurementType].[Name] , [dbo].[Phase].[Name], Channel.HarmonicGroup
                             Order By Meter.ID
                 ";
             Tab = "Trending";
         }
-        #endregion
     }
 }

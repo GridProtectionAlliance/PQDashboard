@@ -143,9 +143,7 @@ namespace PQDashboard
             using (HttpRequestMessage request = ConfigureRequest(HttpMethod.Get, $"{BaseURL}/api/rvht"))
             using (HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken))
             {
-                if (response.StatusCode != HttpStatusCode.OK)
-                    throw new Exception(); // TODO
-
+                response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStringAsync();
             }
         }
