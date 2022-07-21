@@ -398,7 +398,7 @@
             (function flat(array, depth) {
                 for (var index = 0; index < array.length; index++) {
                 if (Array.isArray(array[index]) && depth > 0) {
-                  flat(array[index], depth - 1); 
+                  flat(array[index], depth - 1);
                 } else {
                   flattened.push(array[index]);
                 }
@@ -511,7 +511,11 @@
     }
 
     function OpenWindowToMeterEventsByLine(id) {
-        var popup = window.open("@Html.Raw(Url.Content("~/Main/MeterEventsByLine"))?eventid=" + id + "&context="+globalContext, id + "MeterEventsByLine");
+
+        var dateContext = new Date(contextfromdate);
+        var date = (dateContext.getMonth() + 1).toString().padStart(2, "0") + "%2F" + dateContext.getDate().toString().padStart(2, "0") + "%2F" + dateContext.getFullYear();
+        var time = dateContext.getHours().toString().padStart(2, "0") + "%3A" + dateContext.getMinutes().toString().padStart(2, "0") + "%3A" + dateContext.getSeconds().toString().padStart(2, "0") + "." + dateContext.getMilliseconds().toString().padStart(3, "0");
+        var popup = window.open(seBrowserInstance + "Home/Home/EventSearch?assets0=" + id + "&date=" + date + "&time=" + time + "&windowSize=" + 12 + "timeWindowUnits=" + 4);
         return false;
     }
 
@@ -552,7 +556,7 @@
         $('#meterGroupSelect').trigger('change');
         return;
     }
-    </script>
+</script>
 
 </body>
 
