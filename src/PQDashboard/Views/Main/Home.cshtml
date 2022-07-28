@@ -515,7 +515,7 @@
         var dateContext = new Date(contextfromdate);
         var date = (dateContext.getMonth() + 1).toString().padStart(2, "0") + "%2F" + dateContext.getDate().toString().padStart(2, "0") + "%2F" + dateContext.getFullYear();
         var time = dateContext.getHours().toString().padStart(2, "0") + "%3A" + dateContext.getMinutes().toString().padStart(2, "0") + "%3A" + dateContext.getSeconds().toString().padStart(2, "0") + "." + dateContext.getMilliseconds().toString().padStart(3, "0");
-        var popup = window.open(seBrowserInstance + "Home/Home/EventSearch?assets0=" + id + "&date=" + date + "&time=" + time + "&windowSize=" + 12 + "timeWindowUnits=" + 4);
+        var popup = window.open(seBrowserInstance.replace(/\/$/, "") + "/EventSearch?assets0=" + id + "&date=" + date + "&time=" + time + "&windowSize=" + 12 + "timeWindowUnits=" + 4);
         return false;
     }
 
