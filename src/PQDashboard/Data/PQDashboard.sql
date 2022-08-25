@@ -35,10 +35,10 @@ CREATE TABLE [dbo].[UserAccount](
 	[LockedOut] [bit] NOT NULL,
 	[UseADAuthentication] [bit] NOT NULL,
 	[ChangePasswordOn] [datetime] NULL,
-	[CreatedOn] [datetime] NOT NULL DEFAULT CURRENT_USER,
-	[CreatedBy] [varchar](50) NOT NULL DEFAULT GETDATE(),
-	[UpdatedOn] [datetime] NOT NULL DEFAULT CURRENT_USER,
-	[UpdatedBy] [varchar](50) NOT NULL DEFAULT GETDATE(),
+	[CreatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+	[CreatedBy] [varchar](50) NOT NULL DEFAULT CURRENT_USER,
+	[UpdatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+	[UpdatedBy] [varchar](50) NOT NULL DEFAULT CURRENT_USER,
 )
 GO
 
