@@ -552,12 +552,12 @@ function populateFaultsDivWithGrid(data) {
                     }
                 }
                 if (row.InceptionDistanceFromPeak != undefined) {
-                    if (row.InceptionDistanceFromPeak > 15) {
+                    if (row.InceptionDistanceFromPeak <= 15) {
                         if (highFound)
                             return cause + "?";
                         highFound = true;
                         cause = "Insulator";
-                    } else if (row.InceptionDistanceFromPeak > 30 && !highFound && !medFound) {
+                    } else if (row.InceptionDistanceFromPeak <= 30 && !highFound && !medFound) {
                         medFound = true;
                         cause = "Insulator??";
                     }
