@@ -482,7 +482,7 @@ function populateFaultsDivWithGrid(data) {
             }
         });
 
-        columns.push({ field: 'AssetName', headerText: 'Asset', headerStyle: 'width: 30%', bodyStyle: 'width: 30%; height: 20px', sortable: true });
+        columns.push({ field: 'AssetName', headerText: 'Asset', headerStyle: 'width: 20%', bodyStyle: 'width: 24%; height: 20px', sortable: true });
         columns.push({ field: 'AssetType', headerText: 'Asset Type', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
 
         if (includeCauseCode)
@@ -490,6 +490,82 @@ function populateFaultsDivWithGrid(data) {
 
         columns.push({ field: 'voltage', headerText: 'kV', headerStyle: 'width: 6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
         columns.push({ field: 'thefaulttype', headerText: 'Type', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
+
+        columns.push({
+            field: 'TreeFaultResistance', headerText: 'Calc. Cause', headerStyle: 'width:  10%', bodyStyle: 'width:  6%; height: 20px', sortable: true,
+            content: function (row, options, td) {
+                let cause = "unknown";
+                let highFound = false;
+                let medFound = false;
+
+                if (row.LowPrefaultCurrentRatio != undefined) {
+                    if (row.LowPrefaultCurrentRatio <= 0.1) {
+                        highFound = true;
+                        cause = "Break";
+                    } else if (row.LowPrefaultCurrentRatio <= 0.5) {
+                        medFound = true;
+                        cause = "Break??";
+                    }
+                }
+                if (row.LightningMilliseconds != undefined) {
+                    if (row.LightningMilliseconds <= 2) {
+                        if (highFound)
+                            return cause + "?";
+                        highFound = true;
+                        cause = "Lightning";
+                    } else if (!highFound && !medFound) {
+                        medFound = true;
+                        cause = "Lightning??";
+                    }
+                }
+                if (row.TreeFaultResistance != undefined) {
+                    if (row.TreeFaultResistance > 20) {
+                        if (highFound)
+                            return cause + "?";
+                        highFound = true;
+                        cause = "Tree";
+                    } else if (row.TreeFaultResistance > 10 && !highFound && !medFound) {
+                        medFound = true;
+                        cause = "Tree??";
+                    }
+                }
+                if (row.GroundCurrentRatio != undefined) {
+                    if (row.GroundCurrentRatio <= 0.1) {
+                        if (highFound)
+                            return cause + "?";
+                        highFound = true;
+                        cause = "Slap/Debris";
+                    } else if (row.GroundCurrentRatio <= 0.5 && !highFound && !medFound) {
+                        medFound = true;
+                        cause = "Slap/Debris??";
+                    }
+                }
+                if (row.PrefaultThirdHarmonic != undefined) {
+                    if (row.PrefaultThirdHarmonic > 0.3) {
+                        if (highFound)
+                            return cause + "?";
+                        highFound = true;
+                        cause = "Arrestor";
+                    } else if (row.PrefaultThirdHarmonic > 0.2 && !highFound && !medFound) {
+                        medFound = true;
+                        cause = "Arrestor??";
+                    }
+                }
+                if (row.InceptionDistanceFromPeak != undefined) {
+                    if (row.InceptionDistanceFromPeak > 15) {
+                        if (highFound)
+                            return cause + "?";
+                        highFound = true;
+                        cause = "Insulator";
+                    } else if (row.InceptionDistanceFromPeak > 30 && !highFound && !medFound) {
+                        medFound = true;
+                        cause = "Insulator??";
+                    }
+                }
+
+                return cause;
+            }});
+
         columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
         columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
         columns.push({ field: 'OpenSEE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: makeOpenSEEButton_html });
