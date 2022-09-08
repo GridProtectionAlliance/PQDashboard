@@ -545,10 +545,10 @@ function populateFaultsDivWithGrid(data) {
                         if (highFound)
                             return cause + "?";
                         highFound = true;
-                        cause = "Arrestor";
+                        cause = "Arrester";
                     } else if (row.PrefaultThirdHarmonic > 0.2 && !highFound && !medFound) {
                         medFound = true;
-                        cause = "Arrestor??";
+                        cause = "Arrester??";
                     }
                 }
                 if (row.InceptionDistanceFromPeak != undefined) {
