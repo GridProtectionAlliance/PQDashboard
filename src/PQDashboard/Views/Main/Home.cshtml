@@ -334,8 +334,8 @@
                                     </select>
                                     <select class="smallbutton" id="selectSiteSet@(tab.Text)" onchange="showSiteSet(this);">
                                         <option value="All">All Sites</option>
-                                        <option value="Events">@(tab.Text == "Events" ? "" : tab.Text + " ")Events</option>
-                                        <option value="NoEvents">No @(tab.Text == "Events" ? "" : tab.Text + " ")Events</option>
+                                        <option value="Events">@(tab.Text == "Events" ? "" : (tab.Text == "Correctness" || tab.Text == "Completeness" ? tab.Text : tab.Text.Trim('s')) + " ")Events</option>
+                                        <option value="NoEvents">No @(tab.Text == "Events" ? "" : (tab.Text == "Correctness" || tab.Text == "Completeness" ? tab.Text : tab.Text.Trim('s')) + " ")Events</option>
                                         <option value="None">None</option>
                                     </select>
                                     <button onclick="stepOutGrid()" class="gridStepOut" style="display:none">Step Out</button>
