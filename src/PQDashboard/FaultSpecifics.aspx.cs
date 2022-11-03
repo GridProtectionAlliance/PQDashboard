@@ -25,7 +25,7 @@ public partial class FaultSpecifics : Page
     public string postedDoubleEndedConfidence = "";
     public string postedExceptionMessage = "";
 
-    string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+    string connectionstring = ConfigurationFile.Current.Settings["dbOpenXDA"]["ConnectionString"].Value;
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -38,7 +38,7 @@ public partial class FaultSpecifics : Page
             {
                 postedEventId = Request["eventId"];
 
-                using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+                using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
                 {
                     try
                     {
