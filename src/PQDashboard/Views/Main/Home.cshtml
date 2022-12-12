@@ -449,7 +449,7 @@
             + "&characteristic=" + encodeURIComponent(id.characteristic)
             + "&phasename=" + encodeURIComponent(id.phasename) + "'";
         return_html += '<div style="cursor: pointer; width: 100%; Height: 100%; text-align: center; margin: auto; border: 0 none;">';
-        return_html += '<button onclick="OpenWindowToOpenSTE( ' + url + ',' + id.channelid + ' )" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
+        return_html += '<button disabled onclick="OpenWindowToOpenSTE( ' + url + ',' + id.channelid + ' )" value="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Launch OpenSTE Trending Viewer">';
         return_html += '<img src="@Html.Raw(Url.Content("~/Images/steButton.png"))" /></button></div>';
         return (return_html);
     }
