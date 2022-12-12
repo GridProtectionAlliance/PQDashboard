@@ -59,7 +59,8 @@ namespace PQDashboard
                 "~/Scripts/Leaflet/leaflet-src.js",
                 "~/Scripts/heatmap.js",
                 "~/Scripts/leaflet-heatmap.js",
-                "~/Scripts/Leaflet/leaflet-omnivore.min.js"
+                "~/Scripts/Leaflet/leaflet-omnivore.min.js",
+                "~/Scripts/Leaflet/esri-leaflet.js"
             ));
 
             bundles.Add(new ScriptBundle("~/Scripts/PrimeUI/primeui").Include(

@@ -3922,8 +3922,29 @@ function loadLeafletMap(theDiv) {
         if (currentTab === "TrendingData")
             addAnimationControl();
 
+        addEsriLayers();
         addMapLegend();
     }
+}
+
+function addEsriLayers() {
+    //TODO: Replace with Call to PQDash endpoint quering URI for ESRI info (maybe do all feature layers and hide non-selected layers?)
+    var esriLayers = L.esri.featureLayer({
+        url: "https://gistest.hawaiianelectric.net/arcgis/rest/services/ThreeCompany/DistStruct/MapServer/21"
+    }).addTo(leafletMap[currentTab]);
+
+    esriLayers.bindPopup(function (layer) {
+        return L.Util.template(getEsriPopup());
+    });
+}
+
+function getEsriPopup() {
+    var popup;
+    popup = "<table><tr><td>{LABELTEXT}</td></tr>";
+    popup += "<tr><td>Location:&nbsp;</td><td style='text-align: right'>&nbsp;{LOCATION}&nbsp;</td></tr>";
+    popup += "</table>";
+
+    return popup;
 }
 
 function addMapLegend() {
