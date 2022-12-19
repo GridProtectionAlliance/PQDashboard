@@ -313,7 +313,7 @@
                             </div>
                             @if (tab.Text == "Faults")
                             {
-                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in OpenXDA</button>
+                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in SEBrowser</button>
                             }
                         </div>
                         <div id="DockDetail@(tab.Text)" class="portlet-content noselect theDockDetailStyle">
@@ -537,8 +537,10 @@
     }
 
     function openFaultDetailsByDateXDAPage(){
-        if(contextfromdate == contexttodate){
-            window.open(xdaInstance + "/Workbench/FaultsDetailsByDate.cshtml?MeterIds=" + meterList.selectedIdsString() + "&Date=" + contexttodate + "&context=" + globalContext)
+        if (contextfromdate == contexttodate) {
+            time = contexttodate.split("T")[1];
+            date = contexttodate.split("T")[0];
+            window.open(seBrowserInstance.replace(/\/$/, "") + "/eventsearch?sags=false&swells=false&interruptions=false&breakerOps=false&transients=false&relayTCE=false&others=false&date=" + date.split("-")[1] + "%2F" + date.split("-")[2] + "%2F" + date.split("-")[0] + "&time=" + time.split(":")[0] + "%3A" + time.split(":")[1] + "%3A00.000&windowSize=12&timeWindowUnits=3");
         }
     }
 
