@@ -313,7 +313,7 @@
                             </div>
                             @if (tab.Text == "Faults")
                             {
-                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsByDateXDAPage()">View in SEBrowser</button>
+                                <button class="btn btn-xs btn-default pull-right" style="margin-right: 20px" onclick="openFaultDetailsSEBrowser()">View in SEBrowser</button>
                             }
                         </div>
                         <div id="DockDetail@(tab.Text)" class="portlet-content noselect theDockDetailStyle">
@@ -536,7 +536,7 @@
         return false;
     }
 
-    function openFaultDetailsByDateXDAPage(){
+    function openFaultDetailsSEBrowser(){
         if (contextfromdate == contexttodate) {
             time = contexttodate.split("T")[1];
             date = contexttodate.split("T")[0];
