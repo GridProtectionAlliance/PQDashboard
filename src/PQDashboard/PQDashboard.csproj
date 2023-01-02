@@ -525,6 +525,14 @@
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />
     <Content Include="ICFService.aspx" />
+    <Content Include="Images\ConfigImages\configure.png" />
+    <Content Include="Images\ConfigImages\contactUs.png" />
+    <Content Include="Images\ConfigImages\doc.png" />
+    <Content Include="Images\ConfigImages\documentation.png" />
+    <Content Include="Images\ConfigImages\help.png" />
+    <Content Include="Images\ConfigImages\lock.png" />
+    <Content Include="Images\ConfigImages\qmark.png" />
+    <Content Include="Images\ConfigImages\tools.png" />
     <Content Include="Images\ajax-loader-map.gif" />
     <Content Include="Images\ajax-loader.gif" />
     <Content Include="Images\companylogo.jpg" />
