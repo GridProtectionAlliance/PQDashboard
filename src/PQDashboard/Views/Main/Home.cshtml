@@ -536,11 +536,11 @@
         return false;
     }
 
-    function openFaultDetailsSEBrowser(){
+    function openFaultDetailsSEBrowser() {
         if (contextfromdate == contexttodate) {
             time = contexttodate.split("T")[1];
             date = contexttodate.split("T")[0];
-            window.open(seBrowserInstance.replace(/\/$/, "") + "/eventsearch?sags=false&swells=false&interruptions=false&breakerOps=false&transients=false&relayTCE=false&others=false&date=" + date.split("-")[1] + "%2F" + date.split("-")[2] + "%2F" + date.split("-")[0] + "&time=" + time.split(":")[0] + "%3A" + time.split(":")[1] + "%3A00.000&windowSize=12&timeWindowUnits=3");
+            window.open(seBrowserInstance.replace(/\/$/, "") + "/eventsearch?sags=false&swells=false&interruptions=false&breakerOps=false&transients=false&relayTCE=false&others=false&date=" + date.split("-")[1] + "%2F" + date.split("-")[2] + "%2F" + date.split("-")[0] + "&time=12%3A00%3A00.000&windowSize=12&timeWindowUnits=3");
         }
     }
 
