@@ -115,13 +115,13 @@ namespace PQDashboard
             string requestVerificationHeaderToken = await GenerateRequestVerificationHeaderTokenAsync(cancellationToken);
 
             using (HttpRequestMessage request = ConfigureRequest(HttpMethod.Post, url, requestVerificationHeaderToken, query))
-            using (HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
             using (Stream stream = await response.Content.ReadAsStreamAsync())
             using (TextReader reader = new StreamReader(stream))
             {
                 while (true)
                 {
-                    string line = await reader.ReadLineAsync();
+                    string line = reader.ReadLine();
 
                     if (line == null)
                         break;
