@@ -2203,7 +2203,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
-            plotMapLocations(data, currentTab, datefrom, dateto);
+            //plotMapLocations(data, currentTab, datefrom, dateto);
             plotGridLocations(data, currentTab);
 
         });
@@ -2214,7 +2214,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
             cache_Map_Matrix_Data_Date_To = data.DateTo;
             cache_Map_Matrix_Data = data;
             data.Data = data.Locations;
-            plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
+            //plotMapLocations(data, currentTab, data.DateFrom, data.DateTo, string);
             plotGridLocations(data, currentTab);
         });
     }
@@ -4059,7 +4059,7 @@ function loadDoc(file, callback) {
 }
 
 function showType(thecontrol) {
-    plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
+    //plotMapLocations(cache_Map_Matrix_Data, currentTab, cache_Map_Matrix_Data_Date_From, cache_Map_Matrix_Data_Date_To);
 }
 
 function initiateTimeRangeSlider() {
