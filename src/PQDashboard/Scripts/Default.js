@@ -3928,7 +3928,7 @@ function loadLeafletMap(theDiv) {
 }
 
 function addEsriLayers() {
-    if (arcGis.ServiceLayers == "") return;
+    if (arcGis.ServiceLayers === "") return;
 
     L.Icon.Default.imagePath = "Scripts/Leaflet/images";
 
