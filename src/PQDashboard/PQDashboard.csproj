@@ -487,6 +487,7 @@
     <Content Include="Scripts\default.polyfill.min.js" />
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
+    <Content Include="Scripts\Leaflet\esri-leaflet.js" />
     <Content Include="Scripts\MeterEventsByLine.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />

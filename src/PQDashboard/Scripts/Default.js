@@ -3922,8 +3922,22 @@ function loadLeafletMap(theDiv) {
         if (currentTab === "TrendingData")
             addAnimationControl();
 
+        addEsriLayers();
         addMapLegend();
     }
+}
+
+function addEsriLayers() {
+    if (arcGis.ServiceLayers === "") return;
+
+    L.Icon.Default.imagePath = "Scripts/Leaflet/images";
+
+    arcGis.ServiceLayers.split(',').forEach(function(layer) {
+        let esriUri = new URL("/arcgis/rest/services/" + arcGis.Folder + "/" + arcGis.ServiceName + "/MapServer/" + layer, arcGis.BaseUri);
+        L.esri.featureLayer({
+            url: esriUri.toString()
+        }).addTo(leafletMap[currentTab])
+    });
 }
 
 function addMapLegend() {

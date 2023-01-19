@@ -21,7 +21,8 @@
     //
     //*****************************************************************************************************@
 @using System.Web.WebPages
-@using GSF.Collections;
+@using GSF.Collections
+@using GSF.Configuration
 @using GSF.Data.Model
 @using GSF.Web.Model
 @using GSF.Data
@@ -42,7 +43,7 @@
         ViewBag.Tabs = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'Tabs') AND Enabled = 1");
         xdaInstance = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'XDAInstance' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')");
         yearBegin = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'YearBeginDate' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "January 1";
-        
+
         ViewBag.DateRange = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.DateRange' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "2";
         ViewBag.Tab = connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.Tab' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Events";
         ViewBag.MapGrid =  connection.ExecuteScalar<string>("SELECT AltText1 FROM ValueList WHERE Text = 'DefaultView.MapGrid' AND GroupID = (SELECT ID FROM ValueListGroup WHERE Name = 'System')") ?? "Grid";
@@ -58,6 +59,22 @@
         historianConnection = dataContext.Table<Setting>().QueryRecordWhere("Name = 'Historian.URL'")?.Value ?? "127.0.0.0";
         assetGroups = dataContext.Table<AssetGroup>().QueryRecordsWhere("DisplayDashboard = 1");
         meterCount = dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM Meter WHERE ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid);
+    }
+
+    CategorizedSettingsElementCollection arcGISSettings = ConfigurationFile.Current.Settings["arcGIS"];
+    try
+    {
+        ViewBag.arcGisUri = arcGISSettings["BaseURI"].Value;
+        ViewBag.arcGisFolder = arcGISSettings["Folder"].Value;
+        ViewBag.arcGisName = arcGISSettings["ServiceName"].Value;
+        ViewBag.arcGisLayers = arcGISSettings["ServiceLayers"].Value;
+    }
+    catch
+    {
+        ViewBag.arcGisUri = "";
+        ViewBag.arcGisFolder = "";
+        ViewBag.arcGisName = "";
+        ViewBag.arcGisLayers = "";
     }
 
     int defaulAssetGroupID = -1;
@@ -100,6 +117,7 @@
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var historianConnection = '@historianConnection';
         var xdaInstance = '@Html.Raw(ViewBag.xdaInstance)';
+        var arcGis = { BaseUri: '@Html.Raw(ViewBag.arcGisUri)', Folder: '@Html.Raw(ViewBag.arcGisFolder)', ServiceName: '@Html.Raw(ViewBag.arcGisName)', ServiceLayers: '@Html.Raw(ViewBag.arcGisLayers)' };
         var scInstance = '@Html.Raw(ViewBag.scInstance)';
         var seBrowserInstance = '@Html.Raw(ViewBag.seBrowserInstance)';
         var openSEEInstance = '@Html.Raw(ViewBag.openSEEInstance)';
