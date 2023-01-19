@@ -5,7 +5,7 @@
   "devDependencies": {
     "css-loader": "^3.2.0",
     "path": "0.12.7",
-    "source-map-loader": "0.2.3",
+    "source-map-loader": "0.2.4",
     "style-loader": "0.21.0",
     "ts-loader": "4.5.0",
     "typescript": "3.4.1",
