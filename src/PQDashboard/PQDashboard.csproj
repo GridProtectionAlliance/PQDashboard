@@ -289,6 +289,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\ArcGISLayer.cs" />
     <Compile Include="XDAClient.cs" />
     <Content Include="App_Code\eventService.cs">
       <SubType>Component</SubType>
@@ -488,6 +489,10 @@
     <Content Include="Scripts\flot\jquery.flot.rangeselection.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\Leaflet\esri-leaflet.js" />
+    <Content Include="Scripts\Leaflet\images\Cap.png" />
+    <Content Include="Scripts\Leaflet\images\Fuse.png" />
+    <Content Include="Scripts\Leaflet\images\Switch.png" />
+    <Content Include="Scripts\Leaflet\images\Trans.png" />
     <Content Include="Scripts\MeterEventsByLine.js" />
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
@@ -1293,6 +1298,7 @@
     <None Include="Scripts\_references.js" />
     <Content Include="Scripts\Site.js" />
     <Content Include="signalService.asmx" />
+    <Content Include="Scripts\Leaflet\ExampleXML.xml" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

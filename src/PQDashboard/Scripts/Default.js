@@ -3928,16 +3928,28 @@ function loadLeafletMap(theDiv) {
 }
 
 function addEsriLayers() {
-    if (arcGis.ServiceLayers === "") return;
+    if (arcGis.BaseUri == "" || arcGis.ServiceLayers == "") return;
 
-    L.Icon.Default.imagePath = "Scripts/Leaflet/images";
+    const baseURI = new URL("/arcgis/rest/services/" + arcGis.Folder + "/" + arcGis.ServiceName + "/MapServer", arcGis.BaseUri).toString();
+    const imageBase = "Scripts/Leaflet/images";
+    const layers = JSON.parse(arcGis.ServiceLayers);
+    let gisLayers = {};
 
-    arcGis.ServiceLayers.split(',').forEach(function(layer) {
-        let esriUri = new URL("/arcgis/rest/services/" + arcGis.Folder + "/" + arcGis.ServiceName + "/MapServer/" + layer, arcGis.BaseUri);
-        L.esri.featureLayer({
-            url: esriUri.toString()
-        }).addTo(leafletMap[currentTab])
+    L.Icon.Default.imagePath = imageBase;
+    layers.forEach(function (layer) {
+        const layerIcon = L.icon({
+            iconUrl: imageBase + "/" + layer.Image
+        });
+        gisLayers[layer.Name] = L.esri.featureLayer({
+            url: baseURI + "/" + layer.ID,
+            pointToLayer: function (geojson, latlng) {
+                return L.marker(latlng, {
+                    icon: layerIcon
+                });
+            }
+        });
     });
+    L.control.layers(null, gisLayers).addTo(leafletMap[currentTab]);
 }
 
 function addMapLegend() {

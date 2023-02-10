@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Layers>
+	<Layer>
+		<!-- ID is for the layer ID on the URI -->
+		<ID>0</ID>
+		<!-- Name is for the name of the layer on PQ Dashboard for map control -->
+		<Name>Example 1</Name>
+		<!-- This defines the image used, by default the path is relative to /Scripts/Leaflet/images -->
+		<Image>Example.png</Image>
+	</Layer>
+	<Layer>
+		<ID>1</ID>
+		<Name>Example 2</Name>
+		<Image>Example2.png</Image>
+	</Layer>
+</Layers>
