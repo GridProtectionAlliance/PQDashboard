@@ -40,9 +40,14 @@ namespace PQDashboard.Model
         public string Name { get; set; }
 
         /// <summary>
-        /// Image Asociated with the Layer, used for displaying on the map. Relative to /Scripts/Leaflet/images
-        /// </summary>
+        /// Image Asociated with the Layer, used for displaying on the map (points only). Relative to Project base.
+        /// </summary
         public string Image { get; set; }
+
+        /// <summary>
+        /// Color Asociated with the Layer, used for displaying on the map (polylines only).
+        /// </summary>
+        public string Color { get; set; }
         #endregion
     }
 }

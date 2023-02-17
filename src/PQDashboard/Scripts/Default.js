@@ -3931,23 +3931,30 @@ function addEsriLayers() {
     if (arcGis.BaseUri == "" || arcGis.ServiceLayers == "") return;
 
     const baseURI = new URL("/arcgis/rest/services/" + arcGis.Folder + "/" + arcGis.ServiceName + "/MapServer", arcGis.BaseUri).toString();
-    const imageBase = "Scripts/Leaflet/images";
     const layers = JSON.parse(arcGis.ServiceLayers);
     let gisLayers = {};
 
-    L.Icon.Default.imagePath = imageBase;
+    L.Icon.Default.imagePath = "Scripts/Leaflet/images";
     layers.forEach(function (layer) {
-        const layerIcon = L.icon({
-            iconUrl: imageBase + "/" + layer.Image
-        });
-        gisLayers[layer.Name] = L.esri.featureLayer({
-            url: baseURI + "/" + layer.ID,
-            pointToLayer: function (geojson, latlng) {
-                return L.marker(latlng, {
-                    icon: layerIcon
-                });
-            }
-        });
+        let layerProperties = {};
+        layerProperties['url'] = baseURI + "/" + layer.ID;
+        if (layer.Image != "")
+            layerProperties['pointToLayer'] =
+                function (geojson, latlng) {
+                    return L.marker(latlng, {
+                        icon: L.icon({
+                            iconUrl: layer.Image
+                        })
+                    });
+                };
+        if (layer.Color != "")
+            layerProperties['style'] =
+                function () {
+                    return {
+                        color: layer.Color
+                    }
+                };
+        gisLayers[layer.Name] = L.esri.featureLayer(layerProperties);
     });
     L.control.layers(null, gisLayers).addTo(leafletMap[currentTab]);
 }
