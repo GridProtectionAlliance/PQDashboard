@@ -5,12 +5,18 @@
 		<ID>0</ID>
 		<!-- Name is for the name of the layer on PQ Dashboard for map control -->
 		<Name>Example 1</Name>
-		<!-- This defines the image used, by default the path is relative to /Scripts/Leaflet/images -->
-		<Image>Example.png</Image>
+		<!-- This defines the image used, by default the path is relative to /PQDashboard (Only used for points)-->
+		<Image>/Scripts/Leaflet/images/Example.png</Image>
 	</Layer>
 	<Layer>
 		<ID>1</ID>
 		<Name>Example 2</Name>
-		<Image>Example2.png</Image>
+		<!-- This defines the color of this layer, uses hex code (Only used for polylines)-->
+		<Color>#eb4034</Color>
+	</Layer>
+	<!-- Neither property must be specified for the layer to display, it will default on the icon and color.-->
+	<Layer>
+		<ID>1</ID>
+		<Name>Example 2</Name>
 	</Layer>
 </Layers>

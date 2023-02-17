@@ -73,10 +73,11 @@
         XDocument doc = XDocument.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, arcGISSettings["ServiceLayersXML"].Value));
         var layerList = doc.Descendants("Layers")
                   .Elements()
-                  .Select(node => new ArcGISLayer{
+                  .Select(node => new ArcGISLayer {
                       ID = node.Element("ID").Value,
                       Name = node.Element("Name").Value,
-                      Image = node.Element("Image").Value
+                      Image = node.Element("Image")?.Value ?? "",
+                      Color = node.Element("Color")?.Value ?? ""
                   }).ToList();
         ViewBag.arcGisLayers = JsonConvert.SerializeObject(layerList);
     }
