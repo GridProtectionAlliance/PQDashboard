@@ -2307,7 +2307,7 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
 function updateGridWithSelectedSites() {
     if (meterList == null) return;
-
+    
     $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
     meterList.getListOfGrids().forEach(function (item) {
@@ -3286,9 +3286,10 @@ function resizeDocklet(theparent, chartheight) {
 function resizeMapAndMatrix(newTab) {
     var columnheight = $(window).height() - $('#tabs-' + newTab).offset().top - 25;
 
-    $("#theMap" + newTab).css("height", columnheight);
-
-    $("#theMatrix" + newTab).css("height", columnheight);
+    if (document.getElementById("mapEventsGrid").selectedIndex === 1)
+        $("#theMatrix" + newTab).css("height", columnheight);
+    else
+        $("#theMap" + newTab).css("height", columnheight);
 
     var theuncollapsedcount = $("#Portlet1" + currentTab).closest(".column").children().children().find('.ui-icon-minusthick').length;
 
