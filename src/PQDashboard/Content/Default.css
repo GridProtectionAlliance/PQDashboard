@@ -548,7 +548,7 @@ box-shadow: 0 0 7px black;
 }
 
 .header-container {
-    width: 100%;
+    width: 99%;
     position: relative;
     overflow: hidden;
 }
