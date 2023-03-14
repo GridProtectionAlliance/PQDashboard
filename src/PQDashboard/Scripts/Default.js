@@ -3929,35 +3929,22 @@ function loadLeafletMap(theDiv) {
 }
 
 function addEsriLayers() {
-    if (arcGis.BaseUri == "" || arcGis.ServiceLayers == "") return;
+    if (arcGis.BaseUri == "") return;
 
     const baseURI = new URL("/arcgis/rest/services/" + arcGis.Folder + "/" + arcGis.ServiceName + "/MapServer", arcGis.BaseUri).toString();
-    const layers = JSON.parse(arcGis.ServiceLayers);
-    let gisLayers = {};
 
-    L.Icon.Default.imagePath = "Scripts/Leaflet/images";
-    layers.forEach(function (layer) {
-        let layerProperties = {};
-        layerProperties['url'] = baseURI + "/" + layer.ID;
-        if (layer.Image != "")
-            layerProperties['pointToLayer'] =
-                function (geojson, latlng) {
-                    return L.marker(latlng, {
-                        icon: L.icon({
-                            iconUrl: layer.Image
-                        })
-                    });
-                };
-        if (layer.Color != "")
-            layerProperties['style'] =
-                function () {
-                    return {
-                        color: layer.Color
-                    }
-                };
-        gisLayers[layer.Name] = L.esri.featureLayer(layerProperties);
-    });
-    L.control.layers(null, gisLayers).addTo(leafletMap[currentTab]);
+    $.getJSON(baseURI + "/layers?f=pjson&callback=?",
+        function (layerData) {
+            const layerIDs = JSON.parse(`[${arcGis.ServiceLayers}]`);
+            let gisLayers = {};
+            $.each(layerData.layers, function (index, layer) {
+                // If servicelayers are specified, then don't add non-specified layers to map
+                if (arcGis.ServiceLayers == '' || layerIDs.findIndex(function (id) { return id === layer.id; }) >= 0)
+                    gisLayers[layer.name] = L.esri.dynamicMapLayer({ url: baseURI, layers: [layer.id] });
+            });
+            L.control.layers(null, gisLayers).addTo(leafletMap[currentTab]);
+        }
+    );
 }
 
 function addMapLegend() {
