@@ -20,8 +20,6 @@
 //       Generated original version of source code.
 //
 //*****************************************************************************************************@
-@using System.Xml.Linq
-@using System.Web.WebPages
 @using GSF.Collections
 @using GSF.Configuration
 @using GSF.Data.Model
@@ -70,16 +68,7 @@
         ViewBag.arcGisUri = arcGISSettings["BaseURI"].Value;
         ViewBag.arcGisFolder = arcGISSettings["Folder"].Value;
         ViewBag.arcGisName = arcGISSettings["ServiceName"].Value;
-        XDocument doc = XDocument.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, arcGISSettings["ServiceLayersXML"].Value));
-        var layerList = doc.Descendants("Layers")
-                  .Elements()
-                  .Select(node => new ArcGISLayer {
-                      ID = node.Element("ID").Value,
-                      Name = node.Element("Name").Value,
-                      Image = node.Element("Image")?.Value ?? "",
-                      Color = node.Element("Color")?.Value ?? ""
-                  }).ToList();
-        ViewBag.arcGisLayers = JsonConvert.SerializeObject(layerList);
+        ViewBag.arcGisLayers = arcGISSettings["Layers"].Value;
     }
     catch (Exception ex)
     {
