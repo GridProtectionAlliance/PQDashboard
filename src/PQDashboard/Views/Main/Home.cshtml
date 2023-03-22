@@ -529,12 +529,15 @@
     }
 
     function OpenWindowToMeterEventsByLine(id) {
-        let units = { 'day': 4, 'hour': 3, 'minute': 2, 'second': 1 }
-        let windowUnits = units[new URLSearchParams(window.location.search).get('context')] === 1 ? 1 : units[new URLSearchParams(window.location.search).get('context')] - 1;
-        let windowSize = windowUnits === 3 ? 12 : 30;
+        var units = { 'day': 3, 'hour': 2, 'minute': 1, 'second': 0 };
+        var sizes = { 'day': 12, 'hour': 30, 'minute': 30, 'second': 500 };
+        var adjustments = { 'day': 43200000, 'hour': 1800000, 'minute': 30000, 'second': 500 };
+        var windowUnits = units[globalContext];
+        var windowSize = sizes[globalContext];
         var dateContext = new Date(contextfromdate);
-        var time = dateContext.getUTCHours().toString().padStart(2, '0') + '%3A' + dateContext.getUTCMinutes().toString().padStart(2, '0') + '%3A' + dateContext.getUTCSeconds().toString().padStart(2, '0') + '.' + dateContext.getUTCMilliseconds().toString().padStart(3, '0');
-        var date = (dateContext.getUTCMonth() + 1).toString().padStart(2, "0") + "%2F" + dateContext.getUTCDate().toString().padStart(2, "0") + "%2F" + dateContext.getUTCFullYear().toString();
+        var dateAdjusted = new Date(dateContext.valueOf() + adjustments[globalContext]);
+        var time = dateAdjusted.getUTCHours().toString().padStart(2, '0') + '%3A' + dateAdjusted.getUTCMinutes().toString().padStart(2, '0') + '%3A' + dateAdjusted.getUTCSeconds().toString().padStart(2, '0') + '.' + dateAdjusted.getUTCMilliseconds().toString().padStart(3, '0');
+        var date = (dateAdjusted.getUTCMonth() + 1).toString().padStart(2, "0") + "%2F" + dateAdjusted.getUTCDate().toString().padStart(2, "0") + "%2F" + dateAdjusted.getUTCFullYear().toString();
         var popup = window.open(seBrowserInstance.replace(/\/$/, "") + "/EventSearch?meters0=" + id + "&date=" + date + "&time=" + time + "&windowSize=" + windowSize.toString() + "&timeWindowUnits=" + windowUnits.toString());
         return false;
     }
