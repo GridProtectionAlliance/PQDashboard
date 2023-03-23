@@ -179,8 +179,8 @@
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="openXDA.Model">
       <HintPath>..\Dependencies\openXDA.Model.dll</HintPath>
@@ -328,7 +328,6 @@
     <Compile Include="Controllers\Disturbances\DetailsByDateController.cs" />
     <Compile Include="Controllers\Disturbances\TableDataController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
-    <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\Events\BarChartController.cs" />
     <Compile Include="Controllers\Events\DetailsByDateController.cs" />
     <Compile Include="Controllers\Events\LocationController.cs" />
@@ -492,9 +491,6 @@
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
-    <Content Include="Views\Email\UpdateSettings.cshtml" />
-    <Content Include="Views\Email\Message.cshtml" />
-    <Content Include="Views\Email\Verify.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />

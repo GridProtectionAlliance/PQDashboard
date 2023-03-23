@@ -116,7 +116,7 @@ namespace PQDashboard
                 List<FlotSeries> flotInfo = GetFlotInfo(eventID);
                 DateTime epoch = new DateTime(1970, 1, 1);
 
-                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, ChannelData.DataFromEvent(evt.ID,connection)));
+                Lazy<DataGroup> dataGroup = new Lazy<DataGroup>(() => ToDataGroup(meter, ChannelData.DataFromEvent(evt.ID, meter.ConnectionFactory)));
                 Dictionary<int, DataSeries> waveformData = dataGroup.Value.DataSeries.ToDictionary(dataSeries => dataSeries.SeriesInfo.ID);
 
 
@@ -227,7 +227,7 @@ namespace PQDashboard
 
                 //eventDataAdapter.GetTimeDomainData(evt.EventDataID);
 
-                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID,connection));
+                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID, () => new AdoDataConnection("SystemSettings")));
 
                 int i = 0;
 
@@ -324,7 +324,7 @@ namespace PQDashboard
                 EventData eventData = (new TableOperations<EventData>(connection)).QueryRecordWhere("ID = {0}", evt.EventDataID);
 
 
-                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID,connection));
+                eventDataGroup.FromData(meter, ChannelData.DataFromEvent(evt.ID, () => new AdoDataConnection("SystemSettings")));
 
                 int i = -1;
 
