@@ -16,7 +16,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PQDashboard</RootNamespace>
     <AssemblyName>PQDashboard</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -136,10 +136,10 @@
       <HintPath>..\Dependencies\log4net.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Filtering, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Filtering.0.6.0\lib\net40\MathNet.Filtering.dll</HintPath>
+      <HintPath>..\packages\MathNet.Filtering.0.6.0\lib\net461\MathNet.Filtering.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.6.0\lib\net40\MathNet.Numerics.dll</HintPath>
+      <HintPath>..\packages\MathNet.Numerics.4.6.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.4.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.4.1\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
@@ -179,8 +179,11 @@
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="openXDA.APIAuthentication">
+      <HintPath>..\Dependencies\openXDA.APIAuthentication.dll</HintPath>
     </Reference>
     <Reference Include="openXDA.Model">
       <HintPath>..\Dependencies\openXDA.Model.dll</HintPath>
@@ -328,7 +331,6 @@
     <Compile Include="Controllers\Disturbances\DetailsByDateController.cs" />
     <Compile Include="Controllers\Disturbances\TableDataController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
-    <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\Events\BarChartController.cs" />
     <Compile Include="Controllers\Events\DetailsByDateController.cs" />
     <Compile Include="Controllers\Events\LocationController.cs" />
@@ -492,9 +494,6 @@
     <None Include="webpack.development.config.js" />
     <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
-    <Content Include="Views\Email\UpdateSettings.cshtml" />
-    <Content Include="Views\Email\Message.cshtml" />
-    <Content Include="Views\Email\Verify.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChannelDataQuality.aspx" />
