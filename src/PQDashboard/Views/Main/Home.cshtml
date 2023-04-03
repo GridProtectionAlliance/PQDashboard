@@ -69,6 +69,8 @@
         ViewBag.arcGisFolder = arcGISSettings["Folder"].Value;
         ViewBag.arcGisName = arcGISSettings["ServiceName"].Value;
         ViewBag.arcGisLayers = arcGISSettings["Layers"].Value;
+        ViewBag.arcGisBase = arcGISSettings["BaseLayer"].Value;
+
     }
     catch (Exception ex)
     {
@@ -76,6 +78,7 @@
         ViewBag.arcGisFolder = "";
         ViewBag.arcGisName = "";
         ViewBag.arcGisLayers = "";
+        ViewBag.arcGisBase = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
     }
 
     int defaulAssetGroupID = -1;
@@ -122,7 +125,8 @@
             BaseUri: '@Html.Raw(ViewBag.arcGisUri)',
             Folder: '@Html.Raw(ViewBag.arcGisFolder)',
             ServiceName: '@Html.Raw(ViewBag.arcGisName)',
-            ServiceLayers: '@Html.Raw(ViewBag.arcGisLayers)'
+            ServiceLayers: '@Html.Raw(ViewBag.arcGisLayers)',
+            BaseLayer: '@Html.Raw(@ViewBag.arcGisBase)'
         };
         var scInstance = '@Html.Raw(ViewBag.scInstance)';
         var seBrowserInstance = '@Html.Raw(ViewBag.seBrowserInstance)';
