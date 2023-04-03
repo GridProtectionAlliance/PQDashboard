@@ -215,7 +215,7 @@ namespace PQDashboard.Controllers
             string username = User.Identity.Name;
             string userid = UserInfo.UserNameToSID(username);
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
+            using (AdoDataConnection connection = new AdoDataConnection("securityProvider"))
             {
                 bool isAdmin = connection.ExecuteScalar<int>(@"
 					select 
