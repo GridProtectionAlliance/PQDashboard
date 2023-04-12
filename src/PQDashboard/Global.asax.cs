@@ -101,32 +101,6 @@ namespace PQDashboard
             global.PasswordRequirementsRegex = securityProvider["PasswordRequirementsRegex"].Value;
             global.PasswordRequirementsError = securityProvider["PasswordRequirementsError"].Value;
 
-            // Load database driven model settings
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-                //EncryptScores(dataContext);
-
-                // Validate default security roles exist
-                //ValidateSecurityRoles(connection, systemSettings["DefaultSecurityRoles"].Value);
-
-                // Validate users and groups exist in the database as SIDs
-                //ValidateAccountsAndGroups(connection);
-
-
-                //// Load global web settings
-                //Dictionary<string, string> appSetting = connection.LoadDatabaseSettings("app.setting");
-                //global.ApplicationName = appSetting["applicationName"];
-                //global.ApplicationDescription = appSetting["applicationDescription"];
-                //global.ApplicationKeywords = appSetting["applicationKeywords"];
-
-
-                //// Cache application settings
-                //foreach (KeyValuePair<string, string> item in appSetting)
-                //    global.ApplicationSettings.Add(item.Key, item.Value);
-
-            }
-
-
             // Modify the JSON serializer to serialize dates as UTC -
             // otherwise, timezone will not be appended to date strings
             // and browsers will select whatever timezone suits them
