@@ -1,0 +1,14 @@
+﻿@{
+    Layout = null;
+    string statusCode = $"{(HttpStatusCode)Response.StatusCode}";
+}
+<html>
+<head>
+    <title>Authentication Test</title>
+    <link rel="shortcut icon" href="@("@")GSF/Web/Shared/Images/Icons/favicon.ico" />
+</head>
+<body>
+    Auth test = @Response.StatusCode (@statusCode) for user
+    @(User?.Identity.Name ?? "Undefined")
+</body>
+</html>

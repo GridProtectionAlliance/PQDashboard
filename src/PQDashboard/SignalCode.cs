@@ -78,11 +78,10 @@ namespace PQDashboard
 
         public SignalCode()
         {
-            int i = 1;
-            using(AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-                m_systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
-            }
+            //int i = 1;
+            using AdoDataConnection connection = new AdoDataConnection("systemSettings");
+            m_systemFrequency = connection.ExecuteScalar<double?>("SELECT Value FROM Setting WHERE Name = 'SystemFrequency'") ?? 60.0D;
+
             //Uncomment the following line if using designed components 
             //InitializeComponent(); 
         }
@@ -615,7 +614,6 @@ namespace PQDashboard
                     .Select((series, index) => new { Name = seriesNames[index], Series = series })
                     .ToDictionary(obj => obj.Name, obj => obj.Series);
 
-                int i = 0;
                 if (cycleCurves != null)
                 {
                     foreach (string seriesName in seriesOrder)

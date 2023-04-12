@@ -76,7 +76,7 @@ namespace PQDashboard
         /// <summary>
         /// Gets <see cref="IRecordOperationsHub.RecordOperationsCache"/> for SignalR hub.
         /// </summary>
-        public RecordOperationsCache RecordOperationsCache => s_recordOperationsCache;
+        public new RecordOperationsCache RecordOperationsCache => s_recordOperationsCache;
 
         #endregion
 
@@ -141,7 +141,7 @@ namespace PQDashboard
         private static volatile int s_connectCount;
         private static readonly ThreadLocal<string> s_connectionID = new ThreadLocal<string>();
         private static readonly RecordOperationsCache s_recordOperationsCache;
-        private static string connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
+        private static readonly string s_connectionstring = ConfigurationFile.Current.Settings["systemSettings"]["ConnectionString"].Value;
 
 
         // Static Methods
@@ -150,7 +150,7 @@ namespace PQDashboard
         /// Gets statically cached instance of <see cref="RecordOperationsCache"/> for <see cref="DataHub"/> instances.
         /// </summary>
         /// <returns>Statically cached instance of <see cref="RecordOperationsCache"/> for <see cref="DataHub"/> instances.</returns>
-        public static RecordOperationsCache GetRecordOperationsCache() => s_recordOperationsCache;
+        public new static RecordOperationsCache GetRecordOperationsCache() => s_recordOperationsCache;
 
         // Static Constructor
         static DataHub()
@@ -718,7 +718,7 @@ namespace PQDashboard
 
             try
             {
-                conn = new SqlConnection(connectionstring);
+                conn = new SqlConnection(s_connectionstring);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.GetAllImpactedComponents", conn);
                 cmd.CommandType = CommandType.StoredProcedure;

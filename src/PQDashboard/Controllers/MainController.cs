@@ -21,25 +21,11 @@
 //
 //******************************************************************************************************
 
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Runtime.Caching;
 using System.Web.Mvc;
-using FaultData.DataAnalysis;
-using GSF;
 using GSF.Data;
 using GSF.Identity;
-using GSF.Security;
 using GSF.Web.Model;
 using GSF.Web.Security;
-using Newtonsoft.Json.Linq;
-using openXDA.Model;
 using PQDashboard.Model;
 
 namespace PQDashboard.Controllers
@@ -54,7 +40,7 @@ namespace PQDashboard.Controllers
 
         // Fields
         private readonly AppModel m_appModel;
-        private bool m_disposed;
+        //private bool m_disposed;
 
         #endregion
 
@@ -63,7 +49,7 @@ namespace PQDashboard.Controllers
         /// <summary>
         /// Creates a new <see cref="MainController"/>.
         /// </summary>
-        public MainController() : base()
+        public MainController()
         {
             // Set default model for pages used by layout
             m_appModel = new AppModel();
@@ -74,30 +60,34 @@ namespace PQDashboard.Controllers
 
         #region [ Methods ]
 
-
+        [AllowAnonymous]
         public ActionResult Home()
         {
-            using (DataContext dataContext = new DataContext("systemSettings")) {
-                m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
+            if (!(User?.Identity?.IsAuthenticated ?? false))
+                return RedirectToAction("Index", "Login");
 
-                try
+            using DataContext dataContext = new("systemSettings");
+            
+            m_appModel.ConfigureView(Url.RequestContext, "Home", ViewBag);
+
+            try
+            {
+                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
+
+                if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
                 {
-                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
-
-                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
-                    {
-                        ViewBag.username = "External";
-                        ViewBag.usersid = "External";
-                    }
+                    ViewBag.username = "External";
+                    ViewBag.usersid = "External";
                 }
-                catch (Exception ex)
-                {
-                    ViewBag.username = "";
-                }
-
-                return View();
             }
+            catch
+            {
+                ViewBag.username = "";
+            }
+
+            return View();
+
         }
 
         public ActionResult OpenSTE()
@@ -109,7 +99,7 @@ namespace PQDashboard.Controllers
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
 
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new("systemSettings"))
             {
 
                 try
@@ -123,7 +113,7 @@ namespace PQDashboard.Controllers
                         ViewBag.usersid = "External";
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     ViewBag.username = "";
                 }
@@ -135,7 +125,7 @@ namespace PQDashboard.Controllers
         {
             m_appModel.ConfigureView(Url.RequestContext, "MeterEventsByLine", ViewBag);
 
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using (DataContext dataContext = new("systemSettings"))
             {
 
                 try
@@ -149,7 +139,7 @@ namespace PQDashboard.Controllers
                         ViewBag.usersid = "External";
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     ViewBag.username = "";
                 }
@@ -159,54 +149,50 @@ namespace PQDashboard.Controllers
 
         public ActionResult MeterDisturbancesByLine()
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using DataContext dataContext = new("systemSettings");
+
+            try
             {
+                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                try
+                if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
                 {
-                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
-
-                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
-                    {
-                        ViewBag.username = "External";
-                        ViewBag.usersid = "External";
-                    }
+                    ViewBag.username = "External";
+                    ViewBag.usersid = "External";
                 }
-                catch (Exception ex)
-                {
-                    ViewBag.username = "";
-                }
-
-                m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
-                return View();
             }
+            catch
+            {
+                ViewBag.username = "";
+            }
+
+            m_appModel.ConfigureView(Url.RequestContext, "MeterDisturbancesByLine", ViewBag);
+            return View();
         }
 
         public ActionResult QuickSearch()
         {
-            using (DataContext dataContext = new DataContext("systemSettings"))
+            using DataContext dataContext = new("systemSettings");
+
+            try
             {
+                ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
+                ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
 
-                try
+                if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
                 {
-                    ViewBag.username = System.Web.HttpContext.Current.User.Identity.Name;
-                    ViewBag.usersid = UserInfo.UserNameToSID(ViewBag.username);
-
-                    if (dataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", ViewBag.usersid) == 0)
-                    {
-                        ViewBag.username = "External";
-                        ViewBag.usersid = "External";
-                    }
+                    ViewBag.username = "External";
+                    ViewBag.usersid = "External";
                 }
-                catch (Exception ex)
-                {
-                    ViewBag.username = "";
-                }
-
-                m_appModel.ConfigureView(Url.RequestContext, "QuickSearch", ViewBag);
-                return View();
             }
+            catch
+            {
+                ViewBag.username = "";
+            }
+
+            m_appModel.ConfigureView(Url.RequestContext, "QuickSearch", ViewBag);
+            return View();
         }
         #endregion
 
@@ -215,9 +201,9 @@ namespace PQDashboard.Controllers
             string username = User.Identity.Name;
             string userid = UserInfo.UserNameToSID(username);
 
-            using (AdoDataConnection connection = new AdoDataConnection("systemSettings"))
-            {
-                bool isAdmin = connection.ExecuteScalar<int>(@"
+            using AdoDataConnection connection = new("systemSettings");
+
+            bool isAdmin = connection.ExecuteScalar<int>(@"
 					select 
 						COUNT(*) 
 					from 
@@ -228,9 +214,7 @@ namespace PQDashboard.Controllers
 						ApplicationRole.Name = 'Administrator' AND UserAccount.Name = {0}
                 ", userid) > 0;
 
-                if (isAdmin) return true;
-                else return false;
-            }
+            return isAdmin;
         }
 
     }

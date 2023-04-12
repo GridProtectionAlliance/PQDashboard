@@ -21,13 +21,13 @@
 //
 //******************************************************************************************************
 
-using System;
 using GSF.Diagnostics;
 using GSF.IO;
 using GSF.Web.Security;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Owin;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -38,38 +38,33 @@ using Resources = GSF.Web.Shared.Resources;
 using AuthenticationOptions = GSF.Web.Security.AuthenticationOptions;
 using static PQDashboard.Common;
 
-[assembly: OwinStartupAttribute(typeof(PQDashboard.Startup))]
+// ReSharper disable UnusedMember.Global
+[assembly: OwinStartup(typeof(PQDashboard.Startup))]
 namespace PQDashboard;
 
 public class Startup
 {
     public void Configuration(IAppBuilder app)
     {
-        app.Use<AuthenticationMiddleware>(new AuthenticationOptions()
-        {
-            SessionToken = "session",
-            AuthFailureRedirectResourceExpression = "(?!)",
-            AnonymousResourceExpression = "(?!)"
-        });
+        // Enable GSF role-based security authentication
+        app.UseAuthentication(s_authenticationOptions);
 
-        HubConfiguration hubConfig = new HubConfiguration();
+        OwinLoaded = true;
 
-        // Enabled detailed client errors
-        hubConfig.EnableDetailedErrors = true;
+        // Enabled detailed client errors for hub clients
+        HubConfiguration hubConfig = new() { EnableDetailedErrors = true };
 
         // Load ServiceHub SignalR class
         app.MapSignalR(hubConfig);
 
         // Configure Web API for self-host. 
-        HttpConfiguration config = new HttpConfiguration();
+        HttpConfiguration config = new();
 
         // Set configuration to use reflection to setup routes
         config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
-
         app.UseWebApi(config);
     }
-
 
     public class CustomDirectRouteProvider : DefaultDirectRouteProvider
     {
