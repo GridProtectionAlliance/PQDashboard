@@ -60,7 +60,6 @@ namespace PQDashboard.Controllers
 
         #region [ Methods ]
 
-        [AllowAnonymous]
         public ActionResult Home()
         {
             if (!(User?.Identity?.IsAuthenticated ?? false))

@@ -291,6 +291,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Dependencies\GSF\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NUglify">
+      <HintPath>..\Dependencies\GSF\NUglify.dll</HintPath>
+    </Reference>
     <Reference Include="Owin">
       <HintPath>..\Dependencies\GSF\Owin.dll</HintPath>
     </Reference>
@@ -1465,11 +1468,11 @@
   </Target>
   <Import Project="..\Dependencies\openXDA\GSF.PQDIF.targets" Condition="Exists('..\Dependencies\openXDA\GSF.PQDIF.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>REM "$(SolutionDir)Dependencies\GSF\ValidateAssemblyBindings.exe" "$(TargetPath).config"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>COPY "$(SolutionDir)Dependencies\GSF\TagDefinitions.xml" ""$(SolutionDir)Dependencies\openXDA\"</PreBuildEvent>
+    <PreBuildEvent>COPY "$(SolutionDir)Dependencies\GSF\TagDefinitions.xml" ""$(SolutionDir)Dependencies\openXDA\"
+</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

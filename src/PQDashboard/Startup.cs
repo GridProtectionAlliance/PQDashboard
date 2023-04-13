@@ -37,6 +37,7 @@ using System.Web.Http.Routing;
 using Resources = GSF.Web.Shared.Resources;
 using AuthenticationOptions = GSF.Web.Security.AuthenticationOptions;
 using static PQDashboard.Common;
+using GSF;
 
 // ReSharper disable UnusedMember.Global
 [assembly: OwinStartup(typeof(PQDashboard.Startup))]
@@ -76,7 +77,6 @@ public class Startup
 
     static Startup()
     {
-
         SetupTempPath();
 
         s_authenticationOptions = new AuthenticationOptions
@@ -88,6 +88,33 @@ public class Startup
         };
 
         AuthenticationOptions = CreateInstance<ReadonlyAuthenticationOptions>(s_authenticationOptions);
+
+        if (!LogEnabled)
+            return;
+
+        // Retrieve application log path as defined in the config file
+        string logPath = LogPath;
+
+        // Make sure log directory exists
+        try
+        {
+            if (!Directory.Exists(logPath))
+                Directory.CreateDirectory(logPath);
+        }
+        catch
+        {
+            logPath = FilePath.GetAbsolutePath("");
+        }
+
+        try
+        {
+            Logger.FileWriter.SetPath(logPath);
+            Logger.FileWriter.SetLoggingFileCount(MaxLogFiles);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     public static bool OwinLoaded { get; private set; }
