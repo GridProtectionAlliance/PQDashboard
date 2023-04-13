@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
+  <Import Project="..\Dependencies\NuGet\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props" Condition="Exists('..\Dependencies\NuGet\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props')" />
+  <Import Project="..\Dependencies\NuGet\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\Dependencies\NuGet\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -78,102 +79,233 @@
     <TypeScriptSourceRoot />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AjaxMin, Version=5.14.5506.26196, Culture=neutral, PublicKeyToken=21ef50ce11b5d80f, processorArchitecture=MSIL">
-      <HintPath>..\packages\AjaxMin.5.14.5506.26202\lib\net40\AjaxMin.dll</HintPath>
-      <Private>True</Private>
+    <!-- .NET References -->
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- NuGet References -->
+    <Reference Include="HtmlAgilityPack, Version=1.11.22.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\HtmlAgilityPack.1.11.22\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="Antlr3.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\Antlr3.Runtime.dll</HintPath>
+    <Reference Include="MathNet.Numerics, Version=4.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\MathNet.Numerics.4.9.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
-    <Reference Include="Azure.Core">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\Azure.Core.dll</HintPath>
+    <Reference Include="Microsoft.AI.Agent.Intercept, Version=2.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.Agent.Intercept.2.4.0\lib\net45\Microsoft.AI.Agent.Intercept.dll</HintPath>
     </Reference>
-    <Reference Include="ExpressionEvaluator">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\ExpressionEvaluator.dll</HintPath>
+    <Reference Include="Microsoft.AI.DependencyCollector, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.DependencyCollector.2.12.1\lib\net45\Microsoft.AI.DependencyCollector.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.AI.PerfCounterCollector, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.PerfCounterCollector.2.12.1\lib\net45\Microsoft.AI.PerfCounterCollector.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.ServerTelemetryChannel, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.12.1\lib\net45\Microsoft.AI.ServerTelemetryChannel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.Web, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.Web.2.12.1\lib\net45\Microsoft.AI.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.WindowsServer, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.WindowsServer.2.12.1\lib\net45\Microsoft.AI.WindowsServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.12.1.36699, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.ApplicationInsights.2.12.1\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.Owin.Host.SystemWeb.3.1.0\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.TelemetryCorrelation, Version=1.0.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.AspNet.TelemetryCorrelation.1.0.7\lib\net45\Microsoft.AspNet.TelemetryCorrelation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\Dependencies\NuGet\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\Dependencies\NuGet\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\Dependencies\NuGet\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- openXDA References -->
     <Reference Include="FaultAlgorithms">
       <HintPath>..\Dependencies\openXDA\FaultAlgorithms.dll</HintPath>
     </Reference>
     <Reference Include="FaultData">
       <HintPath>..\Dependencies\openXDA\FaultData.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Communication">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.Communication.dll</HintPath>
+    <Reference Include="openXDA.Model">
+      <HintPath>..\Dependencies\openXDA\openXDA.Model.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Core">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.Core.dll</HintPath>
+    <Reference Include="openXDA.APIAuthentication">
+      <HintPath>..\Dependencies\openXDA\openXDA.APIAuthentication.dll</HintPath>
     </Reference>
-    <Reference Include="GSF.Geo">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.Geo.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.PhasorProtocols">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.PhasorProtocols.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.PQDIF">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.PQDIF.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.Security">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.Security.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.ServiceModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.ServiceModel.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.ServiceProcess">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.ServiceProcess.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.TimeSeries">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.TimeSeries.dll</HintPath>
-    </Reference>
-    <Reference Include="GSF.Web">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\GSF\GSF.Web.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionic.Zlib">
-      <HintPath>..\Dependencies\openXDA\Ionic.Zlib.dll</HintPath>
+    <Reference Include="openXDA.Reports">
+      <HintPath>..\Dependencies\openXDA\openXDA.Reports.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\Dependencies\openXDA\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Filtering, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Filtering.0.6.0\lib\net461\MathNet.Filtering.dll</HintPath>
+    <Reference Include="GSF.SortedTreeStore">
+      <HintPath>..\Dependencies\openXDA\GSF.SortedTreeStore.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Numerics, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.6.0\lib\net461\MathNet.Numerics.dll</HintPath>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- GSF References -->
+    <Reference Include="AjaxMin">
+      <HintPath>..\Dependencies\GSF\AjaxMin.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <HintPath>..\Dependencies\GSF\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.Communication">
+      <HintPath>..\Dependencies\GSF\GSF.Communication.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.Core">
+      <HintPath>..\Dependencies\GSF\GSF.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.PQDIF">
+      <HintPath>..\Dependencies\GSF\GSF.PQDIF.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.Security">
+      <HintPath>..\Dependencies\GSF\GSF.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.ServiceModel">
+      <HintPath>..\Dependencies\GSF\GSF.ServiceModel.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.ServiceProcess">
+      <HintPath>..\Dependencies\GSF\GSF.ServiceProcess.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.TimeSeries">
+      <HintPath>..\Dependencies\GSF\GSF.TimeSeries.dll</HintPath>
+    </Reference>
+    <Reference Include="GSF.Web">
+      <HintPath>..\Dependencies\GSF\GSF.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zlib">
+      <HintPath>..\Dependencies\GSF\Ionic.Zlib.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Cryptography.Internal">
+      <HintPath>..\Dependencies\GSF\Microsoft.AspNetCore.Cryptography.Internal.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.DataProtection">
+      <HintPath>..\Dependencies\GSF\Microsoft.AspNetCore.DataProtection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.DataProtection.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.AspNetCore.DataProtection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+      <HintPath>..\Dependencies\GSF\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\Dependencies\GSF\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.AspNet.SignalR.SystemWeb, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.2.0\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Azure.Core">
+      <HintPath>..\Dependencies\GSF\Azure.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Caching.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Caching.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Owin, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Owin.3.1.0\lib\net45\Microsoft.Owin.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Caching.Memory">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Caching.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Hosting.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives">
+      <HintPath>..\Dependencies\GSF\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Graph">
+      <HintPath>..\Dependencies\GSF\Microsoft.Graph.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Graph.Core">
+      <HintPath>..\Dependencies\GSF\Microsoft.Graph.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client">
+      <HintPath>..\Dependencies\GSF\Microsoft.Identity.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Web.TokenCache">
+      <HintPath>..\Dependencies\GSF\Microsoft.Identity.Web.TokenCache.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Abstractions">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Protocols">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.Protocols.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens">
+      <HintPath>..\Dependencies\GSF\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\Dependencies\GSF\Microsoft.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Cors">
       <HintPath>..\Dependencies\GSF\Microsoft.Owin.Cors.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Owin.Diagnostics">
+      <HintPath>..\Dependencies\GSF\Microsoft.Owin.Diagnostics.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Owin.Host.HttpListener">
       <HintPath>..\Dependencies\GSF\Microsoft.Owin.Host.HttpListener.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.3.1.0\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Hosting">
       <HintPath>..\Dependencies\GSF\Microsoft.Owin.Hosting.dll</HintPath>
@@ -181,55 +313,76 @@
     <Reference Include="Microsoft.Owin.Security">
       <HintPath>..\Dependencies\GSF\Microsoft.Owin.Security.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    <Reference Include="Microsoft.Web.Infrastructure">
+      <HintPath>..\Dependencies\GSF\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
-      <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Dependencies\GSF\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\Dependencies\GSF\Owin.dll</HintPath>
     </Reference>
     <Reference Include="RazorEngine">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\GSF\RazorEngine.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="openXDA.APIAuthentication">
-      <HintPath>..\Dependencies\openXDA\openXDA.APIAuthentication.dll</HintPath>
-    </Reference>
-    <Reference Include="openXDA.Model">
-      <HintPath>..\Dependencies\openXDA\openXDA.Model.dll</HintPath>
-    </Reference>
-    <Reference Include="openXDA.Reports">
-      <HintPath>..\Dependencies\openXDA\openXDA.Reports.dll</HintPath>
-    </Reference>
     <Reference Include="Reports">
-      <HintPath>..\Dependencies\Reports.dll</HintPath>
+      <HintPath>..\Dependencies\OpenXDA\Reports.dll</HintPath>
     </Reference>
-    <Reference Include="RouteDebugger, Version=2.1.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\routedebugger.2.1.5\lib\net40\RouteDebugger.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Buffers">
+      <HintPath>..\Dependencies\GSF\System.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Activities" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.Linq">
-      <Private>True</Private>
+    <Reference Include="System.Diagnostics.DiagnosticSource">
+      <HintPath>..\Dependencies\GSF\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Net.Http.Formatting.Extension.5.2.3.0\lib\System.Net.Http.Extensions.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.IdentityModel.Tokens.Jwt">
+      <HintPath>..\Dependencies\GSF\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>..\Dependencies\GSF\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.Formatting">
       <HintPath>..\Dependencies\GSF\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Net.Http.Json">
+      <HintPath>..\Dependencies\GSF\System.Net.Http.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WinHttpHandler">
+      <HintPath>..\Dependencies\GSF\System.Net.Http.WinHttpHandler.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>..\Dependencies\GSF\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>..\Dependencies\GSF\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.AccessControl">
+      <HintPath>..\Dependencies\GSF\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Xml">
+      <HintPath>..\Dependencies\GSF\System.Security.Cryptography.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows">
+      <HintPath>..\Dependencies\GSF\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encodings.Web">
+      <HintPath>..\Dependencies\GSF\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json">
+      <HintPath>..\Dependencies\GSF\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>..\Dependencies\GSF\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\Dependencies\GSF\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Cors">
+      <HintPath>..\Dependencies\GSF\System.Web.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Helpers">
+      <HintPath>..\Dependencies\GSF\System.Web.Helpers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Http">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\GSF\System.Web.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Http.Cors">
@@ -238,63 +391,20 @@
     <Reference Include="System.Web.Http.Owin">
       <HintPath>..\Dependencies\GSF\System.Web.Http.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http.Primitives, Version=4.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Net.Http.Formatting.Extension.5.2.3.0\lib\System.Net.Http.Primitives.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\Dependencies\GSF\System.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http.WebRequest" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Caching">
-      <Private>True</Private>
+    <Reference Include="System.Web.Razor">
+      <HintPath>..\Dependencies\GSF\System.Web.Razor.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Web.Cors, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.4\lib\net45\System.Web.Cors.dll</HintPath>
+    <Reference Include="System.Web.WebPages">
+      <HintPath>..\Dependencies\GSF\System.Web.WebPages.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.DynamicData" />
-    <Reference Include="System.Web.Entity" />
-    <Reference Include="System.Web.ApplicationServices" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.Helpers.dll</HintPath>
+    <Reference Include="System.Web.WebPages.Deployment">
+      <HintPath>..\Dependencies\GSF\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Web.Http.Common.4.0.20126.16343\lib\net40\System.Web.Http.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web.Mvc, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.4\lib\net45\System.Web.Mvc.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Abstractions" />
-    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.4\lib\net45\System.Web.Razor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Routing" />
-    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Web.Services" />
-    <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.WebPages.Razor">
+      <HintPath>..\Dependencies\GSF\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -1381,13 +1491,16 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GSF.PQDIF.2.3.496-beta\build\GSF.PQDIF.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GSF.PQDIF.2.3.496-beta\build\GSF.PQDIF.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props'))" />
+    <Error Condition="!Exists('..\Dependencies\NuGet\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\Dependencies\NuGet\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('..\Dependencies\NuGet\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\Dependencies\NuGet\Microsoft.Net.Compilers.1.3.0\build\Microsoft.Net.Compilers.props'))" />
   </Target>
-  <Import Project="..\packages\GSF.PQDIF.2.3.496-beta\build\GSF.PQDIF.targets" Condition="Exists('..\packages\GSF.PQDIF.2.3.496-beta\build\GSF.PQDIF.targets')" />
+  <Import Project="..\Dependencies\openXDA\GSF.PQDIF.targets" Condition="Exists('..\Dependencies\openXDA\GSF.PQDIF.targets')" />
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>COPY "..\Dependencies\GSF\TagDefinitions.xml" ""..\Dependencies\openXDA\"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
