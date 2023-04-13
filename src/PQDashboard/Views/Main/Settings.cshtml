@@ -1,25 +1,25 @@
 ﻿@*******************************************************************************************************
-    //  Settings.cshtml - Gbtc
-    //
-    //  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
-    //
-    //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
-    //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
-    //  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
-    //  file except in compliance with the License. You may obtain a copy of the License at:
-    //
-    //      http://opensource.org/licenses/MIT
-    //
-    //  Unless agreed to in writing, the subject software distributed under the License is distributed on an
-    //  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
-    //  License for the specific language governing permissions and limitations.
-    //
-    //  Code Modification History:
-    //  ----------------------------------------------------------------------------------------------------
-    //  01/22/2016 - J. Ritchie Carroll
-    //       Generated original version of source code.
-    //
-    //*****************************************************************************************************@
+//  Settings.cshtml - Gbtc
+//
+//  Copyright © 2016, Grid Protection Alliance.  All Rights Reserved.
+//
+//  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
+//  the NOTICE file distributed with this work for additional information regarding copyright ownership.
+//  The GPA licenses this file to you under the MIT License (MIT), the "License"; you may not use this
+//  file except in compliance with the License. You may obtain a copy of the License at:
+//
+//      http://opensource.org/licenses/MIT
+//
+//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
+//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. Refer to the
+//  License for the specific language governing permissions and limitations.
+//
+//  Code Modification History:
+//  ----------------------------------------------------------------------------------------------------
+//  01/22/2016 - J. Ritchie Carroll
+//       Generated original version of source code.
+//
+//*****************************************************************************************************@
 @using GSF.Collections;
 @using GSF.Data.Model
 @using GSF.Data
@@ -45,11 +45,10 @@
         chartGroups = new TableOperations<ValueListGroup>(connection).QueryRecordsWhere("Name LIKE 'Chart.%'");
         chartSettings = new TableOperations<ValueList>(connection).QueryRecordsWhere("GroupID IN (SELECT ID FROM ValueListGroup WHERE Name LIKE 'Chart.%')");
     }
+
     using (DataContext dataContext = new DataContext("dbOpenXDA")) {
         meterCount = dataContext.Table<Meter>().QueryRecordCount(new RecordRestriction("ID IN (SELECT MeterID FROM MeterAssetGroup WHERE AssetGroupID IN (SELECT AssetGroupID FROM UserAccountAssetGroup WHERE UserAccountID =  (SELECT ID FROM UserAccount WHERE Name = {0})))", ViewBag.usersid));
     }
-
-
 }
 <div id="settingsModal" class="modal fade" role="dialog">
     <div class="modal-dialog modal-lg">
@@ -64,6 +63,7 @@
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#about" data-toggle="tab">About</a></li>
                     <li><a href="#config" data-toggle="tab">Config</a></li>
+                    <li><a href="#user" data-toggle="tab">User&nbsp;Info</a></li>
                     <li><a href="#help" data-toggle="tab">Help</a></li>
                 </ul>
                 <div class="tab-content">
@@ -97,7 +97,7 @@
                                                     @setting.Text
                                                 </td>
                                                 <td>
-                                                    <input type="text" onchange="updateSystemSetting(this, @JsonConvert.SerializeObject(setting))" value="@setting.AltText1"/>
+                                                    <input type="text" onchange="updateSystemSetting(this, @JsonConvert.SerializeObject(setting))" value="@setting.AltText1" />
                                                 </td>
                                             </tr>
                                         }
@@ -116,14 +116,14 @@
                                         </thead>
                                         @foreach (ValueList tab in tabs)
                                         {
-                                                <tr>
-                                                    <td>
-                                                        @tab.Text
-                                                    </td>
-                                                    <td>
-                                                        <input id="tab@(tab.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(tab))" @(tab.Enabled == true ? "checked='checked'" : "") />
-                                                    </td>
-                                                </tr>
+                                            <tr>
+                                                <td>
+                                                    @tab.Text
+                                                </td>
+                                                <td>
+                                                    <input id="tab@(tab.ID)" type="checkbox" onchange="updateTabSetting(this, @JsonConvert.SerializeObject(tab))" @(tab.Enabled == true ? "checked='checked'" : "") />
+                                                </td>
+                                            </tr>
                                         }
                                     </table>
                                 </div>
@@ -131,33 +131,33 @@
 
                             @foreach (ValueListGroup chartGroup in chartGroups)
                             {
-                                    <div id="@chartGroup.Name.ToLower().Replace(".","_")" class="tab-pane fade">
-                                        <div class="well">
-                                            <table class="table table-responsive">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Field</th>
-                                                        <th>Color</th>
-                                                        <th>Enabled</th>
-                                                    </tr>
-                                                </thead>
-                                                @foreach (ValueList setting in chartSettings.Where(x=> x.GroupID == chartGroup.ID))
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            @setting.Text
-                                                        </td>
-                                                        <td>
-                                                            <input id="color@(setting.ID)" style="background-color: @(setting.AltText1)" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(setting))" value="@(setting.AltText1)" />
-                                                        </td>
-                                                        <td>
-                                                            <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled== true  ? "checked='checked'" : "") />
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </table>
-                                        </div>
+                                <div id="@chartGroup.Name.ToLower().Replace(".","_")" class="tab-pane fade">
+                                    <div class="well">
+                                        <table class="table table-responsive">
+                                            <thead>
+                                                <tr>
+                                                    <th>Field</th>
+                                                    <th>Color</th>
+                                                    <th>Enabled</th>
+                                                </tr>
+                                            </thead>
+                                            @foreach (ValueList setting in chartSettings.Where(x => x.GroupID == chartGroup.ID))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @setting.Text
+                                                    </td>
+                                                    <td>
+                                                        <input id="color@(setting.ID)" style="background-color: @(setting.AltText1)" onchange="updateColorSetting(this, @JsonConvert.SerializeObject(setting))" value="@(setting.AltText1)" />
+                                                    </td>
+                                                    <td>
+                                                        <input id="enable@(setting.ID)" onchange="updateEnableSetting(this, @JsonConvert.SerializeObject(setting))" type="checkbox" @(setting.Enabled == true ? "checked='checked'" : "") />
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
                                     </div>
+                                </div>
                             }
 
                             <div id="kml" class="tab-pane fade">
@@ -176,7 +176,7 @@
                                                     @setting.Text
                                                 </td>
                                                 <td>
-                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled== true  ? "checked='checked'" : "") />
+                                                    <input id="tab@(setting.ID)" type="checkbox" onchange="updateKMLSetting(this, @JsonConvert.SerializeObject(setting))" @(setting.Enabled == true ? "checked='checked'" : "") />
                                                 </td>
                                             </tr>
                                         }
@@ -255,8 +255,11 @@
 
                         <br /><br />
                     </div>
+
+                    <div id="user" class="tab-pane fade" style="overflow-y:auto; max-height: 750px">
+                        <iframe src="/UserInfo" style="width:700px; height:350px; border:0px"></iframe>
+                    </div>
                 </div>
-            </div>
 
             <div class="modal-footer">
                 <button type="button" id="configApply" class="btn btn-primary" data-dismiss="modal" onclick="refresh()">Apply Now</button>

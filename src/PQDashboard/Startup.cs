@@ -61,6 +61,9 @@ public class Startup
         // Configure Web API for self-host. 
         HttpConfiguration config = new();
 
+        // Enable GSF session management
+        config.EnableSessions(s_authenticationOptions);
+
         // Set configuration to use reflection to setup routes
         config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
