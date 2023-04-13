@@ -3865,8 +3865,6 @@ function loadLeafletMap(theDiv) {
         leafletMap[currentTab] = L.map(theDiv, {
             center: [35.0456, -85.3097],
             zoom: 6,
-            minZoom: 2,
-            maxZoom: 15,
             zoomControl: false,
             attributionControl: false
         });
@@ -3874,8 +3872,13 @@ function loadLeafletMap(theDiv) {
         var mapLink =
             '<a href="https://openstreetmap.org">OpenStreetMap</a>';
 
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        if (arcGis.BaseLayer.length == 0)
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            }).addTo(leafletMap[currentTab]);
+        else
+            L.tileLayer(
+                arcGis.BaseLayer, {
             }).addTo(leafletMap[currentTab]);
 
 

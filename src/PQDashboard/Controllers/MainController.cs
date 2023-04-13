@@ -201,20 +201,18 @@ namespace PQDashboard.Controllers
             string userid = UserInfo.UserNameToSID(username);
 
             using AdoDataConnection connection = new("systemSettings");
-
             bool isAdmin = connection.ExecuteScalar<int>(@"
-					select 
-						COUNT(*) 
-					from 
-						UserAccount JOIN 
-						ApplicationRoleUserAccount ON ApplicationRoleUserAccount.UserAccountID = UserAccount.ID JOIN
-						ApplicationRole ON ApplicationRoleUserAccount.ApplicationRoleID = ApplicationRole.ID
-					WHERE 
-						ApplicationRole.Name = 'Administrator' AND UserAccount.Name = {0}
-                ", userid) > 0;
+              select 
+                COUNT(*) 
+              from 
+                UserAccount JOIN 
+                ApplicationRoleUserAccount ON ApplicationRoleUserAccount.UserAccountID = UserAccount.ID JOIN
+                ApplicationRole ON ApplicationRoleUserAccount.ApplicationRoleID = ApplicationRole.ID
+              WHERE 
+                ApplicationRole.Name = 'Administrator' AND UserAccount.Name = {0}
+                    ", userid) > 0;
 
             return isAdmin;
         }
-
     }
 }
