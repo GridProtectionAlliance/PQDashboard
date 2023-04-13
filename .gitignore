@@ -232,3 +232,5 @@ install/src/SEBrowserComponents.wxs
 !install/src/SEBrowser/**
 readme.txt
 /src/Dependencies/NuGet
+/src/PQDashboard/DynamicAssemblies
+/src/PQDashboard/Logs
