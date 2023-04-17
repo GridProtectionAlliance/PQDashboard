@@ -20,58 +20,137 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-using GSF.Web.Model;
+
+using GSF.Diagnostics;
+using GSF.IO;
 using GSF.Web.Security;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Owin;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Routing;
+using Resources = GSF.Web.Shared.Resources;
+using AuthenticationOptions = GSF.Web.Security.AuthenticationOptions;
+using static PQDashboard.Common;
+using GSF;
 
-[assembly: OwinStartupAttribute(typeof(PQDashboard.Startup))]
-namespace PQDashboard
+// ReSharper disable UnusedMember.Global
+[assembly: OwinStartup(typeof(PQDashboard.Startup))]
+namespace PQDashboard;
+
+public class Startup
 {
-    public partial class Startup
+    public void Configuration(IAppBuilder app)
     {
-        public void Configuration(IAppBuilder app)
-        {
-            app.Use<AuthenticationMiddleware>(new AuthenticationOptions()
-            {
-                SessionToken = "session",
-                AuthFailureRedirectResourceExpression = "(?!)",
-                AnonymousResourceExpression = "(?!)"
-            });
+        // Enable GSF role-based security authentication
+        app.UseAuthentication(s_authenticationOptions);
 
-            HubConfiguration hubConfig = new HubConfiguration();
+        OwinLoaded = true;
 
-            // Enabled detailed client errors
-            hubConfig.EnableDetailedErrors = true;
+        // Enabled detailed client errors for hub clients
+        HubConfiguration hubConfig = new() { EnableDetailedErrors = true };
 
-            // Load ServiceHub SignalR class
-            app.MapSignalR(hubConfig);
+        // Load ServiceHub SignalR class
+        app.MapSignalR(hubConfig);
 
-            // Configure Web API for self-host. 
-            HttpConfiguration config = new HttpConfiguration();
+        // Configure Web API for self-host. 
+        HttpConfiguration config = new();
 
-            // Set configuration to use reflection to setup routes
-            config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
+        // Enable GSF session management
+        config.EnableSessions(s_authenticationOptions);
 
+        // Set configuration to use reflection to setup routes
+        config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
-            app.UseWebApi(config);
-        }
+        app.UseWebApi(config);
     }
-
 
     public class CustomDirectRouteProvider : DefaultDirectRouteProvider
     {
-        protected override IReadOnlyList<IDirectRouteFactory>
-        GetActionRouteFactories(HttpActionDescriptor actionDescriptor)
+        protected override IReadOnlyList<IDirectRouteFactory> GetActionRouteFactories(HttpActionDescriptor actionDescriptor) =>
+            actionDescriptor.GetCustomAttributes<IDirectRouteFactory>(inherit: true);
+    }
+
+    private static readonly AuthenticationOptions s_authenticationOptions;
+
+    static Startup()
+    {
+        SetupTempPath();
+
+        s_authenticationOptions = new AuthenticationOptions
         {
-            return actionDescriptor.GetCustomAttributes<IDirectRouteFactory>
-            (inherit: true);
+            LoginPage = "/Login",
+            LoginHeader = $"<h3><img src=\"{Resources.Root}/Shared/Images/gpa-smalllock.png\"/> {ApplicationName}</h3>",
+            AnonymousResourceExpression = AnonymousResourceExpression,
+            AuthFailureRedirectResourceExpression = @"^/$|^/.+$"
+        };
+
+        AuthenticationOptions = CreateInstance<ReadonlyAuthenticationOptions>(s_authenticationOptions);
+
+        if (!LogEnabled)
+            return;
+
+        // Retrieve application log path as defined in the config file
+        string logPath = LogPath;
+
+        // Make sure log directory exists
+        try
+        {
+            if (!Directory.Exists(logPath))
+                Directory.CreateDirectory(logPath);
+        }
+        catch
+        {
+            logPath = FilePath.GetAbsolutePath("");
+        }
+
+        try
+        {
+            Logger.FileWriter.SetPath(logPath);
+            Logger.FileWriter.SetLoggingFileCount(MaxLogFiles);
+        }
+        catch
+        {
+            // ignored
         }
     }
 
+    public static bool OwinLoaded { get; private set; }
+
+    public static ReadonlyAuthenticationOptions AuthenticationOptions { get; }
+
+    private static T CreateInstance<T>(params object[] args)
+    {
+        Type type = typeof(T);
+        object instance = type.Assembly.CreateInstance(type.FullName!, false, BindingFlags.Instance | BindingFlags.NonPublic, null, args, null, null);
+        return (T)instance;
+    }
+
+    private static void SetupTempPath()
+    {
+        const string DynamicAssembliesFolderName = "DynamicAssemblies";
+        string assemblyDirectory = null;
+
+        try
+        {
+            // Setup custom temp folder so that dynamically compiled razor assemblies can be more easily managed
+            assemblyDirectory = FilePath.GetAbsolutePath(DynamicAssembliesFolderName);
+
+            if (!Directory.Exists(assemblyDirectory))
+                Directory.CreateDirectory(assemblyDirectory);
+
+            Environment.SetEnvironmentVariable("TEMP", assemblyDirectory);
+            Environment.SetEnvironmentVariable("TMP", assemblyDirectory);
+        }
+        catch (Exception ex)
+        {
+            // This is not catastrophic
+            Logger.SwallowException(ex, $"Failed to assign temp folder location to: {assemblyDirectory}");
+        }
+    }
 }

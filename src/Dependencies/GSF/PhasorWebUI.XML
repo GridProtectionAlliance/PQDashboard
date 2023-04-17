@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PhasorWebUI</name>
+    </assembly>
+    <members>
+        <member name="T:PhasorWebUI.PhasorConfigController">
+            <summary>
+            Defines an API controller for saving and loading phasor protocol configurations.
+            </summary>
+        </member>
+        <member name="M:PhasorWebUI.PhasorConfigController.SaveDeviceConfiguration(System.String,Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Saves the configuration for the device with the given acronym.
+            </summary>
+            <param name="acronym">Acronym of device.</param>
+            <param name="configuration">JSON config.</param>
+        </member>
+        <member name="M:PhasorWebUI.PhasorConfigController.LoadDeviceConfiguration(System.String)">
+            <summary>
+            Loads the configuration for the device with the given acronym.
+            </summary>
+            <param name="acronym">Acronym of device.</param>
+        </member>
+        <member name="M:PhasorWebUI.PhasorConfigController.GetConfigurationCacheFileName(System.String)">
+            <summary>
+            Gets the file name of the configuration cache file for the device with the given acronym.
+            </summary>
+            <param name="acronym">Acronym of device.</param>
+        </member>
+        <member name="M:PhasorWebUI.PhasorConfigController.GetConfigurationCachePath">
+            <summary>
+            Gets the path to the configuration cache directory.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Device.CreatedOn">
+            <summary>
+                Created on field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Device.CreatedBy">
+            <summary>
+                Created by field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Device.UpdatedOn">
+            <summary>
+                Updated on field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Device.UpdatedBy">
+            <summary>
+                Updated by field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Measurement.CreatedOn">
+            <summary>
+            Created on field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Measurement.CreatedBy">
+            <summary>
+            Created by field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Measurement.UpdatedOn">
+            <summary>
+            Updated on field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Measurement.UpdatedBy">
+            <summary>
+            Updated by field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Phasor.CreatedOn">
+            <summary>
+            Created on field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Phasor.CreatedBy">
+            <summary>
+            Created by field.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Model.Phasor.UpdatedOn">
+            <summary>
+            Updated on field.
+            </summary>
+            <remarks>
+            For phasors, any time record is saved, we increment time of update
+            as compared to the time of creation to ensure that any future loads
+            do not attempt to guess phase data that has already been edited.
+            </remarks>
+        </member>
+        <member name="P:PhasorWebUI.Model.Phasor.UpdatedBy">
+            <summary>
+            Updated by field.
+            </summary>
+        </member>
+        <member name="T:PhasorWebUI.PhasorHub">
+            <summary>
+            Represents a data hub used for web-based synchrophasor operations.
+            </summary>
+        </member>
+        <member name="M:PhasorWebUI.PhasorHub.#ctor">
+            <summary>
+            Creates a new <see cref="T:PhasorWebUI.PhasorHub"/>.
+            </summary>
+        </member>
+        <member name="M:PhasorWebUI.PhasorHub.#ctor(System.Action{System.String,GSF.UpdateType},System.Action{System.Exception})">
+            <summary>
+            Creates a new <see cref="T:PhasorWebUI.PhasorHub"/> with the specified logging functions.
+            </summary>
+            <param name="logStatusMessageFunction">Delegate to use to log status messages, if any.</param>
+            <param name="logExceptionFunction">Delegate to use to log exceptions, if any.</param>
+        </member>
+        <member name="M:PhasorWebUI.PhasorHub.#ctor(System.String,System.Action{System.String,GSF.UpdateType},System.Action{System.Exception})">
+            <summary>
+            Creates a new <see cref="T:PhasorWebUI.PhasorHub"/> with the specified <see cref="T:GSF.Web.Model.DataContext"/> and logging functions.
+            </summary>
+            <param name="settingsCategory">Setting category that contains the connection settings. Defaults to "securityProvider".</param>
+            <param name="logStatusMessageFunction">Delegate to use to log status messages, if any.</param>
+            <param name="logExceptionFunction">Delegate to use to log exceptions, if any.</param>
+        </member>
+        <member name="M:PhasorWebUI.PhasorHub.OnConnected">
+            <summary>
+            Overrides base OnConnected method to provide logging
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:PhasorWebUI.PhasorHub.OnDisconnected(System.Boolean)">
+            <summary>
+            Overrides base OnDisconnected method to provide logging
+            </summary>
+            <param name="stopCalled"></param>
+            <returns></returns>
+        </member>
+        <member name="T:PhasorWebUI.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:PhasorWebUI.Properties.Resources.TagTemplateHeader">
+             <summary>
+               Looks up a localized string similar to # File format is tab-delimited with the following columns:
+            #     Tag Name-&gt;Inputs-&gt;Equation-&gt;Type-&gt;Description
+            #
+            # For custom action adapter types, the format can be interpreted as:
+            #     Tag Name = Adapter Instance Name
+            #     Inputs = Connection String
+            #     Equation = Assembly Name (i.e., DLL file name)
+            #     Type = Fully Qualified Type Name
+            #     Description = Local Comments
+            #
+            # Otherwise format defines dynamic signal based calculations based on input configuration:
+            #     Tag Name = Identifier [rest of string was truncated]&quot;;.
+             </summary>
+        </member>
+    </members>
+</doc>
