@@ -381,6 +381,10 @@
   <ItemGroup>
     <Compile Include="Common.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="MapMetrics\MapMetric.cs" />
+    <Compile Include="MapMetrics\MapMetricQuery.cs" />
+    <Compile Include="MapMetrics\MapMetricType.cs" />
+    <Compile Include="MapMetrics\TrendingChannelDefinition.cs" />
     <Compile Include="XDAClient.cs" />
     <Content Include="App_Code\eventService.cs">
       <SubType>Component</SubType>
