@@ -3865,6 +3865,7 @@ function loadLeafletMap(theDiv) {
         leafletMap[currentTab] = L.map(theDiv, {
             center: [35.0456, -85.3097],
             zoom: 6,
+            maxZoom: arcGis.BaseLayer.length == 0 ? 15 : 20,
             zoomControl: false,
             attributionControl: false
         });
