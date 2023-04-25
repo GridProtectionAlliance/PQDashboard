@@ -4125,15 +4125,113 @@ function loadMapMetricAnimation() {
         colorMetricType: colorMetricType
     };
 
+    $.blockUI({ message: '<div unselectable="on" class="wait_container"><div unselectable="on" class="wait">Please Wait. Loading...</div><br><div id="loadAnimationProgressBar" class="progressBar"><div id="loadAnimationProgressInnerBar" class="progressInnerBar"><div id="loadAnimationProgressLabel" class="progressBarLabel">0%</div></div></div><br><button class="btn btn-default btn-cancel">Cancel</button><br></div>' });
+
     $.ajax({
         type: "POST",
-        url: homePath + "api/PQDashboard/GetMapMetricAnimation",
+        url: homePath + "api/PQDashboard/MapMetricAnimation/Build",
         data: JSON.stringify(query),
         contentType: "application/json; charset=utf-8",
-        dataType: 'json',
         cache: true,
-        success: function (data) { runMapMetricAnimation(data); },
-        failure: function (msg) { alert(msg); },
+        success: function (queryID) {
+            var animationQuery = {
+                id: queryID,
+                cancelled: false
+            };
+
+            $('.btn-cancel').click(function () {
+                animationQuery.cancelled = true;
+                $.unblockUI();
+            });
+
+            loopForAnimation(animationQuery);
+        },
+        error: function (xhr) {
+            var alertText = "Error building map metric animation.";
+            var err = xhr.responseJSON;
+            $.unblockUI();
+
+            if (!err)
+                err = xhr.responseText;
+
+            if (err) {
+                console.log(err);
+                alertText += "\nSee console for details.";
+            }
+
+            alert(alertText);
+        },
+        global: false,
+        async: true
+    });
+}
+
+function loopForAnimation(animationQuery) {
+    var queryID = animationQuery.id;
+
+    $.ajax({
+        type: "GET",
+        url: homePath + 'api/PQDashboard/MapMetricAnimation/Progress/' + queryID,
+        cache: true,
+        success: function (progress) {
+            var percent = Math.round(progress * 100);
+            $('#loadAnimationProgressInnerBar').css('width', percent + '%');
+            $('#loadAnimationProgressLabel').text(percent + '%');
+
+            if (percent < 100 && !animationQuery.cancelled)
+                setTimeout(loopForAnimation, 100, animationQuery);
+            else if (!animationQuery.cancelled)
+                getMapMetricAnimationFrames(animationQuery);
+        },
+        error: function (xhr) {
+            var alertText = "Error loading map metric animation progress.";
+            var err = xhr.responseJSON;
+            $.unblockUI();
+
+            if (!err)
+                err = xhr.responseText;
+
+            if (err) {
+                console.log(err);
+                alertText += "\nSee console for details.";
+            }
+
+            alert(alertText);
+        },
+        global: false,
+        async: true
+    });
+}
+
+function getMapMetricAnimationFrames(animationQuery) {
+    var queryID = animationQuery.id;
+
+    $.ajax({
+        type: "GET",
+        url: homePath + 'api/PQDashboard/MapMetricAnimation/Data/' + queryID,
+        cache: true,
+        success: function (animationData) {
+            if (animationQuery.cancelled)
+                return;
+
+            $.unblockUI();
+            runMapMetricAnimation(animationData);
+        },
+        error: function (xhr) {
+            var alertText = "Error loading map metric animation.";
+            var err = xhr.responseJSON;
+            $.unblockUI();
+
+            if (!err)
+                err = xhr.responseText;
+
+            if (err) {
+                console.log(err);
+                alertText += "\nSee console for details.";
+            }
+
+            alert(alertText);
+        },
         global: false,
         async: true
     });

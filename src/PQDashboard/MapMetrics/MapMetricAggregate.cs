@@ -1,5 +1,5 @@
 ﻿//******************************************************************************************************
-//  MapMetric.cs - Gbtc
+//  MapMetricAggregate.cs - Gbtc
 //
 //  Copyright © 2023, Grid Protection Alliance.  All Rights Reserved.
 //
@@ -16,18 +16,50 @@
 //
 //  Code Modification History:
 //  ----------------------------------------------------------------------------------------------------
-//  04/21/2023 - Stephen Wills
+//  04/25/2023 - Stephen C. Wills
 //       Generated original version of source code.
 //
 //******************************************************************************************************
 
 namespace PQDashboard.MapMetrics
 {
-    public class MapMetric
+    public class MapMetricAggregate
     {
-        public double Longitude;
-        public double Latitude;
-        public double? SizeValue;
-        public double? ColorValue;
+        public int FrameIndex { get; }
+        public int MeterID { get; }
+
+        public double Maximum { get; private set; } = double.NaN;
+        public double Minimum { get; private set; } = double.NaN;
+        public double Average => Total / Count;
+        public bool HasValue => Count > 0;
+
+        private double Total { get; set; }
+        private int Count { get; set; }
+
+        public MapMetricAggregate(int frameIndex, int meterID)
+        {
+            FrameIndex = frameIndex;
+            MeterID = meterID;
+        }
+
+        public void Aggregate(double value)
+        {
+            if (double.IsNaN(value))
+                return;
+            if (double.IsNaN(Maximum) || value > Maximum)
+                Maximum = value;
+            if (double.IsNaN(Minimum) || value < Minimum)
+                Minimum = value;
+            Total += value;
+            Count++;
+        }
+
+        public void Reset()
+        {
+            Maximum = double.NaN;
+            Minimum = double.NaN;
+            Total = 0.0D;
+            Count = 0;
+        }
     }
 }

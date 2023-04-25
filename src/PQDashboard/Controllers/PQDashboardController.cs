@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,172 +103,150 @@ namespace PQDashboard.Controllers
             };
         }
 
-        [Route("GetMapMetricAnimation"), HttpPost]
-        public async Task<MapMetricAnimationResult> GetMapMetricAnimation([FromBody] MapMetricAnimationQuery query, CancellationToken cancellationToken)
+        [Route("MapMetricAnimation/Build"), HttpPost]
+        public string BuildMapMetricAnimation([FromBody] MapMetricAnimationQuery query)
         {
+            MapMetricCache cache = new MapMetricCache(s_memoryCache);
+            return cache.AddQuery(query);
+        }
+
+        [Route("MapMetricAnimation/Progress/{queryID}"), HttpGet]
+        public IHttpActionResult GetMapMetricAnimationProgress(string queryID)
+        {
+            MapMetricCache cache = new MapMetricCache(s_memoryCache);
+            double? progress = cache.GetProgress(queryID);
+
+            return progress is not null
+                ? Ok(progress.GetValueOrDefault())
+                : NotFound();
+        }
+
+        [Route("MapMetricAnimation/Data/{queryID}"), HttpGet]
+        public async Task<IHttpActionResult> GetMapMetricAnimation(string queryID, CancellationToken cancellationToken)
+        {
+            MapMetricCache cache = new MapMetricCache(s_memoryCache);
+            MapMetricAnimationQuery query = cache.GetQuery(queryID);
+
+            if (query is null)
+                return NotFound();
+
             Dictionary<int, MapMetric> mapMetricLookup = new Dictionary<int, MapMetric>();
             query.PopulateMapMetricLookup(mapMetricLookup);
 
             int frameCount = query.GetFrameCount();
-            List<Dictionary<int, MapMetricAggregate>> frameLookups = GenerateFrameLookups(frameCount, mapMetricLookup);
+            List<Dictionary<int, MapMetric>> frameLookups = GenerateFrameLookups(frameCount, mapMetricLookup);
 
-            Func<IEnumerable<MapMetricAggregate>, List<MapMetric>> unwrapAggregates = aggregates => aggregates
-                .Select(aggregate => aggregate.MapMetric)
-                .ToList();
-
-            Func<int, string> toDate = index =>
+            string ToDate(int index) =>
                 query.StartTime.AddMinutes(index * query.AnimationInterval).ToString();
 
-            Func<IEnumerable<MapMetricAggregate>, int, MapMetricAnimationFrame> toAnimationFrame = (aggregates, index) => new MapMetricAnimationFrame()
+            MapMetricAnimationFrame ToAnimationFrame(IEnumerable<MapMetric> mapMetrics, int frameIndex) => new MapMetricAnimationFrame()
             {
-                MapMetrics = unwrapAggregates(aggregates),
-                Date = toDate(index)
+                MapMetrics = mapMetrics.ToList(),
+                Date = ToDate(frameIndex)
             };
 
             List<MapMetricAnimationFrame> frames = frameLookups
                 .Select(lookup => lookup.Values)
-                .Select(toAnimationFrame)
+                .Select(ToAnimationFrame)
                 .ToList();
 
-            Func<int, int, MapMetricAggregate> getMapMetricAggregate = (frameIndex, meterID) =>
+            MapMetric GetMapMetric(int frameIndex, int meterID)
             {
                 if (frameIndex < 0 || frameIndex >= frameLookups.Count)
                     return null;
 
-                Dictionary<int, MapMetricAggregate> frameLookup = frameLookups[frameIndex];
+                Dictionary<int, MapMetric> frameLookup = frameLookups[frameIndex];
 
-                MapMetricAggregate aggregate;
-                if (!frameLookup.TryGetValue(meterID, out aggregate))
-                    return null;
-                return aggregate;
-            };
+                return frameLookup.TryGetValue(meterID, out MapMetric mapMetric)
+                    ? mapMetric
+                    : null;
+            }
 
-            Action<int, int, double> populateSizeAction = (frameIndex, meterID, value) =>
+            Action<MapMetricAggregate> ToPopulateFunction(Action<MapMetric, double> setValue) => aggregate =>
             {
-                MapMetricAggregate aggregate = getMapMetricAggregate(frameIndex, meterID);
-                if (aggregate == null)
+                if (!aggregate.HasValue)
                     return;
-                aggregate.Aggregate(value);
+
+                int frameIndex = aggregate.FrameIndex;
+                int meterID = aggregate.MeterID;
+                MapMetric mapMetric = GetMapMetric(frameIndex, meterID);
+
+                if (mapMetric is null)
+                    return;
 
                 switch (query.SizeMapMetricType)
                 {
                     case MapMetricType.MaximumVoltageRMS:
                     case MapMetricType.MaximumVoltageTHD:
                     case MapMetricType.MaximumShortTermFlicker:
-                        aggregate.MapMetric.SizeValue = aggregate.Maximum;
+                        setValue(mapMetric, aggregate.Maximum);
                         break;
 
                     case MapMetricType.MinimumVoltageRMS:
                     case MapMetricType.MinimumVoltageTHD:
                     case MapMetricType.MinimumShortTermFlicker:
-                        aggregate.MapMetric.SizeValue = aggregate.Minimum;
+                        setValue(mapMetric, aggregate.Minimum);
                         break;
 
                     default:
                     case MapMetricType.AverageVoltageRMS:
                     case MapMetricType.AverageVoltageTHD:
                     case MapMetricType.AverageShortTermFlicker:
-                        aggregate.MapMetric.SizeValue = aggregate.Average;
+                        setValue(mapMetric, aggregate.Average);
                         break;
                 }
             };
 
-            Action<int, int, double> populateColorAction = (frameIndex, meterID, value) =>
-            {
-                MapMetricAggregate aggregate = getMapMetricAggregate(frameIndex, meterID);
-                if (aggregate == null)
-                    return;
-                aggregate.Aggregate(value);
+            Action<MapMetricAggregate> populateSizeAction = ToPopulateFunction((mapMetric, value) => mapMetric.SizeValue = value);
+            Action<MapMetricAggregate> populateColorAction = ToPopulateFunction((mapMetric, value) => mapMetric.ColorValue = value);
+            await cache.GetQueryResultAsync(queryID, populateSizeAction, populateColorAction);
 
-                switch (query.ColorMapMetricType)
-                {
-                    case MapMetricType.MaximumVoltageRMS:
-                    case MapMetricType.MaximumVoltageTHD:
-                    case MapMetricType.MaximumShortTermFlicker:
-                        aggregate.MapMetric.ColorValue = aggregate.Maximum;
-                        break;
+            double Max(Func<MapMetric, double?> selector, IComparer<double> comparer) => frames
+                .SelectMany(frame => frame.MapMetrics)
+                .Select(selector)
+                .Where(value => value is not null)
+                .Cast<double>()
+                .DefaultIfEmpty(0.0D)
+                .Max(comparer);
 
-                    case MapMetricType.MinimumVoltageRMS:
-                    case MapMetricType.MinimumVoltageTHD:
-                    case MapMetricType.MinimumShortTermFlicker:
-                        aggregate.MapMetric.ColorValue = aggregate.Minimum;
-                        break;
-
-                    default:
-                    case MapMetricType.AverageVoltageRMS:
-                    case MapMetricType.AverageVoltageTHD:
-                    case MapMetricType.AverageShortTermFlicker:
-                        aggregate.MapMetric.ColorValue = aggregate.Average;
-                        break;
-                }
-            };
-
-            List<MapMetricAggregate> allAggregates = frameLookups
-                .SelectMany(frame => frame.Values)
-                .ToList();
-
-            Action resetAggregates = () => allAggregates.ForEach(aggregate => aggregate.Reset());
-
-            resetAggregates();
-            await query.PopulateMapMetricAnimationFramesAsync(query.SizeMapMetricType, populateSizeAction, cancellationToken);
-            resetAggregates();
-            await query.PopulateMapMetricAnimationFramesAsync(query.ColorMapMetricType, populateColorAction, cancellationToken);
-
-            Func<Func<MapMetric, double?>, IComparer<double>, double> max = (selector, comparer) =>
-            {
-                return frames
-                    .SelectMany(frame => frame.MapMetrics)
-                    .Select(selector)
-                    .Where(value => value != null)
-                    .Cast<double>()
-                    .DefaultIfEmpty(0.0D)
-                    .Max(comparer);
-            };
-
-            Func<Func<MapMetric, double?>, IComparer<double>, double> min = (selector, comparer) =>
-            {
-                return frames
-                    .SelectMany(frame => frame.MapMetrics)
-                    .Select(selector)
-                    .Where(value => value != null)
-                    .Cast<double>()
-                    .DefaultIfEmpty(0.0D)
-                    .Min(comparer);
-            };
+            double Min(Func<MapMetric, double?> selector, IComparer<double> comparer) => frames
+                .SelectMany(frame => frame.MapMetrics)
+                .Select(selector)
+                .Where(value => value is not null)
+                .Cast<double>()
+                .DefaultIfEmpty(0.0D)
+                .Min(comparer);
 
             Comparer<double> sizeMapMetricComparer = query.SizeMapMetricType.GetMapMetricComparer();
             Comparer<double> colorMapMetricComparer = query.ColorMapMetricType.GetMapMetricComparer();
-            double largest = max(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
-            double smallest = min(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
-            double red = max(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
-            double green = min(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
+            double largest = Max(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
+            double smallest = Min(mapMetric => mapMetric.SizeValue, sizeMapMetricComparer);
+            double red = Max(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
+            double green = Min(mapMetric => mapMetric.ColorValue, colorMapMetricComparer);
 
-            return new MapMetricAnimationResult()
-            {
-                Frames = frames,
-                Largest = largest,
-                Smallest = smallest,
-                Red = red,
-                Green = green
-            };
+            MapMetricAnimationResult result = new MapMetricAnimationResult();
+            result.Frames = frames;
+            result.Largest = largest;
+            result.Smallest = smallest;
+            result.Red = red;
+            result.Green = green;
+
+            return Ok(result);
         }
 
-        private List<Dictionary<int, MapMetricAggregate>> GenerateFrameLookups(int frameCount, Dictionary<int, MapMetric> mapMetricLookup)
+        private List<Dictionary<int, MapMetric>> GenerateFrameLookups(int frameCount, Dictionary<int, MapMetric> mapMetricLookup)
         {
-            Func<MapMetric, MapMetric> cloneMapMetric = mapMetric => new MapMetric()
+            MapMetric Clone(MapMetric mapMetric) => new MapMetric()
             {
                 Latitude = mapMetric.Latitude,
                 Longitude = mapMetric.Longitude
             };
 
-            Func<MapMetric, MapMetricAggregate> toAggregate = mapMetric =>
-                new MapMetricAggregate(cloneMapMetric(mapMetric));
-
-            Func<Dictionary<int, MapMetric>, Dictionary<int, MapMetricAggregate>> toAggregateLookup = lookup => lookup
-                .ToDictionary(kvp => kvp.Key, kvp => toAggregate(kvp.Value));
+            Dictionary<int, MapMetric> DeepClone(Dictionary<int, MapMetric> mapMetricLookup) => mapMetricLookup
+                .ToDictionary(kvp => kvp.Key, kvp => Clone(kvp.Value));
 
             return Enumerable.Range(0, frameCount)
-                .Select(_ => toAggregateLookup(mapMetricLookup))
+                .Select(_ => DeepClone(mapMetricLookup))
                 .ToList();
         }
 

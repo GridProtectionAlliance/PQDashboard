@@ -382,6 +382,8 @@
     <Compile Include="Common.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="MapMetrics\MapMetric.cs" />
+    <Compile Include="MapMetrics\MapMetricAggregate.cs" />
+    <Compile Include="MapMetrics\MapMetricCache.cs" />
     <Compile Include="MapMetrics\MapMetricQuery.cs" />
     <Compile Include="MapMetrics\MapMetricType.cs" />
     <Compile Include="MapMetrics\TrendingChannelDefinition.cs" />
