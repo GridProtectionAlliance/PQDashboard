@@ -22,16 +22,21 @@
 //*****************************************************************************************************@
 @using GSF.Collections
 @using GSF.Configuration
-@using GSF.Data.Model
-@using GSF.Web.Model
 @using GSF.Data
-@using PQDashboard.Model
+@using GSF.Data.Model
+@using GSF.Web
+@using GSF.Web.Model
+@using GSF.Web.Security
 @using Newtonsoft.Json
 @using openXDA.Model
+@using PQDashboard.Model
 
 @model AppModel
 @{
     Layout = "";
+
+    string logoutPage = Url.Action("Logout", "Login");
+
     string historianConnection;
     IEnumerable<AssetGroup> assetGroups;
     int meterCount;
@@ -208,7 +213,7 @@
 
                     </td>
                     <td width="100px" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
-                        <span>&nbsp;&nbsp; @ViewBag.username &nbsp;&nbsp;<button type="button" id="logout" class="btn btn-sm btn-default" style="padding: 2px 5px" onclick="window.location = '/Logout'">Logout</button></span>
+                        <span>&nbsp;&nbsp; @ViewBag.username &nbsp;&nbsp;<button type="button" id="logout" class="btn btn-sm btn-default" style="padding: 2px 5px" onclick="window.location = '@logoutPage.JavaScriptEncode()'">Logout</button></span>
                     </td>
                     <td width="150px" align="right" style="z-index: 999; padding-right: 5px;" nowrap>
                         <a class="btn btn-sm btn-default" href="@Url.Action("QuickSearch")" target="_blank">Quick Search</a>

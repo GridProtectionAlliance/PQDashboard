@@ -84,8 +84,10 @@ public class Startup
 
         s_authenticationOptions = new AuthenticationOptions
         {
-            LoginPage = "/Login",
+            LoginPage = "~/Login",
+            LogoutPage = "~/Security/logout",
             LoginHeader = $"<h3><img src=\"{Resources.Root}/Shared/Images/gpa-smalllock.png\"/> {ApplicationName}</h3>",
+            AuthTestPage = "~/AuthTest",
             AnonymousResourceExpression = AnonymousResourceExpression,
             AuthFailureRedirectResourceExpression = @"^/$|^/.+$"
         };
