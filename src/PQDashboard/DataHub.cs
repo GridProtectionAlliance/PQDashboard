@@ -22,7 +22,6 @@
 //******************************************************************************************************
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -30,10 +29,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Web.Services;
 using GSF.Configuration;
-using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Identity;
@@ -41,11 +37,10 @@ using GSF.Web.Hubs;
 using GSF.Web.Model;
 using GSF.Web.Security;
 using Newtonsoft.Json;
-using EventView = openXDA.Model.EventView;
-using AlarmRangeLimit = openXDA.Model.AlarmRangeLimit;
-using Meter = openXDA.Model.Meter;
-using Event = openXDA.Model.Event;
 using openXDA.Model;
+using Event = openXDA.Model.Event;
+using EventView = openXDA.Model.EventView;
+using Meter = openXDA.Model.Meter;
 
 namespace PQDashboard
 {
@@ -839,8 +834,9 @@ namespace PQDashboard
 
         public string GetCurrentUserSIDOrExternal()
         {
+            using AdoDataConnection connection = new AdoDataConnection("securityProvider");
             string userSID = UserInfo.UserNameToSID(Context.User.Identity.Name);
-            if (DataContext.Connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", userSID) == 0)
+            if (connection.ExecuteScalar<int>("SELECT COUNT(*) FROM UserAccount WHERE Name = {0}", userSID) == 0)
                 userSID = "External";
 
             return userSID;
