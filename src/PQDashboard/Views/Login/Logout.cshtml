@@ -27,11 +27,11 @@
     Layout = null;
     ReadonlyAuthenticationOptions options = Startup.AuthenticationOptions;
     ViewBag.AuthenticationOptions = options;
-    string loginPage = AuthenticationOptions.DefaultLoginPage;
+    string loginPage = Url.Content("~" + AuthenticationOptions.DefaultLoginPage);
 
     if (!(options is null)) {
         if (!string.IsNullOrWhiteSpace(options.LoginPage)) {
-            loginPage = options.LoginPage;
+            loginPage = Url.Content(options.LoginPage);
         }
     }
 }
@@ -122,7 +122,7 @@
     <script src="@Resources.Root/Shared/Scripts/gsf.web.client.js"></script>
     <script>
         $(function () {
-            setTimeout(() => window.location = "@loginPage.JavaScriptEncode()?logout&sessionCleared=true", 1000);
+            setTimeout(() => window.location = "@Html.Raw(loginPage.JavaScriptEncode())?logout&sessionCleared=true", 1000);
         });
     </script>
 </body>
