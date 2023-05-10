@@ -124,7 +124,7 @@ namespace PQDashboard
                 request.Content = content;
             };
 
-            using (HttpResponseMessage response = await apiQuery.SendWebRequestAsync(configure, "/api/hids/QueryPoints", cancellationToken))
+            using (HttpResponseMessage response = await apiQuery.SendWebRequestAsync(configure, "/api/hids/QueryPoints", HttpCompletionOption.ResponseHeadersRead, cancellationToken))
             using (Stream stream = await response.Content.ReadAsStreamAsync())
             using (TextReader reader = new StreamReader(stream))
             {
