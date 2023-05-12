@@ -531,7 +531,7 @@ namespace PQDashboard.MapMetrics
             var hidsQuery = new
             {
                 StartTime = StartTime,
-                EndTime = EndTime,
+                StopTime = EndTime,
                 Channels = channels,
                 AggregateDuration = $"{AnimationInterval}m"
             };
