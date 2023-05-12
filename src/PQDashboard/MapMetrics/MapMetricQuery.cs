@@ -488,7 +488,6 @@ namespace PQDashboard.MapMetrics
                 $"    Phase.Name IN ({phaseList})";
 
             List<int> channels;
-            Func<int, double> getNominalValue;
             Action<int, int, double> populateAction;
 
             using (AdoDataConnection connection = new AdoDataConnection("dbOpenXDA"))
@@ -510,28 +509,22 @@ namespace PQDashboard.MapMetrics
                     })
                     .ToDictionary(mapping => mapping.ChannelID);
 
-                getNominalValue = channelID =>
-                {
-                    var mapping = lookup.Values.Take(0).SingleOrDefault();
-                    return lookup.TryGetValue(channelID, out mapping)
-                        ? mapping.PerUnitValue ?? 1.0D
-                        : 1.0D;
-                };
-
                 populateAction = (frameIndex, channelID, value) =>
                 {
                     var mapping = lookup.Values.Take(0).SingleOrDefault();
                     if (!lookup.TryGetValue(channelID, out mapping))
                         return;
 
-                    parentAction(frameIndex, mapping.MeterID, value);
+                    double nominalValue = mapping.PerUnitValue ?? 1.0D;
+                    double perUnitValue = value / nominalValue;
+                    parentAction(frameIndex, mapping.MeterID, perUnitValue);
                 };
             }
 
             var hidsQuery = new
             {
                 StartTime = StartTime,
-                EndTime = EndTime,
+                StopTime = EndTime,
                 Channels = channels,
                 AggregateDuration = $"{AnimationInterval}m"
             };
