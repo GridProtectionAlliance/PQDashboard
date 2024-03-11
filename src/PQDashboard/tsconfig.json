@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "downlevelIteration": true,
     "jsx": "react",
-    "lib": [ "dom", "es5", "scripthost", "es2015" ],
+    "paths": { "*": [ "types/*" ] },
+    "lib": [ "dom", "es5", "scripthost", "es2015", "es6" ],
     "noEmitOnError": true,
     "noImplicitAny": false,
     "removeComments": true,
     "sourceMap": true,
-    "target": "es5",
+    "target": "es6",
     "typeRoots": [ "node_modules/@types" ],
     "esModuleInterop": true,
     "module": "ESNext",
@@ -14,8 +17,8 @@
     "strictNullChecks": true
     //"types": [ "flot", "jquery", "moment", "react", "react-dom", "eonasdan-bootstrap-datetimepicker" ]
   },
-  "include": [ "Scripts/TSX", "Scripts/TS/*" ],
+  "include": [ "Scripts/**/*"],
   "exclude": [
-    "node_modules"
+    "./node_modules/*"
   ]
 }
