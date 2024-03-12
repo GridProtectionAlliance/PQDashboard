@@ -21,6 +21,7 @@
 //******************************************************************************************************
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Global
+import { renderMagDurChart } from './MagDurChart.js';
 
 var base64Map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 
@@ -1101,7 +1102,8 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     if (currentTab == "Disturbances") {
         $.post(homePath + "api/Disturbances/MagDur", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
             cache_MagDur_Data = data;
-            buildMagDurChart(data, thediv + "MagDur")
+            //buildMagDurChart(data, thediv + "MagDur")
+            renderMagDurChart(siteID, thedatefrom, thedateto, context)
         });
     }
     
@@ -4435,4 +4437,8 @@ function fitTextToWidth(text, font, width) {
 
     return newString;
 }
+
+window.showMagDur = showMagDur; 
+window.showSiteSet = showSiteSet;
+window.selectmapgrid = selectmapgrid;
 /// EOF
