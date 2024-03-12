@@ -51,7 +51,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
             setCircles(data.map(d => [d.DurationSeconds, d.PerUnitMagnitude * 100]))
         });
 
-        $.get(homePath + 'api/StandardMagDurCurve', curves => {
+        $.get(homePath + 'api/Disturbances/StandardMagDurCurve', curves => {
             setLines(curves)
         });
 
