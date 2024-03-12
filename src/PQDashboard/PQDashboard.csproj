@@ -1429,8 +1429,10 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSX\BarChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\MagDurChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\MeterEventsByLine.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\NavBar.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Table.tsx" />
   </ItemGroup>
   <PropertyGroup>
