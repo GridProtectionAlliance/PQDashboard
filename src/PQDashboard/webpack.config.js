@@ -1,19 +1,30 @@
 "use strict";
-const webpack = require("webpack");
 const path = require("path");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
+const TerserPlugin = require('terser-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
     mode: 'development',
     context: path.resolve(__dirname, 'Scripts'),
     cache: true,
     entry: {
-        //OpenSEE: "./TSX/OpenSEE/openSEE.tsx",
         //PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
-        MeterEventsByLine: "./TSX/MeterEventsByLine.tsx"
+        MeterEventsByLine: "./TSX/MeterEventsByLine.tsx",
+        MagDurChart: "./TSX/MagDurChart.tsx",
+        NavBar: "./TSX/NavBar.tsx",
+        BarChart: "./TSX/BarChart.tsx"
     },
     output: {
         path: path.resolve(__dirname, 'Scripts'),
-        filename: "[name].js"
+        publicPath: 'Scripts/',
+        filename: "[name].js",
+        library: {
+            type: 'module'
+        }
+    },
+    experiments: {
+        outputModule: true,
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "inline-source-map",
@@ -25,35 +36,46 @@ module.exports = {
     module: {
         rules: [
             // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-            { test: /\.tsx?$/, loader: "ts-loader" },
+            {
+                test: /\.tsx?$/,
+                include: [path.resolve(__dirname, "Scripts")],
+                loader: "ts-loader", options: { transpileOnly: true }
+            },
             {
                 test: /\.css$/,
-                loaders: ['style-loader', 'css-loader'],
+                include: path.resolve(__dirname, 'wwwroot', "Content"),
+                use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
             },
             {
                 test: /\.js$/,
                 enforce: "pre",
                 loader: "source-map-loader"
             },
-            { test: /\.(woff|woff2|ttf|eot|svg|png|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=100000" }
+            {
+                test: /\.(woff|woff2|ttf|eot|svg|png|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 100000
+                        }
+                    }
+                ]
+            }
         ]
     },
-    externals: {
-        jquery: 'jQuery',
-        react: 'React',
-        'react-dom': 'ReactDOM',
-        moment: 'moment'
-
-    },
     plugins: [
-        new webpack.ProvidePlugin({
-            //$: 'jquery',
-            //jQuery: 'jquery',
-            //'window.jQuery':'jquery',
-            //Map: 'core-js/es/map',
-            //Set: 'core-js/es/set',
-            //requestAnimationFrame: 'raf',
-            //cancelAnimationFrame: ['raf', 'cancel'],
-        }),
-    ]
+        new NodePolyfillPlugin(),
+        new ForkTsCheckerWebpackPlugin({
+            typescript: {
+                configFile: path.resolve(__dirname, 'tsconfig.json'),
+            },
+        })
+    ],
+    externals: {},
+    optimization: {
+        minimizer: [
+            new TerserPlugin({ extractComments: false })
+        ],
+    },
 };

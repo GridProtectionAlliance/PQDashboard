@@ -34,6 +34,7 @@ using GSF.Collections;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Web;
+using GSF.Web.Model;
 using openXDA.Model;
 using PQDashboard.MapMetrics;
 

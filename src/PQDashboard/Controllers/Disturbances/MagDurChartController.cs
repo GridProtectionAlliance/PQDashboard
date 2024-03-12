@@ -30,6 +30,7 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Collections;
 using openXDA.Model;
+using GSF.Web.Model;
 
 namespace PQDashboard.Controllers.Disturbances
 {
@@ -109,4 +110,11 @@ namespace PQDashboard.Controllers.Disturbances
             }
         }
     }
+
+    [SettingsCategory("dbOpenXDA")]
+    public class StandardMagDurCurve : openXDA.Model.StandardMagDurCurve { }
+
+    [RoutePrefix("api/Disturbances/StandardMagDurCurve")]
+    public class StandardMagDurCurveController : ModelController<StandardMagDurCurve>
+    { }
 }
