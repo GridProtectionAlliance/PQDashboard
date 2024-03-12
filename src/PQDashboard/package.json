@@ -16,7 +16,7 @@
     "webpack-cli": "4.8.0"
   },
   "dependencies": {
-    "@gpa-gemstone/application-typings": "^0.0.66",
+    "@gpa-gemstone/application-typings": "^0.0.67",
     "@gpa-gemstone/react-graph": "^1.0.42",
     "@gpa-gemstone/react-interactive": "^1.0.105",
     "@types/d3": "7.0.0",

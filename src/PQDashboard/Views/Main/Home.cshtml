@@ -141,6 +141,7 @@
         var defaultView = { DateRange: @Html.Raw(ViewBag.DateRange), Tab: '@Html.Raw(ViewBag.Tab)', MapGrid: '@Html.Raw(ViewBag.MapGrid)', AssetGroup: @Html.Raw(ViewBag.AssetGroup)};
         var userName = '@ViewBag.username';
     </script>
+
     @if (Request.Browser.Browser == "InternetExplorer" || Request.Browser.Browser == "IE")
     {
         <script src="~/Scripts/default.polyfill.min.js"></script>
@@ -149,17 +150,19 @@
     @Scripts.Render("~/Scripts/bootstrap")
     @Scripts.Render("~/Scripts/random")
     @Scripts.Render("~/Scripts/PrimeUI/primeui")
-    @Scripts.Render("~/Scripts/default")
     @Scripts.Render("~/Scripts/others")
     @Scripts.Render("~/Scripts/D3/d3")
     @Scripts.Render("~/Scripts/Leaflet/leaflet")
     @Scripts.Render("~/Scripts/flot/flot")
-
+    @Scripts.Render("~/Scripts/react.production.min.js")
+    @Scripts.Render("~/Scripts/react-dom.production.min.js")
+    @Scripts.RenderFormat("<script src='{0}' type='module'></script>", "~/Scripts/Default.js")
     <script src="~/Scripts/ie11-compatibility-functions.js"></script>
 
 </head>
 
 <body>
+    <script type="module" src="~/Scripts/MagDurChart.js"></script>
 
     <div id="draggable" class="ui-widget-content"></div>
     <div style="width: 100%; height: 36px;">
@@ -209,7 +212,6 @@
                             </div>
 
                         </div>
-
 
                     </td>
                     <td width="100px" align="right" style="z-index: 999; padding-right: 20px;" nowrap>
