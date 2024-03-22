@@ -39,11 +39,15 @@ interface IProps {
 const MagDurChart: React.FC<IProps> = (props: IProps) => {
     const [circles, setCircles] = React.useState<[number, number][]>([[0, 0]])
     const [lines, setLines] = React.useState<OpenXDA.Types.MagDurCurve[]>([])
-    const [containerDimensions, setContainerDimensions] = React.useState<DOMRect>({ width: 0, height: 0, x: 0, y: 0, top: 0, bottom: 0, left: 0, right: 0, toJSON: () => false })
+    const [height, setHeight] = React.useState<number>(0);
+    const [width, setWidth] = React.useState<number>(0);
+    const urlParams = new URLSearchParams(window.location.search)
+    const assetGroup = urlParams.get("assetGroup")
 
     React.useLayoutEffect(() => {
-        const container = document.getElementById('OverviewDisturbances')
-        setContainerDimensions(container.getBoundingClientRect())
+        const containerDimensions = document.getElementById('OverviewDisturbances').getBoundingClientRect();
+        setHeight(containerDimensions.height)
+        setWidth(containerDimensions.width)
     }, [])
 
     React.useEffect(() => {
@@ -55,22 +59,19 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
             setLines(curves)
         });
 
-    }, [])
+    }, [props.startDate, props.endDate, props.meterIDs, assetGroup])
 
     function generateCurve(curve: OpenXDA.Types.MagDurCurve) {
-        if (curve.LowerCurve == null && curve.UpperCurve == null) {
-            const pt = curve.Area.split(',');
-            const cu = pt.map(point => { const s = point.trim().split(" "); return [parseFloat(s[0]), parseFloat(s[1])] as [number, number]; })
-            return cu;
-        }
-        return [];
+        const pt = curve.Area.split(',');
+        const cu = pt.map(point => { const s = point.trim().split(" "); return [parseFloat(s[0]), parseFloat(s[1])] as [number, number]; })
+        return cu;
     }
 
     return (
         <>
             <Plot
-                height={containerDimensions.height}
-                width={containerDimensions.width - 10}
+                height={height}
+                width={width - 10}
                 defaultTdomain={[0.00001, 1000]}
                 defaultYdomain={[0, 5]}
                 Tmax={1000}
@@ -86,7 +87,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
                 pan={true}
                 useMetricFactors={false}
                 XAxisType={'log'}
-                >
+            >
                 {lines.map((curve, i) => (
                     <Line
                         showPoints={false}

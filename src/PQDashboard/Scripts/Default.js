@@ -3485,6 +3485,7 @@ function getMeters(meterGroup) {
         $('#meterSelected').text(meterList.selectedCount());
         $('#meterCount').text(meterList.count());
         $(window).trigger("meterSelectUpdated");
+        window.meterList = meterList;
     }).fail(function (msg) {
         alert(msg);
     })
@@ -4412,6 +4413,7 @@ function showMagDur(theControl) {
     }
     else {
         $('#OverviewDisturbances').hide()
+        $('#OverviewDisturbancesOverview').hide()
         $('#OverviewDisturbancesMagDur').show()
         $(window).trigger('resize');
     }
@@ -4441,4 +4443,5 @@ function fitTextToWidth(text, font, width) {
 window.showMagDur = showMagDur; 
 window.showSiteSet = showSiteSet;
 window.selectmapgrid = selectmapgrid;
+window.selectMeterGroup = selectMeterGroup;
 /// EOF
