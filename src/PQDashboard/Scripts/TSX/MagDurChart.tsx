@@ -37,18 +37,32 @@ interface IProps {
 }
 
 const MagDurChart: React.FC<IProps> = (props: IProps) => {
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const [circles, setCircles] = React.useState<[number, number][]>([[0, 0]])
     const [lines, setLines] = React.useState<OpenXDA.Types.MagDurCurve[]>([])
-    const [height, setHeight] = React.useState<number>(0);
-    const [width, setWidth] = React.useState<number>(0);
+    const [plotHeight, setPlotHeight] = React.useState<number>(0);
+    const [plotWidth, setPlotWidth] = React.useState<number>(0);
     const urlParams = new URLSearchParams(window.location.search)
     const assetGroup = urlParams.get("assetGroup")
 
     React.useLayoutEffect(() => {
-        const containerDimensions = document.getElementById('OverviewDisturbances').getBoundingClientRect();
-        setHeight(containerDimensions.height)
-        setWidth(containerDimensions.width)
-    }, [])
+        if (containerRef.current != null) {
+            const handleResize = () => {
+                const { width, height } = containerRef.current.getBoundingClientRect();
+                setPlotWidth(width);
+                setPlotHeight(height);
+            };
+
+            const resizeObserver = new ResizeObserver(handleResize);
+            resizeObserver.observe(containerRef.current);
+
+            handleResize();
+
+            return () => {
+                resizeObserver.disconnect();
+            };
+        }
+    }, [containerRef]);
 
     React.useEffect(() => {
         $.post(homePath + "api/Disturbances/MagDur", { meterIds: props.meterIDs, startDate: props.startDate, endDate: props.endDate, context: props.timeUnit }, (data) => {
@@ -69,6 +83,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
 
     return (
         <>
+            <div ref={containerRef} className="d-flex" style={{ height: '100%', width: '100%' }}>
             <Plot
                 height={height}
                 width={width - 10}
@@ -109,6 +124,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
                     />
                 ))}
             </Plot>
+            </div>
         </>
     );
 };
