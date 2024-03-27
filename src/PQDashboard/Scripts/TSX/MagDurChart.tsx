@@ -25,6 +25,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Line, Plot, Circle } from '@gpa-gemstone/react-graph';
 import { OpenXDA } from "@gpa-gemstone/application-typings"
+import { LoadingIcon } from "@gpa-gemstone/react-interactive"
 
 declare var homePath;
 
@@ -42,6 +43,8 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     const [lines, setLines] = React.useState<OpenXDA.Types.MagDurCurve[]>([])
     const [plotHeight, setPlotHeight] = React.useState<number>(0);
     const [plotWidth, setPlotWidth] = React.useState<number>(0);
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
     const urlParams = new URLSearchParams(window.location.search)
     const assetGroup = urlParams.get("assetGroup")
 
@@ -65,11 +68,13 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     }, [containerRef]);
 
     React.useEffect(() => {
-        $.post(homePath + "api/Disturbances/MagDur", { meterIds: props.meterIDs, startDate: props.startDate, endDate: props.endDate, context: props.timeUnit }, (data) => {
+        setIsLoading(true)
+        $.post(homePath + "api/Disturbances/MagDur", { meterIds: meterIDs, startDate: startDate, endDate: endDate, context: timeUnit }).done(data => {
             setCircles(data.map(d => [d.DurationSeconds, d.PerUnitMagnitude * 100]))
+            setIsLoading(false) //only setting the loading on this call as it is the one that takes longer..
         });
 
-        $.get(homePath + 'api/Disturbances/StandardMagDurCurve', curves => {
+        $.get(homePath + 'api/Disturbances/StandardMagDurCurve').done(curves => {
             setLines(curves)
         });
 
@@ -84,9 +89,10 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     return (
         <>
             <div ref={containerRef} className="d-flex" style={{ height: '100%', width: '100%' }}>
+                {isLoading ? <LoadingIcon Show={isLoading} Label={"Loading..."} /> :
             <Plot
-                height={height}
-                width={width - 10}
+                        height={plotHeight}
+                        width={plotWidth}
                 defaultTdomain={[0.00001, 1000]}
                 defaultYdomain={[0, 5]}
                 Tmax={1000}
@@ -123,7 +129,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
                         key={i}
                     />
                 ))}
-            </Plot>
+                    </Plot>}
             </div>
         </>
     );
