@@ -30,10 +30,6 @@ import { LoadingIcon } from "@gpa-gemstone/react-interactive"
 declare var homePath;
 
 interface IProps {
-    meterIDs: string[], //Later on this could probably be stored in a slice/a context/state, since multiple components are going to be using this
-    startDate: string,
-    endDate: string,
-    timeUnit: string,
     aggregatingCircles: boolean
 }
 
@@ -47,6 +43,10 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
 
     const urlParams = new URLSearchParams(window.location.search)
     const assetGroup = urlParams.get("assetGroup")
+    const meterIDs = atob(urlParams.get("meterIDs"))
+    const startDate = urlParams.get("startDate")
+    const endDate = urlParams.get("endDate")
+    const timeUnit = urlParams.get("context")
 
     React.useLayoutEffect(() => {
         if (containerRef.current != null) {
@@ -78,7 +78,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
             setLines(curves)
         });
 
-    }, [props.startDate, props.endDate, props.meterIDs, assetGroup])
+    }, [startDate, endDate, meterIDs, assetGroup])
 
     function generateCurve(curve: OpenXDA.Types.MagDurCurve) {
         const pt = curve.Area.split(',');
@@ -90,53 +90,53 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
         <>
             <div ref={containerRef} className="d-flex" style={{ height: '100%', width: '100%' }}>
                 {isLoading ? <LoadingIcon Show={isLoading} Label={"Loading..."} /> :
-            <Plot
+                    <Plot
                         height={plotHeight}
                         width={plotWidth}
-                defaultTdomain={[0.00001, 1000]}
-                defaultYdomain={[0, 5]}
-                Tmax={1000}
-                Tmin={0.00001}
-                Ymax={9999}
-                Ymin={0}
-                legend={'right'}
-                Tlabel={'Duration (s)'}
-                Ylabel={'Magnitude (pu)'}
-                showMouse={false}
-                showGrid={true}
-                zoom={true}
-                pan={true}
-                useMetricFactors={false}
-                XAxisType={'log'}
-            >
-                {lines.map((curve, i) => (
-                    <Line
-                        showPoints={false}
-                        lineStyle={'-'}
-                        color={curve.Color}
-                        data={generateCurve(curve)}
-                        legend={curve.Name}
-                        key={i}
-                        width={3}
-                        highlightHover={false}
-                    />
-                ))}
-                {circles.map((circle, i) => (
-                    <Circle
-                        data={circle}
-                        color={'blue'}
-                        radius={2.5}
-                        key={i}
-                    />
-                ))}
+                        defaultTdomain={[0.00001, 1000]}
+                        defaultYdomain={[0, 5]}
+                        Tmax={1000}
+                        Tmin={0.00001}
+                        Ymax={9999}
+                        Ymin={0}
+                        legend={'right'}
+                        Tlabel={'Duration (s)'}
+                        Ylabel={'Magnitude (pu)'}
+                        showMouse={false}
+                        showGrid={true}
+                        zoom={true}
+                        pan={true}
+                        useMetricFactors={false}
+                        XAxisType={'log'}
+                    >
+                        {lines.map((curve, i) => (
+                            <Line
+                                showPoints={false}
+                                lineStyle={'-'}
+                                color={curve.Color}
+                                data={generateCurve(curve)}
+                                legend={curve.Name}
+                                key={i}
+                                width={3}
+                                highlightHover={false}
+                            />
+                        ))}
+                        {circles.map((circle, i) => (
+                            <Circle
+                                data={circle}
+                                color={'blue'}
+                                radius={2.5}
+                                key={i}
+                            />
+                        ))}
                     </Plot>}
             </div>
         </>
     );
 };
 
-export function renderMagDurChart(meterIDs, startDate, endDate, timeUnit, aggregatingCircles) {
+export function renderMagDurChart(aggregatingCircles) {
     let container = document.getElementById("OverviewDisturbancesMagDur")
     if (container)
-        ReactDOM.render(<MagDurChart meterIDs={meterIDs} startDate={startDate} endDate={endDate} timeUnit={timeUnit} aggregatingCircles={aggregatingCircles} />, container);
+        ReactDOM.render(<MagDurChart aggregatingCircles={aggregatingCircles} />, container);
 }

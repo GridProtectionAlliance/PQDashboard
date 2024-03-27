@@ -41,7 +41,7 @@ var applicationsettings = {};
 var meterList = null;
 
 // define MeterListClass object in a terrible way so that IE11 will accept it...
-var MeterListClass = function(meterList, assetGroupList, parentID){
+var MeterListClass = function (meterList, assetGroupList, parentID) {
     this.Meters = deepCopy(meterList);
     this.AssetGroups = deepCopy(assetGroupList);
     this.ParentID = parentID;
@@ -58,8 +58,8 @@ var MeterListClass = function(meterList, assetGroupList, parentID){
 
 };
 
-MeterListClass.prototype.selected = function(){
-    return this.Meters.filter(function (a) { return a.Selected }).map(function(a){ return a.Name + "|" + a.ID});
+MeterListClass.prototype.selected = function () {
+    return this.Meters.filter(function (a) { return a.Selected }).map(function (a) { return a.Name + "|" + a.ID });
 };
 
 MeterListClass.prototype.selectedIds = function () {
@@ -118,7 +118,7 @@ MeterListClass.prototype.setSelected = function (id, boolean) {
 
 MeterListClass.prototype.setSelected = function (item, boolean) {
     if (item.Type == 'AssetGroup') {
-        var index = this.AssetGroups.findIndex(function (a) { return a.ID == item.ID});
+        var index = this.AssetGroups.findIndex(function (a) { return a.ID == item.ID });
         this.AssetGroups[index].Selected = boolean;
     }
     else {
@@ -130,8 +130,8 @@ MeterListClass.prototype.setSelected = function (item, boolean) {
 
 MeterListClass.prototype.selectById = function (id) {
     $.each(this.Meters, function (_, meter) {
-        if(meter.ID == id)
-        meter.Selected = true;
+        if (meter.ID == id)
+            meter.Selected = true;
     });
 };
 
@@ -151,7 +151,7 @@ var cache_Map_Matrix_Data_Date_To = null;
 var cache_Graph_Data = null;
 var cache_ErrorBar_Data = null;
 var cache_Table_Data = null;
-var cache_Sparkline_Data = null; 
+var cache_Sparkline_Data = null;
 var brush = null;
 var cache_Last_Date = null;
 var cache_Meter_Filter = null;
@@ -159,24 +159,25 @@ var cache_MagDur_Data = null;
 
 var urlParams = new URLSearchParams(window.location.search);
 
-function updateUrlParams(param, value) {
-    urlParams.set(param, value.toLowerCase());
+function updateUrlParams(param, value, toLower) {
+    let paramValue = toLower ? value.toLowerCase() : value;
+    urlParams.set(param, paramValue);
     history.pushState(null, null, "?" + urlParams.toString());
 }
 
-var leafletMap = {'MeterActivity': null, Events: null, Disturbances: null, Extensions: null,Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null};
+var leafletMap = { 'MeterActivity': null, Events: null, Disturbances: null, Extensions: null, Trending: null, TrendingData: null, Faults: null, Breakers: null, Completeness: null, Correctness: null };
 var markerGroup = null;
-var mapMarkers = {Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: [], Extensions: []};
+var mapMarkers = { Events: [], Disturbances: [], Trending: [], TrendingData: [], Faults: [], Breakers: [], Completeness: [], Correctness: [], Extensions: [] };
 var currentTab = null;
 var disabledList = {
     Events: { "Interruption": false, "Fault": false, "Sag": false, "Transient": false, "Swell": false, "Other": false },
-    Disturbances: {"5": false, "4": false, "3": false, "2": false, "1": false, "0": false},
-    Trending: { "Alarm": false, "OffNormal": false},
+    Disturbances: { "5": false, "4": false, "3": false, "2": false, "1": false, "0": false },
+    Trending: { "Alarm": false, "OffNormal": false },
     TrendingData: {},
-    Faults: { "500 kV": false, "300 kV": false, "230 kV": false, "135 kV": false, "115 kV": false, "69 kV": false, "46 kV": false, "0 kV": false},
-    Breakers: {"Normal" : false, "Late": false, "Indeterminate": false},
-    Completeness: {"> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
-    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false},
+    Faults: { "500 kV": false, "300 kV": false, "230 kV": false, "135 kV": false, "115 kV": false, "69 kV": false, "46 kV": false, "0 kV": false },
+    Breakers: { "Normal": false, "Late": false, "Indeterminate": false },
+    Completeness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false },
+    Correctness: { "> 100%": false, "98% - 100%": false, "90% - 97%": false, "70% - 89%": false, "50% - 69%": false, ">0% - 49%": false, "0%": false },
     Extensions: {}
 };
 
@@ -203,9 +204,9 @@ var dateRangeOptions = {
         'Last 365 Days': [moment().utc().startOf('day').subtract(364, 'days'), moment().utc().endOf('day')],
         'Month To Date': [moment().utc().startOf('month'), moment().utc().endOf('day')],
         'Last Month': [moment().utc().subtract(1, 'months').startOf('month'), moment().utc().subtract(1, 'months').endOf('month')],
-        'Year To Date': [(nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1,'years')), moment().utc().endOf('day')],
+        'Year To Date': [(nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1, 'years')), moment().utc().endOf('day')],
         'Last Year': [(nowMoment >= yearBeginMoment ? yearBeginMoment.clone().subtract(1, 'years') : yearBeginMoment.clone().subtract(2, 'years')),
-                       (nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1, 'years'))],
+        (nowMoment >= yearBeginMoment ? yearBeginMoment.clone() : yearBeginMoment.clone().subtract(1, 'years'))],
     },
     "startDate": moment().utc().subtract(29, 'days').startOf('day'),
     "endDate": moment.utc().endOf('day')
@@ -322,9 +323,8 @@ function setMapHeaderDate(datefrom, dateto) {
 
 function setGlobalContext(leftToRight) {
     var contexts = ['custom', 'day', 'hour', 'minute', 'second'];
-    if (leftToRight)
-    {
-        if(contexts.indexOf(globalContext) < contexts.length - 1)
+    if (leftToRight) {
+        if (contexts.indexOf(globalContext) < contexts.length - 1)
             globalContext = contexts[contexts.indexOf(globalContext) + 1];
     }
     else {
@@ -332,7 +332,7 @@ function setGlobalContext(leftToRight) {
             globalContext = contexts[contexts.indexOf(globalContext) - 1];
     }
 
-    updateUrlParams('context', globalContext);
+    updateUrlParams('context', globalContext, true);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -385,16 +385,16 @@ function loadDataForDate() {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectmapgrid(thecontrol) {
-    if(thecontrol != null){
+    if (thecontrol != null) {
         $('.mapGrid').val($(thecontrol).val());
         if (thecontrol.selectedIndex === 1) {
             $("#theMatrix" + currentTab).show();
             $("#theMap" + currentTab).hide();
             if (cache_Map_Matrix_Data != null) {
-                plotGridLocations(cache_Map_Matrix_Data, currentTab);  
+                plotGridLocations(cache_Map_Matrix_Data, currentTab);
             }
             $.sparkline_display_visible();
-            if(cache_Sparkline_Data != null)
+            if (cache_Sparkline_Data != null)
                 updateGridWithSelectedSites();
         }
         else if (thecontrol.selectedIndex === 0) {
@@ -420,14 +420,14 @@ function selectsitesincharts() {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    ManageLocationClick(meterList.selectedIdsString());  
+    ManageLocationClick(meterList.selectedIdsString());
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // The following functions are for getting Table data and populating the tables
 function getTableDivData(siteID, theDate) {
-    $.post(homePath + 'api/'+currentTab+'/TableData', { siteId: siteID, targetDate: theDate, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
+    $.post(homePath + 'api/' + currentTab + '/TableData', { siteId: siteID, targetDate: theDate, colorScale: $('#contourColorScaleSelect').val(), context: globalContext }, function (data) {
         cache_Table_Data = data;
 
         var filterString = [];
@@ -565,7 +565,8 @@ function populateFaultsDivWithGrid(data) {
                 }
 
                 return cause;
-            }});
+            }
+        });
 
         columns.push({ field: 'thecurrentdistance', headerText: 'Miles', headerStyle: 'width:  6%', bodyStyle: 'width:  6%; height: 20px', sortable: true });
         columns.push({ field: 'locationname', headerText: 'Location', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true });
@@ -612,7 +613,7 @@ function saveNote() {
 
 function removeNote(id) {
     $.post(homePath + 'api/PQDashboard/RemoveEventNote', { id: id, note: '', userId: userName });
-    $('#row' +id).remove()
+    $('#row' + id).remove()
 }
 
 function editNote(id) {
@@ -767,11 +768,11 @@ function populateEventsDivWithGrid(data) {
     if ($('#Detail' + currentTab + 'Table').children().length > 0) {
         var parent = $('#Detail' + currentTab + 'Table').parent();
         $('#Detail' + currentTab + 'Table').remove();
-        $(parent).append('<div id="Detail'+ currentTab +'Table"></div>');
+        $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
     var filteredData = [];
-    if (data != null ) {
+    if (data != null) {
 
         $.each(data, function (i, d) {
             var sum = 0;
@@ -788,7 +789,7 @@ function populateEventsDivWithGrid(data) {
             scrollable: true,
             scrollHeight: '100%',
             columns: [
-                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.MeterID +');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open in SEBrowser">' + row.Site + '</button>' } },
+                { field: 'Site', headerText: 'Name', headerStyle: 'width: 35%', bodyStyle: 'width: 35%; height: 20px', sortable: true, content: function (row) { return '<button class="btn btn-link" onClick="OpenWindowToMeterEventsByLine(' + row.MeterID + ');" text="" style="cursor: pointer; text-align: center; margin: auto; border: 0 none;" title="Open in SEBrowser">' + row.Site + '</button>' } },
             ],
             datasource: filteredData
         };
@@ -876,7 +877,7 @@ function populateDisturbancesDivWithGrid(data) {
             if (sum > 0)
                 filteredData.push(d);
         });
-        
+
         var tableObject = {
             scrollable: true,
             scrollHeight: '100%',
@@ -928,24 +929,24 @@ function populateBreakersDivWithGrid(data) {
             columns: [
                 {
                     field: 'energized', headerText: 'TCE Time', headerStyle: 'width: 140px', bodyStyle: 'width: 140px; height: 20px', sortable: true, content:
-                                  function (row, options, td) {
+                        function (row, options, td) {
 
-                                      var title = "";
-                                      var bgColor = "initial";
+                            var title = "";
+                            var bgColor = "initial";
 
-                                      if (row.dcoffset != 0) {
-                                          title = "title='DC offset logic applied'";
-                                          bgColor = "aqua";
-                                      }
+                            if (row.dcoffset != 0) {
+                                title = "title='DC offset logic applied'";
+                                bgColor = "aqua";
+                            }
 
-                                      var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
-                                      var svg = "";
+                            var a = "<a href='" + xdaInstance + "/Workbench/Breaker.cshtml?EventID=" + row.theeventid + "' " + title + " style='background-color: " + bgColor + ";color: blue' target='_blank'>" + row.energized + "</a>";
+                            var svg = "";
 
-                                      if (row.chatter != 0)
-                                          svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
+                            if (row.chatter != 0)
+                                svg = "<svg style='position: absolute; top: 0; right: 0' width='10' height='10'><path d='M0 0 L10 0 L10 10 Z' fill='red'><title>Status bit chatter detected</title></path></svg>";
 
-                                      return a + svg;
-                                  }
+                            return a + svg;
+                        }
                 },
                 { field: 'breakernumber', headerText: 'Breaker', headerStyle: 'width: 80px', bodyStyle: 'width: 80px; height: 20px', sortable: true },
                 { field: 'linename', headerText: 'Line', headerStyle: 'width: auto', bodyStyle: 'width: auto; height: 20px', sortable: true },
@@ -955,7 +956,7 @@ function populateBreakersDivWithGrid(data) {
                 { field: 'speed', headerText: 'Speed', headerStyle: 'width: 75px', bodyStyle: 'width: 75px; height: 20px', sortable: true },
                 { field: 'operationtype', headerText: 'Operation', headerStyle: 'width: 100px', bodyStyle: 'width: 100px; height: 20px', sortable: true },
                 { field: 'OpenSEE', headerText: '', headerStyle: 'width: 50px', bodyStyle: 'width: 50px; padding: 0; height: 20px', content: makeOpenSEEButton_html },
-                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."><span style="color: green; position: sticky; bottom: 0">' + (row.notecount > 0 ? '*' : '') +'</span></span></button>'; } }
+                { headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px;text-align: center', content: function (row) { return '<button onclick="openNoteModal(' + row.theeventid + ')"><span class="glyphicon glyphicon-pencil" title="Add Notes."><span style="color: green; position: sticky; bottom: 0">' + (row.notecount > 0 ? '*' : '') + '</span></span></button>'; } }
 
             ],
             datasource: filteredData
@@ -1005,7 +1006,7 @@ function populateTrendingDataDivWithGrid(data) {
         $(parent).append('<div id="Detail' + currentTab + 'Table"></div>');
     }
 
-    if(data != null){
+    if (data != null) {
         fixNumbers(data, ['Minimum', 'Maximum', 'Average']);
 
         $('#Detail' + currentTab + "Table").puidatatable({
@@ -1015,10 +1016,10 @@ function populateTrendingDataDivWithGrid(data) {
                 { field: 'Name', headerText: 'Name', headerStyle: 'width: 15%', bodyStyle: 'width: 35%; height: 20px', sortable: true },
                 { field: 'characteristic', headerText: 'Characterisitc', headerStyle: 'width: 12%', bodyStyle: 'width: 12%; height: 20px', sortable: true },
                 { field: 'phasename', headerText: 'Phase', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true },
-                { field: 'Minimum', headerText: 'Minimum', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Minimum).toFixed(4);} },
+                { field: 'Minimum', headerText: 'Minimum', headerStyle: 'width: 10%', bodyStyle: 'width: 10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Minimum).toFixed(4); } },
                 { field: 'Maximum', headerText: 'Maximum', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Maximum).toFixed(4); } },
                 { field: 'Average', headerText: 'Average', headerStyle: 'width: 10%', bodyStyle: 'width:  10%; height: 20px', sortable: true, content: function (row) { return parseFloat(row.Average).toFixed(4); } },
-                { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); }}
+                { field: 'OpenSTE', headerText: '', headerStyle: 'width: 4%', bodyStyle: 'width: 4%; padding: 0; height: 20px', content: function (row) { return makeOpenSTEButton_html(row); } }
             ],
             datasource: data
         });
@@ -1037,7 +1038,7 @@ function fixNumbers(data, numFields) {
 //////////////////////////////////////////////////////////////////////////
 
 function getFormattedDate(date) {
-    if(globalContext == "day")
+    if (globalContext == "day")
         return moment(date).utc().format('YYYY-MM-DDTHH:00') + 'Z';
     else if (globalContext == "hour")
         return moment(date).utc().format('YYYY-MM-DDTHH:mm') + 'Z';
@@ -1058,9 +1059,9 @@ function stepOut() {
 
 function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom": globalContext);
+    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
-    $.post(homePath + "api/"+currentTab+"/BarChart", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, context: context}, function (data) {
+    $.post(homePath + "api/" + currentTab + "/BarChart", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, context: context }, function (data) {
         if (data !== null) {
 
             var graphData = { graphData: [], keys: [], colors: [] };
@@ -1097,16 +1098,19 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
         }
 
     });
-    
+
 
     if (currentTab == "Disturbances") {
-        $.post(homePath + "api/Disturbances/MagDur", { meterIds: siteID, startDate: thedatefrom, endDate: thedateto, context: context }, function (data) {
-            cache_MagDur_Data = data;
-            //buildMagDurChart(data, thediv + "MagDur")
-            renderMagDurChart(siteID, thedatefrom, thedateto, context)
-        });
+        //cache_MagDur_Data = data;
+        //buildMagDurChart(data, thediv + "MagDur")
+
+        //these will need to be renamed to match where we are setting these else where
+        updateUrlParams('meterIDs', btoa(siteID.toString()), false);
+        updateUrlParams('startDate', thedatefrom);
+        updateUrlParams('endDate', thedateto);
+        updateUrlParams('context', context)
     }
-    
+
 }
 
 function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
@@ -1204,7 +1208,7 @@ function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
             y: data.graphData.map(function (a) {
                 var total = 0;
                 $.each(Object.keys(a), function (index, key) {
-                    if(key != 'Date')
+                    if (key != 'Date')
                         total += parseInt(a[key]);
                 });
                 return total;
@@ -1321,7 +1325,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
     if (context == 'day') {
         numSamples = 24;
-        x = d3.time.scale.utc().domain([date1,date2]).range([0, width]);
+        x = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xOverview = d3.time.scale.utc().domain([date1, date2]).range([0, width]);
         xAxisOverview = d3.svg.axis().scale(xOverview).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%H'));
         XaxisLabel = 'Hours';
@@ -1363,8 +1367,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     if (brush === null) {
         brush = d3.svg.brush()
     }
-        
-     brush.x(xOverview).on("brush", brushed);
+
+    brush.x(xOverview).on("brush", brushed);
     y.domain([0, d3.max(chartData, function (d) { return d.Total; })]);
     yOverview.domain(y.domain());
 
@@ -1398,7 +1402,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         series = stack(chartData);
     }
     var overviewSeries = stack(chartData);
-    
+
     buildMainGraph(series, date1, date2);
     buildOverviewGraph(overviewSeries);
 
@@ -1407,18 +1411,18 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     function buildMainGraph(data, startDate, endDate) {
         $('#' + thediv).children().remove();
         svg = d3.select("#" + thediv).append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
 
         var xAxis;
         var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
         var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
 
-        if (context == 'day' ) {
+        if (context == 'day') {
             numSamples = moment.duration(endDate.diff(startDate)).asHours();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(numSamples).tickFormat(d3.time.format.utc('%H'));
         }
-        else if (context == 'hour' ) {
+        else if (context == 'hour') {
             numSamples = moment.duration(endDate.diff(startDate)).asMinutes();
             xAxis = d3.svg.axis().scale(x).orient("bottom").ticks((numSamples < 12 ? numSamples : 12)).tickFormat(d3.time.format.utc('%M'));
         }
@@ -1445,12 +1449,12 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
         main.append("g")
             .attr("class", "grid-lines")
             .selectAll(".grid-line").data(y.ticks(5))
-                .enter().append("line")
-                    .attr("class", "grid-line")
-                    .attr("x1", 0)
-                    .attr("x2", width)
-                    .attr("y1", y)
-                    .attr("y2", y);
+            .enter().append("line")
+            .attr("class", "grid-line")
+            .attr("x1", 0)
+            .attr("x2", width)
+            .attr("y1", y)
+            .attr("y2", y);
 
         // Step out and next and back buttons within bar chart
         if (context != "custom" && tabsForDigIn.indexOf(currentTab) >= 0) {
@@ -1460,7 +1464,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .style("position", "absolute")
                 .style("display", "table-row")
                 .style("top", "0")
-                .style("left", ($('#Overview' + currentTab).width() / 2 ) + "px");
+                .style("left", ($('#Overview' + currentTab).width() / 2) + "px");
 
             btnBar.append("div")
                 .attr("class", "modebar-group")
@@ -1506,26 +1510,26 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         var layers = layersArea.selectAll(".layer").data(data)
             .enter().append("g")
-                .attr("class", layerClass);
+            .attr("class", layerClass);
 
         var bar = layers.selectAll("rect").data(function (d) {
             return d;
         })
             .enter().append("rect")
-                .attr("x", function (d) {
-                    return x(moment(d.data.Date));
-                })
-                .attr("width", function () {
-                    return width / numSamples;
-                })
-                .attr("y", function (d) {
-                    return y((d[1]? d[1]: 0));
-                })
-                .attr("height", function (d) { return y(d[0]) - y(d[1]); })
-                .style("fill", function (d, e, i) {
-                    return color(series[i].key);
-                })
-                .style("cursor", "pointer");
+            .attr("x", function (d) {
+                return x(moment(d.data.Date));
+            })
+            .attr("width", function () {
+                return width / numSamples;
+            })
+            .attr("y", function (d) {
+                return y((d[1] ? d[1] : 0));
+            })
+            .attr("height", function (d) { return y(d[0]) - y(d[1]); })
+            .style("fill", function (d, e, i) {
+                return color(series[i].key);
+            })
+            .style("cursor", "pointer");
 
         main.append("g")
             .attr("class", "x axis")
@@ -1562,8 +1566,8 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             html += "</table>";
 
             tooltip.classed('hidden', false)
-            .html(html)
-            .attr('style', (width - mouse[0] < $('.tooltip').width() ? 'right:' + (width - mouse[0] + margin.left + $('.tooltip').width()) : 'left:' + (mouse[0] + 15)) + 'px; bottom:' + (height - mouse[1]) + 'px');
+                .html(html)
+                .attr('style', (width - mouse[0] < $('.tooltip').width() ? 'right:' + (width - mouse[0] + margin.left + $('.tooltip').width()) : 'left:' + (mouse[0] + 15)) + 'px; bottom:' + (height - mouse[1]) + 'px');
         });
 
         bar.on('mouseout', function () {
@@ -1584,7 +1588,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             brush.clear();
             manageTabsByDateForClicks(currentTab, thedate, thedate, filter);
             cache_Last_Date = thedate;
-            updateUrlParams('contextDate', thedate);
+            updateUrlParams('contextDate', thedate, true);
         });
 
         buildLegend();
@@ -1593,13 +1597,13 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     function buildOverviewGraph(data) {
 
         $.each(data[0], function (index, element) {
-                var total = 0
-                $.each(Object.keys(element.data), function (i, a) {
-                    if (a != 'Date' && a != 'Total')
-                        total += parseInt(element.data[a])
-                })
-                element.data.newTotal = total;
-            });
+            var total = 0
+            $.each(Object.keys(element.data), function (i, a) {
+                if (a != 'Date' && a != 'Total')
+                    total += parseInt(element.data[a])
+            })
+            element.data.newTotal = total;
+        });
 
         yOverview.domain([0, d3.max(data, function (d) {
             return d3.max(d, function (e) {
@@ -1612,21 +1616,21 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             .attr("transform", "translate(" + marginOverview.left + "," + marginOverview.top + ")");
 
         var layersArea = overview.append("g")
-                    .attr("class", "layers");
+            .attr("class", "layers");
 
         var layers = layersArea.selectAll(".layer").data(data)
             .enter().append("g")
-                .attr("class", layerClass);
+            .attr("class", layerClass);
 
-        var bar = layers.selectAll("rect").data(function (d) { return d;  })
+        var bar = layers.selectAll("rect").data(function (d) { return d; })
             .enter().append("rect")
-                .attr("x", function (d) { return xOverview(moment(d.data.Date)); })
-                .attr("width", function () { return width / numSamples; })
-                .attr("y", function (d) {
-                    return yOverview(d.data.newTotal);
-                })
-                .attr("height", function (d) { return heightOverview - yOverview(d.data.newTotal); })
-                .style("fill", "black");
+            .attr("x", function (d) { return xOverview(moment(d.data.Date)); })
+            .attr("width", function () { return width / numSamples; })
+            .attr("y", function (d) {
+                return yOverview(d.data.newTotal);
+            })
+            .attr("height", function (d) { return heightOverview - yOverview(d.data.newTotal); })
+            .style("fill", "black");
 
 
         overview.append("g")
@@ -1693,7 +1697,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             .style("text-anchor", "start")
             .text(function (d) {
                 return d;
-        });
+            });
 
     }
 
@@ -1709,7 +1713,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             startDate = moment(thedatefrom);
             endDate = moment(thedateto);
         }
-        else{
+        else {
             startDate = moment(brush.extent()[0]);
             endDate = moment(brush.extent()[1]);
         }
@@ -1849,7 +1853,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
 function moveGraphBackward() {
     if (globalContext == "day") {
-        contextfromdate = moment(contextfromdate).utc().startOf('day').subtract(1,'days').format('YYYY-MM-DDTHH:mm:ss') + "Z";
+        contextfromdate = moment(contextfromdate).utc().startOf('day').subtract(1, 'days').format('YYYY-MM-DDTHH:mm:ss') + "Z";
         contexttodate = moment(contextfromdate).utc().endOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
     }
     else if (globalContext == "hour") {
@@ -1879,7 +1883,7 @@ function moveGraphBackward() {
         //cache_Sparkline_Data = null;
     }
 
-    updateUrlParams('contextDate', contextfromdate);
+    updateUrlParams('contextDate', contextfromdate, true);
     setMapHeaderDate(contextfromdate, contexttodate);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
 }
@@ -1916,7 +1920,7 @@ function moveGraphForward() {
     }
 
     updateUrlParams('contextDate', contextfromdate);
-    setMapHeaderDate(contextfromdate, contexttodate);
+    setMapHeaderDate(contextfromdate, contexttodate, true);
     manageTabsByDate(currentTab, contextfromdate, contexttodate);
 }
 
@@ -1933,7 +1937,7 @@ function deepCopy(o) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 function populateDivWithErrorBarChart(thediv, siteID, thedatefrom, thedateto) {
-    $.post(homePath + 'api/TrendingData/ErrorBarChart', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto}, function (data) {
+    $.post(homePath + 'api/TrendingData/ErrorBarChart', { siteID: siteID, colorScale: $('#contourColorScaleSelect').val(), targetDateFrom: thedatefrom, targetDateTo: thedateto }, function (data) {
         cache_ErrorBar_Data = data;
         buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto);
     }).fail(function (msg) {
@@ -2053,7 +2057,7 @@ function buildErrorBarChart(data, thediv, siteID, thedatefrom, thedateto) {
             var thedate = getFormattedDate($.plot.formatDate($.plot.dateGenerator(item.datapoint[0], { timezone: "utc" }), "%m/%d/%Y"));
             contextfromdate = thedate;
             contexttodate = thedate;
-            manageTabsByDateForClicks(currentTab,thedate, thedate, null);
+            manageTabsByDateForClicks(currentTab, thedate, thedate, null);
             cache_Last_Date = thedate;
         }
     });
@@ -2144,7 +2148,7 @@ function buildMagDurChart(data, thediv) {
         yaxis: { side: 'left', overlaying: 'y', anchor: 'x', title: 'Voltage Magnitude(% of Nominal)'/*, range: [0, 150]*/ },
     };
 
-    $.get(homePath + 'api/PQDashboard/GetCurves',function (curves) {
+    $.get(homePath + 'api/PQDashboard/GetCurves', function (curves) {
 
         var curveIds = [];
         $.each(curves, function (index, points) {
@@ -2163,8 +2167,8 @@ function buildMagDurChart(data, thediv) {
 
         var plot = Plotly.newPlot(thediv, companyTrace, layout);
 
-        $('#'+ thediv).off('plotly_click');
-        $('#'+ thediv).on('plotly_click', function (event, data) {
+        $('#' + thediv).off('plotly_click');
+        $('#' + thediv).on('plotly_click', function (event, data) {
             window.open(openSEEInstance + "?eventid=" + data.points[0].fullData.text[data.points[0].pointNumber] + "&faultcurves=1");
         });
     });
@@ -2172,7 +2176,7 @@ function buildMagDurChart(data, thediv) {
     $(window).off('resize');
     $(window).on('resize', function () {
         Plotly.purge(thediv);
-        buildMagDurChart(cache_MagDur_Data, thediv)
+        //buildMagDurChart(cache_MagDur_Data, thediv)
     });
 
 
@@ -2201,7 +2205,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     }
 
     if (currentTab != 'TrendingData') {
-        $.post(homePath + 'api/'+currentTab +'/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: globalContext}, function (data) {
+        $.post(homePath + 'api/' + currentTab + '/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: globalContext }, function (data) {
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
@@ -2254,18 +2258,18 @@ function populateGridMatrix(data, siteID, siteName, colors) {
             $('#meterGroupSelect').trigger('change');
             return;
         }
-        else if (!e.shiftKey && !e.ctrlKey ) {
+        else if (!e.shiftKey && !e.ctrlKey) {
             meterList.unselectAll()
         }
 
 
-        $.each(gridList, function (i,item) {
+        $.each(gridList, function (i, item) {
 
             if (e.shiftKey) {
 
                 if (thisselectedindex > lastselectedindex) {
                     if ((i >= lastselectedindex) && (i <= thisselectedindex)) {
-                        if (item.Selected == false) meterList.setSelected( item, true);
+                        if (item.Selected == false) meterList.setSelected(item, true);
                     } else {
                         if (item.Selected == true) meterList.setSelected(item, false);
                     }
@@ -2309,7 +2313,7 @@ function populateGridMatrix(data, siteID, siteName, colors) {
 
 function updateGridWithSelectedSites() {
     if (meterList == null) return;
-    
+
     $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
     meterList.getListOfGrids().forEach(function (item) {
@@ -2341,7 +2345,7 @@ function DrawGridSparklines(data, siteID, siteName, matrixItemID, colors) {
         case "Completeness":
         case "Correctness":
             populateGridSparklineDataQuality(data, siteID, siteName, true, colors);
-            break;  
+            break;
         case "Trending":
         case "TrendingData":
         default:
@@ -2349,7 +2353,7 @@ function DrawGridSparklines(data, siteID, siteName, matrixItemID, colors) {
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 function populateGridSparklineDataQuality(data, siteID, siteName, makespark, colors) {
     var sparkvalues = [];
 
@@ -2363,7 +2367,7 @@ function populateGridSparklineDataQuality(data, siteID, siteName, makespark, col
 
     $(matrixItemID).append($("<div unselectable='on' class='sparkbox' id='" + "sparkbox_" + siteID + "_box_" + currentTab + "'/>"));
 
-    var colorMap = ["#FF0000","#00FF00","#0000FF"]
+    var colorMap = ["#FF0000", "#00FF00", "#0000FF"]
 
     if (!makespark) return;
     $("#sparkbox_" + siteID + "_box_" + currentTab).sparkline(sparkvalues, {
@@ -2412,7 +2416,7 @@ function populateGridSparklines(data, siteID, siteName, colors) {
             thetitle += "<tr><td colspan=2 align='center'>" + data.Name + "</td></tr>";
             $.each(Object.keys(data), function (i, key) {
                 if (key != "Count" && key != "ID" && key != "Name" && key != "Latitude" && key != "Longitude")
-                    thetitle += "<tr><td><span style='color:"+colors[key]+"'>&#9679;</span>" + key + ":</td><td align='right'>" + data[key] + "</td></tr>";
+                    thetitle += "<tr><td><span style='color:" + colors[key] + "'>&#9679;</span>" + key + ":</td><td align='right'>" + data[key] + "</td></tr>";
             });
             thetitle += "</table>";
             return thetitle
@@ -2442,12 +2446,10 @@ function showSiteSet(thecontrol) {
 
             case "Events":
                 $.each(gridchildren.children, function (key, value) {
-                    if ($(value).css('background-color') != "rgb(14, 137, 44)" && $(value).css('background-color') != "#0E892C")
-                    {
+                    if ($(value).css('background-color') != "rgb(14, 137, 44)" && $(value).css('background-color') != "#0E892C") {
                         $(value).show();
                     }
-                    else
-                    {
+                    else {
                         $(value).hide();
                     }
                 });
@@ -2519,7 +2521,7 @@ function showSiteSet(thecontrol) {
 
             case "SelectedSites":
                 $('.matrixButton[id*=' + currentTab + ']').show();
-                $('.matrixButtonBlack[id*='+ currentTab +']').hide();
+                $('.matrixButtonBlack[id*=' + currentTab + ']').hide();
                 break;
 
             case "None":
@@ -2617,7 +2619,7 @@ function showSiteSet(thecontrol) {
                     else
                         $(marker).hide();
                 });
-                
+
                 break;
 
             case "NoData":
@@ -2679,9 +2681,9 @@ function plotGridLocations(locationdata, newTab) {
             data.Data.push(record);
         }
         else {
-            var record = locationdata.Data.find(function (a) { return a.ID == value.ID});
+            var record = locationdata.Data.find(function (a) { return a.ID == value.ID });
             if (record == null) {
-                record = cache_Sparkline_Data.Data.find(function (a) { return a.ID == value.ID && a.Name == value.Name});
+                record = cache_Sparkline_Data.Data.find(function (a) { return a.ID == value.ID && a.Name == value.Name });
             }
             record.item = item;
             data.Data.push(record);
@@ -2711,93 +2713,93 @@ function plotMapLocations(locationdata, newTab, thedatefrom, thedateto) {
     }
 
 
-        $.each(locationdata.Data, function (index, data) {
-            var color = getColorsForTab(data, locationdata.Colors);
+    $.each(locationdata.Data, function (index, data) {
+        var color = getColorsForTab(data, locationdata.Colors);
 
-            var html = '<svg height="12" width="12" id="' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + '">' +
-                            '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
-                       '</svg>';
+        var html = '<svg height="12" width="12" id="' + data.Name.replace(/[^A-Za-z0-9]/g, "") + '-' + data.ID + '">' +
+            '<circle cx="6" cy ="6" r="4" stroke="black" stroke-width="1" fill="' + color + '"/>' +
+            '</svg>';
 
-            var popup = getLeafletLocationPopup(data);
+        var popup = getLeafletLocationPopup(data);
 
-            var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
+        var circleIcon = L.divIcon({ className: 'leafletCircle', html: html });
 
-            var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(leafletMap[currentTab]).bindPopup(popup);
+        var marker = L.marker([data.Latitude, data.Longitude], { icon: circleIcon }).addTo(leafletMap[currentTab]).bindPopup(popup);
 
-            marker.on('click', function (event) {
-                if (!event.originalEvent.ctrlKey) {
-                    meterList.unselectAll();
-                    $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+        marker.on('click', function (event) {
+            if (!event.originalEvent.ctrlKey) {
+                meterList.unselectAll();
+                $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
 
+            }
+
+            $.each(meterList.Meters, function (i, item) {
+                if (item.ID == data.ID) {
+                    item.Selected = true;
                 }
 
-                $.each(meterList.Meters, function (i, item) {
+            });
+
+            $('#meterSelected').text(meterList.selectedCount());
+
+
+            selectsitesincharts();
+
+            $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
+
+
+        });
+
+        marker.on('mouseover', function (event) {
+            marker.openPopup();
+        });
+
+        marker.on('mouseout', function (event) {
+            marker.closePopup();
+        });
+
+        if ($.inArray(data.Name + "|" + data.ID, meterList.selected()) > -1)
+            mapMarkers[currentTab].push({ id: data.ID, marker: marker });
+    });
+
+    // Hack: if displaying an overlay for animation,
+    //       do not automatically fit bounds
+    if (!locationdata.URL) {
+        markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
+        if (markerGroup.getBounds().isValid())
+            leafletMap[currentTab].fitBounds(markerGroup.getBounds());
+        leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -270), L.latLng(180, 270)));
+    }
+
+    var timeoutVal;
+    leafletMap[currentTab].off('boxzoomend');
+    leafletMap[currentTab].on('boxzoomend', function (event) {
+        meterList.unselectAll()
+        $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+
+        $.each(locationdata.Data, function (index, data) {
+            if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
+                && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
+
+                $.each(meterList.Meters, function (_, item) {
                     if (item.ID == data.ID) {
                         item.Selected = true;
                     }
 
                 });
 
-                $('#meterSelected').text(meterList.selectedCount());
-
-
-                selectsitesincharts();
-
                 $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
-
-
-            });
-
-            marker.on('mouseover', function (event) {
-                marker.openPopup();
-            });
-
-            marker.on('mouseout', function (event) {
-                marker.closePopup();
-            });
-
-            if ($.inArray(data.Name + "|" + data.ID, meterList.selected()) > -1)
-                mapMarkers[currentTab].push({ id: data.ID, marker: marker });
+            }
         });
 
-        // Hack: if displaying an overlay for animation,
-        //       do not automatically fit bounds
-        if (!locationdata.URL) {
-            markerGroup = new L.featureGroup(mapMarkers[currentTab].map(function (a) { return a.marker; }));
-            if(markerGroup.getBounds().isValid())
-                leafletMap[currentTab].fitBounds(markerGroup.getBounds());
-            leafletMap[currentTab].setMaxBounds(L.latLngBounds(L.latLng(-180, -270), L.latLng(180, 270)));
-        }
+        $('#meterSelected').text(meterList.selectedCount());
 
-        var timeoutVal;
-        leafletMap[currentTab].off('boxzoomend');
-        leafletMap[currentTab].on('boxzoomend', function (event) {
-            meterList.unselectAll()
-            $('#theMap' + currentTab).find('.leafletCircle').addClass('circleButtonBlack');
+        clearTimeout(timeoutVal);
+        timeoutVal = setTimeout(function () {
+            selectsitesincharts();
+        }, 500);
 
-            $.each(locationdata.Data, function (index, data) {
-                if (data.Latitude >= event.boxZoomBounds._southWest.lat && data.Latitude <= event.boxZoomBounds._northEast.lat
-                    && data.Longitude >= event.boxZoomBounds._southWest.lng && data.Longitude <= event.boxZoomBounds._northEast.lng) {
-                    
-                    $.each(meterList.Meters, function (_, item) {
-                        if (item.ID == data.ID) {
-                            item.Selected = true;
-                        }
-
-                    });
-                    
-                    $('#theMap' + currentTab).find('.leafletCircle').children('[id*=' + data.Name.replace(/[^A-Za-z0-9]/g, '') + ']').parent().removeClass('circleButtonBlack')
-                }
-            });
-
-            $('#meterSelected').text(meterList.selectedCount());
-
-            clearTimeout(timeoutVal);
-            timeoutVal = setTimeout(function () {
-                selectsitesincharts();
-            }, 500);
-
-        });
+    });
 
 
     //}
@@ -2828,7 +2830,7 @@ function getColorsForTab(dataPoint, colors) {
         else if (percentage < 90 && percentage >= 70) color = colors["70% - 89%"];
         else if (percentage < 70 && percentage >= 50) color = colors["50% - 69%"];
         else if (percentage < 50 && percentage > 0) color = colors[">0% - 49%"];
-        else if (percentage < 0) color = colors["0%"];    
+        else if (percentage < 0) color = colors["0%"];
         else color = '#0000FF';
     }
     else if (currentTab == "Completeness") {
@@ -2848,7 +2850,7 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["50% - 69%"];
         } else if (percentage < 50 && percentage > 0) {
             color = colors[">0% - 49%"];
-        } else if(percentage < 0){
+        } else if (percentage < 0) {
             color = colors["0%"];
         }
         else
@@ -2873,16 +2875,16 @@ function getColorsForTab(dataPoint, colors) {
     else if (currentTab === "Trending") {
         if (colors == undefined || dataPoint.AlarmCount == 0)
             color = '#0E892C';
-        else if(dataPoint.Alarm > 0)
+        else if (dataPoint.Alarm > 0)
             color = colors['Alarm'];
-        else 
+        else
             color = colors['Offnormal']
     }
 
     else if (currentTab === "Faults") {
         if (colors == undefined || dataPoint.Count == 0)
             color = '#0E892C';
-        else 
+        else
             color = '#CC3300';
     }
     else if (currentTab === "Disturbances") {
@@ -2923,7 +2925,7 @@ function getColorsForTab(dataPoint, colors) {
             color = colors["Snapshot"];
         else if (dataPoint.Other > 0)
             color = colors["Other"];
-        else 
+        else
             color = '#0E892C';
     }
     else if (currentTab === "Extensions") {
@@ -2942,8 +2944,8 @@ function getLeafletLocationPopup(dataPoint) {
     var popup;
     popup = "<table><tr><td>Site:&nbsp;</td><td style='text-align: right'>&nbsp;" + dataPoint.Name + "&nbsp;</td></tr>";
     $.each(Object.keys(dataPoint), function (i, key) {
-        if (key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude" && key != "Data" && dataPoint[key] != null )
-            popup += "<tr><td>"+ key +":&nbsp;</td><td style='text-align: right'>&nbsp;" + ( dataPoint[key].toString().indexOf('.') < 0 ? dataPoint[key] : dataPoint[key].toFixed(4)) + "&nbsp;</td></tr>";
+        if (key != "ID" && key != "Name" && key != "Longitude" && key != "Latitude" && key != "Data" && dataPoint[key] != null)
+            popup += "<tr><td>" + key + ":&nbsp;</td><td style='text-align: right'>&nbsp;" + (dataPoint[key].toString().indexOf('.') < 0 ? dataPoint[key] : dataPoint[key].toFixed(4)) + "&nbsp;</td></tr>";
     });
     popup += "</table>";
 
@@ -3181,7 +3183,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
         thing.splice(thedatefrom.length - 3, 2, '0', '0');
         barChartStartDate = thing.join('');
     }
-    
+
 
     if (eventDataTabs.indexOf(currentTab) < 0) {
         barChartStartDate = thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
@@ -3201,7 +3203,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     }
 
-    if(currentTab != "TrendingData")
+    if (currentTab != "TrendingData")
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), barChartStartDate, thedateto);
     else
         populateDivWithErrorBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
@@ -3211,7 +3213,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
     if ((thedatefrom == "") || (thedateto == "")) return;
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-    
+
     if (tabsForDigIn.indexOf(theNewTab) >= 0 || globalContext == "custom")
         setGlobalContext(true);
 
@@ -3220,7 +3222,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
     setMapHeaderDate(thedatefrom, thedateto);
 
     getTableDivData(meterList.selectedIdsString(), thedatefrom);
-    if(tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
+    if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
 
@@ -3279,8 +3281,8 @@ function resizeDocklet(theparent, chartheight) {
             buildBarChart(cache_Graph_Data, 'Overview' + currentTab, meterList.selectedIdsString(), barDateFrom, barDateTo);
     }
 
-    if($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
-        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);    
+    if ($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
+        window["populate" + currentTab + "DivWithGrid"](cache_Table_Data);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -3310,11 +3312,11 @@ function resizeMapAndMatrix(newTab) {
         // Hack: If the map does need to resize, onResize must be called twice.
         //       Otherwise, it only needs to be called once.
         leafletMap[currentTab].on('resize', onResize);
-        try{
+        try {
             leafletMap[currentTab].invalidateSize(true);
         }
-        catch(ex){
-            
+        catch (ex) {
+
         }
         leafletMap[currentTab].off('resize', onResize);
         onResize();
@@ -3329,9 +3331,9 @@ function resizeMatrixCells(newTab) {
     var w = $("#MapMatrix" + newTab).width();
     var r = meterList.count();
 
-    if($('#selectSiteSet' + currentTab).val() === "SelectedSites" )
+    if ($('#selectSiteSet' + currentTab).val() === "SelectedSites")
         r = meterList.selectedCount();
-    else if ($('#selectSiteSet' + currentTab).val() === "All") 
+    else if ($('#selectSiteSet' + currentTab).val() === "All")
         r = meterList.count();
     else {
         r = 0;
@@ -3362,25 +3364,25 @@ function resizeMatrixCells(newTab) {
 
     }
     if (cache_Sparkline_Data !== null) {
-          $.each(cache_Sparkline_Data.Data, (function (key, value) {
-              populateGridMatrix(value, value.ID, value.Name, cache_Sparkline_Data.Colors);
-          }));
+        $.each(cache_Sparkline_Data.Data, (function (key, value) {
+            populateGridMatrix(value, value.ID, value.Name, cache_Sparkline_Data.Colors);
+        }));
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function initializeDatePickers(datafromdate , datatodate) {
+function initializeDatePickers(datafromdate, datatodate) {
 
     dateRangeOptions.startDate = moment(datafromdate).utc();
     dateRangeOptions.endDate = moment(datatodate).utc();
 
     $('#dateRange').daterangepicker(dateRangeOptions, function (start, end, label) {
-        updateUrlParams('startDate', start.format('MM/DD/YYYY'));
-        updateUrlParams('endDate', end.format('MM/DD/YYYY'));
+        updateUrlParams('startDate', start.format('MM/DD/YYYY'), true);
+        updateUrlParams('endDate', end.format('MM/DD/YYYY'), true);
 
         $('#dateRangeSpan').html(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
-        
+
         // Move global context back to custom range
         for (var i = 0; i < 5; ++i)
             setGlobalContext(false);
@@ -3410,8 +3412,8 @@ function moveDateBackward() {
 
     var formattedStartDate = dateRangePicker.startDate.format('MM/DD/YYYY');
     var formattedEndDate = dateRangePicker.endDate.format('MM/DD/YYYY');
-    updateUrlParams('startDate', formattedStartDate);
-    updateUrlParams('endDate', formattedEndDate);
+    updateUrlParams('startDate', formattedStartDate, true);
+    updateUrlParams('endDate', formattedEndDate, true);
 
     $('#dateRangeSpan').html(formattedStartDate + ' - ' + formattedEndDate);
     dateRangePicker.chosenLabel = 'Custom Range';
@@ -3436,8 +3438,8 @@ function moveDateForward() {
 
     var formattedStartDate = dateRangePicker.startDate.format('MM/DD/YYYY');
     var formattedEndDate = dateRangePicker.endDate.format('MM/DD/YYYY');
-    updateUrlParams('startDate', formattedStartDate);
-    updateUrlParams('endDate', formattedEndDate);
+    updateUrlParams('startDate', formattedStartDate, true);
+    updateUrlParams('endDate', formattedEndDate, true);
 
     $('#dateRangeSpan').html(formattedStartDate + ' - ' + formattedEndDate);
     dateRangePicker.chosenLabel = 'Custom Range';
@@ -3458,7 +3460,7 @@ function isRightClick(event) {
 
 function getMeters(meterGroup) {
 
-    updateUrlParams('assetGroup', meterGroup);
+    updateUrlParams('assetGroup', meterGroup, true);
 
     $.post(homePath + 'api/PQDashboard/GetMeters', { deviceFilter: meterGroup, userName: userId }, function (data) {
 
@@ -3570,28 +3572,28 @@ function buildPage() {
 
 
     $(".resizeable").resizable(
-    {
-        autoHide: true,
-        handles: 'e',
-        animate: false,
+        {
+            autoHide: true,
+            handles: 'e',
+            animate: false,
 
-        resize: function (e, ui) {
-            var parent = ui.element.parent();
-            var remainingSpace = parent.width() - ui.element.outerWidth(),
-                divTwo = ui.element.next(),
-                divTwoWidth = ((remainingSpace - (divTwo.outerWidth() - divTwo.width() + 1)) / parent.width()) * 100 + "%";
-            divTwo.width(divTwoWidth);
-        },
-        stop: function (e, ui) {
-            var parent = ui.element.parent();
-            ui.element.css(
-            {
-                width: ui.element.width() / parent.width() * 100 + "%"
-            });
+            resize: function (e, ui) {
+                var parent = ui.element.parent();
+                var remainingSpace = parent.width() - ui.element.outerWidth(),
+                    divTwo = ui.element.next(),
+                    divTwoWidth = ((remainingSpace - (divTwo.outerWidth() - divTwo.width() + 1)) / parent.width()) * 100 + "%";
+                divTwo.width(divTwoWidth);
+            },
+            stop: function (e, ui) {
+                var parent = ui.element.parent();
+                ui.element.css(
+                    {
+                        width: ui.element.width() / parent.width() * 100 + "%"
+                    });
 
-            resizeMapAndMatrix(newTab);
-        }
-    });
+                resizeMapAndMatrix(newTab);
+            }
+        });
 
     $(".portlet")
         .addClass("ui-widget ui-widget-content ui-helper-clearfix")
@@ -3630,7 +3632,7 @@ function buildPage() {
         widthStyle: "99%",
         activate: function (event, ui) {
             var newTab = ui.newTab.attr('li', "innerHTML")[0].getElementsByTagName("a")[0].innerHTML;
-            if(newTab === "Event Search") {
+            if (newTab === "Event Search") {
                 window.open(seBrowserInstance.replace(/\/$/, "") + "/EventSearch");
 
                 $("#application-tabs").tabs("option", "active", ($('#application-tabs li a').map(function (i, a) { return $(a).text().toLowerCase(); }).get()).indexOf(currentTab.toLowerCase()));
@@ -3638,12 +3640,12 @@ function buildPage() {
             }
 
             currentTab = newTab.replace(/\s/g, "");
-            
+
             if (newTab.indexOf("Overview") > -1) {
                 $('#headerStrip').hide();
                 showOverviewPage(currentTab);
             }
-            else {             
+            else {
                 cache_Graph_Data = null;
                 cache_ErrorBar_Data = null;
                 //cache_Sparkline_Data = null;
@@ -3652,7 +3654,7 @@ function buildPage() {
                 $(".mapGrid").val(mapormatrix);
                 selectmapgrid($("#map" + currentTab + "Grid")[0]);
                 loadDataForDate();
-                updateUrlParams('tab', currentTab);
+                updateUrlParams('tab', currentTab, true);
             }
         }
     });
@@ -3750,91 +3752,91 @@ function loadLeafletMap(theDiv) {
 
         animationControl.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info animationControl');
-            
+
             div.innerHTML =
                 '<div id="AnimationControlTrending">' +
-                    '<div class="row" style="width: 100%; margin: auto">' +
-                        '<div class="" style="float: left; margin-right: 4px;">' +
-                            '<table>' +
-                                '<tr>' +
-                                    '<td colspan="1">Size Metric</td>' +
-                                    '<td colspan="1">' +
-                                        '<select class="animationSizeMetricType form-control" style="width: 100%">' +
-                                            '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
-                                            '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
-                                            '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
-                                            '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
-                                            '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
-                                            '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
-                                            '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
-                                            '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
-                                            '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
-                                        '</select>' +
-                                    '</td>' +
-                                '</tr>' +
-                                '<tr>' +
-                                    '<td colspan="1">Color Metric</td>' +
-                                    '<td colspan="1">' +
-                                        '<select class="animationColorMetricType form-control" style="width: 100%">' +
-                                            '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
-                                            '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
-                                            '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
-                                            '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
-                                            '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
-                                            '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
-                                            '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
-                                            '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
-                                            '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
-                                        '</select>' +
-                                    '</td>' +
-                                '</tr>' +
-                                '<tr><td colspan="2">' +
-                                    '<select class="form-control" id="animationStepSelect" onchange="stepSelectionChange(this);">' +
-                                        '<option value="60">60 min</option>' +
-                                        '<option value="30">30 min</option>' +
-                                        '<option value="20">20 min</option>' +
-                                        '<option selected="selected" value="15">15 min</option>' +
-                                        '<option value="10">10 min</option>' +
-                                        '<option value="5">5 min</option>' +
-                                        '<option value="1">1 min</option>' +
-                                    '</select>' +
-                                '</td></tr>' +
-                                '<tr><td colspan="2">' +
-                                    '<div id="time-range">' +
-                                        '<div class="sliders_step1">' +
-                                            '&nbsp;<div class="slider-range"></div> ' +
-                                        '</div>' +
-                                        '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">12:00 AM</span></p>' +
-                                    '</div>' +
-                                '</td></tr>' +
-                                '<tr><td colspan="2">' +
-                                    '<button class="btn btn-default form-control" onclick="loadMapMetricAnimation()">Load Data</button>' +
-                                '</td></tr>' +
-                            '</table>' +
-                        '</div>' +
-                        '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
-                            '<table style="width: 100%">' +
-                                '<tr><td>&nbsp;</td></tr>' +
-                                '<tr><td>&nbsp;</td></tr>' +
-                                '<tr><td><span id="progressDate"></span></td></tr>' +
-                                '<tr><td style="width: 100%">' +
-                                        '<progress id="animationProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
-                                '</td></tr>' +
-                                '<tr><td>&nbsp;</td></tr>' +
-                                '<tr><td>&nbsp;</td></tr>' +
-                                '<tr><td style="width: 100%; text-align: center">' +
-                                            '<div class="player text-center" id="animationPlayerButtons">' +
-                                                '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>' +
-                                                '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
-                                                '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
-                                                '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
-                                                '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
-                                                '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +
-                                            '</div>' +
-                                '</td></tr>' +
-                            '</table>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="row" style="width: 100%; margin: auto">' +
+                '<div class="" style="float: left; margin-right: 4px;">' +
+                '<table>' +
+                '<tr>' +
+                '<td colspan="1">Size Metric</td>' +
+                '<td colspan="1">' +
+                '<select class="animationSizeMetricType form-control" style="width: 100%">' +
+                '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
+                '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
+                '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
+                '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
+                '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
+                '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
+                '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
+                '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
+                '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
+                '</select>' +
+                '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td colspan="1">Color Metric</td>' +
+                '<td colspan="1">' +
+                '<select class="animationColorMetricType form-control" style="width: 100%">' +
+                '<option value="MaximumVoltageRMS">Maximum Voltage RMS</option>' +
+                '<option value="MinimumVoltageRMS">Minimum Voltage RMS</option>' +
+                '<option value="AverageVoltageRMS" selected>Average Voltage RMS</option>' +
+                '<option value="MaximumVoltageTHD">Maximum Voltage THD</option>' +
+                '<option value="MinimumVoltageTHD">Minimum Voltage THD</option>' +
+                '<option value="AverageVoltageTHD">Average Voltage THD</option>' +
+                '<option value="MaximumShortTermFlicker">Maximum Short Term Flicker</option>' +
+                '<option value="MinimumShortTermFlicker">Minimum Short Term Flicker</option>' +
+                '<option value="AverageShortTermFlicker">Average Short Term Flicker</option>' +
+                '</select>' +
+                '</td>' +
+                '</tr>' +
+                '<tr><td colspan="2">' +
+                '<select class="form-control" id="animationStepSelect" onchange="stepSelectionChange(this);">' +
+                '<option value="60">60 min</option>' +
+                '<option value="30">30 min</option>' +
+                '<option value="20">20 min</option>' +
+                '<option selected="selected" value="15">15 min</option>' +
+                '<option value="10">10 min</option>' +
+                '<option value="5">5 min</option>' +
+                '<option value="1">1 min</option>' +
+                '</select>' +
+                '</td></tr>' +
+                '<tr><td colspan="2">' +
+                '<div id="time-range">' +
+                '<div class="sliders_step1">' +
+                '&nbsp;<div class="slider-range"></div> ' +
+                '</div>' +
+                '<p><span class="slider-time">12:00 AM</span> - <span class="slider-time2">12:00 AM</span></p>' +
+                '</div>' +
+                '</td></tr>' +
+                '<tr><td colspan="2">' +
+                '<button class="btn btn-default form-control" onclick="loadMapMetricAnimation()">Load Data</button>' +
+                '</td></tr>' +
+                '</table>' +
+                '</div>' +
+                '<div class="" id="progressBar" style="float: left; margin-left: 40px; display: none">' +
+                '<table style="width: 100%">' +
+                '<tr><td>&nbsp;</td></tr>' +
+                '<tr><td>&nbsp;</td></tr>' +
+                '<tr><td><span id="progressDate"></span></td></tr>' +
+                '<tr><td style="width: 100%">' +
+                '<progress id="animationProgressBar" style ="width: 100%" value="0" max ="100"></progress>' +
+                '</td></tr>' +
+                '<tr><td>&nbsp;</td></tr>' +
+                '<tr><td>&nbsp;</td></tr>' +
+                '<tr><td style="width: 100%; text-align: center">' +
+                '<div class="player text-center" id="animationPlayerButtons">' +
+                '<button type="button" id="button_fbw" class="btn"><i class="fa fa-fast-backward"></i></button>' +
+                '<button type="button" id="button_bw" class="btn"><i class="fa fa-backward"></i></button>' +
+                '<button type="button" id="button_play" class="btn"><i class="fa fa-play"></i></button>' +
+                '<button type="button" id="button_stop" class="btn"><i class="fa fa-stop"></i></button>' +
+                '<button type="button" id="button_fw" class="btn"><i class="fa fa-forward"></i></button>' +
+                '<button type="button" id="button_ffw" class="btn"><i class="fa fa-fast-forward"></i></button>' +
+                '</div>' +
+                '</td></tr>' +
+                '</table>' +
+                '</div>' +
+                '</div>' +
                 '</div>';
 
 
@@ -4395,10 +4397,10 @@ function getBase64MeterSelection() {
         var mapIndex =
             (meterSelections[i + 0] ? 32 : 0) +
             (meterSelections[i + 1] ? 16 : 0) +
-            (meterSelections[i + 2] ?  8 : 0) +
-            (meterSelections[i + 3] ?  4 : 0) +
-            (meterSelections[i + 4] ?  2 : 0) +
-            (meterSelections[i + 5] ?  1 : 0);
+            (meterSelections[i + 2] ? 8 : 0) +
+            (meterSelections[i + 3] ? 4 : 0) +
+            (meterSelections[i + 4] ? 2 : 0) +
+            (meterSelections[i + 5] ? 1 : 0);
 
         base64Selections += '' + base64Map[mapIndex];
     }
@@ -4412,6 +4414,7 @@ function showMagDur(theControl) {
         $('#OverviewDisturbancesMagDur').hide()
     }
     else {
+        renderMagDurChart(false)
         $('#OverviewDisturbances').hide()
         $('#OverviewDisturbancesOverview').hide()
         $('#OverviewDisturbancesMagDur').show()
@@ -4432,7 +4435,7 @@ function fitTextToWidth(text, font, width) {
     var tempText = text;
     var newString = '';
 
-    while (displayTextWidth(newString, font) < width && tempText.length > 0 ) {
+    while (displayTextWidth(newString, font) < width && tempText.length > 0) {
         newString += tempText[0];
         tempText = tempText.slice(1, tempText.length);
     }
@@ -4440,7 +4443,7 @@ function fitTextToWidth(text, font, width) {
     return newString;
 }
 
-window.showMagDur = showMagDur; 
+window.showMagDur = showMagDur;
 window.showSiteSet = showSiteSet;
 window.selectmapgrid = selectmapgrid;
 window.selectMeterGroup = selectMeterGroup;
