@@ -19,9 +19,9 @@
     "@typescript-eslint/parser": "^5.59.11"
   },
   "dependencies": {
-    "@gpa-gemstone/application-typings": "^0.0.67",
-    "@gpa-gemstone/react-graph": "^1.0.42",
-    "@gpa-gemstone/react-interactive": "^1.0.105",
+    "@gpa-gemstone/application-typings": "0.0.68",
+    "@gpa-gemstone/react-graph": "1.0.46",
+    "@gpa-gemstone/react-interactive": "1.0.110",
     "@types/d3": "7.0.0",
     "@types/eonasdan-bootstrap-datetimepicker": "4.17.26",
     "@types/flot": "0.0.31",
