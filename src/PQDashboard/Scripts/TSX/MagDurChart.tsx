@@ -68,17 +68,31 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     }, [containerRef]);
 
     React.useEffect(() => {
-        setIsLoading(true)
-        $.post(homePath + "api/Disturbances/MagDur", { meterIds: meterIDs, startDate: startDate, endDate: endDate, context: timeUnit }).done(data => {
-            setCircles(data.map(d => [d.DurationSeconds, d.PerUnitMagnitude * 100]))
-            setIsLoading(false) //only setting the loading on this call as it is the one that takes longer..
-        });
+        setIsLoading(true);
+        let timeout: NodeJS.Timeout = null;
 
-        $.get(homePath + 'api/Disturbances/StandardMagDurCurve').done(curves => {
-            setLines(curves)
-        });
+        const fetchData = async () => {
+            try {
+                const curvesResponse = await $.get(homePath + 'api/Disturbances/StandardMagDurCurve');
+                setLines(curvesResponse);
 
-    }, [startDate, endDate, meterIDs, assetGroup])
+                const dataResponse = await $.post(homePath + "api/Disturbances/MagDur", { meterIds: meterIDs, startDate: startDate, endDate: endDate, context: timeUnit});
+                setCircles(dataResponse.map(d => [d.DurationSeconds, d.PerUnitMagnitude * 100]));
+
+                timeout = setTimeout(() => setIsLoading(false), 3500); //set a 3.5 second timeout since the rendering process of the circles takes longer
+            } catch (error) {
+                setIsLoading(false); // Ensure loading is false on error
+            }
+        };
+
+        fetchData();
+
+        return () => {
+            setIsLoading(false); 
+            clearTimeout(timeout);
+        };
+    }, [startDate, endDate, meterIDs, assetGroup, timeUnit]);
+
 
     function generateCurve(curve: OpenXDA.Types.MagDurCurve) {
         const pt = curve.Area.split(',');
@@ -89,10 +103,10 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     return (
         <>
             <div ref={containerRef} className="d-flex" style={{ height: '100%', width: '100%' }}>
-                {isLoading ? <LoadingIcon Show={isLoading} Label={"Loading..."} /> :
+                {isLoading ? <LoadingIcon Show={isLoading} />  :
                     <Plot
                         height={plotHeight}
-                        width={plotWidth}
+                        width={plotWidth - 25}
                         defaultTdomain={[0.00001, 1000]}
                         defaultYdomain={[0, 5]}
                         Tmax={1000}
@@ -108,6 +122,8 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
                         pan={true}
                         useMetricFactors={false}
                         XAxisType={'log'}
+                        legendWidth={300}
+                        menuLocation={'right'}
                     >
                         {lines.map((curve, i) => (
                             <Line
