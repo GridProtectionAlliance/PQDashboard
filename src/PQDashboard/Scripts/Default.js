@@ -1103,12 +1103,7 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     if (currentTab == "Disturbances") {
         //cache_MagDur_Data = data;
         //buildMagDurChart(data, thediv + "MagDur")
-
-        //these will need to be renamed to match where we are setting these else where
-        updateUrlParams('meterIDs', btoa(siteID.toString()), false);
-        updateUrlParams('startDate', thedatefrom);
-        updateUrlParams('endDate', thedateto);
-        updateUrlParams('context', context)
+        renderMagDurChart(siteID, thedatefrom, thedateto, context, false)
     }
 
 }
