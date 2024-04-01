@@ -44,7 +44,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
     const [plotHeight, setPlotHeight] = React.useState<number>(0);
     const [plotWidth, setPlotWidth] = React.useState<number>(0);
     const tDomain: [number, number] = React.useMemo(() => [0.00001, 1000], [])
-    const yDomain: [number, number] = React.useMemo(() => [0, 55], [])
+    const yDomain: [number, number] = React.useMemo(() => [0, 5], [])
 
     React.useEffect(() => {
         if (containerRef.current != null) {
