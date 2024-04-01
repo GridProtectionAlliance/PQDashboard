@@ -242,6 +242,7 @@ var heatmap_Cache_Date_To;
 var heatmapCache = [];
 
 var globalContext = "custom";
+window.globalContext = globalContext;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -324,12 +325,16 @@ function setMapHeaderDate(datefrom, dateto) {
 function setGlobalContext(leftToRight) {
     var contexts = ['custom', 'day', 'hour', 'minute', 'second'];
     if (leftToRight) {
-        if (contexts.indexOf(globalContext) < contexts.length - 1)
+        if (contexts.indexOf(globalContext) < contexts.length - 1) {
             globalContext = contexts[contexts.indexOf(globalContext) + 1];
+            window.globalContext = globalContext;
+        }
     }
     else {
-        if (contexts.indexOf(globalContext) > 0)
+        if (contexts.indexOf(globalContext) > 0) {
             globalContext = contexts[contexts.indexOf(globalContext) - 1];
+            window.globalContext = globalContext;
+        }
     }
 
     updateUrlParams('context', globalContext, true);
@@ -3166,10 +3171,13 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
-    if (eventDataTabs.indexOf(theNewTab) < 0 && globalContext != "custom" && globalContext != "day")
+    if (eventDataTabs.indexOf(theNewTab) < 0 && globalContext != "custom" && globalContext != "day") {
         globalContext = "day";
+        window.globalContext = globalContext;
+    }
 
     currentTab = theNewTab;
+    window.currentTab = theNewTab;
     var barChartStartDate = thedatefrom, tableDate = thedatefrom;
 
     setMapHeaderDate(thedatefrom, thedateto);
@@ -3213,6 +3221,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
         setGlobalContext(true);
 
     currentTab = theNewTab;
+    window.currentTab = theNewTab;
 
     setMapHeaderDate(thedatefrom, thedateto);
 
@@ -3635,6 +3644,7 @@ function buildPage() {
             }
 
             currentTab = newTab.replace(/\s/g, "");
+            window.currentTab = newTab.replace(/\s/g, "");
 
             if (newTab.indexOf("Overview") > -1) {
                 $('#headerStrip').hide();
@@ -3655,7 +3665,9 @@ function buildPage() {
     });
 
     currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
+    window.currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
     globalContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
+    window.globalContext = globalContext;
     var assetGroup = (urlParams.get('assetGroup') != null ? urlParams.get('assetGroup') : mg.toString());
     $("#meterGroupSelect").val(assetGroup);
 
@@ -3681,7 +3693,7 @@ function buildPage() {
         globalContext = "custom"
         contextfromdate = datafromdate;
         contexttodate = datatodate;
-
+        window.globalContext = globalContext;
     }
     else if (globalContext == "day") {
         contextfromdate = moment(contextDate).utc().startOf('day').format('YYYY-MM-DDTHH:mm:ss') + "Z";
@@ -4442,4 +4454,23 @@ window.showMagDur = showMagDur;
 window.showSiteSet = showSiteSet;
 window.selectmapgrid = selectmapgrid;
 window.selectMeterGroup = selectMeterGroup;
+window.populateEventsDivWithGrid = populateEventsDivWithGrid;
+window.populateBreakersDivWithGrid = populateBreakersDivWithGrid;
+window.populateCompletenessDivWithGrid = populateCompletenessDivWithGrid;
+window.populateCorrectnessDivWithGrid = populateCorrectnessDivWithGrid;
+window.populateDisturbancesDivWithGrid = populateDisturbancesDivWithGrid;
+window.populateDivWithBarChart = populateDivWithBarChart;
+window.populateDivWithErrorBarChart = populateDivWithErrorBarChart;
+window.populateExtensionsDivWithGrid = populateExtensionsDivWithGrid;
+window.populateFaultsDivWithGrid = populateFaultsDivWithGrid;
+window.populateGridMatrix = populateGridMatrix;
+window.populateGridSparklineDataQuality = populateGridSparklineDataQuality;
+window.populateGridSparklines = populateGridSparklines;
+window.populateTrendingDataDivWithGrid = populateTrendingDataDivWithGrid;
+window.populateTrendingDivWithGrid = populateTrendingDivWithGrid;
+window.getLocationsAndPopulateMapAndMatrix = getLocationsAndPopulateMapAndMatrix
+window.stepOut = stepOut;
+window.openNoteModal = openNoteModal;
+window.loadMapMetricAnimation = loadMapMetricAnimation;
+window.unloadMapMetricAnimation = unloadMapMetricAnimation;
 /// EOF
