@@ -3189,7 +3189,7 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
     resizeMapAndMatrix(theNewTab);
 
     if (globalContext != "custom")
-        getTableDivData('getDetailsForSites' + currentTab, 'Detail' + currentTab, meterList.selectedIdsString(), tableDate);
+        getTableDivData(meterList.selectedIdsString(), tableDate);
     else {
         if ($('#Detail' + currentTab + 'Table').children().length > 0) {
             var parent = $('#Detail' + currentTab + 'Table').parent();
