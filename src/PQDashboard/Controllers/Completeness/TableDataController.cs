@@ -35,6 +35,8 @@ namespace PQDashboard.Controllers
                 "DECLARE @meterList AS varchar(max) = {1} " +
                 "DECLARE @context as nvarchar(20) = {2} " +
                 "" +
+                "SELECT * INTO #MeterSelection FROM dbo.String_to_int_table(@meterList, ',') " +
+                "" +
                 "SELECT " +
                 "	FirstSummary.ID theeventid, " +
                 "	Meter.ID themeterid, " +
@@ -68,7 +70,8 @@ namespace PQDashboard.Controllers
                 "		WHERE " +
                 "			FirstSummary.MeterID = Meter.ID AND " +
                 "			FirstSummary.Date = MeterDataQualitySummary.Date " +
-                "	) FirstSummary";
+                "	) FirstSummary " +
+                "WHERE Meter.ID IN (SELECT * FROM  #MeterSelection)";
 
             Tab = "Completeness";
         }
