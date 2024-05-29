@@ -4473,4 +4473,6 @@ window.stepOut = stepOut;
 window.openNoteModal = openNoteModal;
 window.loadMapMetricAnimation = loadMapMetricAnimation;
 window.unloadMapMetricAnimation = unloadMapMetricAnimation;
+window.moveDateBackward = moveDateBackward;
+window.moveDateForward = moveDateForward;
 /// EOF
