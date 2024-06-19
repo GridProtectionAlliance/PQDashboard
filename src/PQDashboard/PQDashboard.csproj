@@ -575,6 +575,8 @@
     <Compile Include="WebExtensions.cs" />
     <Content Include="Content\bootstrap-fullscreen-select.css.map" />
     <Content Include="BreakerReportCSVDownload.ashx" />
+    <Content Include=".eslintignore" />
+    <Content Include=".eslintrc" />
     <None Include="Properties\PublishProfiles\Package Builder.pubxml" />
     <None Include="Properties\PublishProfiles\tva6a.pubxml" />
     <None Include="Properties\PublishProfiles\web.pubxml" />
