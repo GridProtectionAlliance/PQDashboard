@@ -20,6 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+/* eslint-disable */
 
 import * as React from 'react';
 import * as _ from 'lodash';
@@ -52,8 +53,8 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
     }
 
     render() {
-        var rowComponents = this.generateRows();
-        var headerComponents = this.generateHeaders();
+        const rowComponents = this.generateRows();
+        const headerComponents = this.generateHeaders();
         return (
             <table className={(this.props.tableClass != undefined ? this.props.tableClass : '')} style={this.props.tableStyle}>
                 <thead style={this.props.theadStyle}>{headerComponents}</thead>
@@ -65,8 +66,8 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
     generateHeaders() {
         if (this.props.cols.length == 0) return null;
 
-        var cells = this.props.cols.map((colData, index) => {
-            var style;
+        const cells = this.props.cols.map((colData, index) => {
+            let style;
             if (colData.headerStyle != undefined) {
                 style = colData.headerStyle;
             }
@@ -86,8 +87,8 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
         if (this.props.data.length == 0) return null;
 
         return this.props.data.map((item, index) => {
-            var cells = this.props.cols.map(colData => {
-                var style = _.clone(colData.rowStyle);
+            const cells = this.props.cols.map(colData => {
+                const style = _.clone(colData.rowStyle);
                 return <td
                     key={index.toString() + item[colData.key] + colData.key}
                     style={style}
@@ -97,7 +98,7 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
                 </td>
             });
 
-            var style;
+            let style;
 
             if (this.props.rowStyle != undefined) {
                 style = _.clone(this.props.rowStyle);
@@ -122,4 +123,4 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
     handleSort(data, event) {
         this.props.onSort(data);
     }
-};
+}

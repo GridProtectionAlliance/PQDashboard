@@ -20,18 +20,19 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
+/* eslint-disable */
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as _ from 'lodash';
 import Table from './Table';
 
-declare var meterName: string;
-declare var date: string;
-declare var xdaInstance: string;
-declare var context: string;
-declare var eventID: number;
-declare var homePath: string;
+declare let meterName: string;
+declare let date: string;
+declare let xdaInstance: string;
+declare let context: string;
+declare let eventID: number;
+declare let homePath: string;
 
 interface EventData {
     StartTime: string,
@@ -64,7 +65,7 @@ class MeterEventByLine extends React.Component<{}, { Data: Array<EventData>, Sor
             cache: true,
             async: true
         }).done((data: Array<EventData>) => {
-            var ordered = _.orderBy(data, [this.state.SortField], [(this.state.Ascending ? "asc" : "desc")]);
+            const ordered = _.orderBy(data, [this.state.SortField], [(this.state.Ascending ? "asc" : "desc")]);
             this.setState({ Data: ordered});
 
             ($(this.refs.dataTable) as any).puidatatable({
