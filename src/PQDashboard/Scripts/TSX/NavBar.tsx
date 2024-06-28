@@ -1,7 +1,8 @@
+/*
 //******************************************************************************************************
 //  MagDurChart.tsx - Gbtc
 //
-//  Copyright © 2024, Grid Protection Alliance.  All Rights Reserved.
+//  Copyright Â© 2024, Grid Protection Alliance.  All Rights Reserved.
 //
 //  Licensed to the Grid Protection Alliance (GPA) under one or more contributor license agreements. See
 //  the NOTICE file distributed with this work for additional information regarding copyright ownership.
@@ -23,16 +24,33 @@
 import { TabSelector }  from "@gpa-gemstone/react-interactive"
 import * as ReactDOM from 'react-dom'
 import * as React from 'react'
+import { createBrowserHistory } from "history/createBrowserHistory"
+
+//these will have to come from the db more than likely since we have configurable tabs..
+const tabs = [
+    { Id: 'EventSearch', Label: 'Event Search' },
+    { Id: 'events', Label: 'Events' },
+    { Id: 'disturbances', Label: 'Disturbances' },
+    { Id: 'faults', Label: 'Faults' },
+    { Id: 'trending', Label: 'Trending' },
+    { Id: 'completeness', Label: 'Completeness' },
+    { Id: 'correctness', Label: 'Correctness' }]
 
 const NavBar = () => {
-    const tabs = [{ Id: 'EventSearch', Label: 'Event Search' }, { Id: 'events', Label: 'Events' }, { Id: 'disturbances', Label: 'Disturbances' }, { Id: 'faults', Label: 'Faults' },
-        { Id: 'trending', Label: 'Trending' }, { Id: 'completeness', Label: 'Completeness' }, { Id: 'correctness', Label: 'Correctness' }]
 
     const [currentTab, setCurrentTab] = React.useState('events')
 
-    const handleTabChange = (tab) => {
-        setCurrentTab(tab)
-    }
+    React.useEffect(() => {
+        (window as any).currentTab = currentTab;
+        let urlParams = new URLSearchParams(window.location.search);
+
+        urlParams.set('tab', currentTab);
+        console.log('urlParams:', urlParams.toString());
+
+        history.pushState(null, null, "?" + urlParams.toString());
+    },[currentTab])
+
+
 
     return (
         <>
@@ -40,11 +58,16 @@ const NavBar = () => {
                 <TabSelector
                     CurrentTab={currentTab}
                     Tabs={tabs}
-                    SetTab={(t) => handleTabChange(t)}
+                    SetTab={(t) => setCurrentTab(t)}
                 />
             </div>
         </>
     )
 }
 
-ReactDOM.render(<NavBar />, document.getElementById("new-tabs"));
+export function renderNavBar() {
+    let container = document.getElementById('new-tabs') 
+    if (container)
+        ReactDOM.render(<NavBar />, container);
+}
+*/
