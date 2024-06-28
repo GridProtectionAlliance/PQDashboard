@@ -1,4 +1,4 @@
-﻿//******************************************************************************************************
+//******************************************************************************************************
 //  Default.js - Gbtc
 //
 //==================================================================
@@ -22,6 +22,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Global
 import { renderMagDurChart } from './MagDurChart.js';
+import { renderBarChart } from './BarChart.js'
 
 var base64Map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 
@@ -242,7 +243,24 @@ var heatmap_Cache_Date_To;
 var heatmapCache = [];
 
 var globalContext = "custom";
-window.globalContext = globalContext;
+
+let BarTimeContext = "custom"
+const setBarTimeContext = (timeContext) => {
+    BarTimeContext = timeContext
+    renderBarChart(`Overview${currentTab}`, BarSiteID, BarStartDateProp, BarEndDateProp, currentTab, BarTimeContext, setBarTimeContext, BarXLimits, setBarXLimits)
+}
+
+let BarXLimits;
+let setBarXLimits = (xLimits) => {
+    BarXLimits = xLimits
+    renderBarChart(`Overview${currentTab}`, BarSiteID, BarStartDateProp, BarEndDateProp, currentTab, BarTimeContext, setBarTimeContext, BarXLimits, setBarXLimits)
+}
+
+//Variables to hold params that are needed to rerender barchart
+let BarSiteID;
+let BarStartDateProp;
+let BarEndDateProp;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1064,7 +1082,7 @@ function stepOut() {
 
 function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "custom" : globalContext);
 
     $.post(homePath + "api/" + currentTab + "/BarChart", { siteID: siteID, targetDateFrom: thedatefrom, targetDateTo: thedateto, context: context }, function (data) {
         if (data !== null) {
@@ -1091,19 +1109,23 @@ function populateDivWithBarChart(thediv, siteID, thedatefrom, thedateto) {
                 graphData.colors.push(d.Color);
             });
 
-
             cache_Graph_Data = graphData;
 
             if (thediv === "Overview") {
 
             } else if (thediv === "TrendingData") {
 
-            } else
-                buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate, context);
+            } else {
+                //buildBarChart(graphData, thediv, siteID, data.StartDate, data.EndDate, context);
+            }
         }
 
     });
 
+    BarSiteID = siteID;
+    BarStartDateProp = thedatefrom;
+    BarEndDateProp = thedateto;
+    renderBarChart(thediv, BarSiteID, BarStartDateProp, BarEndDateProp, currentTab, BarTimeContext, setBarTimeContext, BarXLimits, setBarXLimits)
 
     if (currentTab == "Disturbances") {
         //cache_MagDur_Data = data;
@@ -1280,7 +1302,7 @@ function buildBarChartPlotly(data, thediv, siteID, thedatefrom, thedateto) {
 
 function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+    var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "custom" : globalContext);
 
     $('#' + thediv).children().remove();
     $('#' + thediv + 'Overview').children().remove();
@@ -1416,7 +1438,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
 
         var xAxis;
         var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "custom" : globalContext);
 
         if (context == 'day') {
             numSamples = moment.duration(endDate.diff(startDate)).asHours();
@@ -1704,7 +1726,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     //called when selection is chosen on overview map
     function brushed() {
         var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "custom" : globalContext);
 
         var startDate;
         var endDate;
@@ -1794,7 +1816,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
     //Toggles a certain series.
     function toggleSeries(seriesName, isDisabling) {
         var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
-        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "Custom" : globalContext);
+        var context = (tabsForDigIn.indexOf(currentTab) < 0 ? "custom" : globalContext);
 
         var newData = deepCopy(cache_Graph_Data.graphData);
 
@@ -2184,7 +2206,7 @@ function buildMagDurChart(data, thediv) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string) {
+ export function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, string, context) {
     cache_Map_Matrix_Data = null;
     cache_Map_Matrix_Data_Date_From = null;
     cache_Map_Matrix_Data_Date_To = null;
@@ -2205,7 +2227,7 @@ function getLocationsAndPopulateMapAndMatrix(currentTab, datefrom, dateto, strin
     }
 
     if (currentTab != 'TrendingData') {
-        $.post(homePath + 'api/' + currentTab + '/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: globalContext }, function (data) {
+        $.post(homePath + 'api/' + currentTab + '/Location', { targetDateFrom: datefrom, targetDateTo: dateto, meterIds: meterList.selectedIdsString(), context: context ?? globalContext }, function (data) {
             cache_Map_Matrix_Data_Date_From = datefrom;
             cache_Map_Matrix_Data_Date_To = dateto;
             cache_Map_Matrix_Data = data;
@@ -3275,14 +3297,19 @@ function resizeDocklet(theparent, chartheight) {
 
     var firstChild = $("#" + theparent[0].firstElementChild.id);
 
-    firstChild.css("height", chartheight - 100);
+    //No longer have the need for an extra 100px here
+    firstChild.css("height", chartheight /*- 100*/);
+    firstChild.css("max-height", chartheight);
+
     if (currentTab === "TrendingData") {
         if ($('#Overview' + currentTab).children().length > 0 && cache_ErrorBar_Data !== null)
             buildErrorBarChart(cache_ErrorBar_Data, 'Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
     }
     else {
-        if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null)
-            buildBarChart(cache_Graph_Data, 'Overview' + currentTab, meterList.selectedIdsString(), barDateFrom, barDateTo);
+        if ($('#Overview' + currentTab).children().length > 0 && cache_Graph_Data !== null) {
+
+        }
+            //buildBarChart(cache_Graph_Data, 'Overview' + currentTab, meterList.selectedIdsString(), barDateFrom, barDateTo);
     }
 
     if ($('#Detail' + currentTab + 'Table').children().length > 0 && cache_Table_Data !== null)
@@ -3748,7 +3775,6 @@ function buildPage() {
             resizeMapAndMatrix(currentTab);
         });
     }
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -4473,4 +4499,6 @@ window.stepOut = stepOut;
 window.openNoteModal = openNoteModal;
 window.loadMapMetricAnimation = loadMapMetricAnimation;
 window.unloadMapMetricAnimation = unloadMapMetricAnimation;
+window.moveDateBackward = moveDateBackward;
+window.moveDateForward = moveDateForward;
 /// EOF
