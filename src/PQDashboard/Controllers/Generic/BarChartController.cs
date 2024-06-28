@@ -159,12 +159,30 @@ namespace PQDashboard.Controllers
 
                             if (chartSettings.First(x => x.Text == column.ColumnName).Enabled == true)
                             {
-                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(Convert.ToDateTime(row["thedate"]), Convert.ToInt32(row[column.ColumnName])));
+                                DateTime originalDate = Convert.ToDateTime(row["thedate"]);
+                                DateTime centeredDate = originalDate;
+
+                                if (form.context == "day")
+                                    centeredDate = originalDate.AddMinutes(30);
+                                else if (form.context == "hour")
+                                    centeredDate = originalDate.AddSeconds(30);
+                                else if (form.context == "minute")
+                                    centeredDate = originalDate.AddMilliseconds(500);
+                                else
+                                {
+                                    TimeSpan duration = eventSet.EndDate - eventSet.StartDate;
+                                    if (duration.TotalDays >= 1)
+                                        centeredDate = originalDate.AddHours(12);
+                                }
+
+                                eventSet.Types[eventSet.Types.IndexOf(x => x.Name == column.ColumnName)].Data.Add(Tuple.Create(centeredDate, Convert.ToInt32(row[column.ColumnName])));
                             }
                         }
                     }
 
 
+                    // Fill missing time values based on the context
+                    FillMissingTimeValues(eventSet, form.context);
                     return Ok(eventSet);
 
                 }
@@ -175,6 +193,53 @@ namespace PQDashboard.Controllers
                 return InternalServerError(ex);
             }
         }
+
+        private void FillMissingTimeValues(EventSet eventSet, string context)
+        {
+            List<DateTime> allTimeValues;
+
+            if (context == "day")
+                allTimeValues = Enumerable.Range(0, (int)(eventSet.EndDate - eventSet.StartDate).TotalHours + 1)
+                                          .Select(offset => eventSet.StartDate.AddHours(offset).AddMinutes(30))
+                                          .ToList();
+
+            else if (context == "hour")
+                allTimeValues = Enumerable.Range(0, (int)(eventSet.EndDate - eventSet.StartDate).TotalMinutes + 1)
+                                          .Select(offset => eventSet.StartDate.AddMinutes(offset).AddSeconds(30))
+                                          .ToList();
+
+            else if (context == "minute")
+                allTimeValues = Enumerable.Range(0, (int)(eventSet.EndDate - eventSet.StartDate).TotalSeconds + 1)
+                                          .Select(offset => eventSet.StartDate.AddSeconds(offset).AddMilliseconds(500))
+                                          .ToList();
+
+            else if (context == "second")
+                allTimeValues = Enumerable.Range(0, (int)(eventSet.EndDate - eventSet.StartDate).TotalMilliseconds + 1)
+                                          .Select(offset => eventSet.StartDate.AddMilliseconds(offset).AddMilliseconds(0.5))
+                                          .ToList();
+            else
+                // Default to days as a custom context is a range of days
+                allTimeValues = Enumerable.Range(0, (int)(eventSet.EndDate - eventSet.StartDate).TotalDays + 1)
+                                          .Select(offset => eventSet.StartDate.AddDays(offset).AddHours(12))
+                                          .ToList();
+
+            foreach (var eventType in eventSet.Types)
+            {
+                var existingDates = eventType.Data.Select(d => d.Item1).ToList();
+                var missingDates = allTimeValues.Except(existingDates).ToList();
+
+                foreach (var missingDate in missingDates)
+                {
+                    //Fill gaps with 0
+                    eventType.Data.Add(Tuple.Create(missingDate, 0));
+                }
+
+                // Sort the data by date
+                eventType.Data = eventType.Data.OrderBy(d => d.Item1).ToList();
+            }
+        }
+
+
 
         #endregion
     }
