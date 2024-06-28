@@ -1,4 +1,4 @@
-//******************************************************************************************************
+﻿//******************************************************************************************************
 //  Default.js - Gbtc
 //
 //==================================================================
@@ -23,6 +23,7 @@
 // Global
 import { renderMagDurChart } from './MagDurChart.js';
 import { renderBarChart } from './BarChart.js'
+import { renderWhiskerLineChart } from './WhiskerLine.js'
 
 var base64Map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 
@@ -1511,7 +1512,7 @@ function buildBarChart(data, thediv, siteID, thedatefrom, thedateto) {
                 .attr("onclick", "stepOut()")
                 .style("cursor", "pointer")
                 .text("Step Out ");
-
+                
             btnBar.append("div")
                 .attr("class", "modebar-group")
                 .style("display", "table-cell")
@@ -2704,12 +2705,11 @@ function plotGridLocations(locationdata, newTab) {
         }
         else {
             var record = locationdata.Data.find(function (a) { return a.ID == value.ID });
-            if (record == null) {
+            if (record == null) 
                 record = cache_Sparkline_Data.Data.find(function (a) { return a.ID == value.ID && a.Name == value.Name });
-            }
+            
             record.item = item;
             data.Data.push(record);
-
         }
 
         item.data('gridstatus', value.Event_Count);
@@ -2721,6 +2721,8 @@ function plotGridLocations(locationdata, newTab) {
     /// Set Matrix Cell size
     cache_Sparkline_Data = data;
     showSiteSet($("#selectSiteSet" + currentTab)[0]);
+    //renderAssetSelector(`theMatrix${newTab}`, meterList, locationdata, newTab, cache_Sparkline_Data, currentTab, $("#selectSiteSet" + currentTab)[0], leafletMap, selectiontimeout, cache_Last_Date, contextfromdate, contexttodate, globalContext, getTableDivData, disabledList)
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -3149,7 +3151,8 @@ function ManageLocationClick(siteID) {
     if (currentTab == "TrendingData") {
         thedatefrom = moment($('#dateRange').data('daterangepicker').startDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
         thedateto = moment($('#dateRange').data('daterangepicker').endDate._d.toISOString()).utc().format('YYYY-MM-DD') + "T00:00:00Z";
-        populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+        //populateDivWithErrorBarChart('getTrendingDataForPeriod', 'Overview' + currentTab, siteID, thedatefrom, thedateto);
+        renderWhiskerLineChart('Overview' + currentTab, siteID, thedatefrom, thedateto, currentTab, BarTimeContext, BarXLimits)
         return;
     }
 
@@ -3177,8 +3180,6 @@ function ManageLocationClick(siteID) {
         thedatefrom = moment(contextfromdate).utc();
         thedateto = moment(contextfromdate).utc();
     }
-
-    var tabsForDigIn = ['Events', 'Disturbances', 'Faults', 'Breakers', 'Extensions'];
 
     if ((thedatefrom == "") || (thedateto == "")) return;
 
@@ -3230,9 +3231,11 @@ function manageTabsByDate(theNewTab, thedatefrom, thedateto) {
 
     if (currentTab != "TrendingData")
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), barChartStartDate, thedateto);
-    else
-        populateDivWithErrorBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
-    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined");
+    else{
+        //populateDivWithErrorBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto)
+        renderWhiskerLineChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto, currentTab, BarTimeContext, BarXLimits)
+    }
+    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, "undefined", null);
 }
 
 function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
@@ -3250,7 +3253,7 @@ function manageTabsByDateForClicks(theNewTab, thedatefrom, thedateto, filter) {
     getTableDivData(meterList.selectedIdsString(), thedatefrom);
     if (tabsForDigIn.indexOf(currentTab) >= 0 && globalContext != 'second')
         populateDivWithBarChart('Overview' + currentTab, meterList.selectedIdsString(), thedatefrom, thedateto);
-    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter);
+    getLocationsAndPopulateMapAndMatrix(theNewTab, thedatefrom, thedateto, filter, null);
 
 }
 
@@ -4475,6 +4478,7 @@ function fitTextToWidth(text, font, width) {
 
     return newString;
 }
+
 
 window.showMagDur = showMagDur;
 window.showSiteSet = showSiteSet;
