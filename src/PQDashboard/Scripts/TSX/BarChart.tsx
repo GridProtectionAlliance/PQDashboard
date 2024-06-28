@@ -28,7 +28,7 @@ import { Plot, Bar, BarGroup } from '@gpa-gemstone/react-graph';
 import { ReactIcons } from '@gpa-gemstone/gpa-symbols';
 import { ReactTable } from '@gpa-gemstone/react-table';
 import { PQDashboard } from './global';
-import { renderTimeDetailTable } from './DetailTable/TimeDetailTable';
+import { renderTableWrapper } from './DetailTables/TableWrapper';
 
 interface IProps {
     SiteID: string,
@@ -101,7 +101,7 @@ const BarChart = (props: IProps) => {
 
 
     React.useEffect(() => {
-        renderTimeDetailTable(`Detail${props.Tab}`, props.SiteID, getFormattedDate(props.XLimits?.[0], props.TimeContext), props.Tab, props.TimeContext)
+        renderTableWrapper(`Detail${props.Tab}`, props.SiteID, getFormattedDate(props.XLimits?.[0], props.TimeContext), props.Tab, props.TimeContext)
     }, [props.TimeContext, props.Tab, props.XLimits, props.SiteID])
 
     React.useEffect(() => {
@@ -197,7 +197,7 @@ const BarChart = (props: IProps) => {
         if (props.Tab === "Completeness" || props.Tab === "Correctness") {
             let startTime = moment(time).utc().startOf('day').valueOf();
             updateUrlParams('contextDate', getFormattedDate(startTime, 'day'));
-            renderTimeDetailTable(`Detail${props.Tab}`, props.SiteID, getFormattedDate(startTime, 'day'), props.Tab, 'day');
+            renderTableWrapper(`Detail${props.Tab}`, props.SiteID, getFormattedDate(startTime, 'day'), props.Tab, 'day');
             updateMapHeaderDate(startTime, startTime, 'day', props.Tab);
             const startDate = getFormattedDate(startTime, props.TimeContext);
 
