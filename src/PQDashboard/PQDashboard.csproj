@@ -552,6 +552,7 @@
     <Content Include="Images\2-Line - 500.png" />
     <Content Include="Images\map-icon.png" />
     <Content Include="Images\openSEE - Waveform Viewer Header.png" />
+    <Content Include="Images\PQBrowser.png" />
     <Content Include="Images\PQDashboardLogo II w-GPA_600.png" />
     <Content Include="Images\PQI.png" />
     <Content Include="Images\SE Dashboard with GPA 200 high.png" />
@@ -592,8 +593,6 @@
     <Content Include="Views\Login\Index.cshtml" />
     <Content Include="Views\Login\Logout.cshtml" />
     <Content Include="Views\Login\UserInfo.cshtml" />
-    <None Include="webpack.development.config.js" />
-    <None Include="webpack.production.config.js" />
     <None Include="webpack.config.js" />
   </ItemGroup>
   <ItemGroup>
@@ -1432,10 +1431,14 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\TSX\BarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\global.d.ts" />
     <TypeScriptCompile Include="Scripts\TSX\MagDurChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\MeterEventsByLine.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\NavBar.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Table.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\DetailTables\Tables.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\DetailTables\TableWrapper.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\WhiskerLineChart.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
