@@ -3697,6 +3697,8 @@ function buildPage() {
     currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
     window.currentTab = (urlParams.get('tab') != null ? urlParams.get('tab') : defaultView.Tab);
     globalContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
+    BarTimeContext = (urlParams.get('context') != null ? urlParams.get('context') : "custom");
+
     window.globalContext = globalContext;
     var assetGroup = (urlParams.get('assetGroup') != null ? urlParams.get('assetGroup') : mg.toString());
     $("#meterGroupSelect").val(assetGroup);
