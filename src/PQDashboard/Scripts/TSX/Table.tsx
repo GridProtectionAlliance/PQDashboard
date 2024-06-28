@@ -21,6 +21,7 @@
 //
 //******************************************************************************************************
 /* eslint-disable */
+// @ts-nocheck
 
 import * as React from 'react';
 import * as _ from 'lodash';
@@ -90,7 +91,7 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
             const cells = this.props.cols.map(colData => {
                 const style = _.clone(colData.rowStyle);
                 return <td
-                    key={index.toString() + item[colData.key] + colData.key}
+                    key={index.toString() + (item[colData.key] as string) + (colData.key as string)}
                     style={style}
                     onClick={this.handleClick.bind(this, { col: colData.key, row: item, data: item[colData.key] })}
                 >
