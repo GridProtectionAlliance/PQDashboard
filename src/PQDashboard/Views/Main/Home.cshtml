@@ -162,8 +162,6 @@
 </head>
 
 <body>
-    <script type="module" src="~/Scripts/MagDurChart.js"></script>
-
     <div id="draggable" class="ui-widget-content"></div>
     <div style="width: 100%; height: 36px;">
         <table width="100%">
@@ -235,7 +233,7 @@
                 </tr>
             </table>
         </div>
-
+        
         <div id="application-tabs" class="noselect">
             <ul>
                 @foreach (ValueList tab in ViewBag.Tabs)
@@ -336,7 +334,6 @@
                                 </div>
                                 <div id="DockOverview@(tab.Text)" class="portlet-content theDockOverviewStyle">
                                     <div id="Overview@(tab.Text)" style="height: auto" class="docklet chart-container"></div>
-                                    <div id="Overview@(tab.Text)Overview" style="height: 100px; bottom: 0" class="docklet chart-container"></div>
                                     @if (tab.Text == "Disturbances")
                                     {
                                         <div id="OverviewDisturbancesMagDur" class="docklet chart-container" style="display: none"></div>
