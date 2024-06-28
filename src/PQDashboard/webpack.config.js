@@ -3,6 +3,7 @@ const path = require("path");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const TerserPlugin = require('terser-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { WhiskerLine } = require("@gpa-gemstone/react-graph");
 
 module.exports = {
     mode: 'development',
@@ -13,7 +14,8 @@ module.exports = {
         MeterEventsByLine: "./TSX/MeterEventsByLine.tsx",
         MagDurChart: "./TSX/MagDurChart.tsx",
         NavBar: "./TSX/NavBar.tsx",
-        BarChart: "./TSX/BarChart.tsx"
+        BarChart: "./TSX/BarChart.tsx",
+        WhiskerLine: "./TSX/WhiskerLineChart.tsx"
     },
     output: {
         path: path.resolve(__dirname, 'Scripts'),
