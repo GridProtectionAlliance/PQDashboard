@@ -45,16 +45,16 @@ namespace PQDashboard.Controllers
 
                         -- Trending Data
                         SELECT
-                            Meter.ID as meterid,
-                            Meter.Name as Name,
-                            Channel.ID as channelid,
-                            DailyTrendingSummary.Date as date,
+                            Meter.ID as MeterID,
+                            Meter.Name as Site,
+                            Channel.ID as ChannelID,
+                            DailyTrendingSummary.Date as Date,
                             MIN(Minimum/COALESCE(Channel.PerUnitValue,1)) as Minimum,
                             MAX(Maximum/COALESCE(Channel.PerUnitValue,1)) as Maximum,
                             AVG(Average/COALESCE(Channel.PerUnitValue,1)) as Average,
-                            MeasurementCharacteristic.Name as characteristic,
-                            MeasurementType.Name as measurementtype,
-                            Phase.Name as phasename
+                            MeasurementCharacteristic.Name as Characteristic,
+                            MeasurementType.Name as MeasurementType,
+                            Phase.Name as PhaseName
                         FROM
                             DailyTrendingSummary JOIN
                             Channel ON DailyTrendingSummary.ChannelID = Channel.ID JOIN

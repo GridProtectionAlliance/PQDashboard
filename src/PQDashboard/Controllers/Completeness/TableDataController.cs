@@ -38,9 +38,9 @@ namespace PQDashboard.Controllers
                 "SELECT * INTO #MeterSelection FROM dbo.String_to_int_table(@meterList, ',') " +
                 "" +
                 "SELECT " +
-                "	FirstSummary.ID theeventid, " +
-                "	Meter.ID themeterid, " +
-                "	Meter.Name thesite, " +
+                "	FirstSummary.ID EventID, " +
+                "	Meter.ID MeterID, " +
+                "	Meter.Name Site, " +
                 "	MeterDataQualitySummary.ExpectedPoints Expected, " +
                 "	DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount Received, " +
                 "	CONVERT(FLOAT, DailyTrendingSummary.ValidCount + DailyTrendingSummary.InvalidCount) / MeterDataQualitySummary.ExpectedPoints * 100 Completeness " +

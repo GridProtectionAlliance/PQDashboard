@@ -76,20 +76,20 @@ namespace PQDashboard.Controllers
 
 	                    SELECT * INTO #MeterSelection FROM dbo.String_to_int_table(@MeterID, ',')
                         SELECT
-                            Meter.ID AS meterid,
-                            Event.ID AS theeventid,
-                            EventType.Name AS eventtype,
-                            BreakerOperation.ID AS breakeroperationid,
-                            CAST(CAST(BreakerOperation.TripCoilEnergized AS TIME) AS NVARCHAR(100)) AS energized,
-                            BreakerOperation.BreakerNumber AS breakernumber,
-                            Asset.AssetName AS linename,
-                            Phase.Name AS phasename,
-                            CAST(BreakerOperation.BreakerTiming AS DECIMAL(16,5)) AS timing,
-                            CAST(BreakerOperation.StatusTiming AS DECIMAL(16,5)) AS statustiming,
-                            BreakerOperation.BreakerSpeed AS speed,
-                            BreakerOperation.StatusBitChatter AS chatter,
-                            BreakerOperation.DcOffsetDetected AS dcoffset,
-                            BreakerOperationType.Name AS operationtype,
+                            Meter.ID AS MeterID,
+                            Event.ID AS EventID,
+                            EventType.Name AS EventType,
+                            BreakerOperation.ID AS BreakerOperationID,
+                            CAST(CAST(BreakerOperation.TripCoilEnergized AS TIME) AS NVARCHAR(100)) AS Energized,
+                            BreakerOperation.BreakerNumber AS BreakerNumber,
+                            Asset.AssetName AS LineName,
+                            Phase.Name AS PhaseName,
+                            CAST(BreakerOperation.BreakerTiming AS DECIMAL(16,5)) AS Timing,
+                            CAST(BreakerOperation.StatusTiming AS DECIMAL(16,5)) AS StatusTiming,
+                            BreakerOperation.BreakerSpeed AS Speed,
+                            BreakerOperation.StatusBitChatter AS Chatter,
+                            BreakerOperation.DcOffsetDetected AS DcOffset,
+                            BreakerOperationType.Name AS OperationType,
                             (SELECT COUNT(*) FROM EventNote WHERE EventNote.EventID = Event.ID) as notecount
                         FROM
                             BreakerOperation JOIN

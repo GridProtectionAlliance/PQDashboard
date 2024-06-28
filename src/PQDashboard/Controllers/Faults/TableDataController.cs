@@ -53,29 +53,29 @@ namespace PQDashboard.Controllers
 
             ; WITH FaultDetail AS
             (
-                SELECT
-                    FaultSummary.ID AS thefaultid,
-                    Meter.Name AS thesite,
-                    Meter.ShortName AS theshortsite,
-                    Location.ShortName AS locationname,
-                    Meter.ID AS themeterid,
-                    Asset.ID AS thelineid,
-                    Event.ID AS theeventid,
-                    Asset.AssetName AS AssetName,
-			        AssetType.Name AS AssetType,
-                    Asset.VoltageKV AS voltage,
-                    CAST(CAST(Event.StartTime AS TIME) AS NVARCHAR(100)) AS theinceptiontime,
-                    FaultSummary.FaultType AS thefaulttype,
-                    FaultCauseMetrics.TreeFaultResistance,
-                    FaultCauseMetrics.LightningMilliseconds,
-                    FaultCauseMetrics.InceptionDistanceFromPeak,
-                    FaultCauseMetrics.PrefaultThirdHarmonic,
-                    FaultCauseMetrics.GroundCurrentRatio,
-                    FaultCauseMetrics.LowPrefaultCurrentRatio,
-                    CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE CAST(CAST(FaultSummary.Distance AS DECIMAL(16,2)) AS NVARCHAR(19)) END AS thecurrentdistance,
-                    (SELECT COUNT(*) FROM FaultNote WHERE FaultSummary.ID = FaultNote.FaultSummaryID) as notecount,
-                    ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY FaultSummary.IsSuppressed, FaultSummary.IsSelectedAlgorithm DESC, FaultSummary.Inception) AS rk
-                FROM
+                            SELECT
+                                FaultSummary.ID AS FaultID,
+                                Meter.Name AS Site,
+                                Meter.ShortName AS ShortName,
+                                Location.ShortName AS LocationName,
+                                Meter.ID AS MeterID,
+                                Asset.ID AS LineID,
+                                Event.ID AS EventID,
+                                Asset.AssetName AS AssetName,
+			                    AssetType.Name AS AssetType,
+                                Asset.VoltageKV AS kV,
+                                CAST(CAST(Event.StartTime AS TIME) AS NVARCHAR(100)) AS InceptionTime,
+                                FaultSummary.FaultType AS FaultType,
+                                FaultCauseMetrics.TreeFaultResistance,
+                                FaultCauseMetrics.LightningMilliseconds,
+                                FaultCauseMetrics.InceptionDistanceFromPeak,
+                                FaultCauseMetrics.PrefaultThirdHarmonic,
+                                FaultCauseMetrics.GroundCurrentRatio,
+                                FaultCauseMetrics.LowPrefaultCurrentRatio,
+                                CASE WHEN FaultSummary.Distance = '-1E308' THEN 'NaN' ELSE CAST(CAST(FaultSummary.Distance AS DECIMAL(16,2)) AS NVARCHAR(19)) END AS CurrentDistance,
+                                (SELECT COUNT(*) FROM FaultNote WHERE FaultSummary.ID = FaultNote.FaultSummaryID) as notecount,
+                                ROW_NUMBER() OVER(PARTITION BY Event.ID ORDER BY FaultSummary.IsSuppressed, FaultSummary.IsSelectedAlgorithm DESC, FaultSummary.Inception) AS RK
+                            FROM
                     FaultSummary JOIN
                     Event ON FaultSummary.EventID = Event.ID JOIN
                     FaultCauseMetrics ON FaultSummary.EventID = FaultCauseMetrics.EventID AND FaultSummary.FaultNumber = FaultCauseMetrics.FaultNumber JOIN

@@ -43,16 +43,16 @@ namespace PQDashboard.Controllers
                         INSERT INTO @MeterIDs(ID) SELECT Value FROM dbo.String_to_int_table(@MeterID, ',');
 
                             Select
-                            Meter.ID as meterid,
-                            Channel.ID as channelid,
-                            Meter.Name as sitename,
-                            'Alarm' as eventtype,
-                            [dbo].[MeasurementCharacteristic].[Name] as characteristic,
-                            [dbo].[MeasurementType].[Name] as measurementtype,
-                            [dbo].[Phase].[Name] as phasename,
+                            Meter.ID as MeterID,
+                            Channel.ID as ChannelID,
+                            Meter.Name as Site,
+                            'Alarm' as EventType,
+                            [dbo].[MeasurementCharacteristic].[Name] as Characteristic,
+                            [dbo].[MeasurementType].[Name] as MeasurementType,
+                            [dbo].[Phase].[Name] as PhaseName,
                             Channel.HarmonicGroup,
-                            SUM (ChannelAlarmSummary.AlarmPoints) as eventcount,
-                            @theDate as date
+                            SUM (ChannelAlarmSummary.AlarmPoints) as EventCount,
+                            @theDate as Date
 
                             from Channel
 
