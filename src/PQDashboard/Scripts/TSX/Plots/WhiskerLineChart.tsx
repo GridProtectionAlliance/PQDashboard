@@ -93,7 +93,7 @@ const WhiskerLineChart = (props: IProps) => {
         setXLimits([moment.utc(props.StartDate).valueOf(), moment.utc(props.EndDate).valueOf()]);
     }, [props.StartDate, props.EndDate])
 
-    
+
     React.useEffect(() => {
         renderTableWrapper(`Detail${props.Tab}`, props.SiteID, getFormattedDate(props.XLimits?.[0], props.TimeContext), props.Tab, props.TimeContext)
     }, [props.TimeContext, props.Tab, props.XLimits, props.SiteID])
@@ -173,7 +173,7 @@ const WhiskerLineChart = (props: IProps) => {
     }
 
     const handleOnClick = (xValue: number, yValue: number, left: number, top: number) => {
-        if (isNaN(xValue), isNaN(yValue), isNaN(left), isNaN(top)) {
+        if (isNaN(xValue) || isNaN(yValue) || isNaN(left) || isNaN(top)) {
             setClickPosition(null);
             setClickData(null);
             return;
@@ -226,5 +226,5 @@ export function renderWhiskerLineChart(div, siteID, thedatefrom, thedateto, tab,
     const container = document.getElementById(div)
     if (container != null)
         ReactDOM.render(
-            <WhiskerLineChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={tab} TimeContext={timeContext} XLimits={xLimits}/>, container);
+            <WhiskerLineChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={tab} TimeContext={timeContext} XLimits={xLimits} />, container);
 }
