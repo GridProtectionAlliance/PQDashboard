@@ -23,8 +23,8 @@
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import _ from 'lodash';
 import { PQDashboard } from '../global';
+import { Table } from './interfaces'
 import { CommonTable, CompletenessTable, CorrectnessTable, FaultsTable, BreakersTable, ExtensionsTable, TrendingTable, TrendingDataTable } from './Tables';
 
 interface IProps {
@@ -37,7 +37,7 @@ interface IProps {
 declare let homePath;
 
 const TableWrapper = (props: IProps) => {
-    const [data, setData] = React.useState<any[]>([]);
+    const [data, setData] = React.useState<unknown[]>([]);
 
     React.useEffect(() => {
         $.ajax({
@@ -56,21 +56,21 @@ const TableWrapper = (props: IProps) => {
 
     const renderTable = React.useCallback(() => {
         if (props.Tab === "Completeness")
-            return <CompletenessTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <CompletenessTable Data={data as Table.ICompletenessData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === "Faults")
-            return <FaultsTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <FaultsTable Data={data as Table.IFaultData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === 'Correctness')
-            return <CorrectnessTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <CorrectnessTable Data={data as Table.ICorrectnessData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === 'Breakers')
-            return <BreakersTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <BreakersTable Data={data as Table.IBreakersData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === 'Extensions')
-            return <ExtensionsTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <ExtensionsTable Data={data as Table.IExtensionsData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === "Trending")
-            return <TrendingTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
-        if(props.Tab === "TrendingData")
-            return <TrendingDataTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+            return <TrendingTable Data={data as Table.ITrendingData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+        if (props.Tab === "TrendingData")
+            return <TrendingDataTable Data={data as Table.ITrendingDataData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
 
-        return <CommonTable Data={data} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
+        return <CommonTable Data={data as Table.ICommonData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
     }, [props.Tab, data, props.TimeContext, props.TargetDate]);
 
     if (data.length === 0 || props.TargetDate == null || props.TimeContext === 'custom') return null
@@ -85,7 +85,7 @@ const TableWrapper = (props: IProps) => {
 
 //Render Function
 export function renderTableWrapper(div, siteID, targetDate, currentTab, globalContext) {
-    let container = document.getElementById(div)
+    const container = document.getElementById(div)
     if (container != null)
         ReactDOM.render(<TableWrapper SiteID={siteID} TargetDate={targetDate} Tab={currentTab} TimeContext={globalContext} />, container);
 }

@@ -23,139 +23,40 @@
 
 import * as React from 'react';
 import _ from 'lodash';
-import { PQDashboard } from '../global';
+import { Table } from './interfaces';
 import { ReactTable } from '@gpa-gemstone/react-table';
 import { ReactIcons } from '@gpa-gemstone/gpa-symbols';
 import moment from 'moment';
 
-interface IFaultData {
-    FaultID: number,
-    Site: string,
-    ShortName: string,
-    LocationName: string,
-    MeterID: number,
-    LineID: number,
-    EventID: number,
-    AssetName: string,
-    AssetType: string,
-    kV: number,
-    InceptionTime: string,
-    FaultType: string,
-    TreeFaultResistance: any //retype 
-    LightningMilliseconds: any //retype,
-    InceptionDistanceFromPeak: any,//retype 
-    PrefaultThirdHarmonic: any,//retype 
-    GroundCurrentRatio: number,
-    LowPrefaultCurrentRatio: number,
-    CurrentDistance: string,
-    noteCount: number,
-    RK: number,
-}
-
-interface ICompletenessData {
-    EventID: number,
-    MeterID: number,
-    Site: string,
-    Expected: number,
-    Received: number,
-    Completeness: number
-}
-
-interface ICorrectnessData {
-    EventID: number,
-    MeterID: number,
-    Site: string,
-    Latched: number,
-    Unreasonable: number,
-    Noncongruent: number,
-    Correctness: number
-}
-
-interface IBreakersData {
-    EventID: number,
-    MeterID: number,
-    LineName: string,
-    Energized: string,
-    BreakerNumber: any,
-    PhaseName: any,
-    Timing: number,
-    StatusTiming: number,
-    Speed: any,
-    Chatter: any,
-    DcOffset: any,
-    OperationType: any,
-    notecount: any
-}
-
-interface IExtensionsData {
-    EventID: number,
-    Site: string
-}
-
-interface ITrendingData {
-    MeterID: number,
-    ChannelID: number,
-    Site: string,
-    EventType: string,
-    Characteristic: string,
-    MeasurementType: string,
-    PhaseName: string,
-    HarmonicGroup: string,
-    EventCount: number,
-    Date: string
-}
-
-interface ITrendingDataData {
-    MeterID: number,
-    Site: string,
-    ChannelID: number,
-    Date: string,
-    Minimum: number,
-    Maximum: number,
-    Average: number,
-    Characteristic: string,
-    MeasurementType: string,
-    PhaseName: string
-}
-
-interface ITableProps<T> {
-    Data: T[],
-    Tab: PQDashboard.Tab,
-    TimeContext: PQDashboard.TimeContext,
-    TargetDate: string | null,
-}
-
-interface ICommonData {
-    MeterID: number,
-    Site: string,
-    EventID: number,
-}
 
 declare let homePath;
 declare let seBrowserInstance;
 declare let openSEEInstance;
 
+export const CommonTable = (props: Table.ITableProps<Table.ICommonData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.ICommonData>('Site');
+    const [data, setData] = React.useState<Table.ICommonData[]>(props.Data);
 
-export const CommonTable = (props: ITableProps<ICommonData>) => {
     const Columns = React.useMemo(() => {
         if (props.Data.length === 0 || props.Data == null) return []
         return Object.keys(props.Data[0]).filter(key => key != 'Site' && key != 'EventID' && key != 'MeterID')
     }, [props.Data])
 
     return (
-        <ReactTable.Table<ICommonData>
+        <ReactTable.Table<Table.ICommonData>
             TableClass="table table-hover"
             TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
             TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
             TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
             RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
-            Data={props.Data}
-            SortKey=''
-            Ascending={false}
-            OnSort={() => { }}
+            Data={data}
+            SortKey={sortField}
+            Ascending={ascending}
+            OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
             KeySelector={(row, index) => index ?? -1}
         >
-            <ReactTable.Column<ICommonData>
+            <ReactTable.Column<Table.ICommonData>
                 Key={'Site'}
                 Field={'Site'}
                 Content={({ item }) => {
@@ -170,34 +71,37 @@ export const CommonTable = (props: ITableProps<ICommonData>) => {
                 Name
             </ReactTable.Column>
             {Columns.map((col, index) => (
-                <ReactTable.Column<ICommonData>
+                <ReactTable.Column<Table.ICommonData>
                     Key={`${col}-${index}`}
-                    Field={`${col as keyof ICommonData}`}
+                    Field={`${col as keyof Table.ICommonData}`}
                 >
                     {col}
                 </ReactTable.Column>
             ))}
-
         </ReactTable.Table>
     )
 }
 
-export const FaultsTable = (props: ITableProps<IFaultData>) => {
+export const FaultsTable = (props: Table.ITableProps<Table.IFaultData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.IFaultData>('AssetName');
+    const [data, setData] = React.useState<Table.IFaultData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table
+            <ReactTable.Table<Table.IFaultData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'InceptionTime'}
                     Field={'InceptionTime'}
                     Content={({ item }) => {
@@ -206,48 +110,48 @@ export const FaultsTable = (props: ITableProps<IFaultData>) => {
                 >
                     Start Time
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'AssetName'}
                     Field={'AssetName'}
                 >
                     Asset
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'AssetType'}
                     Field={'AssetType'}
                 >
                     Asset Type
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'kV'}
                     Field={'kV'}
                 />
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'FaultType'}
                     Field={'FaultType'}
                 >
                     Type
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'CalcCause'}
                     Field={'FaultType'}
                     Content={({ item }) => findFaultCause(item)}
                 >
                     Calc. Cause
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'CurrentDistance'}
                     Field={'CurrentDistance'}
                 >
                     Miles
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'LocationName'}
                     Field={'LocationName'}
                 >
                     Location
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'openSEE'}
                     Field={'LocationName'}
                     Content={({ item }) => {
@@ -256,7 +160,7 @@ export const FaultsTable = (props: ITableProps<IFaultData>) => {
                 >
                     {'\u200B'}
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'faultSpecific'}
                     Field={'LocationName'}
                     Content={({ item }) => {
@@ -265,7 +169,7 @@ export const FaultsTable = (props: ITableProps<IFaultData>) => {
                 >
                     {'\u200B'}
                 </ReactTable.Column>
-                <ReactTable.Column<IFaultData>
+                <ReactTable.Column<Table.IFaultData>
                     Key={'Notes'}
                     Field={'LocationName'}
                     Content={({ item }) => {
@@ -279,38 +183,42 @@ export const FaultsTable = (props: ITableProps<IFaultData>) => {
     )
 }
 
-export const CompletenessTable = (props: ITableProps<ICompletenessData>) => {
+export const CompletenessTable = (props: Table.ITableProps<Table.ICompletenessData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.ICompletenessData>('Site');
+    const [data, setData] = React.useState<Table.ICompletenessData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<ICompletenessData>
+            <ReactTable.Table<Table.ICompletenessData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<ICompletenessData>
+                <ReactTable.Column<Table.ICompletenessData>
                     Key={'Site'}
                     Field={'Site'}
                 >
                     Name
                 </ReactTable.Column>
-                <ReactTable.Column<ICompletenessData>
+                <ReactTable.Column<Table.ICompletenessData>
                     Key={'Expected'}
                     Field={'Expected'}
                 >
                 </ReactTable.Column>
-                <ReactTable.Column<ICompletenessData>
+                <ReactTable.Column<Table.ICompletenessData>
                     Key={'Received'}
                     Field={'Received'}
                 >
                 </ReactTable.Column>
-                <ReactTable.Column<ICompletenessData>
+                <ReactTable.Column<Table.ICompletenessData>
                     Key={'Completeness'}
                     Field={'Completeness'}
                     Content={({ item }) => {
@@ -319,7 +227,7 @@ export const CompletenessTable = (props: ITableProps<ICompletenessData>) => {
                 >
                     Complete
                 </ReactTable.Column>
-                <ReactTable.Column<ICompletenessData>
+                <ReactTable.Column<Table.ICompletenessData>
                     Key={'CompletenessTable'}
                     Field={'Completeness'}
                     Content={({ item }) => {
@@ -334,28 +242,32 @@ export const CompletenessTable = (props: ITableProps<ICompletenessData>) => {
 }
 
 
-export const CorrectnessTable = (props: ITableProps<ICorrectnessData>) => {
+export const CorrectnessTable = (props: Table.ITableProps<Table.ICorrectnessData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.ICorrectnessData>('Site');
+    const [data, setData] = React.useState<Table.ICorrectnessData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<ICorrectnessData>
+            <ReactTable.Table<Table.ICorrectnessData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'Site'}
                     Field={'Site'}
                 >
                     Name
                 </ReactTable.Column>
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'Latched'}
                     Field={'Latched'}
                     Content={({ item }) => {
@@ -363,7 +275,7 @@ export const CorrectnessTable = (props: ITableProps<ICorrectnessData>) => {
                     }}
                 >
                 </ReactTable.Column>
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'Unreasonable'}
                     Field={'Unreasonable'}
                     Content={({ item }) => {
@@ -371,21 +283,21 @@ export const CorrectnessTable = (props: ITableProps<ICorrectnessData>) => {
                     }}
                 >
                 </ReactTable.Column>
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'Noncongruent'}
                     Field={'Noncongruent'}
                     Content={({ item }) => {
                         return `${item.Noncongruent.toFixed(0)}%`
                     }}
                 />
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'Correctness'}
                     Field={'Correctness'}
                     Content={({ item }) => {
                         return `${item.Correctness.toFixed(0)}%`
                     }}
                 />
-                <ReactTable.Column<ICorrectnessData>
+                <ReactTable.Column<Table.ICorrectnessData>
                     Key={'CorrectnessTable'}
                     Field={'Correctness'}
                     Content={({ item }) => {
@@ -399,28 +311,32 @@ export const CorrectnessTable = (props: ITableProps<ICorrectnessData>) => {
     )
 }
 
-export const BreakersTable = (props: ITableProps<IBreakersData>) => {
+export const BreakersTable = (props: Table.ITableProps<Table.IBreakersData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.IBreakersData>('LineName');
+    const [data, setData] = React.useState<Table.IBreakersData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<IBreakersData>
+            <ReactTable.Table<Table.IBreakersData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'LineName'}
                     Field={'LineName'}
                 >
                     Line
                 </ReactTable.Column>
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'Energized'}
                     Field={'Energized'}
                     Content={({ item }) => {
@@ -428,32 +344,32 @@ export const BreakersTable = (props: ITableProps<IBreakersData>) => {
                     }}
                 >
                 </ReactTable.Column>
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'PhaseName'}
                     Field={'PhaseName'}
                 >
                     Phase
                 </ReactTable.Column>
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'Timing'}
                     Field={'Timing'}
 
                 />
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'StatusTiming'}
                     Field={'StatusTiming'}
                 >
                     Status Timing
                 </ReactTable.Column>
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'Speed'}
                     Field={'Speed'}
                 />
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'OperationType'}
                     Field={'OperationType'}
                 />
-                <ReactTable.Column<IBreakersData>
+                <ReactTable.Column<Table.IBreakersData>
                     Key={'notecount'}
                     Field={'notecount'}
                     Content={({ item }) => {
@@ -466,22 +382,26 @@ export const BreakersTable = (props: ITableProps<IBreakersData>) => {
 }
 
 
-export const ExtensionsTable = (props: ITableProps<IExtensionsData>) => {
+export const ExtensionsTable = (props: Table.ITableProps<Table.IExtensionsData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.IExtensionsData>('Site');
+    const [data, setData] = React.useState<Table.IExtensionsData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<IExtensionsData>
+            <ReactTable.Table<Table.IExtensionsData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<IExtensionsData>
+                <ReactTable.Column<Table.IExtensionsData>
                     Key={'Site'}
                     Field={'Site'}
                     Content={({ item }) => {
@@ -495,56 +415,60 @@ export const ExtensionsTable = (props: ITableProps<IExtensionsData>) => {
     )
 }
 
-export const TrendingTable = (props: ITableProps<ITrendingData>) => {
+export const TrendingTable = (props: Table.ITableProps<Table.ITrendingData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.ITrendingData>('Site');
+    const [data, setData] = React.useState<Table.ITrendingData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<ITrendingData>
+            <ReactTable.Table<Table.ITrendingData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'Site'}
                     Field={'Site'}
                 >
                     Name
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'EventType'}
                     Field={'EventType'}
                 >
                     Alarm Type
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'Characteristic'}
                     Field={'Characteristic'}
                 />
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'PhaseName'}
                     Field={'PhaseName'}
                 >
                     Phase
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'HarmonicGroup'}
                     Field={'HarmonicGroup'}
                 >
                     HG
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'EventCount'}
                     Field={'EventCount'}
                 >
                     Count
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingData>
+                <ReactTable.Column<Table.ITrendingData>
                     Key={'openSTE'}
                     Field={'EventCount'}
                     Content={({ item }) => {
@@ -558,50 +482,54 @@ export const TrendingTable = (props: ITableProps<ITrendingData>) => {
     )
 }
 
-export const TrendingDataTable = (props: ITableProps<ITrendingDataData>) => {
+export const TrendingDataTable = (props: Table.ITableProps<Table.ITrendingDataData>) => {
+    const [ascending, setAscending] = React.useState<boolean>(false);
+    const [sortField, setSortField] = React.useState<keyof Table.ITrendingDataData>('Site');
+    const [data, setData] = React.useState<Table.ITrendingDataData[]>(props.Data);
+
     return (
         <>
-            <ReactTable.Table<ITrendingDataData>
+            <ReactTable.Table<Table.ITrendingDataData>
                 TableClass="table table-hover"
                 TableStyle={{ width: 'calc(100%)', height: '100%', tableLayout: 'fixed', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 TheadStyle={{ fontSize: 'auto', tableLayout: 'fixed', display: 'table', width: '100%' }}
                 TbodyStyle={{ display: 'block', overflowY: 'scroll', flex: 1 }}
                 RowStyle={{ fontSize: 'smaller', display: 'table', tableLayout: 'fixed', width: '100%' }}
                 Data={props.Data}
-                SortKey=''
-                Ascending={false}
-                OnSort={() => { }}
+                SortKey={sortField}
+                Ascending={ascending}
+                OnSort={d => d.colField != null ? sort(d.colField, d.ascending, ascending, sortField, setSortField, setAscending, setData, data) : null}
                 KeySelector={(row, index) => index ?? -1}
             >
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'Site'}
                     Field={'Site'}
                 >
                     Name
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'Characteristic'}
                     Field={'Characteristic'}
                 />
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'PhaseName'}
                     Field={'PhaseName'}
                 >
                     Phase
                 </ReactTable.Column>
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'Minimum'}
                     Field={'Minimum'}
                 />
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'Maximum'}
                     Field={'Maximum'}
                 />
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'Average'}
                     Field={'Average'}
                 />
-                <ReactTable.Column<ITrendingDataData>
+                <ReactTable.Column<Table.ITrendingDataData>
                     Key={'openSTE'}
                     Field={'Average'}
                     Content={({ item }) => {
@@ -616,7 +544,17 @@ export const TrendingDataTable = (props: ITableProps<ITrendingDataData>) => {
 }
 
 //Helper Functions
-const findFaultCause = (item: IFaultData) => {
+function sort<T>(newField: keyof T, newAscend: boolean, curAscending: boolean, curSortField: keyof T, setSortField: (field: keyof T) => void, setAscending: (ascend: boolean) => void, setData: (data: T[]) => void, data: T[]) {
+    const updatedAscend = curSortField === newField ? !curAscending : newAscend
+    if (newField === curSortField)
+        setAscending(updatedAscend);
+    else
+        setSortField(newField);
+
+    setData(_.orderBy(data, newField, [updatedAscend ? "asc" : "desc"]));
+}
+
+const findFaultCause = (item: Table.IFaultData) => {
     let cause = "unknown";
     let highFound = false;
     let medFound = false;
