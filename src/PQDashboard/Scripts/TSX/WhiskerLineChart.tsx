@@ -27,9 +27,6 @@ import * as _ from 'lodash';
 import moment from 'moment';
 import { Plot, WhiskerLine } from '@gpa-gemstone/react-graph';
 import { getFormattedDate } from './BarChart';
-import { ToolTip } from '@gpa-gemstone/react-interactive';
-import { ReactIcons } from '@gpa-gemstone/gpa-symbols';
-import { ReactTable } from '@gpa-gemstone/react-table';
 import { PQDashboard } from './global';
 import { renderTableWrapper } from './DetailTables/TableWrapper';
 
@@ -138,7 +135,7 @@ const WhiskerLineChart = (props: IProps) => {
         }).done((data: ITrendingData[]) => {
             if (data !== null) {
                 const map = new Map<number, IGraphData[]>()
-                let graphData: [number, IGraphData[]][] = []
+                const graphData: [number, IGraphData[]][] = []
 
                 if (data.length !== 0 && data != null)
                     data.map(d => {
@@ -226,7 +223,7 @@ const WhiskerLineChart = (props: IProps) => {
 
 //Render function
 export function renderWhiskerLineChart(div, siteID, thedatefrom, thedateto, tab, timeContext, xLimits) {
-    let container = document.getElementById(div)
+    const container = document.getElementById(div)
     if (container != null)
         ReactDOM.render(
             <WhiskerLineChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={tab} TimeContext={timeContext} XLimits={xLimits}/>, container);

@@ -20,7 +20,7 @@
 //       Generated original version of source code.
 //
 //******************************************************************************************************
-export { };
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export namespace PQDashboard {
     type TimeContext = ("custom" | "day" | 'hour' | 'minute' | 'second')

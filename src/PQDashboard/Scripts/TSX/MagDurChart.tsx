@@ -26,9 +26,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Line, Plot, Circle } from '@gpa-gemstone/react-graph';
 import { OpenXDA } from "@gpa-gemstone/application-typings"
-import { LoadingIcon } from "@gpa-gemstone/react-interactive"
 
-declare var homePath;
+declare let homePath;
 
 interface IProps {
     meterIDs: string,
@@ -154,7 +153,7 @@ const MagDurChart: React.FC<IProps> = (props: IProps) => {
 };
 
 export function renderMagDurChart(meterIDs, startDate, endDate, context, aggregatingCircles) {
-    let container = document.getElementById("OverviewDisturbancesMagDur")
-    if (container)
+    const container = document.getElementById("OverviewDisturbancesMagDur")
+    if (container != null)
         ReactDOM.render(<MagDurChart aggregatingCircles={aggregatingCircles} meterIDs={meterIDs} startDate={startDate} endDate={endDate} context={context} />, container);
 }

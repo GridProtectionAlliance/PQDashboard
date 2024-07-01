@@ -11,6 +11,8 @@
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/ban-types": "error",
     "no-empty-pattern": "error",
+    "@typescript-eslint/no-explicit-any": "error", 
+    "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
