@@ -1430,15 +1430,16 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\TSX\BarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Plots\BarChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\DetailTables\interfaces.d.ts" />
     <TypeScriptCompile Include="Scripts\TSX\global.d.ts" />
-    <TypeScriptCompile Include="Scripts\TSX\MagDurChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Plots\MagDurChart.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\MeterEventsByLine.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\NavBar.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\Table.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\DetailTables\Tables.tsx" />
     <TypeScriptCompile Include="Scripts\TSX\DetailTables\TableWrapper.tsx" />
-    <TypeScriptCompile Include="Scripts\TSX\WhiskerLineChart.tsx" />
+    <TypeScriptCompile Include="Scripts\TSX\Plots\WhiskerLineChart.tsx" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

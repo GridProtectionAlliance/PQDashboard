@@ -27,8 +27,8 @@ import * as _ from 'lodash';
 import moment from 'moment';
 import { Plot, WhiskerLine } from '@gpa-gemstone/react-graph';
 import { getFormattedDate } from './BarChart';
-import { PQDashboard } from './global';
-import { renderTableWrapper } from './DetailTables/TableWrapper';
+import { PQDashboard } from '../global';
+import { renderTableWrapper } from '../DetailTables/TableWrapper';
 
 interface IProps {
     SiteID: string,

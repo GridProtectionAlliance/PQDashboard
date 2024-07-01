@@ -27,8 +27,8 @@ import moment from 'moment';
 import { Plot, Bar, BarGroup } from '@gpa-gemstone/react-graph';
 import { ReactIcons } from '@gpa-gemstone/gpa-symbols';
 import { ReactTable } from '@gpa-gemstone/react-table';
-import { PQDashboard } from './global';
-import { renderTableWrapper } from './DetailTables/TableWrapper';
+import { PQDashboard } from '../global';
+import { renderTableWrapper } from '../DetailTables/TableWrapper';
 
 interface IProps {
     SiteID: string,

@@ -12,10 +12,10 @@ module.exports = {
     entry: {
         //PQDashboard: "./TSX/PQDashboard/PQDashboard.tsx",
         MeterEventsByLine: "./TSX/MeterEventsByLine.tsx",
-        MagDurChart: "./TSX/MagDurChart.tsx",
+        MagDurChart: "./TSX/Plots/MagDurChart.tsx",
         NavBar: "./TSX/NavBar.tsx",
-        BarChart: "./TSX/BarChart.tsx",
-        WhiskerLine: "./TSX/WhiskerLineChart.tsx"
+        BarChart: "./TSX/Plots/BarChart.tsx",
+        WhiskerLine: "./TSX/Plots/WhiskerLineChart.tsx"
     },
     output: {
         path: path.resolve(__dirname, 'Scripts'),
