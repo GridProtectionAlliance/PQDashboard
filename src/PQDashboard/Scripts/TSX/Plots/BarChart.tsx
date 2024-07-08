@@ -25,9 +25,8 @@ import * as ReactDOM from 'react-dom';
 import * as _ from 'lodash';
 import moment from 'moment';
 import { Plot, Bar, BarGroup } from '@gpa-gemstone/react-graph';
-import { ReactIcons } from '@gpa-gemstone/gpa-symbols';
-import { ReactTable } from '@gpa-gemstone/react-table';
 import { PQDashboard } from '../global';
+import { ContextManager } from './ContextManager';
 import { renderTableWrapper } from '../DetailTables/TableWrapper';
 
 interface IProps {
@@ -47,70 +46,20 @@ interface IGraphData {
     Color: string
 }
 
-interface IHoverData {
-    Key: string,
-    Value: number | string
-}
-
-interface IWindow extends Window {
-    //Temp function from Default.js to essentially rerender map and grid until they get moved to React Components
-    getLocationsAndPopulateMapAndMatrix: (tab: PQDashboard.Tab, startDate: string, endDate: string, string: string/*not sure what string is for? */, timeContext: PQDashboard.TimeContext) => void
-}
-
 declare let homePath;
 
 const contexts = ['custom', 'day', 'hour', 'minute', 'second'];
 
 const BarChart = (props: IProps) => {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
-    const hoverContainerRef = React.useRef<HTMLDivElement | null>(null);
 
     const [plotSize, setPlotSize] = React.useState<{ Height: number, Width: number }>({ Height: 0, Width: 0 });
     const [graphData, setGraphData] = React.useState<IGraphData[]>([]);
-    const [dataMap, setDataMap] = React.useState<Map<number, IGraphData> | null>(null);
 
     const [yLimits, setYLimits] = React.useState<[number, number]>([0, 0])
 
-    const [hoverPosition, setHoverPosition] = React.useState<React.CSSProperties | null>(null);
-    const [hoverTimePoint, setHoverTimePoint] = React.useState<number | null>(null);
-
-    const hoverContent = React.useMemo(() => {
-        if (hoverTimePoint == null || dataMap == null) return <></>
-        const matchedData = dataMap.get(hoverTimePoint);
-        if (matchedData == null) return <></>
-        const data: [IHoverData] = [{ Key: 'Date', Value: getFormattedDate(hoverTimePoint, props.TimeContext) }];
-        const keys = Object.keys(matchedData).map(d => d);
-        data.push(...keys.map(key => ({ Key: key, Value: matchedData[key] })));
-        return (
-            <div ref={hoverContainerRef}>
-                <ReactTable.Table<IHoverData>
-                    Data={data}
-                    SortKey=''
-                    Ascending={false}
-                    OnSort={() => {/* nothing */}}
-                    KeySelector={(row, index) => index ?? -1}
-                >
-                    <ReactTable.Column<IHoverData>
-                        Key={`Key`}
-                        Field={'Key'}
-                    >
-                        {'\u200B'}
-                    </ReactTable.Column>
-                    <ReactTable.Column<IHoverData>
-                        Key={`Value`}
-                        Field={`Value`}
-                        RowStyle={{ textAlign: 'right' }}
-                    >
-                        {'\u200B'}
-                    </ReactTable.Column>
-                </ReactTable.Table>
-            </div>
-        )
-
-    }, [hoverTimePoint, dataMap])
-
-
     React.useEffect(() => {
+        //Temp until the layout is converted to React components(need to render in a certain div)
         renderTableWrapper(`Detail${props.Tab}`, props.SiteID, getFormattedDate(props.XLimits?.[0], props.TimeContext), props.Tab, props.TimeContext)
     }, [props.TimeContext, props.Tab, props.XLimits, props.SiteID])
 
@@ -148,7 +97,7 @@ const BarChart = (props: IProps) => {
     };
 
     React.useEffect(() => {
-        if (props.TimeContext === 'second' || props.XLimits == null) return;
+        if (props.XLimits == null) return;
         const startDate = getFormattedDate(props.XLimits[0], props.TimeContext)
         const endDate = props.TimeContext == 'custom' ? getFormattedDate(props.XLimits[1], props.TimeContext) : startDate
 
@@ -163,22 +112,19 @@ const BarChart = (props: IProps) => {
         }).done(data => {
             if (data !== null) {
                 const graphDataArray: IGraphData[] = [];
-                const graphDataMap = new Map();
+                const timeTotalMap = new Map<number, number>()
 
                 data.Types.forEach(type => {
                     const dataPoints = type.Data.map(dataPoint => {
                         const date = moment.utc(dataPoint.m_Item1).valueOf();
                         const value = dataPoint.m_Item2;
 
-                        if (!graphDataMap.has(date))
-                            graphDataMap.set(date, { Total: 0 });
+                        if (!timeTotalMap.has(date))
+                            timeTotalMap.set(date, 0);
 
-                        const dateObj = graphDataMap.get(date);
-                        dateObj[type.Name] = value;
-                        dateObj.Total += value;
-
-                        graphDataMap.set(date, dateObj);
-
+                        let total = timeTotalMap.get(date) as number;
+                        total += value;
+                        timeTotalMap.set(date, total)
                         return [date, value];
                     });
 
@@ -189,10 +135,8 @@ const BarChart = (props: IProps) => {
                     });
                 });
                 const min = Math.min(...graphDataArray.flatMap(dd => dd.DataPoints.map(d => d[1])));
-                const max = Math.max(...Array.from(graphDataMap.values()).map(d => d.Total));
-
+                const max = Math.max(...Array.from(timeTotalMap.values()));
                 setYLimits([min, max])
-                setDataMap(graphDataMap);
                 setGraphData(graphDataArray);
                 updateMapHeaderDate(moment.utc(data.StartDate).valueOf(), moment.utc(data.EndDate).valueOf(), props.TimeContext, props.Tab);
             }
@@ -207,20 +151,13 @@ const BarChart = (props: IProps) => {
             updateMapHeaderDate(startTime, startTime, 'day', props.Tab);
             const startDate = getFormattedDate(startTime, props.TimeContext);
 
-            (window as unknown as IWindow)?.getLocationsAndPopulateMapAndMatrix(props.Tab, startDate, startDate, '', props.TimeContext);
-            return;
-        }
-
-        if (props.TimeContext === 'second') {
-            const startTime = moment(time).utc().startOf(props.TimeContext).valueOf()
-            updateUrlParams('contextDate', getFormattedDate(startTime, startTime));
-            (window as unknown as IWindow)?.getLocationsAndPopulateMapAndMatrix(props.Tab, getFormattedDate(startTime, props.TimeContext), getFormattedDate(startTime, props.TimeContext), '', props.TimeContext);
+            (window as unknown as PQDashboard.IWindow)?.getLocationsAndPopulateMapAndMatrix(props.Tab, startDate, startDate, '', props.TimeContext);
             return;
         }
 
         const newContext = handleTimeContext(true);
-        if(newContext == null) return;
-        
+        if (newContext == null) return;
+
         const startTime = moment(time).utc().startOf(newContext === 'custom' ? 'day' : newContext).valueOf()
         const endTime = moment(time).utc().endOf(newContext === 'custom' ? 'day' : newContext).valueOf()
 
@@ -231,13 +168,16 @@ const BarChart = (props: IProps) => {
         const endDate = props.TimeContext !== 'custom' ? startDate : getFormattedDate(endTime, props.TimeContext);
 
         //Temp function from Default.js to essentially rerender map and grid until they get moved to React Components
-        (window as unknown as IWindow)?.getLocationsAndPopulateMapAndMatrix(props.Tab, getFormattedDate(startTime, props.TimeContext), endDate, '', props.TimeContext);
+        (window as unknown as PQDashboard.IWindow)?.getLocationsAndPopulateMapAndMatrix(props.Tab, getFormattedDate(startTime, props.TimeContext), endDate, '', props.TimeContext);
     }
 
     const handleTimeContext = (leftToRight: boolean) => {
         if (leftToRight) {
             if (contexts.indexOf(props.TimeContext) < contexts.length - 1) {
                 const newContext = contexts[contexts.indexOf(props.TimeContext) + 1] as PQDashboard.TimeContext
+                if(newContext === 'second')
+                    return props.TimeContext
+                
                 props.SetTimeContext(newContext);
                 updateUrlParams('context', newContext)
                 return newContext
@@ -259,30 +199,10 @@ const BarChart = (props: IProps) => {
         }
     }
 
-    const handleHover = (time, left, top) => {
-        if (isNaN(time) || isNaN(left) || isNaN(top)) {
-            setHoverPosition(null);
-            setHoverTimePoint(null);
-            return;
-        }
-
-        if (hoverPosition?.left != left || hoverPosition?.top != top)
-            setHoverPosition({ left, top });
-
-        if (hoverTimePoint != time)
-            setHoverTimePoint(time);
-    }
-
     return (
         <>
             <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', overflow: 'hidden' }}>
-                {props.TimeContext != 'custom' ?
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <button className="btn" onClick={() => props.SetXLimits(moveTimeDomainBackwards(props.TimeContext, props.XLimits))}><ReactIcons.ArrowBackward Size={7} /></button>
-                        <span onClick={() => handleTimeContext(false)}>Step Out</span>
-                        <button className="btn" onClick={() => props.SetXLimits(moveTimeDomainForward(props.TimeContext, props.XLimits))}><ReactIcons.ArrowForward Size={7} /></button>
-                    </div>
-                    : null}
+                <ContextManager TimeContext={props.TimeContext} XLimits={props.XLimits} SetTimeContext={props.SetTimeContext} SetXLimits={props.SetXLimits} />
                 <div style={{ display: 'flex', flexGrow: 1, flexShrink: 1, overflow: 'hidden' }} ref={containerRef}>
                     <Plot
                         height={plotSize.Height}
@@ -303,29 +223,20 @@ const BarChart = (props: IProps) => {
                         menuLocation={'right'}
                         onSelect={x => handleOnClick(x)}
                         defaultMouseMode='select'
+                        snapMouse={true}
                     >
-                        <BarGroup>
+                        <BarGroup ShowHoverInfoBox={true}>
                             {graphData.map((d, index) => (d.DataPoints != null && d.DataPoints.length !== 0) ? (
-                                <Bar key={index} OnHover={(time, left, top) => handleHover(time, left, top - 100)} Data={d.DataPoints} Color={d.Color} Legend={d.Name} Opacity={1} StrokeColor='gray' StrokeWidth={0.5} />
+                                <Bar key={index} Data={d.DataPoints} Color={d.Color} Legend={d.Name} Opacity={1} StrokeColor='gray' StrokeWidth={0.5}/>
                             ) : null)}
                         </BarGroup>
                     </Plot>
-                    {hoverPosition != null ? <div className='tooltip' style={{ ...hoverPosition, pointerEvents: 'none', top: getHoverTop(containerRef.current?.offsetHeight ?? 0, hoverContainerRef.current?.offsetHeight ?? 0, hoverPosition?.top as number ?? 0) }}>{hoverContent}</div> : null}
                 </div>
             </div>
         </>)
 }
 
-
 //Helper functions
-const getHoverTop = (containerHeight: number, hoverContentHeight: number, currentTop: number): number => {
-    if (hoverContentHeight + currentTop > containerHeight)
-        return containerHeight - hoverContentHeight
-    if (currentTop < 0)
-        return 0
-    return currentTop
-}
-
 export const getFormattedDate = (date, timeContext): string => {
     if (date == null) return "";
     if (timeContext == "day")
@@ -353,38 +264,12 @@ const stepDomainOut = (timeContext: PQDashboard.TimeContext, domain: [number, nu
     return [newStartTime, newEndTime]
 }
 
-const moveTimeDomainForward = (timeContext: PQDashboard.TimeContext, domain: [number, number] | null): [number, number] => {
-    if (domain == null) return [0, 0]
-    let newStartTime: number = domain[0];
-    let newEndTime: number = domain[1];
-
-    if (timeContext != 'custom' && contexts.includes(timeContext)) {
-        newStartTime = moment(domain[0]).utc().startOf(`${timeContext}`).add(1, `${timeContext}`).valueOf();
-        newEndTime = moment(newStartTime).utc().endOf(`${timeContext}`).valueOf();
-    }
-    updateUrlParams('contextDate', getFormattedDate(newStartTime, timeContext));
-    return [newStartTime, newEndTime]
-}
-
 function updateUrlParams(param, value) {
     const urlParams = new URLSearchParams(window.location.search);
 
     const paramValue = value.toLowerCase();
     urlParams.set(param, paramValue);
     history.pushState(null, '', "?" + urlParams.toString());
-}
-
-function moveTimeDomainBackwards(timeContext: PQDashboard.TimeContext, domain: [number, number] | null): [number, number] {
-    if (domain == null) return [0, 0]
-    let newStartTime: number = domain[0];
-    let newEndTime: number = domain[1];
-
-    if (timeContext != 'custom' && ['day', 'hour', 'minute', 'second'].includes(timeContext)) {
-        newStartTime = moment(domain[0]).utc().startOf(`${timeContext}`).subtract(1, `${timeContext}`).valueOf();
-        newEndTime = moment(newStartTime).utc().endOf(`${timeContext}`).valueOf();
-    }
-    updateUrlParams('contextDate', getFormattedDate(newStartTime, timeContext));
-    return [newStartTime, newEndTime]
 }
 
 //Temp JQuery function as these havent been moved to react componets yet..
@@ -443,8 +328,8 @@ function getTimeRangeFromDatePicker(timeContext): [number, number] {
 
 
 //Render function
-export function renderBarChart(div, siteID, thedatefrom, thedateto, currentTab, globalContext, setTimeContext, XLimits, setXLimits) {
-    const container = document.getElementById(div)
+export function renderBarChart(siteID, thedatefrom, thedateto, currentTab, globalContext, setTimeContext, XLimits, setXLimits) {
+    const container = document.getElementById(`Overview${currentTab}`)
     if (container != null)
         ReactDOM.render(
             <BarChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={currentTab} TimeContext={globalContext} SetTimeContext={setTimeContext} XLimits={XLimits} SetXLimits={setXLimits} />, container);
