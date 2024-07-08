@@ -55,6 +55,8 @@ const TableWrapper = (props: IProps) => {
     }, [props])
 
     const renderTable = React.useCallback(() => {
+        if(props.TimeContext == 'custom') 
+            return <></>
         if (props.Tab === "Completeness")
             return <CompletenessTable Data={data as Table.ICompletenessData[]} Tab={props.Tab} TimeContext={props.TimeContext} TargetDate={props.TargetDate} />
         if (props.Tab === "Faults")

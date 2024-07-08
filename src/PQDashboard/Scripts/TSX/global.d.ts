@@ -23,6 +23,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export namespace PQDashboard {
-    type TimeContext = ("custom" | "day" | 'hour' | 'minute' | 'second')
-    type Tab = ("MeterActivity" | "Events" | "Disturbances" | "Faults" | "Breakers"  | "Extensions" | "Trending" | "TrendingData" | "Completeness" | "Correctness")
+    type TimeContext = ("custom" | "day" | 'hour' | 'minute' | 'second');
+    type Tab = ("MeterActivity" | "Events" | "Disturbances" | "Faults" | "Breakers"  | "Extensions" | "Trending" | "TrendingData" | "Completeness" | "Correctness");
+    
+    //Temporary interface until react port is finished
+    interface IWindow extends Window {
+        //Temp function from Default.js to essentially rerender map and grid until they get moved to React Components
+        getLocationsAndPopulateMapAndMatrix: (tab: PQDashboard.Tab, startDate: string, endDate: string, string: string/*not sure what string is for? */, timeContext: PQDashboard.TimeContext) => void,
+        selectMeterGroup: (selectedMeterID: string) => void
+    }
 }
