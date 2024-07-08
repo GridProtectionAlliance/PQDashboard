@@ -58,43 +58,18 @@ const WhiskerLineChart = (props: IProps) => {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
 
     const [plotSize, setPlotSize] = React.useState<{ Height: number, Width: number }>({ Height: 0, Width: 0 });
-    const [plotData, setPlotData] = React.useState<[number, IGraphData[]][]>([]);
-
-    const [dataMap, setDataMap] = React.useState<Map<number, IGraphData[]>>(new Map());
+    const [plotData, setPlotData] = React.useState<[number, number[]][]>([]);
 
     const [xLimits, setXLimits] = React.useState<[number, number]>([moment.utc(props.StartDate).valueOf(), moment.utc(props.EndDate).valueOf()]);
     const [yLimits, setYLimits] = React.useState<[number, number]>([0, 1]);
-    const [hoverPosition, setHoverPosition] = React.useState<React.CSSProperties | null>(null);
-    const [clickPosition, setClickPosition] = React.useState<React.CSSProperties | null>(null);
-    const [hoverData, setHoverData] = React.useState<IGraphData | null>(null);
-    const [clickData, setClickData] = React.useState<IGraphData | null>(null);
-
-    const hoverContent = React.useMemo(() => {
-        if (hoverData == null || dataMap == null || hoverPosition == null) return <></>
-        return (
-            <div className='tooltip' style={{ ...hoverPosition, pointerEvents: 'none' }}>
-                <p>{`${hoverData.Name}: ${hoverData.Value.toFixed(3)}`}</p>
-            </div>
-        )
-
-    }, [hoverData, dataMap, hoverPosition])
-
-    const clickContent = React.useMemo(() => {
-        if (clickData == null || dataMap == null || clickPosition == null) return <></>
-        return (
-            <div className="tooltip" style={{ ...clickPosition }}>
-                <p>{`${clickData.Name}: ${clickData.Value.toFixed(3)}`}</p>
-            </div>
-        )
-
-    }, [clickData, dataMap, clickPosition])
 
     React.useEffect(() => {
         setXLimits([moment.utc(props.StartDate).valueOf(), moment.utc(props.EndDate).valueOf()]);
     }, [props.StartDate, props.EndDate])
 
-
+    
     React.useEffect(() => {
+        //Temp until the layout is converted to React components(need to render in a certain div)
         renderTableWrapper(`Detail${props.Tab}`, props.SiteID, getFormattedDate(props.XLimits?.[0], props.TimeContext), props.Tab, props.TimeContext)
     }, [props.TimeContext, props.Tab, props.XLimits, props.SiteID])
 
@@ -134,59 +109,21 @@ const WhiskerLineChart = (props: IProps) => {
             async: true
         }).done((data: ITrendingData[]) => {
             if (data !== null) {
-                const map = new Map<number, IGraphData[]>()
-                const graphData: [number, IGraphData[]][] = []
+                const graphData: [number, number[]][] = []
 
                 if (data.length !== 0 && data != null)
                     data.map(d => {
-                        const newData: IGraphData[] = [{ Name: 'Minimum', Value: d.Minimum, Color: 'black' }, { Name: 'Average', Value: d.Average, Color: 'green' }, { Name: 'Maximum', Value: d.Maximum, Color: 'black' }]
-                        map.set(new Date(d.Date).valueOf(), newData)
-                        graphData.push([new Date(d.Date).valueOf(), newData])
+                        graphData.push([new Date(d.Date).valueOf(), [d.Minimum, d.Average, d.Maximum]])
                     })
 
-                const yMin = Math.min(...graphData.flatMap(d => d[1].flatMap(dd => dd.Value)));
-                const yMax = Math.max(...graphData.flatMap(d => d[1].flatMap(dd => dd.Value)));
+                const yMin = Math.min(...graphData.flatMap(d => d[1].flatMap(dd => dd)));
+                const yMax = Math.max(...graphData.flatMap(d => d[1].flatMap(dd => dd)));
                 setYLimits([yMin, yMax]);
                 setPlotData(graphData)
-                setDataMap(map);
             }
         })
     }, [props.SiteID, props.StartDate, props.EndDate, xLimits]);
 
-    const handleOnHover = (xValue: number, yValue: number, left: number, top: number) => {
-        if (isNaN(xValue), isNaN(yValue), isNaN(left), isNaN(top)) {
-            setHoverPosition(null);
-            setHoverData(null);
-            return;
-        }
-
-        if (hoverPosition?.left != left || hoverPosition?.top != top)
-            setHoverPosition({ left, top });
-
-        const matchedX = dataMap.get(xValue)
-        if (matchedX != null) {
-            const matchedData = matchedX.find(d => d.Value === yValue)
-            if (matchedData != null && !_.isEqual(matchedData, hoverData))
-                setHoverData(matchedData)
-        }
-
-    }
-
-    const handleOnClick = (xValue: number, yValue: number, left: number, top: number) => {
-        if (isNaN(xValue) || isNaN(yValue) || isNaN(left) || isNaN(top)) {
-            setClickPosition(null);
-            setClickData(null);
-            return;
-        }
-
-        const data = dataMap.get(xValue);
-        if (data == null) return;
-
-        const matchedData = data.find(d => d.Value === yValue)
-        if (matchedData == null) return;
-        setClickData(matchedData);
-        setClickPosition({ left, top })
-    }
 
     return (
         <>
@@ -210,11 +147,8 @@ const WhiskerLineChart = (props: IProps) => {
                         legendWidth={300}
                         menuLocation={'right'}
                     >
-                        <WhiskerLine Data={plotData} Legend={"Trending Data"} Color={''} OnHover={handleOnHover} OnClick={handleOnClick} />
+                        <WhiskerLine Data={plotData} Legend={"Trending Data"} Names={['Minimum', 'Average', 'Maximum']} Colors={['black','#00FF00']} ShowClickInfoBox={true} ShowHoverInfoBox={true}/>
                     </Plot>
-                    {hoverContent}
-                    {clickContent}
-
                 </div>
             </div>
         </>)
@@ -226,5 +160,5 @@ export function renderWhiskerLineChart(div, siteID, thedatefrom, thedateto, tab,
     const container = document.getElementById(div)
     if (container != null)
         ReactDOM.render(
-            <WhiskerLineChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={tab} TimeContext={timeContext} XLimits={xLimits} />, container);
+            <WhiskerLineChart SiteID={siteID} StartDate={thedatefrom} EndDate={thedateto} Tab={tab} TimeContext={timeContext} XLimits={xLimits}/>, container);
 }
