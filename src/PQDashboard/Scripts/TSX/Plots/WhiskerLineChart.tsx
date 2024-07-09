@@ -112,13 +112,11 @@ const WhiskerLineChart = (props: IProps) => {
                 const graphData: [number, number[]][] = []
 
                 if (data.length !== 0 && data != null)
-                    data.map(d => {
-                        graphData.push([new Date(d.Date).valueOf(), [d.Minimum, d.Average, d.Maximum]])
-                    })
+                    data.forEach(d =>  graphData.push([new Date(d.Date).valueOf(), [parseFloat(d.Minimum.toFixed(5)), parseFloat(d.Average.toFixed(5)), parseFloat(d.Maximum.toFixed(5))]]) )
 
                 const yMin = Math.min(...graphData.flatMap(d => d[1].flatMap(dd => dd)));
                 const yMax = Math.max(...graphData.flatMap(d => d[1].flatMap(dd => dd)));
-                setYLimits([yMin, yMax]);
+                setYLimits([Math.floor(yMin), Math.ceil(yMax)]);
                 setPlotData(graphData)
             }
         })
@@ -146,6 +144,7 @@ const WhiskerLineChart = (props: IProps) => {
                         useMetricFactors={false}
                         legendWidth={300}
                         menuLocation={'right'}
+                        snapMouse={true}
                     >
                         <WhiskerLine Data={plotData} Legend={"Trending Data"} Names={['Minimum', 'Average', 'Maximum']} Colors={['black','#00FF00']} ShowClickInfoBox={true} ShowHoverInfoBox={true}/>
                     </Plot>
