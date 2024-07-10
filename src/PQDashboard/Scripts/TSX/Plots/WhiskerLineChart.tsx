@@ -122,7 +122,6 @@ const WhiskerLineChart = (props: IProps) => {
         })
     }, [props.SiteID, props.StartDate, props.EndDate, xLimits]);
 
-
     return (
         <>
             <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', overflow: 'hidden' }}>
@@ -144,7 +143,6 @@ const WhiskerLineChart = (props: IProps) => {
                         useMetricFactors={false}
                         legendWidth={300}
                         menuLocation={'right'}
-                        snapMouse={true}
                     >
                         <WhiskerLine Data={plotData} Legend={"Trending Data"} Names={['Minimum', 'Average', 'Maximum']} Colors={['black','#00FF00']} ShowClickInfoBox={true} ShowHoverInfoBox={true}/>
                     </Plot>
@@ -152,7 +150,6 @@ const WhiskerLineChart = (props: IProps) => {
             </div>
         </>)
 }
-
 
 //Render function
 export function renderWhiskerLineChart(div, siteID, thedatefrom, thedateto, tab, timeContext, xLimits) {

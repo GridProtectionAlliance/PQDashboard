@@ -223,7 +223,6 @@ const BarChart = (props: IProps) => {
                         menuLocation={'right'}
                         onSelect={x => handleOnClick(x)}
                         defaultMouseMode='select'
-                        snapMouse={true}
                     >
                         <BarGroup ShowHoverInfoBox={true}>
                             {graphData.map((d, index) => (d.DataPoints != null && d.DataPoints.length !== 0) ? (
