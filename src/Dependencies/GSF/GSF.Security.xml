@@ -101,10 +101,12 @@
             Gets the last exception, if any, encountered after getting a new Graph service client.
             </summary>
         </member>
-        <member name="M:GSF.Security.AzureADSettings.GetGraphClient(System.String)">
+        <member name="M:GSF.Security.AzureADSettings.GetGraphClient(System.String,System.Boolean)">
             <summary>
             Gets a new Graph service client.
             </summary>
+            <param name="settingsCategory">Settings category to use for determine configuration location.</param>
+            <param name="forceRefresh">Set to <c>true</c> to force refresh of Azure AD token.</param>
             <returns>New Graph service client when Azure AD is enabled; otherwise, <c>null</c>.</returns>
         </member>
         <member name="M:GSF.Security.AzureADSettings.Load(System.String)">
@@ -476,6 +478,31 @@
             Default value for <see cref="P:GSF.Security.AdoSecurityProvider.UseDatabaseLogging"/>.
             </summary>
         </member>
+        <member name="F:GSF.Security.AdoSecurityProvider.DefaultMessageUserNotDefined">
+            <summary>
+            Default message displayed when user is not defined.
+            </summary>
+        </member>
+        <member name="F:GSF.Security.AdoSecurityProvider.DefaultMessageUserIsDisabled">
+            <summary>
+            Default message displayed when user is disabled.
+            </summary>
+        </member>
+        <member name="F:GSF.Security.AdoSecurityProvider.DefaultMessageUserIsLockedOut">
+            <summary>
+            Default message displayed when user is locked out.
+            </summary>
+        </member>
+        <member name="F:GSF.Security.AdoSecurityProvider.DefaultMessageUserPasswordExpired">
+            <summary>
+            Default message displayed when password is expired or has not been set.
+            </summary>
+        </member>
+        <member name="F:GSF.Security.AdoSecurityProvider.DefaultMessageUserHasNoRoles">
+            <summary>
+            Default message displayed when user is not a member of any roles.
+            </summary>
+        </member>
         <member name="F:GSF.Security.AdoSecurityProvider.ProviderID">
             <summary>
             Defines the provider ID for the <see cref="T:GSF.Security.AdoSecurityProvider"/>.
@@ -663,6 +690,11 @@
         <member name="P:GSF.Security.Model.AccessLog.AccessGranted">
             <summary>
             Access granted flag field.
+            </summary>
+        </member>
+        <member name="P:GSF.Security.Model.AccessLog.NodeID">
+            <summary>
+            Node ID of the Application.
             </summary>
         </member>
         <member name="P:GSF.Security.Model.AccessLog.CreatedOn">

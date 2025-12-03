@@ -22,13 +22,13 @@
             </summary>
             <param name="acronym">Acronym of device.</param>
         </member>
-        <member name="M:PhasorWebUI.PhasorConfigController.GetConfigurationCacheFileName(System.String)">
+        <member name="M:PhasorWebUI.PhasorConfigController.GetJsonConfigurationFileName(System.String)">
             <summary>
-            Gets the file name of the configuration cache file for the device with the given acronym.
+            Gets the file name of the JSON configuration file for the device with the given acronym.
             </summary>
             <param name="acronym">Acronym of device.</param>
         </member>
-        <member name="M:PhasorWebUI.PhasorConfigController.GetConfigurationCachePath">
+        <member name="M:PhasorWebUI.PhasorConfigController.GetJsonConfigurationPath">
             <summary>
             Gets the path to the configuration cache directory.
             </summary>
@@ -158,14 +158,13 @@
             #     Tag Name-&gt;Inputs-&gt;Equation-&gt;Type-&gt;Description
             #
             # For custom action adapter types, the format can be interpreted as:
-            #     Tag Name = Adapter Instance Name
-            #     Inputs = Connection String
+            #     Tag Name = Adapter Instance Name (allows {DEVICE} template expression for device acronym)
+            #     Inputs = Connection String (allows {DEVICE} template expression for device acronym)
             #     Equation = Assembly Name (i.e., DLL file name)
             #     Type = Fully Qualified Type Name
             #     Description = Local Comments
             #
-            # Otherwise format defines dynamic signal based calculations based on input configuration:
-            #     Tag Name = Identifier [rest of string was truncated]&quot;;.
+            # Oth [rest of string was truncated]&quot;;.
              </summary>
         </member>
     </members>
