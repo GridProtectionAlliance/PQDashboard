@@ -57,7 +57,6 @@
         ViewBag.scInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'SCInstance'");
         ViewBag.openSEEInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'OpenSEEInstance'");
         ViewBag.seBrowserInstance = connection.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Name = 'SEBrowserInstance'");
-
     }
 
     using (DataContext dataContext = new DataContext("dbOpenXDA"))
@@ -86,11 +85,14 @@
         ViewBag.arcGisBase = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
     }
 
-    int defaulAssetGroupID = -1;
+    int defaultAssetGroupID;
 
-    if (assetGroups.Any())
+    if (!int.TryParse(ViewBag.AssetGroup, out defaultAssetGroupID) || !assetGroups.Any(g => g.ID == defaultAssetGroupID))
     {
-        defaulAssetGroupID = assetGroups.First().ID;
+        defaultAssetGroupID = assetGroups
+            .Select(assetGroup => assetGroup.ID)
+            .DefaultIfEmpty(-1)
+            .First();
     }
 
     string[] tabs = new[] { "Events", "Disturbances", "Faults", "Breakers", "Extensions", "Trending", "Completeness", "Correctness" };
@@ -122,7 +124,7 @@
         }
     </style>
     <script>
-        var mg = @defaulAssetGroupID;
+        var mg = @defaultAssetGroupID;
         var homePath = '@Html.Raw(Url.Content("~/"))';
         var historianConnection = '@historianConnection';
         var xdaInstance = '@Html.Raw(ViewBag.xdaInstance)';
