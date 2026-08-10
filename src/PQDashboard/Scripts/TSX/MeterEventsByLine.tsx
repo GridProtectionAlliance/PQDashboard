@@ -119,7 +119,7 @@ class MeterEventByLine extends React.Component<{}, { Data: Array<EventData>, Sor
                 <div style={{ height: 'calc(100% - 23px)', width: '100%' }}>
                     <Table<EventData>
                         cols={[
-                            { key: 'StartTime', label: 'Start Time', headerStyle: { width: '30%' }, rowStyle: { width: '30%' }, content: (item, key, style) => <a href={`${xdaInstance}/Workbench/Event.cshtml?EventID=${item.EventID}`} style={{ color: 'blue', backgroundColor: (item.UpdatedBy ? 'yellow' : null) }} target='_blank' title={(item.UpdatedBy ? 'This event has been edited.' : "")}>{item.StartTime}</a> },
+                            { key: 'StartTime', label: 'Start Time', headerStyle: { width: '30%' }, rowStyle: { width: '30%' }, content: (item, key, style) => <a href={`${xdaInstance}/Workbench/Event.cshtml?EventID=${item.EventID}`} style={{ color: 'blue', backgroundColor: (item.UpdatedBy ? 'yellow' : undefined) }} target='_blank' title={(item.UpdatedBy ? 'This event has been edited.' : "")}>{item.StartTime}</a> },
                             { key: 'EventType', label: 'Event Type', headerStyle: { width: '20%' }, rowStyle: { width: '20%' } },
                             { key: 'AssetName', label: 'Asset', headerStyle: { width: '20%' }, rowStyle: { width: '20%' } },
                             { key: 'KV', label: 'KV', headerStyle: { width: '10%' }, rowStyle: { width: '10%' } },

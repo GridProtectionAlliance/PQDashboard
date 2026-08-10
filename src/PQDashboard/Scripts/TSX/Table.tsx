@@ -89,12 +89,13 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
         return this.props.data.map((item, index) => {
             const cells = this.props.cols.map(colData => {
                 const style = _.clone(colData.rowStyle);
+                const key = colData.key;
                 return <td
-                    key={index.toString() + item[colData.key] + colData.key}
+                    key={index.toString() + (key == null ? '' : item[key]) + key}
                     style={style}
-                    onClick={this.handleClick.bind(this, { col: colData.key, row: item, data: item[colData.key] })}
+                    onClick={key == null ? undefined : this.handleClick.bind(this, { col: key, row: item, data: item[key] })}
                 >
-                    {colData.content != undefined ? colData.content(item, colData.key, style) : item[colData.key]}
+                    {key == null ? null : (colData.content != undefined ? colData.content(item, key, style) : item[key])}
                 </td>
             });
 
@@ -109,7 +110,7 @@ export default class Table<T> extends React.Component<TableProps<T>, {}> {
             if (style.cursor == undefined)
                 style.cursor = 'pointer';
 
-            if (this.props.selected(item))
+            if (this.props.selected != undefined && this.props.selected(item))
                 style.backgroundColor = 'yellow';
 
             return <tr style={style} key={index.toString()}>{cells}</tr>;
